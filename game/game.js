@@ -84,12 +84,22 @@ window.addEventListener('resize', function (event) {
 //    var game = new Controller();
 //};
 var Enemy = /** @class */ (function () {
-    function Enemy(scene, sprite) {
+    function Enemy(scene, enemySpawner, posi, lbl, lblStyle) {
+        this.inStop = false;
         this.scene = scene;
-        this.sprite = sprite;
+        this.enemySpawner = enemySpawner;
+        this.parentContainer = enemySpawner.container;
+        this.lbl = lbl;
+        this.lblStyle = lblStyle;
+        this.text = this.scene.add.text(0, 0, lbl, lblStyle);
+        this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;
+        this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
+        this.inner = this.scene.add.container(posi.x, posi.y);
+        this.parentContainer.add(this.inner);
+        this.inner.add(this.text);
         this.dest = new Phaser.Geom.Point(0, 0);
         this.duration = 6000;
-        this.stopDistance = 100;
+        this.stopDistance = 110;
     }
     Enemy.prototype.update = function (dt) {
         // let posi = myMove(this.sprite, this.dest, this.speed * dt );
@@ -98,14 +108,16 @@ var Enemy = /** @class */ (function () {
         this.checkIfReachEnd();
     };
     Enemy.prototype.checkIfReachEnd = function () {
-        var dis = distance(this.dest, this.sprite);
+        if (this.inStop)
+            return;
+        var dis = distance(this.dest, this.inner);
         if (dis < this.stopDistance)
             this.stopRun();
     };
     Enemy.prototype.startRun = function () {
-        this.sprite.alpha = 0; // muse init from here, or it will have a blink
+        this.inner.alpha = 0; // muse init from here, or it will have a blink
         this.mvTween = this.scene.tweens.add({
-            targets: this.sprite,
+            targets: this.inner,
             x: this.dest.x,
             y: this.dest.y,
             alpha: {
@@ -117,11 +129,17 @@ var Enemy = /** @class */ (function () {
         });
     };
     Enemy.prototype.stopRun = function () {
+        var thisEnemy = this;
+        this.inStop = true;
         this.mvTween.stop();
         this.fadeTween = this.scene.tweens.add({
-            targets: this.sprite,
+            targets: this.inner,
             alpha: 0,
-            duration: 300
+            duration: 300,
+            onComplete: function () {
+                thisEnemy.enemySpawner.removeEnemy(thisEnemy);
+                thisEnemy.inner.destroy();
+            }
         });
     };
     return Enemy;
@@ -136,10 +154,10 @@ var EnemySpawner = /** @class */ (function () {
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = {
             fontSize: '32px',
-            fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif"
+            fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
         this.enemyRunDuration = 6000;
-        this.spawnRadius = 400;
+        this.spawnRadius = 500;
     }
     EnemySpawner.prototype.startSpawn = function () {
         this.spawnTween = this.scene.tweens.add({
@@ -156,16 +174,19 @@ var EnemySpawner = /** @class */ (function () {
         });
     };
     EnemySpawner.prototype.spawn = function () {
-        console.log("Spawn");
         var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
         var posi = this.getSpawnPoint();
-        var lbl = this.scene.add.text(posi.x, posi.y, this.labels[lblIndex], this.lblStyl);
-        lbl.setOrigin(0.5);
-        var enemy = new Enemy(this.scene, lbl);
-        this.container.add(lbl);
+        var enemy = new Enemy(this.scene, this, posi, this.labels[lblIndex], this.lblStyl);
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
         enemy.startRun();
+    };
+    EnemySpawner.prototype.removeEnemy = function (enemy) {
+        for (var i in this.enemies) {
+            if (this.enemies[i] == enemy) {
+                this.enemies.splice(parseInt(i), 1);
+            }
+        }
     };
     EnemySpawner.prototype.update = function (time, dt) {
         dt = dt / 1000;
@@ -174,6 +195,8 @@ var EnemySpawner = /** @class */ (function () {
         for (var i in this.enemies) {
             this.enemies[i].update(dt);
         }
+        // console.log("Enemy count:" + this.enemies.length);
+        // console.log("Children count: " + this.container.getAll().length);
     };
     EnemySpawner.prototype.getSpawnPoint = function () {
         var pt = new Phaser.Geom.Point(0, 0);
@@ -196,7 +219,6 @@ var PlayerInputText = /** @class */ (function () {
         this.y = -6 - this.fontSize;
         this.maxCount = 11;
         this.text; // main text input
-        console.log("inito");
         this.circle;
     }
     PlayerInputText.prototype.init = function (circle) {
@@ -282,5 +304,36 @@ function myMove(from, to, mv) {
     var ratio = mv / d;
     var rt = { x: from.x + diffX * ratio, y: from.y + diffY * ratio };
     return rt;
+}
+function getFormData($form) {
+    var unindexed_array = $form.serializeArray();
+    var indexed_array = {};
+    $.map(unindexed_array, function (n, i) {
+        indexed_array[n['name']] = n['value'];
+    });
+    return indexed_array;
+}
+function formatTwoParamsInput(param1, param2) {
+    var ob = { arg1: param1, arg2: param2 };
+    return JSON.stringify(ob);
+}
+function api2WithTwoParams(arg1, arg2, suc, err) {
+    var inputString = formatTwoParamsInput(arg1, arg2);
+    api2(inputString, suc, err);
+}
+function api2(input, suc, err) {
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        contentType: 'application/json;charset=UTF-8',
+        url: "/api_2",
+        data: input,
+        success: function (result) {
+            suc(result);
+        },
+        error: function (result) {
+            err(result);
+        }
+    });
 }
 //# sourceMappingURL=game.js.map

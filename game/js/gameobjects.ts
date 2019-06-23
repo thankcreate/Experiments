@@ -1,21 +1,47 @@
 class Enemy {
 
     scene: Phaser.Scene;
-    sprite: Phaser.GameObjects.Text;
+    inner: Phaser.GameObjects.Container;
+    parentContainer: Phaser.GameObjects.Container;
+    enemySpawner: EnemySpawner;
+
+    lbl: string;
+    lblStyle: object;
+
+    text: Phaser.GameObjects.Text;
+
     dest: Phaser.Geom.Point;
-    duration;
-    stopDistance;
+    duration: number;
+    stopDistance: number;
 
     mvTween: Phaser.Tweens.Tween;
     fadeTween: Phaser.Tweens.Tween;
 
 
-    constructor(scene, sprite) {
+    inputAngle: number;
+    constructor(scene, enemySpawner: EnemySpawner, posi, lbl, lblStyle) {
         this.scene = scene;
-        this.sprite = sprite;
+        this.enemySpawner = enemySpawner;
+        this.parentContainer = enemySpawner.container;
+        this.lbl = lbl;
+        this.lblStyle = lblStyle;
+
+
+        this.text = this.scene.add.text(0, 0, lbl, lblStyle);
+        this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;        
+        this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
+
+        
+        this.inner = this.scene.add.container(posi.x, posi.y);
+        this.parentContainer.add(this.inner);        
+        this.inner.add(this.text);
+
         this.dest = new Phaser.Geom.Point(0, 0);
         this.duration = 6000;
-        this.stopDistance = 100;
+        this.stopDistance = 110;
+
+        
+        
     }
 
     update(dt) {
@@ -27,15 +53,20 @@ class Enemy {
     }
 
     checkIfReachEnd() {
-        let dis = distance(this.dest, this.sprite);
+        if (this.inStop)
+            return;
+
+        
+
+        let dis = distance(this.dest, this.inner);        
         if (dis < this.stopDistance)
             this.stopRun();
     }
 
     startRun() {
-        this.sprite.alpha = 0; // muse init from here, or it will have a blink
+        this.inner.alpha = 0; // muse init from here, or it will have a blink
         this.mvTween = this.scene.tweens.add({
-            targets: this.sprite,
+            targets: this.inner,
             x: this.dest.x,
             y: this.dest.y,
             alpha: {
@@ -47,25 +78,34 @@ class Enemy {
         });
     }
 
-    stopRun() {
+    inStop: boolean = false;
+    stopRun() {        
+        let thisEnemy = this;
+
+        this.inStop = true; 
         this.mvTween.stop();
         this.fadeTween = this.scene.tweens.add({
-            targets: this.sprite,
+            targets: this.inner,
             alpha: 0,
-            duration: 300
+            duration: 300,
+            onComplete: function () {
+                thisEnemy.enemySpawner.removeEnemy(thisEnemy);
+                thisEnemy.inner.destroy();
+            }
         });
     }
+
+    
 }
 
 class EnemySpawner {
-
     scene: Phaser.Scene;
-    container: Phaser.GameObjects.Container;
+    container: Phaser.GameObjects.Container; // main scene container
 
     interval;
     dummy;
 
-    enemies;
+    enemies: Enemy[];
     labels;
 
     lblStyl;
@@ -90,11 +130,11 @@ class EnemySpawner {
 
         this.lblStyl = {
             fontSize: '32px',
-            fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif"
+            fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
 
         this.enemyRunDuration = 6000;
-        this.spawnRadius = 400;
+        this.spawnRadius = 500;
     }
 
     startSpawn() {
@@ -116,18 +156,23 @@ class EnemySpawner {
     }
 
     spawn() {
-        console.log("Spawn");
 
         var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
         var posi = this.getSpawnPoint();
-        var lbl = this.scene.add.text(posi.x, posi.y, this.labels[lblIndex], this.lblStyl);
-        lbl.setOrigin(0.5);
-        var enemy = new Enemy(this.scene, lbl);
-        this.container.add(lbl);
+        var enemy = new Enemy(this.scene, this, posi, this.labels[lblIndex], this.lblStyl);
+
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
 
         enemy.startRun();
+    }
+
+    removeEnemy(enemy: Enemy) {
+        for (let i in this.enemies) {
+            if (this.enemies[i] == enemy) {
+                this.enemies.splice(parseInt(i), 1);
+            }
+        }
     }
 
     update(time, dt) {
@@ -138,6 +183,10 @@ class EnemySpawner {
         for (let i in this.enemies) {
             this.enemies[i].update(dt);
         }
+        
+
+        // console.log("Enemy count:" + this.enemies.length);
+        // console.log("Children count: " + this.container.getAll().length);
     }
 
     getSpawnPoint() {
@@ -175,7 +224,7 @@ class PlayerInputText {
         this.y = -6 - this.fontSize;
         this.maxCount = 11;
         this.text; // main text input
-        console.log("inito");
+
         this.circle;
     }
 
@@ -188,12 +237,14 @@ class PlayerInputText {
 
 
         this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));
+
     }
 
     keydown(event) {
+      
         var t = this.text.text;
         var code = event.keyCode;
-
+        
         if (code == Phaser.Input.Keyboard.KeyCodes.BACKSPACE /* backspace */
             || code == Phaser.Input.Keyboard.KeyCodes.DELETE /* delete*/) {
             if (t.length > 0) {

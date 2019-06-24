@@ -14,9 +14,11 @@ var config = {
 };
 
 
+
 var game = new Phaser.Game(config);
 
 window.addEventListener('resize', function (event) {
+    let fuck = 1;
     myResize();
 }, false);
 

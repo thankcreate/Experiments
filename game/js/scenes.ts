@@ -19,7 +19,7 @@ class Scene1 extends Phaser.Scene {
     labels;
     lblStyl;
     container: Phaser.GameObjects.Container;
-    enemySpawner: EnemySpawner;
+    enemySpawner: EnemyManager;
     playerInput: PlayerInputText;
 
     constructor() {
@@ -51,7 +51,7 @@ class Scene1 extends Phaser.Scene {
         this.playerInput.init(this.circle);
 
         // enemies
-        this.enemySpawner = new EnemySpawner(this, this.container);
+        this.enemySpawner = new EnemyManager(this, this.container);
         this.enemySpawner.startSpawn();
     }
 

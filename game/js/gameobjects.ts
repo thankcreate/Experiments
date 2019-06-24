@@ -22,8 +22,6 @@ class Enemy {
     inputAngle: number;
     health: number = 1;
 
-
-
     constructor(scene, enemySpawner: EnemySpawner, posi, lbl, lblStyle) {        
         this.scene = scene;
         this.enemySpawner = enemySpawner;

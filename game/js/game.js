@@ -1,3 +1,4 @@
+"use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -11,78 +12,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var Controller = /** @class */ (function (_super) {
-    __extends(Controller, _super);
-    function Controller() {
-        return _super.call(this, 'Controller') || this;
-    }
-    Controller.prototype.preload = function () {
-    };
-    Controller.prototype.create = function () {
-        this.scene.launch('Scene1');
-        myResize();
-    };
-    return Controller;
-}(Phaser.Scene));
-var Scene1 = /** @class */ (function (_super) {
-    __extends(Scene1, _super);
-    function Scene1() {
-        var _this = _super.call(this, 'Scene1') || this;
-        _this.circle;
-        _this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
-        _this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
-        _this.container;
-        _this.enemySpawner;
-        return _this;
-    }
-    Scene1.prototype.preload = function () {
-        this.load.image('circle', 'assets/circle.png');
-    };
-    Scene1.prototype.create = function () {
-        this.container = this.add.container(400, 299);
-        // center
-        // circle
-        this.circle = this.add.image(0, 0, 'circle').setScale(1.5);
-        this.container.add(this.circle);
-        // input area
-        this.playerInput = new PlayerInputText(this, this.container);
-        this.playerInput.init(this.circle);
-        // enemies
-        this.enemySpawner = new EnemySpawner(this, this.container);
-        this.enemySpawner.startSpawn();
-    };
-    Scene1.prototype.update = function (time, dt) {
-        dt = dt / 1000;
-        var w = getLogicWidth();
-        var h = config.scale.height;
-        this.container.setPosition(w / 2, h / 2);
-        this.enemySpawner.update(time, dt);
-        this.playerInput.update(time, dt);
-        // var c = new Phaser.Geom.Point(1,1);
-        // this.testLbl.setText(kk);
-    };
-    return Scene1;
-}(Phaser.Scene));
-/// <reference path="js/scenes.ts" />
-var config = {
-    type: Phaser.AUTO,
-    backgroundColor: '#EEEEEE',
-    scale: {
-        mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
-        parent: 'phaser-example',
-        width: 8000,
-        height: 1200,
-        minWidth: 1200
-    },
-    scene: [Controller, Scene1]
-};
-var game = new Phaser.Game(config);
-window.addEventListener('resize', function (event) {
-    myResize();
-}, false);
-//window.onload = () => {
-//    var game = new Controller();
-//};
 var Enemy = /** @class */ (function () {
     function Enemy(scene, enemySpawner, posi, lbl, lblStyle) {
         this.stopDistance = 125;
@@ -320,6 +249,78 @@ var PlayerInputText = /** @class */ (function () {
     };
     return PlayerInputText;
 }());
+var Controller = /** @class */ (function (_super) {
+    __extends(Controller, _super);
+    function Controller() {
+        return _super.call(this, 'Controller') || this;
+    }
+    Controller.prototype.preload = function () {
+    };
+    Controller.prototype.create = function () {
+        this.scene.launch('Scene1');
+        myResize();
+    };
+    return Controller;
+}(Phaser.Scene));
+var Scene1 = /** @class */ (function (_super) {
+    __extends(Scene1, _super);
+    function Scene1() {
+        var _this = _super.call(this, 'Scene1') || this;
+        _this.circle;
+        _this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
+        _this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
+        _this.container;
+        _this.enemySpawner;
+        return _this;
+    }
+    Scene1.prototype.preload = function () {
+        this.load.image('circle', 'assets/circle.png');
+    };
+    Scene1.prototype.create = function () {
+        this.container = this.add.container(400, 299);
+        // center
+        // circle
+        this.circle = this.add.image(0, 0, 'circle').setScale(1.5);
+        this.container.add(this.circle);
+        // input area
+        this.playerInput = new PlayerInputText(this, this.container);
+        this.playerInput.init(this.circle);
+        // enemies
+        this.enemySpawner = new EnemySpawner(this, this.container);
+        this.enemySpawner.startSpawn();
+    };
+    Scene1.prototype.update = function (time, dt) {
+        dt = dt / 1000;
+        var w = getLogicWidth();
+        var h = config.scale.height;
+        this.container.setPosition(w / 2, h / 2);
+        this.enemySpawner.update(time, dt);
+        this.playerInput.update(time, dt);
+        // var c = new Phaser.Geom.Point(1,1);
+        // this.testLbl.setText(kk);
+    };
+    return Scene1;
+}(Phaser.Scene));
+/// <reference path="scenes.ts" />
+var config = {
+    type: Phaser.AUTO,
+    backgroundColor: '#EEEEEE',
+    scale: {
+        mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+        parent: 'phaser-example',
+        width: 8000,
+        height: 1200,
+        minWidth: 1200
+    },
+    scene: [Controller, Scene1]
+};
+var game = new Phaser.Game(config);
+window.addEventListener('resize', function (event) {
+    myResize();
+}, false);
+//window.onload = () => {
+//    var game = new Controller();
+//};
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
 function getLogicWidth() {
@@ -409,4 +410,3 @@ function api3WithTwoParams(inputString, arrayStrings, suc, err) {
     var data = formatArrayParamsInput(inputString, arrayStrings);
     api3(data, suc, err);
 }
-//# sourceMappingURL=game.js.map

@@ -24,7 +24,7 @@ class Enemy {
 
 
 
-    constructor(scene, enemySpawner: EnemySpawner, posi, lbl, lblStyle) {
+    constructor(scene, enemySpawner: EnemySpawner, posi, lbl, lblStyle) {        
         this.scene = scene;
         this.enemySpawner = enemySpawner;
         this.parentContainer = enemySpawner.container;
@@ -33,9 +33,6 @@ class Enemy {
 
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
-
-
-
         // textt
         this.text = this.scene.add.text(0, 0, lbl, lblStyle);
         this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;        
@@ -235,8 +232,8 @@ class EnemySpawner {
         }
     }
 
-    findEnemyByName(name: string): Enemy {
-        let ret: Enemy = null;
+    findEnemyByName(name: string): Enemy | null {
+        let ret: Enemy | null = null;
         for (let i in this.enemies) {
             let e = this.enemies[i];
             if (e.lbl === name) {
@@ -343,7 +340,7 @@ class PlayerInputText {
             function err(res) {
                 console.log("API3 failed");
             }
-        );
+        );        
     }
 
     

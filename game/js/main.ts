@@ -1,4 +1,4 @@
-﻿/// <reference path="js/scenes.ts" />
+﻿/// <reference path="scenes.ts" />
 
 var config = {
     type: Phaser.AUTO,

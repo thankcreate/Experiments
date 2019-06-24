@@ -113,7 +113,21 @@
         }
 
         function magic() {
-            api3();
+            // api3();
+            test();
+        }
+
+        function test(){
+
+            var c = (function() {
+                function tron() {
+                    alert("you fool");
+                }
+                return tron;
+            } ());
+            
+            var ins = new c();
+            
         }
 
         $('#form1').keydown(function (e) {

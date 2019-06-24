@@ -9,16 +9,21 @@ class Enemy {
     lblStyle: object;
 
     text: Phaser.GameObjects.Text;
+    healthText: Phaser.GameObjects.Text;
 
     dest: Phaser.Geom.Point;
     duration: number;
-    stopDistance: number;
+    stopDistance: number = 125;
 
     mvTween: Phaser.Tweens.Tween;
     fadeTween: Phaser.Tweens.Tween;
 
 
     inputAngle: number;
+    health: number = 1;
+
+
+
     constructor(scene, enemySpawner: EnemySpawner, posi, lbl, lblStyle) {
         this.scene = scene;
         this.enemySpawner = enemySpawner;
@@ -26,21 +31,25 @@ class Enemy {
         this.lbl = lbl;
         this.lblStyle = lblStyle;
 
+        this.inner = this.scene.add.container(posi.x, posi.y);
+        this.parentContainer.add(this.inner);
 
+
+
+        // textt
         this.text = this.scene.add.text(0, 0, lbl, lblStyle);
         this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;        
         this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
-
-        
-        this.inner = this.scene.add.container(posi.x, posi.y);
-        this.parentContainer.add(this.inner);        
         this.inner.add(this.text);
 
-        this.dest = new Phaser.Geom.Point(0, 0);
-        this.duration = 6000;
-        this.stopDistance = 110;
+        // healthText
+        let lb = this.text.getBottomLeft();
+        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), lblStyle);
+        this.healthText.setOrigin(0, 0);
+        this.inner.add(this.healthText);
 
-        
+
+        this.dest = new Phaser.Geom.Point(0, 0);
         
     }
 
@@ -79,8 +88,10 @@ class Enemy {
     }
 
     inStop: boolean = false;
-    stopRun() {        
+    stopRun() {   
         let thisEnemy = this;
+
+        thisEnemy.enemySpawner.removeEnemy(thisEnemy);
 
         this.inStop = true; 
         this.mvTween.stop();
@@ -89,13 +100,21 @@ class Enemy {
             alpha: 0,
             duration: 300,
             onComplete: function () {
-                thisEnemy.enemySpawner.removeEnemy(thisEnemy);
+                
                 thisEnemy.inner.destroy();
             }
         });
     }
 
-    
+    damage(val: number) {
+        console.log(this.lbl + " damaged by " + val);
+        this.health -= val;
+        if (this.health < 0) {
+            this.stopRun();
+        }
+        this.health = Math.max(0, this.health);
+        this.healthText.setText(this.health.toString());
+    }
 }
 
 class EnemySpawner {
@@ -120,7 +139,7 @@ class EnemySpawner {
         this.scene = scene;
         this.container = container;
 
-        this.interval = 4000;
+        this.interval = 3000;
         this.dummy = 1;
 
         this.enemies = [];
@@ -133,7 +152,7 @@ class EnemySpawner {
             fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
 
-        this.enemyRunDuration = 6000;
+        this.enemyRunDuration = 10000;
         this.spawnRadius = 500;
     }
 
@@ -197,29 +216,60 @@ class EnemySpawner {
 
         return pt;
     }
+
+    // api3 callback
+    confirmCallbackSuc(res) {
+        var ar = res.outputArray;
+        for (let i in ar) {
+            let entry = ar[i];
+            let entryName = ar[i].name;
+            let entryValue = ar[i].value;
+
+            // since network has latency, 
+            // the enemy could have been eliminated when the callback is invoked
+            // we need to be careful about the availability of the enemy
+            let enemy = this.findEnemyByName(entryName);
+            if (enemy) {
+                enemy.damage(entryValue);
+            }
+        }
+    }
+
+    findEnemyByName(name: string): Enemy {
+        let ret: Enemy = null;
+        for (let i in this.enemies) {
+            let e = this.enemies[i];
+            if (e.lbl === name) {
+                ret = e;
+                break;
+            }            
+        }
+        
+        return ret;
+    }
+
 }
 
 class PlayerInputText {
 
-    scene: Phaser.Scene;
-    container: Phaser.GameObjects.Container;
+    scene: Scene1;
+    parentContainer: Phaser.GameObjects.Container;
     fontSize;
     lblStyl;
     maxCount;
-    text;
+    text: Phaser.GameObjects.Text;
     circle;
-
     y;
-    constructor(scene, container) {
+
+    constructor(scene: Scene1, container) {
         this.scene = scene;
-        this.container = container;
+        this.parentContainer = container;
 
         this.fontSize = 32;
         this.lblStyl = {
             fontSize: this.fontSize + 'px',
             fill: '#FFFFFF', fontFamily: "Georgia, serif"
         };
-
 
         this.y = -6 - this.fontSize;
         this.maxCount = 11;
@@ -233,7 +283,7 @@ class PlayerInputText {
         var circleWidth = this.circle.getBounds().width;
         this.text = this.scene.add.text(- circleWidth / 2 * 0.65, this.y,
             "", this.lblStyl);
-        this.container.add(this.text);
+        this.parentContainer.add(this.text);
 
 
         this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));
@@ -276,8 +326,28 @@ class PlayerInputText {
     }
 
     confirm() {
+        var enemies = this.scene.enemySpawner.enemies;        
+        var inputWord = this.text.text;
 
+        var enemyLabels = [];
+        for (let i in enemies) {
+            var enemy = enemies[i];
+            enemyLabels.push(enemy.lbl);
+        }
+
+        api3WithTwoParams(inputWord, enemyLabels,
+            function suc(res) {
+                console.log(res);
+                this.scene.enemySpawner.confirmCallbackSuc(res);
+            }.bind(this),
+            function err(res) {
+                console.log("API3 failed");
+            }
+        );
     }
+
+    
+    
 
     update(time, dt) {
 

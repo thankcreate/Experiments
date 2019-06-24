@@ -85,21 +85,27 @@ window.addEventListener('resize', function (event) {
 //};
 var Enemy = /** @class */ (function () {
     function Enemy(scene, enemySpawner, posi, lbl, lblStyle) {
+        this.stopDistance = 125;
+        this.health = 1;
         this.inStop = false;
         this.scene = scene;
         this.enemySpawner = enemySpawner;
         this.parentContainer = enemySpawner.container;
         this.lbl = lbl;
         this.lblStyle = lblStyle;
+        this.inner = this.scene.add.container(posi.x, posi.y);
+        this.parentContainer.add(this.inner);
+        // textt
         this.text = this.scene.add.text(0, 0, lbl, lblStyle);
         this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;
         this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
-        this.inner = this.scene.add.container(posi.x, posi.y);
-        this.parentContainer.add(this.inner);
         this.inner.add(this.text);
+        // healthText
+        var lb = this.text.getBottomLeft();
+        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), lblStyle);
+        this.healthText.setOrigin(0, 0);
+        this.inner.add(this.healthText);
         this.dest = new Phaser.Geom.Point(0, 0);
-        this.duration = 6000;
-        this.stopDistance = 110;
     }
     Enemy.prototype.update = function (dt) {
         // let posi = myMove(this.sprite, this.dest, this.speed * dt );
@@ -130,6 +136,7 @@ var Enemy = /** @class */ (function () {
     };
     Enemy.prototype.stopRun = function () {
         var thisEnemy = this;
+        thisEnemy.enemySpawner.removeEnemy(thisEnemy);
         this.inStop = true;
         this.mvTween.stop();
         this.fadeTween = this.scene.tweens.add({
@@ -137,10 +144,18 @@ var Enemy = /** @class */ (function () {
             alpha: 0,
             duration: 300,
             onComplete: function () {
-                thisEnemy.enemySpawner.removeEnemy(thisEnemy);
                 thisEnemy.inner.destroy();
             }
         });
+    };
+    Enemy.prototype.damage = function (val) {
+        console.log(this.lbl + " damaged by " + val);
+        this.health -= val;
+        if (this.health < 0) {
+            this.stopRun();
+        }
+        this.health = Math.max(0, this.health);
+        this.healthText.setText(this.health.toString());
     };
     return Enemy;
 }());
@@ -148,7 +163,7 @@ var EnemySpawner = /** @class */ (function () {
     function EnemySpawner(scene, container) {
         this.scene = scene;
         this.container = container;
-        this.interval = 4000;
+        this.interval = 3000;
         this.dummy = 1;
         this.enemies = [];
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
@@ -156,7 +171,7 @@ var EnemySpawner = /** @class */ (function () {
             fontSize: '32px',
             fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
-        this.enemyRunDuration = 6000;
+        this.enemyRunDuration = 10000;
         this.spawnRadius = 500;
     }
     EnemySpawner.prototype.startSpawn = function () {
@@ -205,12 +220,39 @@ var EnemySpawner = /** @class */ (function () {
         pt.y = Math.sin(rdDegree) * this.spawnRadius;
         return pt;
     };
+    // api3 callback
+    EnemySpawner.prototype.confirmCallbackSuc = function (res) {
+        var ar = res.outputArray;
+        for (var i in ar) {
+            var entry = ar[i];
+            var entryName = ar[i].name;
+            var entryValue = ar[i].value;
+            // since network has latency, 
+            // the enemy could have been eliminated when the callback is invoked
+            // we need to be careful about the availability of the enemy
+            var enemy = this.findEnemyByName(entryName);
+            if (enemy) {
+                enemy.damage(entryValue);
+            }
+        }
+    };
+    EnemySpawner.prototype.findEnemyByName = function (name) {
+        var ret = null;
+        for (var i in this.enemies) {
+            var e = this.enemies[i];
+            if (e.lbl === name) {
+                ret = e;
+                break;
+            }
+        }
+        return ret;
+    };
     return EnemySpawner;
 }());
 var PlayerInputText = /** @class */ (function () {
     function PlayerInputText(scene, container) {
         this.scene = scene;
-        this.container = container;
+        this.parentContainer = container;
         this.fontSize = 32;
         this.lblStyl = {
             fontSize: this.fontSize + 'px',
@@ -226,7 +268,7 @@ var PlayerInputText = /** @class */ (function () {
         this.circle = circle;
         var circleWidth = this.circle.getBounds().width;
         this.text = this.scene.add.text(-circleWidth / 2 * 0.65, this.y, "", this.lblStyl);
-        this.container.add(this.text);
+        this.parentContainer.add(this.text);
         this.scene.input.keyboard.on('keydown', function (event) { return _this.keydown(event); });
     };
     PlayerInputText.prototype.keydown = function (event) {
@@ -258,6 +300,19 @@ var PlayerInputText = /** @class */ (function () {
         this.text.setText(t);
     };
     PlayerInputText.prototype.confirm = function () {
+        var enemies = this.scene.enemySpawner.enemies;
+        var inputWord = this.text.text;
+        var enemyLabels = [];
+        for (var i in enemies) {
+            var enemy = enemies[i];
+            enemyLabels.push(enemy.lbl);
+        }
+        api3WithTwoParams(inputWord, enemyLabels, function suc(res) {
+            console.log(res);
+            this.scene.enemySpawner.confirmCallbackSuc(res);
+        }.bind(this), function err(res) {
+            console.log("API3 failed");
+        });
     };
     PlayerInputText.prototype.update = function (time, dt) {
     };
@@ -313,6 +368,27 @@ function getFormData($form) {
     });
     return indexed_array;
 }
+function api(api, inputData, suc, err) {
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        contentType: 'application/json;charset=UTF-8',
+        url: "/" + api,
+        data: inputData,
+        success: function (result) {
+            if (suc)
+                suc(result);
+        },
+        error: function (result) {
+            if (err)
+                err(result);
+        }
+    });
+}
+// API2 is to get the similarity between two strings
+function api2(input, suc, err) {
+    api("api_2", input, suc, err);
+}
 function formatTwoParamsInput(param1, param2) {
     var ob = { arg1: param1, arg2: param2 };
     return JSON.stringify(ob);
@@ -321,19 +397,16 @@ function api2WithTwoParams(arg1, arg2, suc, err) {
     var inputString = formatTwoParamsInput(arg1, arg2);
     api2(inputString, suc, err);
 }
-function api2(input, suc, err) {
-    $.ajax({
-        type: "POST",
-        dataType: "json",
-        contentType: 'application/json;charset=UTF-8',
-        url: "/api_2",
-        data: input,
-        success: function (result) {
-            suc(result);
-        },
-        error: function (result) {
-            err(result);
-        }
-    });
+// API 3 is to get the similarty between one input string and a collection of strings
+function api3(input, suc, err) {
+    api("api_3", input, suc, err);
+}
+function formatArrayParamsInput(param1, param2) {
+    var ob = { input: param1, array: param2 };
+    return JSON.stringify(ob);
+}
+function api3WithTwoParams(inputString, arrayStrings, suc, err) {
+    var data = formatArrayParamsInput(inputString, arrayStrings);
+    api3(data, suc, err);
 }
 //# sourceMappingURL=game.js.map

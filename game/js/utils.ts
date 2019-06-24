@@ -26,31 +26,53 @@ function getFormData($form) {
     return indexed_array;
 }
 
+function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        contentType: 'application/json;charset=UTF-8',
+        url: "/" + api,
+        data: inputData,
+        success: function (result) {
+            if (suc)
+                suc(result);
+        },
+        error: function (result) {
+            if (err)
+                err(result);
+        }
+    });
+}
+
+
+// API2 is to get the similarity between two strings
+function api2(input: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+    api("api_2", input, suc, err);
+}
 
 function formatTwoParamsInput(param1: string, param2: string) {
     var ob = { arg1: param1, arg2: param2 };
     return JSON.stringify(ob);
 }
 
-
-function api2WithTwoParams(arg1: string, arg2: string, suc: (arg0: any) => any, err: (arg0: any) => any) {
+function api2WithTwoParams(arg1: string, arg2: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
     let inputString = formatTwoParamsInput(arg1, arg2);
     api2(inputString, suc, err);
 }
 
-function api2(input: string, suc: (arg0: any) => any, err: (arg0: any) => any){
-    $.ajax({
-        
-        type: "POST",
-        dataType: "json",
-        contentType: 'application/json;charset=UTF-8',
-        url: "/api_2",
-        data: input,
-        success: function (result) {            
-            suc(result);
-        },
-        error: function (result) {
-            err(result);
-        }
-    });
+
+// API 3 is to get the similarty between one input string and a collection of strings
+function api3(input: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+    api("api_3", input, suc, err);
 }
+
+function formatArrayParamsInput(param1: string, param2: string[]) {
+    var ob = { input: param1, array: param2 };
+    return JSON.stringify(ob);
+}
+
+function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+    let data = formatArrayParamsInput(inputString, arrayStrings);
+    api3(data, suc, err);
+}
+

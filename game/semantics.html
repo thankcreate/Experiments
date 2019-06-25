@@ -47,6 +47,9 @@
             <br>
             <input id="btn" type="button" onclick="magic()" value="Spell">
         </form>
+
+        <button onclick="yabali()">Yabali~</button>
+
     </div>
 
 
@@ -66,7 +69,7 @@
         function getArrayInputData() {
             var data = {};
             data.input = $('#arg1').val().trim();
-            data.array = $('#arg2').val().trim().split(' ');    
+            data.array = $('#arg2').val().trim().split(' ');
 
             return data;
         }
@@ -113,30 +116,35 @@
         }
 
         function magic() {
-            // api3();
-            test();
+            api3();
+            // test();
         }
 
-        function test(){
+        function test() {
 
-            var c = (function() {
+            var c = (function () {
                 function tron() {
                     alert("you fool");
                 }
                 return tron;
-            } ());
-            
+            }());
+
             var ins = new c();
-            
+
         }
 
         $('#form1').keydown(function (e) {
             var key = e.which;
             if (key == 13) {
                 magic();
-                // magicArray();
             }
         });
+
+        function yabali() {
+            $.getJSON("assets/treeone.ndjson", function (json) {
+                console.log(json); // this will show the info it in firebug console
+            });
+        }
 
     </script>
 

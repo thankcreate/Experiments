@@ -1,6 +1,6 @@
 ﻿/// <reference path="scenes.ts" />
 
-var config = {
+var phaserConfig = {
     type: Phaser.AUTO,
     backgroundColor: '#EEEEEE',
     scale: {
@@ -15,7 +15,7 @@ var config = {
 
 
 
-var game = new Phaser.Game(config);
+var game = new Phaser.Game(phaserConfig);
 
 window.addEventListener('resize', function (event) {
     let fuck = 1;

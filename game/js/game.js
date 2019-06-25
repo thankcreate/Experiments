@@ -15,6 +15,8 @@ var __extends = (this && this.__extends) || (function () {
 var gameConfig = {
     enemyDuratrion: 20000,
     spawnInterval: 4000,
+    onlyDamageMostMatch: true,
+    tryAvoidDuplicate: true,
     defaultHealth: 3,
     damageTiers: [
         [0.8, 2],
@@ -61,21 +63,41 @@ var Scene1 = /** @class */ (function (_super) {
         // enemies
         this.enemySpawner = new EnemyManager(this, this.container);
         this.enemySpawner.startSpawn();
+        var graphics = this.add.graphics();
+        var thickness = 4;
+        var color = 0xFF0000;
+        var alpha = 1;
+        graphics.lineStyle(thickness, color, alpha);
+        $.getJSON("assets/treeone.ndjson", function (json) {
+            console.log(json); // this will show the info it in firebug console
+            var strokes = json.drawing;
+            for (var strokeI = 0; strokeI < strokes.length; strokeI++) {
+                var xArr = json.drawing[strokeI][0];
+                var yArr = json.drawing[strokeI][1];
+                var count = xArr.length;
+                for (var i = 0; i < count - 1; i++) {
+                    console.log("1" + count);
+                    graphics.lineBetween(xArr[i], yArr[i], xArr[i + 1], yArr[i + 1]);
+                }
+            }
+        });
+        this.container.add(graphics);
     };
     Scene1.prototype.update = function (time, dt) {
         dt = dt / 1000;
         var w = getLogicWidth();
-        var h = config.scale.height;
+        var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
         this.enemySpawner.update(time, dt);
         this.playerInput.update(time, dt);
         // var c = new Phaser.Geom.Point(1,1);
         // this.testLbl.setText(kk);
+        // var graphics = this.add.graphics();
     };
     return Scene1;
 }(Phaser.Scene));
 /// <reference path="scenes.ts" />
-var config = {
+var phaserConfig = {
     type: Phaser.AUTO,
     backgroundColor: '#EEEEEE',
     scale: {
@@ -87,7 +109,7 @@ var config = {
     },
     scene: [Controller, Scene1]
 };
-var game = new Phaser.Game(config);
+var game = new Phaser.Game(phaserConfig);
 window.addEventListener('resize', function (event) {
     var fuck = 1;
     myResize();
@@ -99,18 +121,18 @@ window.addEventListener('resize', function (event) {
 // this is the available canvas width
 function getLogicWidth() {
     var windowR = window.innerWidth / window.innerHeight;
-    var scaleR = config.scale.minWidth / config.scale.height;
+    var scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
     if (windowR > scaleR) {
-        return windowR * config.scale.height;
+        return windowR * phaserConfig.scale.height;
     }
     else {
-        return config.scale.minWidth;
+        return phaserConfig.scale.minWidth;
     }
 }
 function myResize() {
     var windowR = window.innerWidth / window.innerHeight;
-    var scaleR = config.scale.minWidth / config.scale.height;
-    game.scale.resize(getLogicWidth(), config.scale.height);
+    var scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
+    game.scale.resize(getLogicWidth(), phaserConfig.scale.height);
     if (windowR > scaleR) {
         var canvas = document.querySelector("canvas");
         canvas.style.width = window.innerWidth + "px";
@@ -213,10 +235,36 @@ var EnemyManager = /** @class */ (function () {
             repeat: -1
         });
     };
+    EnemyManager.prototype.getNextName = function () {
+        var ret;
+        // max try count
+        var maxTry = 100;
+        for (var i = 0; i < maxTry; i++) {
+            var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
+            var name = this.labels[lblIndex];
+            if (gameConfig.tryAvoidDuplicate) {
+                var contains = false;
+                this.enemies.forEach(function (enemy) {
+                    if (enemy.lbl === name) {
+                        contains = true;
+                    }
+                });
+                if (!contains) {
+                    ret = name;
+                    break;
+                }
+            }
+            else {
+                ret = name;
+                break;
+            }
+        }
+        return ret;
+    };
     EnemyManager.prototype.spawn = function () {
-        var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
         var posi = this.getSpawnPoint();
-        var enemy = new Enemy(this.scene, this, posi, this.labels[lblIndex], this.lblStyl);
+        var name = this.getNextName();
+        var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
         enemy.startRun();
@@ -231,7 +279,7 @@ var EnemyManager = /** @class */ (function () {
     EnemyManager.prototype.update = function (time, dt) {
         dt = dt / 1000;
         var w = getLogicWidth();
-        var h = config.scale.height;
+        var h = phaserConfig.scale.height;
         for (var i in this.enemies) {
             this.enemies[i].update(dt);
         }
@@ -248,13 +296,15 @@ var EnemyManager = /** @class */ (function () {
     // api3 callback
     EnemyManager.prototype.confirmCallbackSuc = function (res) {
         var ar = res.outputArray;
-        console.log("before " + ar.length);
-        // filter the duplicate label
+        // filter the duplicate labels
         var seen = {};
         ar = ar.filter(function (item) {
             return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         });
-        console.log("lll " + ar.length);
+        // if we only want to damage the most similar word
+        if (gameConfig.onlyDamageMostMatch) {
+            ar = this.findBiggestDamage(ar);
+        }
         var _loop_1 = function (i) {
             var entry = ar[i];
             var entryName = ar[i].name;
@@ -271,6 +321,20 @@ var EnemyManager = /** @class */ (function () {
         for (var i in ar) {
             _loop_1(i);
         }
+    };
+    EnemyManager.prototype.findBiggestDamage = function (ar) {
+        var ret = [];
+        var max = -1;
+        var entry = null;
+        ar.forEach(function (element) {
+            if (element.value > max) {
+                max = element.value;
+                entry = element;
+            }
+        });
+        if (entry)
+            ret.push(entry);
+        return ret;
     };
     EnemyManager.prototype.findEnemyByName = function (name) {
         var ret = [];

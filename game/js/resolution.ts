@@ -2,22 +2,22 @@
 // this is the available canvas width
 function getLogicWidth() {
     let windowR = window.innerWidth / window.innerHeight;
-    let scaleR = config.scale.minWidth / config.scale.height;
+    let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
 
     if (windowR > scaleR) {
-        return windowR * config.scale.height;
+        return windowR * phaserConfig.scale.height;
     }
     else {
-        return config.scale.minWidth;
+        return phaserConfig.scale.minWidth;
     }
 }
 
 
 function myResize() {
     let windowR = window.innerWidth / window.innerHeight;
-    let scaleR = config.scale.minWidth / config.scale.height;
+    let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
 
-    game.scale.resize(getLogicWidth(), config.scale.height);
+    game.scale.resize(getLogicWidth(), phaserConfig.scale.height);
 
     if (windowR > scaleR) {
         var canvas = document.querySelector("canvas");

@@ -17,6 +17,7 @@ var gameConfig = {
     spawnInterval: 4000,
     onlyDamageMostMatch: true,
     tryAvoidDuplicate: true,
+    quickDrawDataPath: "assets/quick-draw-data/",
     defaultHealth: 3,
     damageTiers: [
         [0.8, 2],
@@ -63,25 +64,8 @@ var Scene1 = /** @class */ (function (_super) {
         // enemies
         this.enemySpawner = new EnemyManager(this, this.container);
         this.enemySpawner.startSpawn();
-        var graphics = this.add.graphics();
-        var thickness = 4;
-        var color = 0xFF0000;
-        var alpha = 1;
-        graphics.lineStyle(thickness, color, alpha);
-        $.getJSON("assets/treeone.ndjson", function (json) {
-            console.log(json); // this will show the info it in firebug console
-            var strokes = json.drawing;
-            for (var strokeI = 0; strokeI < strokes.length; strokeI++) {
-                var xArr = json.drawing[strokeI][0];
-                var yArr = json.drawing[strokeI][1];
-                var count = xArr.length;
-                for (var i = 0; i < count - 1; i++) {
-                    console.log("1" + count);
-                    graphics.lineBetween(xArr[i], yArr[i], xArr[i + 1], yArr[i + 1]);
-                }
-            }
-        });
-        this.container.add(graphics);
+        // gra
+        var q = new QuickDrawFigure(this, this.container, "axe");
     };
     Scene1.prototype.update = function (time, dt) {
         dt = dt / 1000;
@@ -222,16 +206,17 @@ var EnemyManager = /** @class */ (function () {
         this.spawnRadius = 500;
     }
     EnemyManager.prototype.startSpawn = function () {
+        var _this = this;
         this.spawnTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
             duration: this.interval,
             onStart: function () {
-                this.spawn();
-            }.bind(this),
+                _this.spawn();
+            },
             onRepeat: function () {
-                this.spawn();
-            }.bind(this),
+                _this.spawn();
+            },
             repeat: -1
         });
     };
@@ -349,18 +334,18 @@ var EnemyManager = /** @class */ (function () {
     return EnemyManager;
 }());
 var Enemy = /** @class */ (function () {
-    function Enemy(scene, enemySpawner, posi, lbl, lblStyle) {
+    function Enemy(scene, enemyManager, posi, lbl, lblStyle) {
         this.stopDistance = 125;
         this.health = gameConfig.defaultHealth;
         this.inStop = false;
         this.scene = scene;
-        this.enemySpawner = enemySpawner;
-        this.parentContainer = enemySpawner.container;
+        this.enemyManager = enemyManager;
+        this.parentContainer = enemyManager.container;
         this.lbl = lbl;
         this.lblStyle = lblStyle;
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
-        // textt
+        // text
         this.text = this.scene.add.text(0, 0, lbl, lblStyle);
         this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;
         this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
@@ -398,7 +383,7 @@ var Enemy = /** @class */ (function () {
     };
     Enemy.prototype.stopRun = function () {
         var thisEnemy = this;
-        thisEnemy.enemySpawner.removeEnemy(thisEnemy);
+        thisEnemy.enemyManager.removeEnemy(thisEnemy);
         this.inStop = true;
         this.mvTween.stop();
         this.fadeTween = this.scene.tweens.add({
@@ -507,4 +492,89 @@ var PlayerInputText = /** @class */ (function () {
     PlayerInputText.prototype.checkInput = function () {
     };
     return PlayerInputText;
+}());
+var QuickDrawFigure = /** @class */ (function () {
+    function QuickDrawFigure(scene, parentContainer, lbl) {
+        var _this = this;
+        this.curIndex = -1;
+        this.interval = 300;
+        this.graphicLineStyle = {
+            width: 4,
+            color: 0xFF0000,
+            alpha: 1
+        };
+        this.sampleRate = 255;
+        this.originX = 0.5;
+        this.originY = 0.5;
+        this.newSize = 150;
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+        this.lbl = lbl;
+        this.inner = this.scene.add.graphics({ lineStyle: this.graphicLineStyle });
+        var fullPath = this.getFilePathByLbl(lbl);
+        $.getJSON(fullPath, function (json) {
+            _this.figures = json;
+            // this.drawFigure(this.figures[3]);           
+            _this.startChange();
+        });
+        this.parentContainer.add(this.inner);
+    }
+    // 
+    QuickDrawFigure.prototype.drawFigure = function (figure) {
+        var strokes = figure.drawing;
+        this.inner.clear();
+        // let maxY = -10000;
+        // let maxX = -10000;
+        // the sample is 255, which means that x, y are both <= 255
+        for (var strokeI = 0; strokeI < strokes.length; strokeI++) {
+            var xArr = strokes[strokeI][0];
+            var yArr = strokes[strokeI][1];
+            var count = xArr.length;
+            for (var i = 0; i < count - 1; i++) {
+                this.mappedLineBetween(xArr[i], yArr[i], xArr[i + 1], yArr[i + 1]);
+                // maxX = Math.max(maxX, xArr[i]);
+                // maxY = Math.max(maxY, yArr[i]);
+            }
+        }
+        // console.log("MaxX: " + maxX + "   MaxY: " + maxY) ;
+    };
+    QuickDrawFigure.prototype.mappedLineBetween = function (x1, y1, x2, y2) {
+        var mappedPosi1 = this.getMappedPosi(x1, y1);
+        var mappedPosi2 = this.getMappedPosi(x2, y2);
+        this.inner.lineBetween(mappedPosi1[0], mappedPosi1[1], mappedPosi2[0], mappedPosi2[1]);
+    };
+    QuickDrawFigure.prototype.getFilePathByLbl = function (lbl) {
+        var folderPath = gameConfig.quickDrawDataPath;
+        return folderPath + lbl + ".json";
+    };
+    QuickDrawFigure.prototype.startChange = function () {
+        var _this = this;
+        this.changeTween = this.scene.tweens.add({
+            targets: this,
+            dummy: 1,
+            duration: this.interval,
+            onStart: function () {
+                _this.change();
+            },
+            onRepeat: function () {
+                _this.change();
+            },
+            repeat: -1
+        });
+    };
+    QuickDrawFigure.prototype.change = function () {
+        if (!this.figures || this.figures.length == 0)
+            return;
+        this.curIndex = (this.curIndex + 1) % this.figures.length;
+        this.drawFigure(this.figures[this.curIndex]);
+    };
+    QuickDrawFigure.prototype.getMappedPosi = function (x, y) {
+        var scaleRate = this.newSize / this.sampleRate;
+        var posi = [
+            x * scaleRate - this.newSize * this.originX,
+            y * scaleRate - this.newSize * this.originY
+        ];
+        return posi;
+    };
+    return QuickDrawFigure;
 }());

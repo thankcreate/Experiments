@@ -44,13 +44,13 @@ class EnemyManager {
             dummy: 1,
             duration: this.interval,
 
-            onStart: function () {
+            onStart: () => {
                 this.spawn();
-            }.bind(this),
+            },
 
-            onRepeat: function () {
+            onRepeat: () => {
                 this.spawn();
-            }.bind(this),
+            },
 
             repeat: -1
         });

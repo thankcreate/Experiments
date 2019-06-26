@@ -3,7 +3,7 @@ class Enemy {
     scene: Phaser.Scene;
     inner: Phaser.GameObjects.Container;
     parentContainer: Phaser.GameObjects.Container;
-    enemySpawner: EnemyManager;
+    enemyManager: EnemyManager;
 
     lbl: string;
     lblStyle: object;
@@ -22,27 +22,29 @@ class Enemy {
     inputAngle: number;
     health: number = gameConfig.defaultHealth;
 
-    constructor(scene, enemySpawner: EnemyManager, posi, lbl, lblStyle) {        
+    constructor(scene, enemyManager: EnemyManager, posi, lbl, lblStyle) {        
         this.scene = scene;
-        this.enemySpawner = enemySpawner;
-        this.parentContainer = enemySpawner.container;
+        this.enemyManager = enemyManager;
+        this.parentContainer = enemyManager.container;
         this.lbl = lbl;
         this.lblStyle = lblStyle;
 
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
-        // textt
+
+        // text
         this.text = this.scene.add.text(0, 0, lbl, lblStyle);
         this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;        
         this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
         this.inner.add(this.text);
+
+        
 
         // healthText
         let lb = this.text.getBottomLeft();
         this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), lblStyle);
         this.healthText.setOrigin(0, 0);
         this.inner.add(this.healthText);
-
 
         this.dest = new Phaser.Geom.Point(0, 0);        
     }
@@ -79,7 +81,7 @@ class Enemy {
     stopRun() {   
         let thisEnemy = this;
 
-        thisEnemy.enemySpawner.removeEnemy(thisEnemy);
+        thisEnemy.enemyManager.removeEnemy(thisEnemy);
 
         this.inStop = true; 
         this.mvTween.stop();
@@ -87,8 +89,7 @@ class Enemy {
             targets: this.inner,
             alpha: 0,
             duration: 300,
-            onComplete: function () {
-                
+            onComplete: function () {                
                 thisEnemy.inner.destroy();
             }
         });

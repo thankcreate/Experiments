@@ -5,6 +5,7 @@ var gameConfig = {
     onlyDamageMostMatch: true,
     tryAvoidDuplicate: true,
 
+    quickDrawDataPath: "assets/quick-draw-data/",
     defaultHealth: 3,
     damageTiers: [
         [0.8, 2],

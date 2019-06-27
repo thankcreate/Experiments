@@ -8,7 +8,7 @@ class QuickDrawFigure{
     curIndex = -1;
     figures: object[];
 
-    interval = 300;
+    interval = 200;
     changeTween: Phaser.Tweens.Tween;
 
     graphicLineStyle = {
@@ -32,8 +32,9 @@ class QuickDrawFigure{
             this.startChange();
         });
 
-        this.parentContainer.add(this.inner);
+        this.parentContainer.add(this.inner);       
     }
+
 
     // 
     drawFigure(figure) {
@@ -66,7 +67,7 @@ class QuickDrawFigure{
     }
 
     getFilePathByLbl(lbl: string) {
-        let folderPath = gameConfig.quickDrawDataPath;
+        let folderPath = gameplayConfig.quickDrawDataPath;
         return folderPath + lbl + ".json";
     }
 

@@ -20,7 +20,7 @@ class Enemy {
 
 
     inputAngle: number;
-    health: number = gameConfig.defaultHealth;
+    health: number = gameplayConfig.defaultHealth;
 
     constructor(scene, enemyManager: EnemyManager, posi, lbl, lblStyle) {        
         this.scene = scene;
@@ -98,7 +98,7 @@ class Enemy {
 
     getRealHealthDamage(val : number) : number {        
         let ret = 0;        
-        let tiers = gameConfig.damageTiers;
+        let tiers = gameplayConfig.damageTiers;
         for(let i in tiers) {
             let tier = tiers[i];
             if(val >= tier[0])

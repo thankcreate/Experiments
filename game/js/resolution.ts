@@ -13,11 +13,11 @@ function getLogicWidth() {
 }
 
 
-function myResize() {
+function myResize(gm) {
     let windowR = window.innerWidth / window.innerHeight;
     let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
 
-    game.scale.resize(getLogicWidth(), phaserConfig.scale.height);
+    gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
 
     if (windowR > scaleR) {
         var canvas = document.querySelector("canvas");
@@ -28,6 +28,7 @@ function myResize() {
         var canvas = document.querySelector("canvas");
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerWidth / scaleR + "px";
+        
     }
 }
 

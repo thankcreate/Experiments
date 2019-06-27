@@ -20,7 +20,7 @@ class PlayerInputText {
         };
 
         this.y = -6 - this.fontSize;
-        this.maxCount = 11;
+        this.maxCount = 100;
         this.text; // main text input
 
         this.circle;
@@ -76,6 +76,7 @@ class PlayerInputText {
     confirm() {
         var enemies = this.scene.enemySpawner.enemies;        
         var inputWord = this.text.text;
+        this.scene.playSpeech(inputWord);
 
         var enemyLabels = [];
         for (let i in enemies) {
@@ -93,7 +94,9 @@ class PlayerInputText {
             function err(res) {
                 // console.log("API3 failed");
             }
-        );        
+        ); 
+        
+
     }
 
     

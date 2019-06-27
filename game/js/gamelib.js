@@ -12,19 +12,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var gameConfig = {
-    enemyDuratrion: 20000,
-    spawnInterval: 4000,
-    onlyDamageMostMatch: true,
-    tryAvoidDuplicate: true,
-    quickDrawDataPath: "assets/quick-draw-data/",
-    defaultHealth: 3,
-    damageTiers: [
-        [0.8, 2],
-        [0.5, 1],
-        [0, 0]
-    ]
-};
+var BaseScene = /** @class */ (function (_super) {
+    __extends(BaseScene, _super);
+    function BaseScene() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    BaseScene.prototype.playSpeech = function (text) {
+        var controller = this.scene.get("Controller");
+        controller.speechManager.serverLoadAndPlay(text);
+    };
+    return BaseScene;
+}(Phaser.Scene));
 var Controller = /** @class */ (function (_super) {
     __extends(Controller, _super);
     function Controller() {
@@ -33,11 +31,13 @@ var Controller = /** @class */ (function (_super) {
     Controller.prototype.preload = function () {
     };
     Controller.prototype.create = function () {
+        this.speechManager = new SpeechManager(this);
         this.scene.launch('Scene1');
-        myResize();
+        myResize(this.game);
     };
     return Controller;
-}(Phaser.Scene));
+}(BaseScene));
+/// <reference path="scene-controller.ts" />
 var Scene1 = /** @class */ (function (_super) {
     __extends(Scene1, _super);
     function Scene1() {
@@ -65,7 +65,7 @@ var Scene1 = /** @class */ (function (_super) {
         this.enemySpawner = new EnemyManager(this, this.container);
         this.enemySpawner.startSpawn();
         // gra
-        var q = new QuickDrawFigure(this, this.container, "axe");
+        var face = new QuickDrawFigure(this, this.container, "smiley-face");
     };
     Scene1.prototype.update = function (time, dt) {
         dt = dt / 1000;
@@ -74,13 +74,24 @@ var Scene1 = /** @class */ (function (_super) {
         this.container.setPosition(w / 2, h / 2);
         this.enemySpawner.update(time, dt);
         this.playerInput.update(time, dt);
-        // var c = new Phaser.Geom.Point(1,1);
-        // this.testLbl.setText(kk);
-        // var graphics = this.add.graphics();
     };
     return Scene1;
-}(Phaser.Scene));
-/// <reference path="scenes.ts" />
+}(BaseScene));
+/// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scenes/scene-controller.ts" />
+var gameplayConfig = {
+    enemyDuratrion: 20000,
+    spawnInterval: 4000,
+    onlyDamageMostMatch: true,
+    tryAvoidDuplicate: true,
+    quickDrawDataPath: "assets/quick-draw-data/",
+    defaultHealth: 3,
+    damageTiers: [
+        [0.8, 2],
+        [0.5, 1],
+        [0, 0]
+    ]
+};
 var phaserConfig = {
     type: Phaser.AUTO,
     backgroundColor: '#EEEEEE',
@@ -93,14 +104,6 @@ var phaserConfig = {
     },
     scene: [Controller, Scene1]
 };
-var game = new Phaser.Game(phaserConfig);
-window.addEventListener('resize', function (event) {
-    var fuck = 1;
-    myResize();
-}, false);
-//window.onload = () => {
-//    var game = new Controller();
-//};
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
 function getLogicWidth() {
@@ -113,10 +116,10 @@ function getLogicWidth() {
         return phaserConfig.scale.minWidth;
     }
 }
-function myResize() {
+function myResize(gm) {
     var windowR = window.innerWidth / window.innerHeight;
     var scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
-    game.scale.resize(getLogicWidth(), phaserConfig.scale.height);
+    gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
     if (windowR > scaleR) {
         var canvas = document.querySelector("canvas");
         canvas.style.width = window.innerWidth + "px";
@@ -127,6 +130,73 @@ function myResize() {
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerWidth / scaleR + "px";
     }
+}
+function getArrayInputData() {
+    var data = { "input": "", "array": "" };
+    data.input = $('#arg1').val().trim();
+    data.array = $('#arg2').val().trim().split(' ');
+    return data;
+}
+function test_api3() {
+    var inputData = getArrayInputData();
+    $.ajax({
+        //几个参数需要注意一下
+        type: "POST",
+        dataType: "json",
+        contentType: 'application/json;charset=UTF-8',
+        url: "/api_3",
+        data: JSON.stringify(inputData),
+        success: function (result) {
+            console.log(result); //打印服务端返回的数据(调试用)       
+        },
+        error: function (result) {
+            console.log(result); //打印服务端返回的数据(调试用)                    
+        }
+    });
+}
+function test_api2() {
+    $.ajax({
+        //几个参数需要注意一下
+        type: "POST",
+        dataType: "json",
+        contentType: 'application/json;charset=UTF-8',
+        url: "/api_2",
+        data: JSON.stringify(getFormData($("#form1"))),
+        success: function (result) {
+            console.log(result); //打印服务端返回的数据(调试用)       
+            $('#res').html(result.res);
+            $('#arg1').val('');
+            $('#arg2').val('');
+        },
+        error: function (result) {
+            console.log(result); //打印服务端返回的数据(调试用)                    
+        }
+    });
+}
+function magic() {
+    test_api3();
+    // test();
+}
+$('#form1').keydown(function (e) {
+    var key = e.which;
+    if (key == 13) {
+        magic();
+    }
+});
+function yabali() {
+    // $.getJSON("assets/treeone.ndjson", function (json) {
+    //     console.log(json); // this will show the info it in firebug console
+    // });
+    testSpeechAPI();
+}
+function testSpeechAPI() {
+    var inputText = $('#arg1').val();
+    var id = $('#arg2').val();
+    apiTextToSpeech(inputText, id, function (sucData) {
+        console.log(sucData);
+    }, function (errData) {
+        console.log("fail speech");
+    });
 }
 function distance(a, b) {
     var diffX = b.x - a.x;
@@ -190,11 +260,17 @@ function api3WithTwoParams(inputString, arrayStrings, suc, err) {
     var data = formatArrayParamsInput(inputString, arrayStrings);
     api3(data, suc, err);
 }
+// API speech is to get the path of the generated audio by the input text
+function apiTextToSpeech(inputText, identifier, suc, err) {
+    var dataOb = { input: inputText, id: identifier };
+    var dataStr = JSON.stringify(dataOb);
+    api("api_speech", dataStr, suc, err);
+}
 var EnemyManager = /** @class */ (function () {
     function EnemyManager(scene, container) {
         this.scene = scene;
         this.container = container;
-        this.interval = gameConfig.spawnInterval;
+        this.interval = gameplayConfig.spawnInterval;
         this.dummy = 1;
         this.enemies = [];
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
@@ -202,7 +278,7 @@ var EnemyManager = /** @class */ (function () {
             fontSize: '32px',
             fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
-        this.enemyRunDuration = gameConfig.enemyDuratrion;
+        this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
     EnemyManager.prototype.startSpawn = function () {
@@ -227,7 +303,7 @@ var EnemyManager = /** @class */ (function () {
         for (var i = 0; i < maxTry; i++) {
             var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
             var name = this.labels[lblIndex];
-            if (gameConfig.tryAvoidDuplicate) {
+            if (gameplayConfig.tryAvoidDuplicate) {
                 var contains = false;
                 this.enemies.forEach(function (enemy) {
                     if (enemy.lbl === name) {
@@ -287,7 +363,7 @@ var EnemyManager = /** @class */ (function () {
             return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         });
         // if we only want to damage the most similar word
-        if (gameConfig.onlyDamageMostMatch) {
+        if (gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
         var _loop_1 = function (i) {
@@ -336,7 +412,7 @@ var EnemyManager = /** @class */ (function () {
 var Enemy = /** @class */ (function () {
     function Enemy(scene, enemyManager, posi, lbl, lblStyle) {
         this.stopDistance = 125;
-        this.health = gameConfig.defaultHealth;
+        this.health = gameplayConfig.defaultHealth;
         this.inStop = false;
         this.scene = scene;
         this.enemyManager = enemyManager;
@@ -397,7 +473,7 @@ var Enemy = /** @class */ (function () {
     };
     Enemy.prototype.getRealHealthDamage = function (val) {
         var ret = 0;
-        var tiers = gameConfig.damageTiers;
+        var tiers = gameplayConfig.damageTiers;
         for (var i in tiers) {
             var tier = tiers[i];
             if (val >= tier[0])
@@ -427,7 +503,7 @@ var PlayerInputText = /** @class */ (function () {
             fill: '#FFFFFF', fontFamily: "Georgia, serif"
         };
         this.y = -6 - this.fontSize;
-        this.maxCount = 11;
+        this.maxCount = 100;
         this.text; // main text input
         this.circle;
     }
@@ -471,6 +547,7 @@ var PlayerInputText = /** @class */ (function () {
         var _this = this;
         var enemies = this.scene.enemySpawner.enemies;
         var inputWord = this.text.text;
+        this.scene.playSpeech(inputWord);
         var enemyLabels = [];
         for (var i in enemies) {
             var enemy = enemies[i];
@@ -497,7 +574,7 @@ var QuickDrawFigure = /** @class */ (function () {
     function QuickDrawFigure(scene, parentContainer, lbl) {
         var _this = this;
         this.curIndex = -1;
-        this.interval = 300;
+        this.interval = 200;
         this.graphicLineStyle = {
             width: 4,
             color: 0xFF0000,
@@ -544,7 +621,7 @@ var QuickDrawFigure = /** @class */ (function () {
         this.inner.lineBetween(mappedPosi1[0], mappedPosi1[1], mappedPosi2[0], mappedPosi2[1]);
     };
     QuickDrawFigure.prototype.getFilePathByLbl = function (lbl) {
-        var folderPath = gameConfig.quickDrawDataPath;
+        var folderPath = gameplayConfig.quickDrawDataPath;
         return folderPath + lbl + ".json";
     };
     QuickDrawFigure.prototype.startChange = function () {
@@ -577,4 +654,50 @@ var QuickDrawFigure = /** @class */ (function () {
         return posi;
     };
     return QuickDrawFigure;
+}());
+var SpeechManager = /** @class */ (function () {
+    function SpeechManager(scene) {
+        this.loadedSpeechFiles = {};
+        this.scene = scene;
+    }
+    SpeechManager.prototype.serverLoadAndPlay = function (text) {
+        var _this = this;
+        apiTextToSpeech(text, "no_id", function (sucRet) {
+            var retID = sucRet.id;
+            var retText = sucRet.input;
+            var retPath = sucRet.outputPath;
+            var md5 = sucRet.md5;
+            // use the md5 as the key
+            // console.log("suc apiTextToSpeech: " + retText);
+            _this.phaserLoadAndPlay(retText, md5, retPath);
+        });
+    };
+    SpeechManager.prototype.clearSpeechCache = function () {
+        this.scene.load.cacheManager.audio.entries.clear();
+        for (var key in this.loadedSpeechFiles) {
+            this.scene.load.cacheManager.audio.remove(key);
+        }
+        this.loadedSpeechFiles = {};
+    };
+    SpeechManager.prototype.phaserLoadAndPlay = function (text, key, fullPath) {
+        // console.log("------------------------------");      
+        var cached = this.scene.load.cacheManager.audio.has(key);
+        // double check
+        if (this.loadedSpeechFiles.hasOwnProperty(key) && cached) {
+            this.scene.sound.play(key);
+        }
+        else {
+            this.scene.load.audio(key, [fullPath]);
+            var localThis_1 = this;
+            this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
+                // console.log('Audio loaded: ' + text);
+                localThis_1.loadedSpeechFiles[key] = true;
+                if (arg1 === key)
+                    localThis_1.scene.sound.play(key);
+                localThis_1.scene.load.removeListener('filecomplete', onCompleted);
+            });
+            this.scene.load.start();
+        }
+    };
+    return SpeechManager;
 }());

@@ -76,3 +76,10 @@ function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (a
     api3(data, suc, err);
 }
 
+// API speech is to get the path of the generated audio by the input text
+function apiTextToSpeech(inputText: string, identifier: string,suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+    let dataOb = {input: inputText, id: identifier};
+    let dataStr = JSON.stringify(dataOb);
+    api("api_speech", dataStr, suc, err);
+}
+

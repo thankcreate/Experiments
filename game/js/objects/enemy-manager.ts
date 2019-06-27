@@ -1,4 +1,3 @@
-
 class EnemyManager {
     scene: Phaser.Scene;
     container: Phaser.GameObjects.Container; // main scene container
@@ -21,7 +20,8 @@ class EnemyManager {
         this.scene = scene;
         this.container = container;
 
-        this.interval = gameConfig.spawnInterval;
+        this.interval = gameplayConfig.spawnInterval;
+        
         this.dummy = 1;
 
         this.enemies = [];
@@ -34,7 +34,7 @@ class EnemyManager {
             fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
 
-        this.enemyRunDuration = gameConfig.enemyDuratrion;
+        this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
 
@@ -64,7 +64,7 @@ class EnemyManager {
             var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
             var name = this.labels[lblIndex];            
 
-            if(gameConfig.tryAvoidDuplicate) {
+            if(gameplayConfig.tryAvoidDuplicate) {
                 var contains = false;
                 this.enemies.forEach(enemy =>{
                     if(enemy.lbl === name) {
@@ -139,7 +139,7 @@ class EnemyManager {
         });
 
         // if we only want to damage the most similar word
-        if(gameConfig.onlyDamageMostMatch) {
+        if(gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
 

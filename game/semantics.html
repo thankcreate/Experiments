@@ -6,7 +6,11 @@
     <meta charset="utf-8" />
     <title>Experiment Semantics</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="js/test.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Averia+Serif+Libre&display=swap" rel="stylesheet">
+    <script src="js/libs/phaser.js"></script>
+    <script src="js/gamelib.js"></script>
+
     <style type="text/css">
         body {
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -35,6 +39,10 @@
 </head>
 
 <body>
+    <audio controls>
+        <source id="source" src="/media/speech/ss.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
     <div id="content">
 
         <div>
@@ -50,103 +58,7 @@
 
         <button onclick="yabali()">Yabali~</button>
 
-    </div>
-
-
-    <script type="text/javascript">
-
-        function getFormData($form) {
-            var unindexed_array = $form.serializeArray();
-            var indexed_array = {};
-
-            $.map(unindexed_array, function (n, i) {
-                indexed_array[n['name']] = n['value'];
-            });
-
-            return indexed_array;
-        }
-
-        function getArrayInputData() {
-            var data = {};
-            data.input = $('#arg1').val().trim();
-            data.array = $('#arg2').val().trim().split(' ');
-
-            return data;
-        }
-
-        function api3() {
-            var inputData = getArrayInputData();
-            $.ajax({
-                //几个参数需要注意一下
-                type: "POST",//方法类型
-                dataType: "json",//预期服务器返回的数据类型
-                contentType: 'application/json;charset=UTF-8',
-                url: "/api_3",//url
-                data: JSON.stringify(inputData),
-                success: function (result) {
-                    console.log(result);//打印服务端返回的数据(调试用)       
-
-                },
-                error: function (result) {
-                    console.log(result);//打印服务端返回的数据(调试用)                    
-                }
-            });
-        }
-
-
-        function api2() {
-            $.ajax({
-                //几个参数需要注意一下
-                type: "POST",//方法类型
-                dataType: "json",//预期服务器返回的数据类型
-                contentType: 'application/json;charset=UTF-8',
-                url: "/api_2",//url
-                data: JSON.stringify(getFormData($("#form1"))),
-                success: function (result) {
-                    console.log(result);//打印服务端返回的数据(调试用)       
-                    $('#res').html(result.res);
-
-                    $('#arg1').val('');
-                    $('#arg2').val('');
-                },
-                error: function (result) {
-                    console.log(sresult);//打印服务端返回的数据(调试用)                    
-                }
-            });
-        }
-
-        function magic() {
-            api3();
-            // test();
-        }
-
-        function test() {
-
-            var c = (function () {
-                function tron() {
-                    alert("you fool");
-                }
-                return tron;
-            }());
-
-            var ins = new c();
-
-        }
-
-        $('#form1').keydown(function (e) {
-            var key = e.which;
-            if (key == 13) {
-                magic();
-            }
-        });
-
-        function yabali() {
-            $.getJSON("assets/treeone.ndjson", function (json) {
-                console.log(json); // this will show the info it in firebug console
-            });
-        }
-
-    </script>
+    </div>  
 
 </body>
 

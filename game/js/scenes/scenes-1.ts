@@ -1,19 +1,6 @@
-class Controller extends Phaser.Scene {
-    constructor() {
-        super('Controller');
-    }
+/// <reference path="scene-controller.ts" />
 
-    preload() {
-
-    }
-
-    create() {
-        this.scene.launch('Scene1');
-        myResize();
-    }
-}
-
-class Scene1 extends Phaser.Scene {
+class Scene1 extends BaseScene {
 
     circle: Phaser.GameObjects.Image;
     labels;
@@ -35,7 +22,7 @@ class Scene1 extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('circle', 'assets/circle.png');
+        this.load.image('circle', 'assets/circle.png'); 
     }
 
     create() {
@@ -55,22 +42,18 @@ class Scene1 extends Phaser.Scene {
         this.enemySpawner.startSpawn();
 
         // gra
-        var q = new QuickDrawFigure(this, this.container, "axe");
+        var face = new QuickDrawFigure(this, this.container, "smiley-face");                
     }
 
     update(time, dt) {
         dt = dt / 1000;
-        var w = getLogicWidth();
+        var w = getLogicWidth();  
         var h = phaserConfig.scale.height;
 
         this.container.setPosition(w / 2, h / 2);
 
         this.enemySpawner.update(time, dt);
         this.playerInput.update(time, dt);
-
-        // var c = new Phaser.Geom.Point(1,1);
-        // this.testLbl.setText(kk);
-        // var graphics = this.add.graphics();
     }
 }
 

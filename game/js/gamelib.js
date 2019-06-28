@@ -19,7 +19,7 @@ var BaseScene = /** @class */ (function (_super) {
     }
     BaseScene.prototype.playSpeech = function (text) {
         var controller = this.scene.get("Controller");
-        controller.speechManager.serverLoadAndPlay(text);
+        controller.speechManager.quickLoadAndPlay(text);
     };
     return BaseScene;
 }(Phaser.Scene));
@@ -187,7 +187,7 @@ function yabali() {
     // $.getJSON("assets/treeone.ndjson", function (json) {
     //     console.log(json); // this will show the info it in firebug console
     // });
-    testSpeechAPI();
+    testSpeechAPI2();
 }
 function testSpeechAPI() {
     var inputText = $('#arg1').val();
@@ -197,6 +197,27 @@ function testSpeechAPI() {
     }, function (errData) {
         console.log("fail speech");
     });
+}
+function testSpeechAPI2() {
+    var inputText = $('#arg1').val();
+    var id = $('#arg2').val();
+    var dataOb = { input: inputText, id: id };
+    var dataStr = JSON.stringify(dataOb);
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", "/api_speech", true);
+    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    oReq.responseType = "arraybuffer";
+    oReq.onload = function (oEvent) {
+        var arrayBuffer = oReq.response;
+        console.log(arrayBuffer);
+        var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+        var url = URL.createObjectURL(blob);
+        var audio = new Audio(url);
+        audio.load();
+        audio.play();
+        console.log('haha ririr');
+    };
+    oReq.send(dataStr);
 }
 function distance(a, b) {
     var diffX = b.x - a.x;
@@ -219,10 +240,10 @@ function getFormData($form) {
     });
     return indexed_array;
 }
-function api(api, inputData, suc, err) {
+function api(api, inputData, suc, err, dtType) {
     $.ajax({
         type: "POST",
-        dataType: "json",
+        dataType: 'json',
         contentType: 'application/json;charset=UTF-8',
         url: "/" + api,
         data: inputData,
@@ -262,9 +283,26 @@ function api3WithTwoParams(inputString, arrayStrings, suc, err) {
 }
 // API speech is to get the path of the generated audio by the input text
 function apiTextToSpeech(inputText, identifier, suc, err) {
-    var dataOb = { input: inputText, id: identifier };
+    var dataOb = { input: inputText, id: identifier, api: 1 };
     var dataStr = JSON.stringify(dataOb);
     api("api_speech", dataStr, suc, err);
+}
+// API speech is to get the path of the generated audio by the input text
+function apiTextToSpeech2(inputText, identifier, suc, err) {
+    var dataOb = { input: inputText, id: identifier, api: 2 };
+    var dataStr = JSON.stringify(dataOb);
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", "/api_speech", true);
+    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    oReq.responseType = "arraybuffer";
+    oReq.onload = function (oEvent) {
+        suc(oReq);
+        // var audio = new Audio(url);
+        // audio.load();
+        // audio.play();
+        // console.log('haha ririr');
+    };
+    oReq.send(dataStr);
 }
 var EnemyManager = /** @class */ (function () {
     function EnemyManager(scene, container) {
@@ -660,6 +698,23 @@ var SpeechManager = /** @class */ (function () {
         this.loadedSpeechFiles = {};
         this.scene = scene;
     }
+    SpeechManager.prototype.quickLoadAndPlay = function (text) {
+        var _this = this;
+        apiTextToSpeech2(text, "no_id", function (oReq) {
+            console.log("oa");
+            var arrayBuffer = oReq.response;
+            // this blob may leak memory
+            var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+            var url = URL.createObjectURL(blob);
+            console.log(url);
+            _this.phaserLoadAndPlay(text, text, url);
+            // this.scene.load.cacheManager.audio.add("hahakey", arrayBuffer);
+            // this.scene.sound.play("hahakey");            
+            // var audio = new Audio(url);
+            // audio.load();
+            // audio.play();
+        });
+    };
     SpeechManager.prototype.serverLoadAndPlay = function (text) {
         var _this = this;
         apiTextToSpeech(text, "no_id", function (sucRet) {
@@ -667,7 +722,7 @@ var SpeechManager = /** @class */ (function () {
             var retText = sucRet.input;
             var retPath = sucRet.outputPath;
             var md5 = sucRet.md5;
-            // use the md5 as the key
+            // console.log(sucRet);            
             // console.log("suc apiTextToSpeech: " + retText);
             _this.phaserLoadAndPlay(retText, md5, retPath);
         });
@@ -687,16 +742,18 @@ var SpeechManager = /** @class */ (function () {
             this.scene.sound.play(key);
         }
         else {
+            // console.log(fullPath);
             this.scene.load.audio(key, [fullPath]);
             var localThis_1 = this;
             this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
-                // console.log('Audio loaded: ' + text);
+                console.log("actually!!!!!!!!1");
                 localThis_1.loadedSpeechFiles[key] = true;
                 if (arg1 === key)
                     localThis_1.scene.sound.play(key);
                 localThis_1.scene.load.removeListener('filecomplete', onCompleted);
             });
             this.scene.load.start();
+            // }
         }
     };
     return SpeechManager;

@@ -26,10 +26,10 @@ function getFormData($form) {
     return indexed_array;
 }
 
-function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any, dtType?: string) {
     $.ajax({
         type: "POST",
-        dataType: "json",
+        dataType: 'json',
         contentType: 'application/json;charset=UTF-8',
         url: "/" + api,
         data: inputData,
@@ -78,8 +78,33 @@ function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (a
 
 // API speech is to get the path of the generated audio by the input text
 function apiTextToSpeech(inputText: string, identifier: string,suc?: (arg0: any) => any, err?: (arg0: any) => any) {
-    let dataOb = {input: inputText, id: identifier};
+    let dataOb = {input: inputText, id: identifier, api: 1};
     let dataStr = JSON.stringify(dataOb);
     api("api_speech", dataStr, suc, err);
+}
+
+// API speech is to get the path of the generated audio by the input text
+function apiTextToSpeech2(inputText: string, identifier: string,suc?: (req: any) => any, err?: (arg0: any) => any) {
+    let dataOb = {input: inputText, id: identifier, api: 2};
+    let dataStr = JSON.stringify(dataOb);
+    
+        
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", "/api_speech", true);
+    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    oReq.responseType = "arraybuffer";
+    oReq.onload = function(oEvent) {
+        
+
+        suc(oReq);
+
+
+        // var audio = new Audio(url);
+        // audio.load();
+        // audio.play();
+        // console.log('haha ririr');
+    };
+
+    oReq.send(dataStr);
 }
 

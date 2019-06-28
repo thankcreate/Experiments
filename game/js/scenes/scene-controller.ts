@@ -2,7 +2,7 @@ class BaseScene extends Phaser.Scene {
 
     playSpeech(text: string) {
         let controller: Controller = <Controller> this.scene.get("Controller");
-        controller.speechManager.serverLoadAndPlay(text);
+        controller.speechManager.quickLoadAndPlay(text);
     }
 }
 

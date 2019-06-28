@@ -64,7 +64,7 @@ function yabali() {
     // $.getJSON("assets/treeone.ndjson", function (json) {
     //     console.log(json); // this will show the info it in firebug console
     // });
-    testSpeechAPI();
+    testSpeechAPI2();
 }
 
 function testSpeechAPI() {
@@ -77,4 +77,33 @@ function testSpeechAPI() {
         errData => {
             console.log("fail speech");
         });
+}
+
+
+
+function testSpeechAPI2() {
+    var inputText = $('#arg1').val();
+    var id = $('#arg2').val();
+
+    let dataOb = {input: inputText, id: id};
+    let dataStr = JSON.stringify(dataOb);
+    
+        
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", "/api_speech", true);
+    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    oReq.responseType = "arraybuffer";
+    oReq.onload = function(oEvent) {
+        var arrayBuffer = oReq.response;
+
+        console.log(arrayBuffer);
+        var blob = new Blob([arrayBuffer], {type: "audio/mpeg"});
+        var url = URL.createObjectURL(blob);
+        var audio = new Audio(url);
+        audio.load();
+        audio.play();
+        console.log('haha ririr');
+    };
+
+    oReq.send(dataStr);
 }

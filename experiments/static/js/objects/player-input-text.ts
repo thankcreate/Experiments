@@ -43,12 +43,14 @@ class PlayerInputText {
         this.parentContainer.add(this.text);
 
 
-        this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));
-
+        // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
+        // * Hence, we should use the standard keydown instead
+        // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
+        $(document).keydown(this.keydown.bind(this));
     }
 
     keydown(event) {
-      
+        // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
         
@@ -92,7 +94,7 @@ class PlayerInputText {
             this.scene.enemyManager.sendInputToServer(inputWord);
         }
         else {
-            console.log("ErrorInputCode before send: " + checkLegal);
+            // console.log("ErrorInputCode before send: " + checkLegal);
         }
     }
 

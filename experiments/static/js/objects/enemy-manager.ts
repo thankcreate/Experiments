@@ -123,12 +123,12 @@ class EnemyManager {
         var name = this.getNextName();
         var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
         
-        console.log('-------------------------')
+        // console.log('-------------------------')
         this.enemies.forEach(item => {
-            console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
+           // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
 
         });
-        console.log(this.enemies.length + "  name:" + name);
+        // console.log(this.enemies.length + "  name:" + name);
 
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;

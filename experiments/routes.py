@@ -8,6 +8,7 @@ import os
 
 @app.route('/')
 def root():
+    # 'redirect' will change the url, while 'send_from_directory' will keep the input url
     # return redirect(url_for('static', filename='index.html'))
     return send_from_directory('static', 'index.html')
 

@@ -380,11 +380,11 @@ var EnemyManager = /** @class */ (function () {
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
         var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
-        console.log('-------------------------');
+        // console.log('-------------------------')
         this.enemies.forEach(function (item) {
-            console.log("item: " + item.lbl + " " + item.inner.x + " " + item.inner.y + " " + item.inner.alpha);
+            // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
         });
-        console.log(this.enemies.length + "  name:" + name);
+        // console.log(this.enemies.length + "  name:" + name);
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
         enemy.startRun();
@@ -640,14 +640,17 @@ var PlayerInputText = /** @class */ (function () {
         this.shortWords.add("no");
     }
     PlayerInputText.prototype.init = function (circle) {
-        var _this = this;
         this.circle = circle;
         var circleWidth = this.circle.getBounds().width;
         this.text = this.scene.add.text(-circleWidth / 2 * 0.65, this.y, "", this.lblStyl);
         this.parentContainer.add(this.text);
-        this.scene.input.keyboard.on('keydown', function (event) { return _this.keydown(event); });
+        // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
+        // * Hence, we should use the standard keydown instead
+        // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
+        $(document).keydown(this.keydown.bind(this));
     };
     PlayerInputText.prototype.keydown = function (event) {
+        // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
         if (code == Phaser.Input.Keyboard.KeyCodes.BACKSPACE /* backspace */
@@ -684,7 +687,7 @@ var PlayerInputText = /** @class */ (function () {
             this.scene.enemyManager.sendInputToServer(inputWord);
         }
         else {
-            console.log("ErrorInputCode before send: " + checkLegal);
+            // console.log("ErrorInputCode before send: " + checkLegal);
         }
     };
     /**

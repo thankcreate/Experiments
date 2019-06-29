@@ -1,0 +1,9 @@
+.vs/
+Debug/
+
+*.map
+*.pdb
+
+log/
+__pycache__/
+media/speech/

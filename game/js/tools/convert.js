@@ -13,39 +13,79 @@ fs.existsSync(outputPath) || fs.mkdirSync(outputPath);
 var total = 0;
 
 
+generateFileNames(filePath);
 
-fs.readdir(filePath,function(err,files){
-    if(err) {
-        console.warn(err);
-    }
-    else{
-        
-        files.forEach(filename => {            
-            if(path.extname(filename) === ".ndjson")
-                total ++;           
-        });
-
-
-        console.log("Total file count: " + total);
-        var i = 0;
-        files.forEach(filename => {
+function generateFileNames(filePath) {
+    var names = [];
+    fs.readdir(filePath,function(err,files){
+        if(err) {
+            console.warn(err);
+        }
+        else{
             
-            
-            var fileFullPath = path.join(filePath, filename);            
-            var ext = path.extname(filename);
-            var index = path.basename(filename).lastIndexOf(ext);
-            var baseName = path.basename(filename).substring(0, index);
-
-            if(ext === ".ndjson") {
+            files.forEach(filename => {            
+                if(path.extname(filename) === ".ndjson")
+                    total ++;           
+            });    
+    
+            console.log("Total file count: " + total);
+            var i = 0;
+            files.forEach(filename => {            
                 
-                i++;
-                // console.log(baseName);
-                convertFile(fileFullPath, baseName, i);
-            }            
-        });
-    }
-});
+                var fileFullPath = path.join(filePath, filename);            
+                var ext = path.extname(filename);
+                var index = path.basename(filename).lastIndexOf(ext);
+                var baseName = path.basename(filename).substring(0, index);
+    
+                if(ext === ".ndjson") {
+                    
+                    i++;
+                    // console.log(baseName);
+                    names.push(baseName);
+                }            
+            });
 
+
+            var newFilePath = path.join(outputPath, "names.json");
+            fs.writeFile(newFilePath, JSON.stringify(names), function(err) {});
+            console.log("File name file completed");
+        }
+    });    
+}
+
+function convert(filePath) {
+    fs.readdir(filePath,function(err,files){
+        if(err) {
+            console.warn(err);
+        }
+        else{
+            
+            files.forEach(filename => {            
+                if(path.extname(filename) === ".ndjson")
+                    total ++;           
+            });
+    
+    
+            console.log("Total file count: " + total);
+            var i = 0;
+            files.forEach(filename => {
+                
+                
+                var fileFullPath = path.join(filePath, filename);            
+                var ext = path.extname(filename);
+                var index = path.basename(filename).lastIndexOf(ext);
+                var baseName = path.basename(filename).substring(0, index);
+    
+                if(ext === ".ndjson") {
+                    
+                    i++;
+                    // console.log(baseName);
+                    convertFile(fileFullPath, baseName, i);
+                }            
+            });
+        }
+    });    
+}
 function writeFile(fileFullPath, baseName, ob, i) {    
     baseName = baseName.split(' ').join('-').toLowerCase();
     var newFilePath = path.join(outputPath, baseName + ".json");

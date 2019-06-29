@@ -1,5 +1,32 @@
+enum ErrorInputCode {
+    NoError,
+    Same,
+    Contain,
+    Wrap,
+    TooShort,
+    Repeat,
+    NotWord
+}
+
+interface ErrorInput {
+    code: ErrorInputCode,
+    enemyName: string
+}
+
+interface SimResultItem {
+    name: string,
+    value: number
+}
+
+interface SimResult {
+    input: string,
+    array: string[],
+    outputArray: SimResultItem[]
+}
+
+
 class EnemyManager {
-    scene: Phaser.Scene;
+    scene: BaseScene;
     container: Phaser.GameObjects.Container; // main scene container
 
     interval;
@@ -21,18 +48,24 @@ class EnemyManager {
         this.container = container;
 
         this.interval = gameplayConfig.spawnInterval;
-        
+
         this.dummy = 1;
 
         this.enemies = [];
 
 
-        this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
+        // this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
+        this.labels = drawNames;
 
         this.lblStyl = {
             fontSize: '32px',
-            fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
+            fill: '#000000', 
+            // * firefox will not show the text if the font is loading
+            // fontFamily: "Georgia, serif"
+            fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
+
+
 
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
@@ -43,35 +76,34 @@ class EnemyManager {
             targets: this,
             dummy: 1,
             duration: this.interval,
-
             onStart: () => {
+                console.log('onstart');
                 this.spawn();
             },
-
             onRepeat: () => {
+                
                 this.spawn();
             },
-
             repeat: -1
         });
     }
 
-    getNextName() : string{
+    getNextName(): string {
         let ret;
         // max try count
         let maxTry = 100;
-        for(let i = 0; i < maxTry; i++) {
+        for (let i = 0; i < maxTry; i++) {
             var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
-            var name = this.labels[lblIndex];            
+            var name = this.labels[lblIndex];
 
-            if(gameplayConfig.tryAvoidDuplicate) {
+            if (gameplayConfig.tryAvoidDuplicate) {
                 var contains = false;
-                this.enemies.forEach(enemy =>{
-                    if(enemy.lbl === name) {
+                this.enemies.forEach(enemy => {
+                    if (enemy.lbl === name) {
                         contains = true;
-                    }                
-                })    
-                if(!contains) {
+                    }
+                })
+                if (!contains) {
                     ret = name;
                     break;
                 }
@@ -80,21 +112,28 @@ class EnemyManager {
                 ret = name;
                 break;
             }
-            
-        }       
+
+        }
         return ret;
     }
 
     spawn() {
-
+        
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
         var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
+        
+        console.log('-------------------------')
+        this.enemies.forEach(item => {
+            console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
+
+        });
+        console.log(this.enemies.length + "  name:" + name);
 
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
 
-        enemy.startRun();
+       enemy.startRun();
     }
 
     removeEnemy(enemy: Enemy) {
@@ -113,7 +152,7 @@ class EnemyManager {
         for (let i in this.enemies) {
             this.enemies[i].update(dt);
         }
-        
+
 
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);
@@ -128,48 +167,132 @@ class EnemyManager {
         return pt;
     }
 
+    // inputConfirm(input: string) {
+    //     var enemies = this.enemies;        
+    //     var inputWord = input;
+
+    //     let checkLegal : ErrorInputCode = this.checkIfInputLegalAlone(inputWord);
+    //     if(checkLegal == ErrorInputCode.NoError) {
+    //         this.sendInputToServer(inputWord);
+    //     }
+    //     else {
+    //         console.log("ErrorInputCode before send: " + checkLegal);
+    //     }
+    // }
+
+    sendInputToServer(inputWord: string) {
+        this.scene.playSpeech(inputWord);
+
+        var enemyLabels = [];
+        for (let i in this.enemies) {
+            var enemy = this.enemies[i];
+            enemyLabels.push(enemy.lbl);
+        }
+
+        api3WithTwoParams(inputWord, enemyLabels,
+            // suc
+            res => {
+                // console.log(res);
+                this.confirmCallbackSuc(res);
+            },
+            // err
+            function err(res) {
+                // console.log("API3 failed");
+            }
+        ); 
+    }
+
     // api3 callback
-    confirmCallbackSuc(res) {
+    confirmCallbackSuc(res: SimResult) {
         var ar = res.outputArray;
+        var input = res.input;
+
 
         // filter the duplicate labels
-        var seen = {};        
-        ar = ar.filter(item => {                        
+        var seen = {};
+        ar = ar.filter(item => {
             return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         });
 
+        let legal = true;
         // if we only want to damage the most similar word
-        if(gameplayConfig.onlyDamageMostMatch) {
+        if (gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
 
-        for (let i in ar) {
-            let entry = ar[i];
-            let entryName = ar[i].name;
-            let entryValue = ar[i].value;
+        let errorInputs = this.checkIfInputLegalArray(ar, input);
+        legal = errorInputs.length == 0;
+        console.log("illegal count: " + errorInputs.length);
 
-            // since network has latency, 
-            // the enemy could have been eliminated when the callback is invoked
-            // we need to be careful about the availability of the enemy
-            let enemiesWithName = this.findEnemyByName(entryName);
-            enemiesWithName.forEach(e =>{
-                e.damage(entryValue);
-            });
+        if (legal) {
+            for (let i in ar) {
+                let entry = ar[i];
+                let entryName = ar[i].name;
+                let entryValue = ar[i].value;
+
+                // since network has latency, 
+                // the enemy could have been eliminated when the callback is invoked
+                // we need to be careful about the availability of the enemy
+                let enemiesWithName = this.findEnemyByName(entryName);
+                enemiesWithName.forEach(e => {
+                    e.damage(entryValue, input);
+                });
+            }
         }
     }
 
-    findBiggestDamage(ar) : any[] {
-        let ret = [];        
-        let max = -1;        
+    checkIfInputLegalArray(ar: SimResultItem[], input: string): ErrorInput[] {
+        let ret: ErrorInput[] = [];
+        for (let i in ar) {
+            var enemyName = ar[i].name;
+            var code = this.checkIfInputLegalWithEnemy(input, enemyName);
+            if (code != ErrorInputCode.NoError) {
+                let errorInput: ErrorInput = {
+                    code: code,
+                    enemyName: enemyName
+                };
+                ret.push(errorInput);
+            }
+        }
+
+        return ret;
+    }
+
+
+
+    
+
+    checkIfInputLegalWithEnemy(inputLbl: string, enemyLbl: string): ErrorInputCode {
+
+        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
+        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
+
+        if (inputLbl === enemyLbl)
+            return ErrorInputCode.Same;
+
+        if (enemyLbl.indexOf(inputLbl) != -1) {
+            return ErrorInputCode.Contain;
+        }
+
+        if (inputLbl.indexOf(enemyLbl) != -1) {
+            return ErrorInputCode.Wrap;
+        }
+
+        return ErrorInputCode.NoError;
+    }
+
+    findBiggestDamage(ar: SimResultItem[]): SimResultItem[] {
+        let ret = [];
+        let max = -1;
         let entry = null;
         ar.forEach(element => {
-            if(element.value > max) {                
+            if (element.value > max) {
                 max = element.value;
                 entry = element;
             }
         });
-        
-        if(entry)
+
+        if (entry)
             ret.push(entry);
 
         return ret;
@@ -181,9 +304,9 @@ class EnemyManager {
         for (let i in this.enemies) {
             let e = this.enemies[i];
             if (e.lbl === name) {
-                ret.push(e);                
-            }            
-        }        
+                ret.push(e);
+            }
+        }
         return ret;
     }
 

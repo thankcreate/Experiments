@@ -1,8 +1,9 @@
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-controller.ts" />
+
 var gameplayConfig = {
-        enemyDuratrion: 20000,
-        spawnInterval: 4000,
+        enemyDuratrion: 25000,
+        spawnInterval: 8000,
 
         onlyDamageMostMatch: true,
         tryAvoidDuplicate: true,
@@ -10,8 +11,9 @@ var gameplayConfig = {
         quickDrawDataPath: "assets/quick-draw-data/",
         defaultHealth: 3,
         damageTiers: [
-                [0.8, 2],
-                [0.5, 1],
+                [0.8, 3],
+                [0.5, 2],
+                [0.4, 1],
                 [0, 0]]
 }
 

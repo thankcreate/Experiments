@@ -6,7 +6,7 @@ class Scene1 extends BaseScene {
     labels;
     lblStyl;
     container: Phaser.GameObjects.Container;
-    enemySpawner: EnemyManager;
+    enemyManager: EnemyManager;
     playerInput: PlayerInputText;
 
     constructor() {
@@ -18,7 +18,7 @@ class Scene1 extends BaseScene {
 
         this.container;
 
-        this.enemySpawner;
+        this.enemyManager;
     }
 
     preload() {
@@ -38,12 +38,16 @@ class Scene1 extends BaseScene {
         this.playerInput.init(this.circle);
 
         // enemies
-        this.enemySpawner = new EnemyManager(this, this.container);
-        this.enemySpawner.startSpawn();
+        this.enemyManager = new EnemyManager(this, this.container);
+        
+        
+        this.enemyManager.startSpawn();
+        
 
         // gra
-        var face = new QuickDrawFigure(this, this.container, "smiley-face");                
+        // var face = new QuickDrawFigure(this, this.container, "smiley-face");                
     }
+
 
     update(time, dt) {
         dt = dt / 1000;
@@ -52,7 +56,7 @@ class Scene1 extends BaseScene {
 
         this.container.setPosition(w / 2, h / 2);
 
-        this.enemySpawner.update(time, dt);
+        this.enemyManager.update(time, dt);
         this.playerInput.update(time, dt);
     }
 }

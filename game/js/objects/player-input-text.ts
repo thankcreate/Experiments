@@ -9,6 +9,10 @@ class PlayerInputText {
     circle;
     y;
 
+    shortWords : Set<string>;
+
+    inputHistory : string[] = []; //store only valid input history
+
     constructor(scene: Scene1, container) {
         this.scene = scene;
         this.parentContainer = container;
@@ -24,6 +28,11 @@ class PlayerInputText {
         this.text; // main text input
 
         this.circle;
+
+        this.shortWords = new Set();
+        this.shortWords.add("go");
+        this.shortWords.add("hi");
+        this.shortWords.add("no");
     }
 
     init(circle) {
@@ -74,33 +83,51 @@ class PlayerInputText {
     }
 
     confirm() {
-        var enemies = this.scene.enemySpawner.enemies;        
-        var inputWord = this.text.text;
-        this.scene.playSpeech(inputWord);
+        var inputWord = this.text.text;           
 
-        var enemyLabels = [];
-        for (let i in enemies) {
-            var enemy = enemies[i];
-            enemyLabels.push(enemy.lbl);
+        let checkLegal : ErrorInputCode = this.checkIfInputLegalBeforeSend(inputWord);
+        let legal = checkLegal == ErrorInputCode.NoError;
+        if(legal) {
+            this.inputHistory.push(inputWord);
+            this.scene.enemyManager.sendInputToServer(inputWord);
         }
-
-        api3WithTwoParams(inputWord, enemyLabels,
-            // suc
-            res => {
-                // console.log(res);
-                this.scene.enemySpawner.confirmCallbackSuc(res);
-            },
-            // err
-            function err(res) {
-                // console.log("API3 failed");
-            }
-        ); 
-        
-
+        else {
+            console.log("ErrorInputCode before send: " + checkLegal);
+        }
     }
 
-    
-    
+
+    /**
+     * Check without the need to compare with other enemy lables
+     * This is mostly done before sending the input to the server on the client side
+     * @param inputLbl player input
+     */
+    checkIfInputLegalBeforeSend(inputLbl: string): ErrorInputCode {
+        var inputLblWithoutSpace = inputLbl.trim().replace(/ /g, '').toLowerCase();
+        if (!this.shortWords.has(inputLblWithoutSpace) && inputLblWithoutSpace.length <= 2) {            
+            return ErrorInputCode.TooShort;
+        }
+        else if(this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
+            return ErrorInputCode.Repeat
+        }
+        return ErrorInputCode.NoError;
+    }
+
+    /**
+     * Check if the input history has the same input
+     * @param inputLbl 
+     * @param recentCount 
+     */
+    checkIfRecentHistoryHasSame(inputLbl: string, recentCount : number = 3) : boolean{
+        inputLbl = inputLbl.trim();
+        for(let i = this.inputHistory.length - 1; i >= 0 && --recentCount >= 0; i--) {
+            if(this.inputHistory[i].trim() === inputLbl) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     update(time, dt) {
 

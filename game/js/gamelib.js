@@ -46,7 +46,7 @@ var Scene1 = /** @class */ (function (_super) {
         _this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         _this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
         _this.container;
-        _this.enemySpawner;
+        _this.enemyManager;
         return _this;
     }
     Scene1.prototype.preload = function () {
@@ -62,17 +62,17 @@ var Scene1 = /** @class */ (function (_super) {
         this.playerInput = new PlayerInputText(this, this.container);
         this.playerInput.init(this.circle);
         // enemies
-        this.enemySpawner = new EnemyManager(this, this.container);
-        this.enemySpawner.startSpawn();
+        this.enemyManager = new EnemyManager(this, this.container);
+        this.enemyManager.startSpawn();
         // gra
-        var face = new QuickDrawFigure(this, this.container, "smiley-face");
+        // var face = new QuickDrawFigure(this, this.container, "smiley-face");                
     };
     Scene1.prototype.update = function (time, dt) {
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
-        this.enemySpawner.update(time, dt);
+        this.enemyManager.update(time, dt);
         this.playerInput.update(time, dt);
     };
     return Scene1;
@@ -80,15 +80,16 @@ var Scene1 = /** @class */ (function (_super) {
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
-    enemyDuratrion: 20000,
-    spawnInterval: 4000,
+    enemyDuratrion: 25000,
+    spawnInterval: 8000,
     onlyDamageMostMatch: true,
     tryAvoidDuplicate: true,
     quickDrawDataPath: "assets/quick-draw-data/",
     defaultHealth: 3,
     damageTiers: [
-        [0.8, 2],
-        [0.5, 1],
+        [0.8, 3],
+        [0.5, 2],
+        [0.4, 1],
         [0, 0]
     ]
 };
@@ -304,6 +305,16 @@ function apiTextToSpeech2(inputText, identifier, suc, err) {
     };
     oReq.send(dataStr);
 }
+var ErrorInputCode;
+(function (ErrorInputCode) {
+    ErrorInputCode[ErrorInputCode["NoError"] = 0] = "NoError";
+    ErrorInputCode[ErrorInputCode["Same"] = 1] = "Same";
+    ErrorInputCode[ErrorInputCode["Contain"] = 2] = "Contain";
+    ErrorInputCode[ErrorInputCode["Wrap"] = 3] = "Wrap";
+    ErrorInputCode[ErrorInputCode["TooShort"] = 4] = "TooShort";
+    ErrorInputCode[ErrorInputCode["Repeat"] = 5] = "Repeat";
+    ErrorInputCode[ErrorInputCode["NotWord"] = 6] = "NotWord";
+})(ErrorInputCode || (ErrorInputCode = {}));
 var EnemyManager = /** @class */ (function () {
     function EnemyManager(scene, container) {
         this.scene = scene;
@@ -311,10 +322,14 @@ var EnemyManager = /** @class */ (function () {
         this.interval = gameplayConfig.spawnInterval;
         this.dummy = 1;
         this.enemies = [];
-        this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
+        // this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
+        this.labels = drawNames;
         this.lblStyl = {
             fontSize: '32px',
-            fill: '#000000', fontFamily: "'Averia Serif Libre', Georgia, serif"
+            fill: '#000000',
+            // * firefox will not show the text if the font is loading
+            // fontFamily: "Georgia, serif"
+            fontFamily: "'Averia Serif Libre', Georgia, serif"
         };
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
@@ -326,6 +341,7 @@ var EnemyManager = /** @class */ (function () {
             dummy: 1,
             duration: this.interval,
             onStart: function () {
+                console.log('onstart');
                 _this.spawn();
             },
             onRepeat: function () {
@@ -364,6 +380,11 @@ var EnemyManager = /** @class */ (function () {
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
         var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
+        console.log('-------------------------');
+        this.enemies.forEach(function (item) {
+            console.log("item: " + item.lbl + " " + item.inner.x + " " + item.inner.y + " " + item.inner.alpha);
+        });
+        console.log(this.enemies.length + "  name:" + name);
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
         enemy.startRun();
@@ -392,34 +413,99 @@ var EnemyManager = /** @class */ (function () {
         pt.y = Math.sin(rdDegree) * this.spawnRadius;
         return pt;
     };
+    // inputConfirm(input: string) {
+    //     var enemies = this.enemies;        
+    //     var inputWord = input;
+    //     let checkLegal : ErrorInputCode = this.checkIfInputLegalAlone(inputWord);
+    //     if(checkLegal == ErrorInputCode.NoError) {
+    //         this.sendInputToServer(inputWord);
+    //     }
+    //     else {
+    //         console.log("ErrorInputCode before send: " + checkLegal);
+    //     }
+    // }
+    EnemyManager.prototype.sendInputToServer = function (inputWord) {
+        var _this = this;
+        this.scene.playSpeech(inputWord);
+        var enemyLabels = [];
+        for (var i in this.enemies) {
+            var enemy = this.enemies[i];
+            enemyLabels.push(enemy.lbl);
+        }
+        api3WithTwoParams(inputWord, enemyLabels, 
+        // suc
+        function (res) {
+            // console.log(res);
+            _this.confirmCallbackSuc(res);
+        }, 
+        // err
+        function err(res) {
+            // console.log("API3 failed");
+        });
+    };
     // api3 callback
     EnemyManager.prototype.confirmCallbackSuc = function (res) {
         var ar = res.outputArray;
+        var input = res.input;
         // filter the duplicate labels
         var seen = {};
         ar = ar.filter(function (item) {
             return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         });
+        var legal = true;
         // if we only want to damage the most similar word
         if (gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
-        var _loop_1 = function (i) {
-            var entry = ar[i];
-            var entryName = ar[i].name;
-            var entryValue = ar[i].value;
-            // since network has latency, 
-            // the enemy could have been eliminated when the callback is invoked
-            // we need to be careful about the availability of the enemy
-            var enemiesWithName = this_1.findEnemyByName(entryName);
-            enemiesWithName.forEach(function (e) {
-                e.damage(entryValue);
-            });
-        };
-        var this_1 = this;
-        for (var i in ar) {
-            _loop_1(i);
+        var errorInputs = this.checkIfInputLegalArray(ar, input);
+        legal = errorInputs.length == 0;
+        console.log("illegal count: " + errorInputs.length);
+        if (legal) {
+            var _loop_1 = function (i) {
+                var entry = ar[i];
+                var entryName = ar[i].name;
+                var entryValue = ar[i].value;
+                // since network has latency, 
+                // the enemy could have been eliminated when the callback is invoked
+                // we need to be careful about the availability of the enemy
+                var enemiesWithName = this_1.findEnemyByName(entryName);
+                enemiesWithName.forEach(function (e) {
+                    e.damage(entryValue, input);
+                });
+            };
+            var this_1 = this;
+            for (var i in ar) {
+                _loop_1(i);
+            }
         }
+    };
+    EnemyManager.prototype.checkIfInputLegalArray = function (ar, input) {
+        var ret = [];
+        for (var i in ar) {
+            var enemyName = ar[i].name;
+            var code = this.checkIfInputLegalWithEnemy(input, enemyName);
+            if (code != ErrorInputCode.NoError) {
+                var errorInput = {
+                    code: code,
+                    enemyName: enemyName
+                };
+                ret.push(errorInput);
+            }
+        }
+        return ret;
+    };
+    EnemyManager.prototype.checkIfInputLegalWithEnemy = function (inputLbl, enemyLbl) {
+        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
+        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
+        if (inputLbl === enemyLbl)
+            return ErrorInputCode.Same;
+        if (enemyLbl.indexOf(inputLbl) != -1) {
+            return ErrorInputCode.Contain;
+        }
+        if (inputLbl.indexOf(enemyLbl) != -1) {
+            return ErrorInputCode.Wrap;
+        }
+        return ErrorInputCode.NoError;
     };
     EnemyManager.prototype.findBiggestDamage = function (ar) {
         var ret = [];
@@ -519,20 +605,24 @@ var Enemy = /** @class */ (function () {
         }
         return ret;
     };
-    Enemy.prototype.damage = function (val) {
+    Enemy.prototype.damage = function (val, input) {
         var realDamage = this.getRealHealthDamage(val);
         console.log(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
         this.health -= realDamage;
-        if (this.health < 0) {
-            this.stopRun();
+        if (this.health <= 0) {
+            this.eliminated();
         }
         this.health = Math.max(0, this.health);
         this.healthText.setText(this.health.toString());
+    };
+    Enemy.prototype.eliminated = function () {
+        this.stopRun();
     };
     return Enemy;
 }());
 var PlayerInputText = /** @class */ (function () {
     function PlayerInputText(scene, container) {
+        this.inputHistory = []; //store only valid input history
         this.scene = scene;
         this.parentContainer = container;
         this.fontSize = 32;
@@ -544,6 +634,10 @@ var PlayerInputText = /** @class */ (function () {
         this.maxCount = 100;
         this.text; // main text input
         this.circle;
+        this.shortWords = new Set();
+        this.shortWords.add("go");
+        this.shortWords.add("hi");
+        this.shortWords.add("no");
     }
     PlayerInputText.prototype.init = function (circle) {
         var _this = this;
@@ -582,25 +676,46 @@ var PlayerInputText = /** @class */ (function () {
         this.text.setText(t);
     };
     PlayerInputText.prototype.confirm = function () {
-        var _this = this;
-        var enemies = this.scene.enemySpawner.enemies;
         var inputWord = this.text.text;
-        this.scene.playSpeech(inputWord);
-        var enemyLabels = [];
-        for (var i in enemies) {
-            var enemy = enemies[i];
-            enemyLabels.push(enemy.lbl);
+        var checkLegal = this.checkIfInputLegalBeforeSend(inputWord);
+        var legal = checkLegal == ErrorInputCode.NoError;
+        if (legal) {
+            this.inputHistory.push(inputWord);
+            this.scene.enemyManager.sendInputToServer(inputWord);
         }
-        api3WithTwoParams(inputWord, enemyLabels, 
-        // suc
-        function (res) {
-            // console.log(res);
-            _this.scene.enemySpawner.confirmCallbackSuc(res);
-        }, 
-        // err
-        function err(res) {
-            // console.log("API3 failed");
-        });
+        else {
+            console.log("ErrorInputCode before send: " + checkLegal);
+        }
+    };
+    /**
+     * Check without the need to compare with other enemy lables
+     * This is mostly done before sending the input to the server on the client side
+     * @param inputLbl player input
+     */
+    PlayerInputText.prototype.checkIfInputLegalBeforeSend = function (inputLbl) {
+        var inputLblWithoutSpace = inputLbl.trim().replace(/ /g, '').toLowerCase();
+        if (!this.shortWords.has(inputLblWithoutSpace) && inputLblWithoutSpace.length <= 2) {
+            return ErrorInputCode.TooShort;
+        }
+        else if (this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
+            return ErrorInputCode.Repeat;
+        }
+        return ErrorInputCode.NoError;
+    };
+    /**
+     * Check if the input history has the same input
+     * @param inputLbl
+     * @param recentCount
+     */
+    PlayerInputText.prototype.checkIfRecentHistoryHasSame = function (inputLbl, recentCount) {
+        if (recentCount === void 0) { recentCount = 3; }
+        inputLbl = inputLbl.trim();
+        for (var i = this.inputHistory.length - 1; i >= 0 && --recentCount >= 0; i--) {
+            if (this.inputHistory[i].trim() === inputLbl) {
+                return true;
+            }
+        }
+        return false;
     };
     PlayerInputText.prototype.update = function (time, dt) {
     };
@@ -608,6 +723,7 @@ var PlayerInputText = /** @class */ (function () {
     };
     return PlayerInputText;
 }());
+var drawNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
 var QuickDrawFigure = /** @class */ (function () {
     function QuickDrawFigure(scene, parentContainer, lbl) {
         var _this = this;
@@ -695,50 +811,70 @@ var QuickDrawFigure = /** @class */ (function () {
 }());
 var SpeechManager = /** @class */ (function () {
     function SpeechManager(scene) {
-        this.loadedSpeechFiles = {};
+        this.loadedSpeechFilesStatic = {};
+        this.loadedSpeechFilesQuick = {};
         this.scene = scene;
     }
-    SpeechManager.prototype.quickLoadAndPlay = function (text) {
+    SpeechManager.prototype.quickLoadAndPlay = function (text, play) {
         var _this = this;
-        apiTextToSpeech2(text, "no_id", function (oReq) {
-            console.log("oa");
-            var arrayBuffer = oReq.response;
-            // this blob may leak memory
-            var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
-            var url = URL.createObjectURL(blob);
-            console.log(url);
-            _this.phaserLoadAndPlay(text, text, url);
-            // this.scene.load.cacheManager.audio.add("hahakey", arrayBuffer);
-            // this.scene.sound.play("hahakey");            
-            // var audio = new Audio(url);
-            // audio.load();
-            // audio.play();
-        });
+        if (play === void 0) { play = true; }
+        // in quick mode the key is just the input text
+        // we can judge if we have the key stored directly
+        var key = text;
+        var cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+        var cachedByMySelf = this.loadedSpeechFilesQuick.hasOwnProperty(key);
+        var cached = cachedInPhaser && cachedByMySelf;
+        if (cached) {
+            if (play) {
+                // console.log("play cahced");
+                this.scene.sound.play(key);
+            }
+        }
+        else {
+            apiTextToSpeech2(text, "no_id", function (oReq) {
+                var arrayBuffer = oReq.response;
+                // this blob may leak memory
+                var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+                var url = URL.createObjectURL(blob);
+                // console.log(url);    
+                _this.phaserLoadAndPlay(text, text, url, false, play);
+            });
+        }
     };
-    SpeechManager.prototype.serverLoadAndPlay = function (text) {
+    SpeechManager.prototype.staticLoadAndPlay = function (text, play) {
         var _this = this;
+        if (play === void 0) { play = true; }
         apiTextToSpeech(text, "no_id", function (sucRet) {
             var retID = sucRet.id;
             var retText = sucRet.input;
             var retPath = sucRet.outputPath;
             var md5 = sucRet.md5;
-            // console.log(sucRet);            
-            // console.log("suc apiTextToSpeech: " + retText);
-            _this.phaserLoadAndPlay(retText, md5, retPath);
+            _this.phaserLoadAndPlay(retText, md5, retPath, true, play);
         });
     };
-    SpeechManager.prototype.clearSpeechCache = function () {
-        this.scene.load.cacheManager.audio.entries.clear();
-        for (var key in this.loadedSpeechFiles) {
+    SpeechManager.prototype.clearSpeechCacheStatic = function () {
+        for (var key in this.loadedSpeechFilesStatic) {
             this.scene.load.cacheManager.audio.remove(key);
         }
-        this.loadedSpeechFiles = {};
+        this.loadedSpeechFilesStatic = {};
     };
-    SpeechManager.prototype.phaserLoadAndPlay = function (text, key, fullPath) {
+    SpeechManager.prototype.clearSpeechCacheQuick = function () {
+        for (var key in this.loadedSpeechFilesStatic) {
+            this.scene.load.cacheManager.audio.remove(key);
+        }
+        this.loadedSpeechFilesQuick = {};
+    };
+    SpeechManager.prototype.phaserLoadAndPlay = function (text, key, fullPath, isStatic, play) {
+        // console.log("isStatic: " + isStatic);
+        if (isStatic === void 0) { isStatic = true; }
+        if (play === void 0) { play = true; }
         // console.log("------------------------------");      
-        var cached = this.scene.load.cacheManager.audio.has(key);
+        var cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+        var cachedByMySelf = isStatic ?
+            this.loadedSpeechFilesStatic.hasOwnProperty(key) :
+            this.loadedSpeechFilesQuick.hasOwnProperty(key);
         // double check
-        if (this.loadedSpeechFiles.hasOwnProperty(key) && cached) {
+        if (cachedByMySelf && cachedInPhaser) {
             this.scene.sound.play(key);
         }
         else {
@@ -746,14 +882,18 @@ var SpeechManager = /** @class */ (function () {
             this.scene.load.audio(key, [fullPath]);
             var localThis_1 = this;
             this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
-                console.log("actually!!!!!!!!1");
-                localThis_1.loadedSpeechFiles[key] = true;
-                if (arg1 === key)
-                    localThis_1.scene.sound.play(key);
+                // console.log("actually!!!!!!!!1");
+                if (isStatic)
+                    localThis_1.loadedSpeechFilesStatic[key] = true;
+                else
+                    localThis_1.loadedSpeechFilesQuick[key] = true;
+                if (arg1 === key) {
+                    if (play)
+                        localThis_1.scene.sound.play(key);
+                }
                 localThis_1.scene.load.removeListener('filecomplete', onCompleted);
             });
             this.scene.load.start();
-            // }
         }
     };
     return SpeechManager;

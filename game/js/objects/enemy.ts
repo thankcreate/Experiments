@@ -32,6 +32,8 @@ class Enemy {
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
 
+
+
         // text
         this.text = this.scene.add.text(0, 0, lbl, lblStyle);
         this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;        
@@ -108,15 +110,23 @@ class Enemy {
         return ret;
     }
 
-    damage(val: number) {
+    
+
+    damage(val: number, input:string) {
+
+        
         let realDamage = this.getRealHealthDamage(val);        
         
         console.log(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
         this.health -= realDamage;
-        if (this.health < 0) {
-            this.stopRun();
+        if (this.health <= 0) {
+            this.eliminated();            
         }
         this.health = Math.max(0, this.health);
         this.healthText.setText(this.health.toString());
+    }
+
+    eliminated() {
+        this.stopRun();
     }
 }

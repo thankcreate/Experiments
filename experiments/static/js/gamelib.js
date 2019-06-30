@@ -351,7 +351,7 @@ var EnemyManager = /** @class */ (function () {
         });
     };
     EnemyManager.prototype.getNextName = function () {
-        var ret;
+        var ret = "";
         // max try count
         var maxTry = 100;
         for (var i = 0; i < maxTry; i++) {
@@ -374,7 +374,7 @@ var EnemyManager = /** @class */ (function () {
                 break;
             }
         }
-        return ret;
+        return ret[0].toUpperCase() + ret.substring(1, ret.length);
     };
     EnemyManager.prototype.spawn = function () {
         var posi = this.getSpawnPoint();

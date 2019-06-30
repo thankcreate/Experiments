@@ -89,7 +89,7 @@ class EnemyManager {
     }
 
     getNextName(): string {
-        let ret;
+        let ret :string = "";
         // max try count
         let maxTry = 100;
         for (let i = 0; i < maxTry; i++) {
@@ -114,7 +114,8 @@ class EnemyManager {
             }
 
         }
-        return ret;
+        
+        return ret[0].toUpperCase() + ret.substring(1, ret.length);        
     }
 
     spawn() {

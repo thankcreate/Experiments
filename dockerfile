@@ -1,8 +1,9 @@
 FROM tensorflow/tensorflow:latest-py3-jupyter
 
-WORKDIR /app/log
-RUN touch gunicorn.err gunicorn.log jupyter.log jupyter.err nginx.log nginx.err
-
+RUN mkdir /app/log \
+    touch /app/log/gunicorn.err /app/log/gunicorn.log \
+    /app/log/jupyter.log jupyter.err nginx.log nginx.err 
+    
 WORKDIR /app
 RUN pip install flask gunicorn 
 RUN pip install --upgrade google-cloud-texttospeech

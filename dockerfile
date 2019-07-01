@@ -2,8 +2,8 @@ FROM tensorflow/tensorflow:latest-py3-jupyter
 
 
 WORKDIR /app
-RUN pip install flask gunicorn 
-RUN pip install --upgrade google-cloud-texttospeech
+RUN pip install flask gunicorn tensorflow-hub seaborn
+RUN pip install --upgrade google-cloud-texttospeech 
 RUN apt-get -y install nginx tmux supervisor vim
 COPY tron_nginx.conf /etc/nginx/conf.d/
 

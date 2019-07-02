@@ -1,15 +1,16 @@
 #!/bin/bash
 
-if [ ! -d /app/log ]; then
-    mkdir -p /app/log
+if [ ! -d ./log ]; then
+    mkdir -p ./log
 fi
 
-touch /app/log/gunicorn.log
-touch /app/log/gunicorn.err
-touch /app/log/jupyter.log
-touch /app/log/jupyter.err
-touch /app/log/nginx.log
-touch /app/log/nginx.err
+touch ./log/gunicorn.log
+touch ./log/gunicorn.err
+touch ./log/jupyter.log
+touch ./log/jupyter.err
+touch ./log/nginx.log
+touch ./log/nginx.err
 
-cd /app
+export TFHUB_DOWNLOAD_PROGRESS=1
+
 supervisord -c  supervisor.conf

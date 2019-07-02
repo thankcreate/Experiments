@@ -1,5 +1,5 @@
 from google.cloud import texttospeech
-from os import path
+from os import path, makedirs
 
 import hashlib   
 
@@ -14,7 +14,8 @@ def generateSpeechFile(inputText, identifier, api):
 
     # outputPath is the path on the server to write the audio data in
     # It's relative to the experiments.py file
-    outputPath = 'media/speech/' + fileBaseName + '.mp3'
+    outputPathFolder = 'media/speech/'
+    outputPath = outputPathFolder + fileBaseName + '.mp3'
 
     # weOutPutPath is the return web path for the client to visit the temp speech audio file
     # We should set the media alias properly in the nginx conf
@@ -47,7 +48,9 @@ def generateSpeechFile(inputText, identifier, api):
     response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
     # The response's audio_content is binary.
-    
+    if not path.exists(outputPathFolder):
+        makedirs(outputPathFolder)
+
     with open(outputPath, 'wb') as out:
         # Write the response to the output file.
         out.write(response.audio_content)

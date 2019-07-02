@@ -1,10 +1,25 @@
+
+enum EnemyType {
+    Text,
+    TextWithImage,
+    Image,
+}
+
+interface EnemyConfig {
+    type: EnemyType,
+    label?: string;
+    image?:string
+}
+
 class Enemy {
 
     scene: Phaser.Scene;
     inner: Phaser.GameObjects.Container;
+    content: Phaser.GameObjects.Container;
     parentContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;
 
+    initPosi : Phaser.Geom.Point;
     lbl: string;
     lblStyle: object;
 
@@ -21,34 +36,30 @@ class Enemy {
 
     inputAngle: number;
     health: number = gameplayConfig.defaultHealth;
+     
 
-    constructor(scene, enemyManager: EnemyManager, posi, lbl, lblStyle) {        
+    constructor(scene, enemyManager: EnemyManager, posi : Phaser.Geom.Point, lblStyle, config : EnemyConfig) {        
         this.scene = scene;
         this.enemyManager = enemyManager;
         this.parentContainer = enemyManager.container;
-        this.lbl = lbl;
+        this.lbl = config.label;
         this.lblStyle = lblStyle;
+        this.initPosi = posi;
 
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
 
-
-
-        // text
-        this.text = this.scene.add.text(0, 0, lbl, lblStyle);
-        this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;        
-        this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
-        this.inner.add(this.text);
-
         
+        this.dest = new Phaser.Geom.Point(0, 0); 
+        
+        this.initContent();
+    }
 
-        // healthText
-        let lb = this.text.getBottomLeft();
-        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), lblStyle);
-        this.healthText.setOrigin(0, 0);
-        this.inner.add(this.healthText);
+    
 
-        this.dest = new Phaser.Geom.Point(0, 0);        
+
+    initContent() {
+        // init in inheritance
     }
 
     update(dt) {
@@ -130,3 +141,5 @@ class Enemy {
         this.stopRun();
     }
 }
+
+

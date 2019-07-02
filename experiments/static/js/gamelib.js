@@ -305,6 +305,141 @@ function apiTextToSpeech2(inputText, identifier, suc, err) {
     };
     oReq.send(dataStr);
 }
+var BrowserType;
+(function (BrowserType) {
+    BrowserType[BrowserType["IE"] = 0] = "IE";
+    BrowserType[BrowserType["Eedge"] = 1] = "Eedge";
+    BrowserType[BrowserType["Firefox"] = 2] = "Firefox";
+    BrowserType[BrowserType["Chrome"] = 3] = "Chrome";
+    BrowserType[BrowserType["Opera"] = 4] = "Opera";
+    BrowserType[BrowserType["Safari"] = 5] = "Safari";
+    BrowserType[BrowserType["Unknown"] = 6] = "Unknown";
+})(BrowserType || (BrowserType = {}));
+function isChrome() {
+    return getExplore() == BrowserType.Chrome;
+}
+function isFirefox() {
+    return getExplore() == BrowserType.Firefox;
+}
+function getExplore() {
+    var Sys = {};
+    var ua = navigator.userAgent.toLowerCase();
+    var s;
+    (s = ua.match(/rv:([\d.]+)\) like gecko/)) ? Sys.ie = s[1] :
+        (s = ua.match(/msie ([\d\.]+)/)) ? Sys.ie = s[1] :
+            (s = ua.match(/edge\/([\d\.]+)/)) ? Sys.edge = s[1] :
+                (s = ua.match(/firefox\/([\d\.]+)/)) ? Sys.firefox = s[1] :
+                    (s = ua.match(/(?:opera|opr).([\d\.]+)/)) ? Sys.opera = s[1] :
+                        (s = ua.match(/chrome\/([\d\.]+)/)) ? Sys.chrome = s[1] :
+                            (s = ua.match(/version\/([\d\.]+).*safari/)) ? Sys.safari = s[1] : 0;
+    if (Sys.ie)
+        return BrowserType.IE;
+    if (Sys.edge)
+        return BrowserType.Eedge;
+    if (Sys.firefox)
+        return BrowserType.Firefox;
+    if (Sys.chrome)
+        return BrowserType.Chrome;
+    if (Sys.opera)
+        return BrowserType.Opera;
+    if (Sys.safari)
+        return BrowserType.Safari;
+    // if (Sys.ie) return ('IE: ' + Sys.ie);  
+    // if (Sys.edge) return ('EDGE: ' + Sys.edge);
+    // if (Sys.firefox) return ('Firefox: ' + Sys.firefox);  
+    // if (Sys.chrome) return ('Chrome: ' + Sys.chrome);  
+    // if (Sys.opera) return ('Opera: ' + Sys.opera);  
+    // if (Sys.safari) return ('Safari: ' + Sys.safari);
+    return BrowserType.Unknown;
+}
+var EnemyType;
+(function (EnemyType) {
+    EnemyType[EnemyType["Text"] = 0] = "Text";
+    EnemyType[EnemyType["TextWithImage"] = 1] = "TextWithImage";
+    EnemyType[EnemyType["Image"] = 2] = "Image";
+})(EnemyType || (EnemyType = {}));
+var Enemy = /** @class */ (function () {
+    function Enemy(scene, enemyManager, posi, lblStyle, config) {
+        this.stopDistance = 125;
+        this.health = gameplayConfig.defaultHealth;
+        this.inStop = false;
+        this.scene = scene;
+        this.enemyManager = enemyManager;
+        this.parentContainer = enemyManager.container;
+        this.lbl = config.label;
+        this.lblStyle = lblStyle;
+        this.initPosi = posi;
+        this.inner = this.scene.add.container(posi.x, posi.y);
+        this.parentContainer.add(this.inner);
+        this.dest = new Phaser.Geom.Point(0, 0);
+        this.initContent();
+    }
+    Enemy.prototype.initContent = function () {
+        // init in inheritance
+    };
+    Enemy.prototype.update = function (dt) {
+        this.checkIfReachEnd();
+    };
+    Enemy.prototype.checkIfReachEnd = function () {
+        if (this.inStop)
+            return;
+        var dis = distance(this.dest, this.inner);
+        if (dis < this.stopDistance)
+            this.stopRun();
+    };
+    Enemy.prototype.startRun = function () {
+        this.inner.alpha = 0; // muse init from here, or it will have a blink
+        this.mvTween = this.scene.tweens.add({
+            targets: this.inner,
+            x: this.dest.x,
+            y: this.dest.y,
+            alpha: {
+                getStart: function () { return 0; },
+                getEnd: function () { return 1; },
+                duration: 500
+            },
+            duration: this.duration
+        });
+    };
+    Enemy.prototype.stopRun = function () {
+        var thisEnemy = this;
+        thisEnemy.enemyManager.removeEnemy(thisEnemy);
+        this.inStop = true;
+        this.mvTween.stop();
+        this.fadeTween = this.scene.tweens.add({
+            targets: this.inner,
+            alpha: 0,
+            duration: 300,
+            onComplete: function () {
+                thisEnemy.inner.destroy();
+            }
+        });
+    };
+    Enemy.prototype.getRealHealthDamage = function (val) {
+        var ret = 0;
+        var tiers = gameplayConfig.damageTiers;
+        for (var i in tiers) {
+            var tier = tiers[i];
+            if (val >= tier[0])
+                return tier[1];
+        }
+        return ret;
+    };
+    Enemy.prototype.damage = function (val, input) {
+        var realDamage = this.getRealHealthDamage(val);
+        console.log(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
+        this.health -= realDamage;
+        if (this.health <= 0) {
+            this.eliminated();
+        }
+        this.health = Math.max(0, this.health);
+        this.healthText.setText(this.health.toString());
+    };
+    Enemy.prototype.eliminated = function () {
+        this.stopRun();
+    };
+    return Enemy;
+}());
 var ErrorInputCode;
 (function (ErrorInputCode) {
     ErrorInputCode[ErrorInputCode["NoError"] = 0] = "NoError";
@@ -327,13 +462,18 @@ var EnemyManager = /** @class */ (function () {
         this.lblStyl = {
             fontSize: '32px',
             fill: '#000000',
-            // * firefox will not show the text if the font is loading
-            // fontFamily: "Georgia, serif"
-            fontFamily: "'Averia Serif Libre', Georgia, serif"
+            fontFamily: this.getLblFont(),
         };
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
+    EnemyManager.prototype.getLblFont = function () {
+        // * firefox will not show the text if the font is loading
+        if (isFirefox()) {
+            return "Georgia, serif";
+        }
+        return "'Averia Serif Libre', Georgia, serif";
+    };
     EnemyManager.prototype.startSpawn = function () {
         var _this = this;
         this.spawnTween = this.scene.tweens.add({
@@ -379,7 +519,10 @@ var EnemyManager = /** @class */ (function () {
     EnemyManager.prototype.spawn = function () {
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
-        var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
+        var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
+            type: EnemyType.Text,
+            label: name
+        });
         // console.log('-------------------------')
         this.enemies.forEach(function (item) {
             // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
@@ -459,7 +602,7 @@ var EnemyManager = /** @class */ (function () {
         }
         var errorInputs = this.checkIfInputLegalArray(ar, input);
         legal = errorInputs.length == 0;
-        console.log("illegal count: " + errorInputs.length);
+        // console.log("illegal count: " + errorInputs.length);
         if (legal) {
             var _loop_1 = function (i) {
                 var entry = ar[i];
@@ -533,93 +676,27 @@ var EnemyManager = /** @class */ (function () {
     };
     return EnemyManager;
 }());
-var Enemy = /** @class */ (function () {
-    function Enemy(scene, enemyManager, posi, lbl, lblStyle) {
-        this.stopDistance = 125;
-        this.health = gameplayConfig.defaultHealth;
-        this.inStop = false;
-        this.scene = scene;
-        this.enemyManager = enemyManager;
-        this.parentContainer = enemyManager.container;
-        this.lbl = lbl;
-        this.lblStyle = lblStyle;
-        this.inner = this.scene.add.container(posi.x, posi.y);
-        this.parentContainer.add(this.inner);
+/// <reference path="enemy-base.ts" />
+var EnemyText = /** @class */ (function (_super) {
+    __extends(EnemyText, _super);
+    function EnemyText(scene, enemyManager, posi, lblStyle, config) {
+        return _super.call(this, scene, enemyManager, posi, lblStyle, config) || this;
+    }
+    EnemyText.prototype.initContent = function () {
+        _super.prototype.initContent.call(this);
         // text
-        this.text = this.scene.add.text(0, 0, lbl, lblStyle);
-        this.inputAngle = Math.atan2(posi.y, posi.x) * 180 / Math.PI;
-        this.text.setOrigin(posi.x > 0 ? 0 : 1, posi.y > 0 ? 0 : 1);
+        this.text = this.scene.add.text(0, 0, this.lbl, this.lblStyle);
+        this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
+        this.text.setOrigin(this.initPosi.x > 0 ? 0 : 1, this.initPosi.y > 0 ? 0 : 1);
         this.inner.add(this.text);
         // healthText
         var lb = this.text.getBottomLeft();
-        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), lblStyle);
+        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
         this.healthText.setOrigin(0, 0);
         this.inner.add(this.healthText);
-        this.dest = new Phaser.Geom.Point(0, 0);
-    }
-    Enemy.prototype.update = function (dt) {
-        this.checkIfReachEnd();
     };
-    Enemy.prototype.checkIfReachEnd = function () {
-        if (this.inStop)
-            return;
-        var dis = distance(this.dest, this.inner);
-        if (dis < this.stopDistance)
-            this.stopRun();
-    };
-    Enemy.prototype.startRun = function () {
-        this.inner.alpha = 0; // muse init from here, or it will have a blink
-        this.mvTween = this.scene.tweens.add({
-            targets: this.inner,
-            x: this.dest.x,
-            y: this.dest.y,
-            alpha: {
-                getStart: function () { return 0; },
-                getEnd: function () { return 1; },
-                duration: 500
-            },
-            duration: this.duration
-        });
-    };
-    Enemy.prototype.stopRun = function () {
-        var thisEnemy = this;
-        thisEnemy.enemyManager.removeEnemy(thisEnemy);
-        this.inStop = true;
-        this.mvTween.stop();
-        this.fadeTween = this.scene.tweens.add({
-            targets: this.inner,
-            alpha: 0,
-            duration: 300,
-            onComplete: function () {
-                thisEnemy.inner.destroy();
-            }
-        });
-    };
-    Enemy.prototype.getRealHealthDamage = function (val) {
-        var ret = 0;
-        var tiers = gameplayConfig.damageTiers;
-        for (var i in tiers) {
-            var tier = tiers[i];
-            if (val >= tier[0])
-                return tier[1];
-        }
-        return ret;
-    };
-    Enemy.prototype.damage = function (val, input) {
-        var realDamage = this.getRealHealthDamage(val);
-        console.log(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
-        this.health -= realDamage;
-        if (this.health <= 0) {
-            this.eliminated();
-        }
-        this.health = Math.max(0, this.health);
-        this.healthText.setText(this.health.toString());
-    };
-    Enemy.prototype.eliminated = function () {
-        this.stopRun();
-    };
-    return Enemy;
-}());
+    return EnemyText;
+}(Enemy));
 var PlayerInputText = /** @class */ (function () {
     function PlayerInputText(scene, container) {
         this.inputHistory = []; //store only valid input history
@@ -655,7 +732,7 @@ var PlayerInputText = /** @class */ (function () {
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
-        console.log("keykown: " + code);
+        // console.log("keykown: " + code);
         if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             return;
         }

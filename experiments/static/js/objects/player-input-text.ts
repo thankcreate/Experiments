@@ -56,7 +56,7 @@ class PlayerInputText {
         var t = this.text.text;
         var code = event.keyCode;
         
-        console.log("keykown: " + code);
+        // console.log("keykown: " + code);
         if(code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
              return;
         }

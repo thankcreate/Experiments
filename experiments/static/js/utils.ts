@@ -108,3 +108,48 @@ function apiTextToSpeech2(inputText: string, identifier: string,suc?: (req: any)
     oReq.send(dataStr);
 }
 
+enum BrowserType {
+    IE,
+    Eedge,
+    Firefox,
+    Chrome,
+    Opera,
+    Safari,
+    Unknown
+}
+
+function isChrome() : boolean {
+    return getExplore() == BrowserType.Chrome;
+}
+
+function isFirefox() : boolean {
+    return getExplore() == BrowserType.Firefox;
+}
+
+function getExplore() : BrowserType{
+    var Sys : any = {};  
+    var ua = navigator.userAgent.toLowerCase();  
+    var s;  
+    (s = ua.match(/rv:([\d.]+)\) like gecko/)) ? Sys.ie = s[1] :
+    (s = ua.match(/msie ([\d\.]+)/)) ? Sys.ie = s[1] :  
+    (s = ua.match(/edge\/([\d\.]+)/)) ? Sys.edge = s[1] :
+    (s = ua.match(/firefox\/([\d\.]+)/)) ? Sys.firefox = s[1] :  
+    (s = ua.match(/(?:opera|opr).([\d\.]+)/)) ? Sys.opera = s[1] :  
+    (s = ua.match(/chrome\/([\d\.]+)/)) ? Sys.chrome = s[1] :  
+    (s = ua.match(/version\/([\d\.]+).*safari/)) ? Sys.safari = s[1] : 0;  
+
+    if (Sys.ie) return BrowserType.IE;
+    if (Sys.edge) return BrowserType.Eedge;
+    if (Sys.firefox) return BrowserType.Firefox;
+    if (Sys.chrome) return BrowserType.Chrome;
+    if (Sys.opera) return BrowserType.Opera;
+    if (Sys.safari) return BrowserType.Safari;
+
+    // if (Sys.ie) return ('IE: ' + Sys.ie);  
+    // if (Sys.edge) return ('EDGE: ' + Sys.edge);
+    // if (Sys.firefox) return ('Firefox: ' + Sys.firefox);  
+    // if (Sys.chrome) return ('Chrome: ' + Sys.chrome);  
+    // if (Sys.opera) return ('Opera: ' + Sys.opera);  
+    // if (Sys.safari) return ('Safari: ' + Sys.safari);
+    return BrowserType.Unknown;
+  }

@@ -1,3 +1,5 @@
+
+
 enum ErrorInputCode {
     NoError,
     Same,
@@ -60,15 +62,19 @@ class EnemyManager {
         this.lblStyl = {
             fontSize: '32px',
             fill: '#000000', 
-            // * firefox will not show the text if the font is loading
-            // fontFamily: "Georgia, serif"
-            fontFamily: "'Averia Serif Libre', Georgia, serif"
+            fontFamily: this.getLblFont(),
         };
-
-
 
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
+    }
+
+    getLblFont() : string {
+        // * firefox will not show the text if the font is loading
+        if(isFirefox()) {            
+            return "Georgia, serif";
+        }
+        return "'Averia Serif Libre', Georgia, serif";
     }
 
     startSpawn() {
@@ -122,7 +128,10 @@ class EnemyManager {
         
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
-        var enemy = new Enemy(this.scene, this, posi, name, this.lblStyl);
+        var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
+            type: EnemyType.Text,
+            label: name
+        });
         
         // console.log('-------------------------')
         this.enemies.forEach(item => {
@@ -159,7 +168,7 @@ class EnemyManager {
         // console.log("Children count: " + this.container.getAll().length);
     }
 
-    getSpawnPoint() {
+    getSpawnPoint() : Phaser.Geom.Point {
         var pt = new Phaser.Geom.Point(0, 0);
         var rdDegree = Phaser.Math.Between(0, 365) / 360 * 2 * Math.PI;
         pt.x = Math.cos(rdDegree) * this.spawnRadius;
@@ -223,7 +232,7 @@ class EnemyManager {
 
         let errorInputs = this.checkIfInputLegalArray(ar, input);
         legal = errorInputs.length == 0;
-        console.log("illegal count: " + errorInputs.length);
+        // console.log("illegal count: " + errorInputs.length);
 
         if (legal) {
             for (let i in ar) {

@@ -46,9 +46,32 @@ class PlayerInputText {
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
-        $(document).keydown(this.keydown.bind(this));
+        $(document).keypress(this.keypress.bind(this));
+        $(document).keydown(this.keydown.bind(this));        
     }
 
+    // keypress to handle all the valid characters
+    keypress(event) {
+        // console.log('keydown');
+        var t = this.text.text;
+        var code = event.keyCode;
+        
+        console.log("keykown: " + code);
+        if(code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
+             return;
+        }
+        
+        if (t.length < this.maxCount) {
+            var codeS = String.fromCharCode(code);
+            if (t.length == 0)
+                codeS = codeS.toUpperCase();
+            t += codeS;
+        }   
+    
+        this.text.setText(t);
+    }
+
+    // keydown to handle the commands
     keydown(event) {
         // console.log('keydown');
         var t = this.text.text;
@@ -59,27 +82,14 @@ class PlayerInputText {
             if (t.length > 0) {
                 t = t.substring(0, t.length - 1);
             }
-        }
-        else if (code >= Phaser.Input.Keyboard.KeyCodes.A
-            && code <= Phaser.Input.Keyboard.KeyCodes.Z
-            || code == Phaser.Input.Keyboard.KeyCodes.SPACE
-        ) {
-            if (t.length < this.maxCount) {
-                var codeS = String.fromCharCode(code).toLowerCase();
-                if (t.length == 0)
-                    codeS = codeS.toUpperCase();
-                t += codeS;
-            }
-
-        }
+        }        
         else if (code == Phaser.Input.Keyboard.KeyCodes.ESC) {
             t = "";
         }
         else if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             t = "";
             this.confirm();
-        }
-
+        }         
 
         this.text.setText(t);
     }

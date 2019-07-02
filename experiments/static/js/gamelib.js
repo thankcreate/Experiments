@@ -341,7 +341,7 @@ var EnemyManager = /** @class */ (function () {
             dummy: 1,
             duration: this.interval,
             onStart: function () {
-                console.log('onstart');
+                // console.log('onstart');
                 _this.spawn();
             },
             onRepeat: function () {
@@ -647,8 +647,27 @@ var PlayerInputText = /** @class */ (function () {
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
+        $(document).keypress(this.keypress.bind(this));
         $(document).keydown(this.keydown.bind(this));
     };
+    // keypress to handle all the valid characters
+    PlayerInputText.prototype.keypress = function (event) {
+        // console.log('keydown');
+        var t = this.text.text;
+        var code = event.keyCode;
+        console.log("keykown: " + code);
+        if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
+            return;
+        }
+        if (t.length < this.maxCount) {
+            var codeS = String.fromCharCode(code);
+            if (t.length == 0)
+                codeS = codeS.toUpperCase();
+            t += codeS;
+        }
+        this.text.setText(t);
+    };
+    // keydown to handle the commands
     PlayerInputText.prototype.keydown = function (event) {
         // console.log('keydown');
         var t = this.text.text;
@@ -657,16 +676,6 @@ var PlayerInputText = /** @class */ (function () {
             || code == Phaser.Input.Keyboard.KeyCodes.DELETE /* delete*/) {
             if (t.length > 0) {
                 t = t.substring(0, t.length - 1);
-            }
-        }
-        else if (code >= Phaser.Input.Keyboard.KeyCodes.A
-            && code <= Phaser.Input.Keyboard.KeyCodes.Z
-            || code == Phaser.Input.Keyboard.KeyCodes.SPACE) {
-            if (t.length < this.maxCount) {
-                var codeS = String.fromCharCode(code).toLowerCase();
-                if (t.length == 0)
-                    codeS = codeS.toUpperCase();
-                t += codeS;
             }
         }
         else if (code == Phaser.Input.Keyboard.KeyCodes.ESC) {

@@ -77,7 +77,7 @@ class EnemyManager {
             dummy: 1,
             duration: this.interval,
             onStart: () => {
-                console.log('onstart');
+                // console.log('onstart');
                 this.spawn();
             },
             onRepeat: () => {

@@ -1,19 +1,22 @@
 
 
 class HealthIndicator {
-    inner: Phaser.GameObjects.Container; 
-    parentContainer: Phaser.GameObjects.Container; 
-    scene: Phaser.Scene;
-    text: Phaser.GameObjects.Text; 
+    inner: PhContainer; 
+    parentContainer: PhContainer; 
+    scene: PhScene;
+    text: PhText; 
     textStyle: TextStyle;
     
-    graphics: Phaser.GameObjects.Graphics;
+    textPosi: PhPoint = MakePoint(0, 1);
+
+    graphics: PhGraphics;
     num: number;
-
     
+    maskGraph: PhGraphics;
+    mask: PhMask;
+    // mvTween: PhTween;
 
-
-    constructor(scene: Phaser.Scene, parentContainer: Phaser.GameObjects.Container, posi: Phaser.Geom.Point, num: number ) {
+    constructor(scene: PhScene, parentContainer: PhContainer, posi: PhPoint, num: number ) {
         this.scene = scene;
         this.parentContainer = parentContainer;        
         
@@ -21,23 +24,93 @@ class HealthIndicator {
         this.parentContainer.add(this.inner);
         this.num = num;
 
+        
+        // circle
         this.graphics = this.scene.add.graphics();        
         this.graphics.fillStyle(0x000000, 1); // background circle
         this.graphics.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2);
         this.inner.add(this.graphics);       
 
 
-        this.textStyle = getDefaultTextStyle();        
-        this.textStyle.fontFamily = gameplayConfig.healthIndicatorFontFamily
-        this.textStyle.fill = '#ffffff';
-        this.textStyle.fontSize = '28px';
-        this.text = this.scene.add.text(0, 1, num.toString(), this.textStyle);
-        this.text.setOrigin(0.5, 0.5);
-        this.inner.add(this.text);            
+        // text health
+        this.text = this.makeCenterText(num);
+        
+        // text mask
+        this.maskGraph = this.scene.make.graphics({}); 
+        this.maskGraph.fillStyle(0x0000ff, 1); // background circle
+        this.maskGraph.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2); 
+
+        let p = this.getAbsolutePosi(this.inner, this.textPosi); 
+        this.maskGraph.x = p.x;
+        this.maskGraph.y = p.y;
+
+        this.mask = this.maskGraph.createGeometryMask();
+        this.text.setMask(this.mask);
     }
 
+    makeCenterText(num: number, offsetX: number = 0, offsetY: number = 0) : PhText {
+        this.textStyle = getDefaultTextStyle();       
+        this.textStyle.fontFamily = gameplayConfig.healthIndicatorFontFamily
+        this.textStyle.fill = '#FFFFFF';
+        this.textStyle.fontSize = '28px';
+        
+        let t = this.scene.add.text(this.textPosi.x + offsetX, this.textPosi.y + offsetY, num.toString(), this.textStyle);
+        t.setOrigin(0.5, 0.5);
+        this.inner.add(t);   
 
-    setText(num: number) {
-        this.text.text = num.toString();
+        if(this.mask) {
+            t.setMask(this.mask);
+        }
+        
+        return t;
+    }
+
+    damagedTo(num: number) {
+        let curNum = this.num;
+        let newNum = num;
+
+        let outTween = this.scene.tweens.add({
+            targets: this.text,
+            y: '+=' + gameplayConfig.healthIndicatorWidth,
+            // alpha: {
+            //     getStart: () => 0,
+            //     getEnd: () => 1,
+            //     duration: 500
+            // },
+            duration: 500
+        });
+
+        this.text = this.makeCenterText(num, 0, -gameplayConfig.healthIndicatorWidth);
+
+        
+        let inTween = this.scene.tweens.add({
+            targets: this.text,
+            y: '+=' + gameplayConfig.healthIndicatorWidth,
+            // alpha: {
+            //     getStart: () => 0,
+            //     getEnd: () => 1,
+            //     duration: 500
+            // },
+            duration: 500
+        });
+
+    }
+
+    update(time, dt) {        
+        let p = this.getAbsolutePosi(this.inner, this.textPosi); 
+        // console.log("getAbsolutePosi:" + p.x + " " + p.y);
+
+        this.maskGraph.x = p.x;
+        this.maskGraph.y = p.y;
+    }
+
+    getAbsolutePosi(ct : PhContainer , posi: PhPoint) : PhPoint{
+        var ret = MakePoint(posi.x, posi.y);
+        while(ct != null) {
+            ret.x += ct.x;
+            ret.y += ct.y;
+            ct = ct.parentContainer;           
+        }
+        return ret;
     }
 }

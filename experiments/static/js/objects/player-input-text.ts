@@ -119,7 +119,7 @@ class PlayerInputText {
         if (!this.shortWords.has(inputLblWithoutSpace) && inputLblWithoutSpace.length <= 2) {            
             return ErrorInputCode.TooShort;
         }
-        else if(this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
+        else if(!gameplayConfig.allowSameInput && this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
             return ErrorInputCode.Repeat
         }
         return ErrorInputCode.NoError;

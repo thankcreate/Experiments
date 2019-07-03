@@ -2,11 +2,15 @@
 /// <reference path="scenes/scene-controller.ts" />
 
 var gameplayConfig = {
-    enemyDuratrion: 25000,
+    enemyDuratrion: 30000,
     spawnInterval: 8000,
 
-    onlyDamageMostMatch: true,
+    onlyDamageMostMatch: false,
+    allowDamageBySameWord: false, // wheather allow the same word to damage the same enemy multiple times
+
     tryAvoidDuplicate: true,
+
+    allowSameInput: true,  // wheather allow same input accepted in the input box
 
     quickDrawDataPath: "assets/quick-draw-data/",
     defaultHealth: 3,
@@ -23,7 +27,10 @@ var gameplayConfig = {
     defaultFontFamilyFirefox: "Georgia, serif",
     
     healthIndicatorFontFamily: '"Trebuchet MS", Helvetica, sans-serif',
-    healthIndicatorWidth: 32
+    healthIndicatorWidth: 32,
+
+    drawDataSample: 255,
+    drawDataDefaultSize: 150
 }
 
 var phaserConfig = {

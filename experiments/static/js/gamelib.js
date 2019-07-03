@@ -80,10 +80,12 @@ var Scene1 = /** @class */ (function (_super) {
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
-    enemyDuratrion: 25000,
+    enemyDuratrion: 30000,
     spawnInterval: 8000,
-    onlyDamageMostMatch: true,
+    onlyDamageMostMatch: false,
+    allowDamageBySameWord: false,
     tryAvoidDuplicate: true,
+    allowSameInput: true,
     quickDrawDataPath: "assets/quick-draw-data/",
     defaultHealth: 3,
     damageTiers: [
@@ -97,7 +99,9 @@ var gameplayConfig = {
     defaultFontFamily: "'Averia Serif Libre', Georgia, serif",
     defaultFontFamilyFirefox: "Georgia, serif",
     healthIndicatorFontFamily: '"Trebuchet MS", Helvetica, sans-serif',
-    healthIndicatorWidth: 32
+    healthIndicatorWidth: 32,
+    drawDataSample: 255,
+    drawDataDefaultSize: 150
 };
 var phaserConfig = {
     type: Phaser.AUTO,
@@ -383,8 +387,12 @@ function getDefaultTextStyle() {
     };
     return ret;
 }
-function PhPoint(x, y) {
+function MakePoint(x, y) {
     return new Phaser.Geom.Point(x, y);
+}
+function getGame() {
+    var thisGame = window.game;
+    return thisGame;
 }
 var EnemyType;
 (function (EnemyType) {
@@ -394,8 +402,9 @@ var EnemyType;
 })(EnemyType || (EnemyType = {}));
 var Enemy = /** @class */ (function () {
     function Enemy(scene, enemyManager, posi, lblStyle, config) {
-        this.stopDistance = 125;
+        this.centerRadius = 125;
         this.health = gameplayConfig.defaultHealth;
+        this.damagedHistory = []; //store only valid input history
         this.inStop = false;
         this.scene = scene;
         this.enemyManager = enemyManager;
@@ -412,15 +421,22 @@ var Enemy = /** @class */ (function () {
     Enemy.prototype.initContent = function () {
         // init in inheritance
     };
-    Enemy.prototype.update = function (dt) {
+    Enemy.prototype.update = function (time, dt) {
         this.checkIfReachEnd();
+        this.healthIndicator.update(time, dt);
     };
     Enemy.prototype.checkIfReachEnd = function () {
         if (this.inStop)
             return;
         var dis = distance(this.dest, this.inner);
-        if (dis < this.stopDistance)
+        var stopDis = this.getStopDistance();
+        // console.log(stopDis);
+        // console.log("dis:" + dis +  "stopdis:" + stopDis );
+        if (dis < stopDis)
             this.stopRun();
+    };
+    Enemy.prototype.getStopDistance = function () {
+        return this.centerRadius;
     };
     Enemy.prototype.startRun = function () {
         this.inner.alpha = 0; // muse init from here, or it will have a blink
@@ -460,18 +476,45 @@ var Enemy = /** @class */ (function () {
         }
         return ret;
     };
+    Enemy.prototype.checkIfDamagedByThisWord = function (input) {
+        for (var i in this.damagedHistory) {
+            if (this.damagedHistory[i] === input) {
+                return true;
+            }
+        }
+        return false;
+    };
     Enemy.prototype.damage = function (val, input) {
         var realDamage = this.getRealHealthDamage(val);
-        console.log(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
+        if (realDamage == 0) {
+            return;
+        }
+        if (gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWord(input)) {
+            return;
+        }
+        console.debug(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
         this.health -= realDamage;
         if (this.health <= 0) {
             this.eliminated();
         }
         this.health = Math.max(0, this.health);
-        this.healthIndicator.setText(this.health);
+        this.healthIndicator.damagedTo(this.health);
     };
     Enemy.prototype.eliminated = function () {
         this.stopRun();
+    };
+    Enemy.prototype.checkIfInputLegalWithEnemy = function (inputLbl, enemyLbl) {
+        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
+        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
+        if (inputLbl === enemyLbl)
+            return ErrorInputCode.Same;
+        if (enemyLbl.indexOf(inputLbl) != -1) {
+            return ErrorInputCode.Contain;
+        }
+        if (inputLbl.indexOf(enemyLbl) != -1) {
+            return ErrorInputCode.Wrap;
+        }
+        return ErrorInputCode.NoError;
     };
     return Enemy;
 }());
@@ -502,6 +545,9 @@ var EnemyImage = /** @class */ (function (_super) {
         // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
+    };
+    EnemyImage.prototype.getStopDistance = function () {
+        return this.centerRadius + gameplayConfig.drawDataDefaultSize / 2 + 10;
     };
     return EnemyImage;
 }(Enemy));
@@ -594,7 +640,7 @@ var EnemyManager = /** @class */ (function () {
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         for (var i in this.enemies) {
-            this.enemies[i].update(dt);
+            this.enemies[i].update(time, dt);
         }
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);
@@ -748,26 +794,85 @@ var EnemyText = /** @class */ (function (_super) {
     return EnemyText;
 }(Enemy));
 var HealthIndicator = /** @class */ (function () {
+    // mvTween: PhTween;
     function HealthIndicator(scene, parentContainer, posi, num) {
+        this.textPosi = MakePoint(0, 1);
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
         this.num = num;
+        // circle
         this.graphics = this.scene.add.graphics();
         this.graphics.fillStyle(0x000000, 1); // background circle
         this.graphics.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2);
         this.inner.add(this.graphics);
+        // text health
+        this.text = this.makeCenterText(num);
+        // text mask
+        this.maskGraph = this.scene.make.graphics({});
+        this.maskGraph.fillStyle(0x0000ff, 1); // background circle
+        this.maskGraph.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2);
+        var p = this.getAbsolutePosi(this.inner, this.textPosi);
+        this.maskGraph.x = p.x;
+        this.maskGraph.y = p.y;
+        this.mask = this.maskGraph.createGeometryMask();
+        this.text.setMask(this.mask);
+    }
+    HealthIndicator.prototype.makeCenterText = function (num, offsetX, offsetY) {
+        if (offsetX === void 0) { offsetX = 0; }
+        if (offsetY === void 0) { offsetY = 0; }
         this.textStyle = getDefaultTextStyle();
         this.textStyle.fontFamily = gameplayConfig.healthIndicatorFontFamily;
-        this.textStyle.fill = '#ffffff';
+        this.textStyle.fill = '#FFFFFF';
         this.textStyle.fontSize = '28px';
-        this.text = this.scene.add.text(0, 1, num.toString(), this.textStyle);
-        this.text.setOrigin(0.5, 0.5);
-        this.inner.add(this.text);
-    }
-    HealthIndicator.prototype.setText = function (num) {
-        this.text.text = num.toString();
+        var t = this.scene.add.text(this.textPosi.x + offsetX, this.textPosi.y + offsetY, num.toString(), this.textStyle);
+        t.setOrigin(0.5, 0.5);
+        this.inner.add(t);
+        if (this.mask) {
+            t.setMask(this.mask);
+        }
+        return t;
+    };
+    HealthIndicator.prototype.damagedTo = function (num) {
+        var curNum = this.num;
+        var newNum = num;
+        var outTween = this.scene.tweens.add({
+            targets: this.text,
+            y: '+=' + gameplayConfig.healthIndicatorWidth,
+            // alpha: {
+            //     getStart: () => 0,
+            //     getEnd: () => 1,
+            //     duration: 500
+            // },
+            duration: 500
+        });
+        this.text = this.makeCenterText(num, 0, -gameplayConfig.healthIndicatorWidth);
+        var inTween = this.scene.tweens.add({
+            targets: this.text,
+            y: '+=' + gameplayConfig.healthIndicatorWidth,
+            // alpha: {
+            //     getStart: () => 0,
+            //     getEnd: () => 1,
+            //     duration: 500
+            // },
+            duration: 500
+        });
+    };
+    HealthIndicator.prototype.update = function (time, dt) {
+        var p = this.getAbsolutePosi(this.inner, this.textPosi);
+        // console.log("getAbsolutePosi:" + p.x + " " + p.y);
+        this.maskGraph.x = p.x;
+        this.maskGraph.y = p.y;
+    };
+    HealthIndicator.prototype.getAbsolutePosi = function (ct, posi) {
+        var ret = MakePoint(posi.x, posi.y);
+        while (ct != null) {
+            ret.x += ct.x;
+            ret.y += ct.y;
+            ct = ct.parentContainer;
+        }
+        return ret;
     };
     return HealthIndicator;
 }());
@@ -860,7 +965,7 @@ var PlayerInputText = /** @class */ (function () {
         if (!this.shortWords.has(inputLblWithoutSpace) && inputLblWithoutSpace.length <= 2) {
             return ErrorInputCode.TooShort;
         }
-        else if (this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
+        else if (!gameplayConfig.allowSameInput && this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
             return ErrorInputCode.Repeat;
         }
         return ErrorInputCode.NoError;
@@ -892,10 +997,10 @@ var QuickDrawFigure = /** @class */ (function () {
         var _this = this;
         this.curIndex = -1;
         this.interval = 200;
-        this.sampleRate = 255;
+        this.sampleRate = gameplayConfig.drawDataSample;
         this.originX = 0.5;
         this.originY = 0.5;
-        this.newSize = 150;
+        this.newSize = gameplayConfig.drawDataDefaultSize;
         this.graphicLineStyle = {
             width: 4,
             color: 0x000000,
@@ -919,7 +1024,7 @@ var QuickDrawFigure = /** @class */ (function () {
         this.inner.clear();
         // let maxY = -10000;
         // let maxX = -10000;
-        // the sample is 255, which means that x, y are both <= 255
+        // the sample is 255, which means that x, y are both <= 255        
         // console.log("drawFigure");
         for (var strokeI = 0; strokeI < strokes.length; strokeI++) {
             // console.log("drawFigure strokeI:" + strokeI);
@@ -933,7 +1038,7 @@ var QuickDrawFigure = /** @class */ (function () {
                 // console.log(xArr[i]);
             }
         }
-        // console.log("MaxX: " + maxX + "   MaxY: " + maxY) ;
+        // console.log("MaxX: " + maxX + "   MaxY: " + maxY) ;        
     };
     QuickDrawFigure.prototype.mappedLineBetween = function (x1, y1, x2, y2) {
         var mappedPosi1 = this.getMappedPosi(x1, y1);

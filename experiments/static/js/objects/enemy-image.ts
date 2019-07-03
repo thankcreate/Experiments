@@ -44,4 +44,8 @@ class EnemyImage extends Enemy {
 
         
     }
+
+    getStopDistance() : number{
+        return this.centerRadius + gameplayConfig.drawDataDefaultSize / 2 + 10;
+    }
 }

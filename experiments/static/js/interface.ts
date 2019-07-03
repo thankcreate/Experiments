@@ -1,3 +1,14 @@
+type PhPoint = Phaser.Geom.Point;
+type PhText = Phaser.GameObjects.Text;
+type PhGraphics = Phaser.GameObjects.Graphics;
+type PhContainer = Phaser.GameObjects.Container;
+type PhImage = Phaser.GameObjects.Image;
+type PhScene = Phaser.Scene;
+type Phgame = Phaser.Game;
+type PhTween = Phaser.Tweens.Tween;
+type PhMask = Phaser.Display.Masks.GeometryMask;
+
+
 enum ErrorInputCode {
     NoError,
     Same,

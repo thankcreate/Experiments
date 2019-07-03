@@ -173,6 +173,12 @@ function getDefaultTextStyle() : TextStyle{
     return ret;
 }
 
-function PhPoint(x: number, y: number) : Phaser.Geom.Point {
+function MakePoint(x: number, y: number) : Phaser.Geom.Point {
     return new Phaser.Geom.Point(x, y);
 }
+
+function getGame() : Phaser.Game {
+    let thisGame : Phaser.Game = (<any>window).game;
+    return thisGame;
+}
+

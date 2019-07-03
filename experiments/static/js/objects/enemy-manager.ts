@@ -128,7 +128,7 @@ class EnemyManager {
         var h = phaserConfig.scale.height;
 
         for (let i in this.enemies) {
-            this.enemies[i].update(dt);
+            this.enemies[i].update(time, dt);
         }
 
 
@@ -235,9 +235,6 @@ class EnemyManager {
 
         return ret;
     }
-
-
-
 
 
     checkIfInputLegalWithEnemy(inputLbl: string, enemyLbl: string): ErrorInputCode {

@@ -27,7 +27,8 @@ class Enemy {
 
     dest: Phaser.Geom.Point;
     duration: number;
-    stopDistance: number = 125;
+
+    centerRadius: number = 125;
 
     mvTween: Phaser.Tweens.Tween;
     fadeTween: Phaser.Tweens.Tween;
@@ -40,6 +41,8 @@ class Enemy {
 
     healthIndicator: HealthIndicator;
      
+    damagedHistory : string[] = []; //store only valid input history
+    
 
     constructor(scene, enemyManager: EnemyManager, posi : Phaser.Geom.Point, lblStyle, config : EnemyConfig) {        
         this.scene = scene;
@@ -51,32 +54,35 @@ class Enemy {
         this.config = config;
 
         this.inner = this.scene.add.container(posi.x, posi.y);
-        this.parentContainer.add(this.inner);
-
-        
+        this.parentContainer.add(this.inner);        
         this.dest = new Phaser.Geom.Point(0, 0); 
         
         this.initContent();
     }
 
-    
-
-
     initContent() {
         // init in inheritance
     }
 
-    update(dt) {
+    update(time, dt) {        
         this.checkIfReachEnd();
+        this.healthIndicator.update(time, dt);
     }
 
     checkIfReachEnd() {
         if (this.inStop)
             return;
 
-        let dis = distance(this.dest, this.inner);        
-        if (dis < this.stopDistance)
+        let dis = distance(this.dest, this.inner);   
+        let stopDis = this.getStopDistance();
+        // console.log(stopDis);
+        // console.log("dis:" + dis +  "stopdis:" + stopDis );
+        if (dis < stopDis)
             this.stopRun();
+    }
+
+    getStopDistance() : number{
+        return this.centerRadius;
     }
 
     startRun() {
@@ -125,24 +131,59 @@ class Enemy {
         return ret;
     }
 
+    checkIfDamagedByThisWord(input: string) : boolean {
+        for(let i in this.damagedHistory) {
+            if(this.damagedHistory[i] === input) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     
 
-    damage(val: number, input:string) {
-
-        
+    damage(val: number, input:string) {        
         let realDamage = this.getRealHealthDamage(val);        
-        
-        console.log(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
+        if(realDamage == 0) {
+            return;
+        }
+
+        if(gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWord(input)) {
+            return;
+        }
+
+        console.debug(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
         this.health -= realDamage;
         if (this.health <= 0) {
             this.eliminated();            
         }
         this.health = Math.max(0, this.health);
-        this.healthIndicator.setText(this.health);
+        this.healthIndicator.damagedTo(this.health);
     }
 
     eliminated() {
         this.stopRun();
+    }
+
+
+
+    checkIfInputLegalWithEnemy(inputLbl: string, enemyLbl: string): ErrorInputCode {
+
+        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
+        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
+
+        if (inputLbl === enemyLbl)
+            return ErrorInputCode.Same;
+
+        if (enemyLbl.indexOf(inputLbl) != -1) {
+            return ErrorInputCode.Contain;
+        }
+
+        if (inputLbl.indexOf(enemyLbl) != -1) {
+            return ErrorInputCode.Wrap;
+        }
+
+        return ErrorInputCode.NoError;
     }
 }
 

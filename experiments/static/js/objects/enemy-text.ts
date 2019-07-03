@@ -16,9 +16,10 @@ class EnemyText extends Enemy {
         
 
         // healthText
-        let lb = this.text.getBottomLeft();
-        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
-        this.healthText.setOrigin(0, 0);
-        this.inner.add(this.healthText);  
+        let lc = this.text.getLeftCenter();
+        lc.x -= gameplayConfig.healthIndicatorWidth / 2;
+        lc.x -= 4;
+        this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
+
     }
 }

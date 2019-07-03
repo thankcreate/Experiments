@@ -77,24 +77,24 @@ function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (a
 }
 
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech(inputText: string, identifier: string,suc?: (arg0: any) => any, err?: (arg0: any) => any) {
-    let dataOb = {input: inputText, id: identifier, api: 1};
+function apiTextToSpeech(inputText: string, identifier: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+    let dataOb = { input: inputText, id: identifier, api: 1 };
     let dataStr = JSON.stringify(dataOb);
     api("api_speech", dataStr, suc, err);
 }
 
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech2(inputText: string, identifier: string,suc?: (req: any) => any, err?: (arg0: any) => any) {
-    let dataOb = {input: inputText, id: identifier, api: 2};
+function apiTextToSpeech2(inputText: string, identifier: string, suc?: (req: any) => any, err?: (arg0: any) => any) {
+    let dataOb = { input: inputText, id: identifier, api: 2 };
     let dataStr = JSON.stringify(dataOb);
-    
-        
+
+
     var oReq = new XMLHttpRequest();
     oReq.open("POST", "/api_speech", true);
     oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     oReq.responseType = "arraybuffer";
-    oReq.onload = function(oEvent) {
-        
+    oReq.onload = function (oEvent) {
+
 
         suc(oReq);
 
@@ -118,25 +118,25 @@ enum BrowserType {
     Unknown
 }
 
-function isChrome() : boolean {
+function isChrome(): boolean {
     return getExplore() == BrowserType.Chrome;
 }
 
-function isFirefox() : boolean {
+function isFirefox(): boolean {
     return getExplore() == BrowserType.Firefox;
 }
 
-function getExplore() : BrowserType{
-    var Sys : any = {};  
-    var ua = navigator.userAgent.toLowerCase();  
-    var s;  
+function getExplore(): BrowserType {
+    var Sys: any = {};
+    var ua = navigator.userAgent.toLowerCase();
+    var s;
     (s = ua.match(/rv:([\d.]+)\) like gecko/)) ? Sys.ie = s[1] :
-    (s = ua.match(/msie ([\d\.]+)/)) ? Sys.ie = s[1] :  
-    (s = ua.match(/edge\/([\d\.]+)/)) ? Sys.edge = s[1] :
-    (s = ua.match(/firefox\/([\d\.]+)/)) ? Sys.firefox = s[1] :  
-    (s = ua.match(/(?:opera|opr).([\d\.]+)/)) ? Sys.opera = s[1] :  
-    (s = ua.match(/chrome\/([\d\.]+)/)) ? Sys.chrome = s[1] :  
-    (s = ua.match(/version\/([\d\.]+).*safari/)) ? Sys.safari = s[1] : 0;  
+        (s = ua.match(/msie ([\d\.]+)/)) ? Sys.ie = s[1] :
+            (s = ua.match(/edge\/([\d\.]+)/)) ? Sys.edge = s[1] :
+                (s = ua.match(/firefox\/([\d\.]+)/)) ? Sys.firefox = s[1] :
+                    (s = ua.match(/(?:opera|opr).([\d\.]+)/)) ? Sys.opera = s[1] :
+                        (s = ua.match(/chrome\/([\d\.]+)/)) ? Sys.chrome = s[1] :
+                            (s = ua.match(/version\/([\d\.]+).*safari/)) ? Sys.safari = s[1] : 0;
 
     if (Sys.ie) return BrowserType.IE;
     if (Sys.edge) return BrowserType.Eedge;
@@ -152,4 +152,27 @@ function getExplore() : BrowserType{
     // if (Sys.opera) return ('Opera: ' + Sys.opera);  
     // if (Sys.safari) return ('Safari: ' + Sys.safari);
     return BrowserType.Unknown;
-  }
+}
+
+
+function getDefaultFontFamily(): string {
+    // * firefox will not show the text if the font is loading
+    if (isFirefox()) {
+        return gameplayConfig.defaultFontFamilyFirefox;
+    }
+    return gameplayConfig.defaultFontFamily;
+}
+
+
+function getDefaultTextStyle() : TextStyle{
+    let ret : TextStyle = {
+        fontSize: gameplayConfig.defaultTextSize,
+        fill: '#000000',
+        fontFamily: getDefaultFontFamily(),
+    };
+    return ret;
+}
+
+function PhPoint(x: number, y: number) : Phaser.Geom.Point {
+    return new Phaser.Geom.Point(x, y);
+}

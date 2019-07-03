@@ -91,7 +91,13 @@ var gameplayConfig = {
         [0.5, 2],
         [0.4, 1],
         [0, 0]
-    ]
+    ],
+    defaultTextSize: '32px',
+    defaultImageTitleSize: '28px',
+    defaultFontFamily: "'Averia Serif Libre', Georgia, serif",
+    defaultFontFamilyFirefox: "Georgia, serif",
+    healthIndicatorFontFamily: '"Trebuchet MS", Helvetica, sans-serif',
+    healthIndicatorWidth: 32
 };
 var phaserConfig = {
     type: Phaser.AUTO,
@@ -105,6 +111,16 @@ var phaserConfig = {
     },
     scene: [Controller, Scene1]
 };
+var ErrorInputCode;
+(function (ErrorInputCode) {
+    ErrorInputCode[ErrorInputCode["NoError"] = 0] = "NoError";
+    ErrorInputCode[ErrorInputCode["Same"] = 1] = "Same";
+    ErrorInputCode[ErrorInputCode["Contain"] = 2] = "Contain";
+    ErrorInputCode[ErrorInputCode["Wrap"] = 3] = "Wrap";
+    ErrorInputCode[ErrorInputCode["TooShort"] = 4] = "TooShort";
+    ErrorInputCode[ErrorInputCode["Repeat"] = 5] = "Repeat";
+    ErrorInputCode[ErrorInputCode["NotWord"] = 6] = "NotWord";
+})(ErrorInputCode || (ErrorInputCode = {}));
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
 function getLogicWidth() {
@@ -352,6 +368,24 @@ function getExplore() {
     // if (Sys.safari) return ('Safari: ' + Sys.safari);
     return BrowserType.Unknown;
 }
+function getDefaultFontFamily() {
+    // * firefox will not show the text if the font is loading
+    if (isFirefox()) {
+        return gameplayConfig.defaultFontFamilyFirefox;
+    }
+    return gameplayConfig.defaultFontFamily;
+}
+function getDefaultTextStyle() {
+    var ret = {
+        fontSize: gameplayConfig.defaultTextSize,
+        fill: '#000000',
+        fontFamily: getDefaultFontFamily(),
+    };
+    return ret;
+}
+function PhPoint(x, y) {
+    return new Phaser.Geom.Point(x, y);
+}
 var EnemyType;
 (function (EnemyType) {
     EnemyType[EnemyType["Text"] = 0] = "Text";
@@ -369,6 +403,7 @@ var Enemy = /** @class */ (function () {
         this.lbl = config.label;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
+        this.config = config;
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
         this.dest = new Phaser.Geom.Point(0, 0);
@@ -433,23 +468,43 @@ var Enemy = /** @class */ (function () {
             this.eliminated();
         }
         this.health = Math.max(0, this.health);
-        this.healthText.setText(this.health.toString());
+        this.healthIndicator.setText(this.health);
     };
     Enemy.prototype.eliminated = function () {
         this.stopRun();
     };
     return Enemy;
 }());
-var ErrorInputCode;
-(function (ErrorInputCode) {
-    ErrorInputCode[ErrorInputCode["NoError"] = 0] = "NoError";
-    ErrorInputCode[ErrorInputCode["Same"] = 1] = "Same";
-    ErrorInputCode[ErrorInputCode["Contain"] = 2] = "Contain";
-    ErrorInputCode[ErrorInputCode["Wrap"] = 3] = "Wrap";
-    ErrorInputCode[ErrorInputCode["TooShort"] = 4] = "TooShort";
-    ErrorInputCode[ErrorInputCode["Repeat"] = 5] = "Repeat";
-    ErrorInputCode[ErrorInputCode["NotWord"] = 6] = "NotWord";
-})(ErrorInputCode || (ErrorInputCode = {}));
+var EnemyImage = /** @class */ (function (_super) {
+    __extends(EnemyImage, _super);
+    function EnemyImage(scene, enemyManager, posi, lblStyle, config) {
+        return _super.call(this, scene, enemyManager, posi, lblStyle, config) || this;
+    }
+    EnemyImage.prototype.initContent = function () {
+        _super.prototype.initContent.call(this);
+        this.gap = 10;
+        // figure
+        this.figure = new QuickDrawFigure(this.scene, this.inner, this.config.image);
+        var lb = this.figure.getLeftBottom();
+        var rb = this.figure.getRightBottom();
+        this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
+        // text
+        this.text = this.scene.add.text((lb.x + lb.y) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
+        this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
+        this.text.setOrigin(0.5, 0);
+        this.inner.add(this.text);
+        var lc = this.text.getLeftCenter();
+        lc.x -= gameplayConfig.healthIndicatorWidth / 2;
+        lc.x -= 4;
+        this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
+        // // healthText
+        // let lb = this.text.getBottomLeft();
+        // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
+        // this.healthText.setOrigin(0, 0);
+        // this.inner.add(this.healthText);  
+    };
+    return EnemyImage;
+}(Enemy));
 var EnemyManager = /** @class */ (function () {
     function EnemyManager(scene, container) {
         this.scene = scene;
@@ -458,22 +513,11 @@ var EnemyManager = /** @class */ (function () {
         this.dummy = 1;
         this.enemies = [];
         // this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
-        this.labels = drawNames;
-        this.lblStyl = {
-            fontSize: '32px',
-            fill: '#000000',
-            fontFamily: this.getLblFont(),
-        };
+        this.labels = figureNames;
+        this.lblStyl = getDefaultTextStyle();
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
-    EnemyManager.prototype.getLblFont = function () {
-        // * firefox will not show the text if the font is loading
-        if (isFirefox()) {
-            return "Georgia, serif";
-        }
-        return "'Averia Serif Libre', Georgia, serif";
-    };
     EnemyManager.prototype.startSpawn = function () {
         var _this = this;
         this.spawnTween = this.scene.tweens.add({
@@ -500,7 +544,7 @@ var EnemyManager = /** @class */ (function () {
             if (gameplayConfig.tryAvoidDuplicate) {
                 var contains = false;
                 this.enemies.forEach(function (enemy) {
-                    if (enemy.lbl === name) {
+                    if (enemy.lbl.toLocaleLowerCase() === name.toLocaleLowerCase()) {
                         contains = true;
                     }
                 });
@@ -519,9 +563,15 @@ var EnemyManager = /** @class */ (function () {
     EnemyManager.prototype.spawn = function () {
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
-        var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
-            type: EnemyType.Text,
-            label: name
+        var figureName = name.split(' ').join('-').toLowerCase();
+        // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
+        //     type: EnemyType.Text,
+        //     label: name
+        // });
+        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, {
+            type: EnemyType.Image,
+            label: name,
+            image: figureName
         });
         // console.log('-------------------------')
         this.enemies.forEach(function (item) {
@@ -690,13 +740,37 @@ var EnemyText = /** @class */ (function (_super) {
         this.text.setOrigin(this.initPosi.x > 0 ? 0 : 1, this.initPosi.y > 0 ? 0 : 1);
         this.inner.add(this.text);
         // healthText
-        var lb = this.text.getBottomLeft();
-        this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
-        this.healthText.setOrigin(0, 0);
-        this.inner.add(this.healthText);
+        var lc = this.text.getLeftCenter();
+        lc.x -= gameplayConfig.healthIndicatorWidth / 2;
+        lc.x -= 4;
+        this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
     };
     return EnemyText;
 }(Enemy));
+var HealthIndicator = /** @class */ (function () {
+    function HealthIndicator(scene, parentContainer, posi, num) {
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+        this.inner = this.scene.add.container(posi.x, posi.y);
+        this.parentContainer.add(this.inner);
+        this.num = num;
+        this.graphics = this.scene.add.graphics();
+        this.graphics.fillStyle(0x000000, 1); // background circle
+        this.graphics.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2);
+        this.inner.add(this.graphics);
+        this.textStyle = getDefaultTextStyle();
+        this.textStyle.fontFamily = gameplayConfig.healthIndicatorFontFamily;
+        this.textStyle.fill = '#ffffff';
+        this.textStyle.fontSize = '28px';
+        this.text = this.scene.add.text(0, 1, num.toString(), this.textStyle);
+        this.text.setOrigin(0.5, 0.5);
+        this.inner.add(this.text);
+    }
+    HealthIndicator.prototype.setText = function (num) {
+        this.text.text = num.toString();
+    };
+    return HealthIndicator;
+}());
 var PlayerInputText = /** @class */ (function () {
     function PlayerInputText(scene, container) {
         this.inputHistory = []; //store only valid input history
@@ -812,21 +886,21 @@ var PlayerInputText = /** @class */ (function () {
     };
     return PlayerInputText;
 }());
-var drawNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
+var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
 var QuickDrawFigure = /** @class */ (function () {
     function QuickDrawFigure(scene, parentContainer, lbl) {
         var _this = this;
         this.curIndex = -1;
         this.interval = 200;
-        this.graphicLineStyle = {
-            width: 4,
-            color: 0xFF0000,
-            alpha: 1
-        };
         this.sampleRate = 255;
         this.originX = 0.5;
         this.originY = 0.5;
         this.newSize = 150;
+        this.graphicLineStyle = {
+            width: 4,
+            color: 0x000000,
+            alpha: 1
+        };
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.lbl = lbl;
@@ -834,7 +908,7 @@ var QuickDrawFigure = /** @class */ (function () {
         var fullPath = this.getFilePathByLbl(lbl);
         $.getJSON(fullPath, function (json) {
             _this.figures = json;
-            // this.drawFigure(this.figures[3]);           
+            // this.drawFigure(this.figures[3]);          
             _this.startChange();
         });
         this.parentContainer.add(this.inner);
@@ -846,7 +920,9 @@ var QuickDrawFigure = /** @class */ (function () {
         // let maxY = -10000;
         // let maxX = -10000;
         // the sample is 255, which means that x, y are both <= 255
+        // console.log("drawFigure");
         for (var strokeI = 0; strokeI < strokes.length; strokeI++) {
+            // console.log("drawFigure strokeI:" + strokeI);
             var xArr = strokes[strokeI][0];
             var yArr = strokes[strokeI][1];
             var count = xArr.length;
@@ -854,6 +930,7 @@ var QuickDrawFigure = /** @class */ (function () {
                 this.mappedLineBetween(xArr[i], yArr[i], xArr[i + 1], yArr[i + 1]);
                 // maxX = Math.max(maxX, xArr[i]);
                 // maxY = Math.max(maxY, yArr[i]);
+                // console.log(xArr[i]);
             }
         }
         // console.log("MaxX: " + maxX + "   MaxY: " + maxY) ;
@@ -895,6 +972,14 @@ var QuickDrawFigure = /** @class */ (function () {
             y * scaleRate - this.newSize * this.originY
         ];
         return posi;
+    };
+    QuickDrawFigure.prototype.getRightBottom = function () {
+        var mappedPosi = this.getMappedPosi(this.sampleRate, this.sampleRate);
+        return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
+    };
+    QuickDrawFigure.prototype.getLeftBottom = function () {
+        var mappedPosi = this.getMappedPosi(0, this.sampleRate);
+        return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
     };
     return QuickDrawFigure;
 }());

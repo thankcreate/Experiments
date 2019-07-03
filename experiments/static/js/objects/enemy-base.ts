@@ -14,17 +14,16 @@ interface EnemyConfig {
 class Enemy {
 
     scene: Phaser.Scene;
-    inner: Phaser.GameObjects.Container;
-    content: Phaser.GameObjects.Container;
+    inner: Phaser.GameObjects.Container; 
     parentContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;
 
     initPosi : Phaser.Geom.Point;
     lbl: string;
-    lblStyle: object;
+    lblStyle: TextStyle;
 
     text: Phaser.GameObjects.Text;
-    healthText: Phaser.GameObjects.Text;
+    
 
     dest: Phaser.Geom.Point;
     duration: number;
@@ -36,6 +35,10 @@ class Enemy {
 
     inputAngle: number;
     health: number = gameplayConfig.defaultHealth;
+
+    config : EnemyConfig;
+
+    healthIndicator: HealthIndicator;
      
 
     constructor(scene, enemyManager: EnemyManager, posi : Phaser.Geom.Point, lblStyle, config : EnemyConfig) {        
@@ -45,6 +48,7 @@ class Enemy {
         this.lbl = config.label;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
+        this.config = config;
 
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);
@@ -134,7 +138,7 @@ class Enemy {
             this.eliminated();            
         }
         this.health = Math.max(0, this.health);
-        this.healthText.setText(this.health.toString());
+        this.healthIndicator.setText(this.health);
     }
 
     eliminated() {

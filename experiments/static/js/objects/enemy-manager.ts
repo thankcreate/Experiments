@@ -1,32 +1,3 @@
-
-
-enum ErrorInputCode {
-    NoError,
-    Same,
-    Contain,
-    Wrap,
-    TooShort,
-    Repeat,
-    NotWord
-}
-
-interface ErrorInput {
-    code: ErrorInputCode,
-    enemyName: string
-}
-
-interface SimResultItem {
-    name: string,
-    value: number
-}
-
-interface SimResult {
-    input: string,
-    array: string[],
-    outputArray: SimResultItem[]
-}
-
-
 class EnemyManager {
     scene: BaseScene;
     container: Phaser.GameObjects.Container; // main scene container
@@ -37,7 +8,7 @@ class EnemyManager {
     enemies: Enemy[];
     labels;
 
-    lblStyl;
+    lblStyl : TextStyle;
 
     spawnTween: Phaser.Tweens.Tween;
     fadeTween: Phaser.Tweens.Tween;
@@ -57,25 +28,15 @@ class EnemyManager {
 
 
         // this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
-        this.labels = drawNames;
+        this.labels = figureNames;
 
-        this.lblStyl = {
-            fontSize: '32px',
-            fill: '#000000', 
-            fontFamily: this.getLblFont(),
-        };
+        this.lblStyl = getDefaultTextStyle();
 
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
 
-    getLblFont() : string {
-        // * firefox will not show the text if the font is loading
-        if(isFirefox()) {            
-            return "Georgia, serif";
-        }
-        return "'Averia Serif Libre', Georgia, serif";
-    }
+
 
     startSpawn() {
         this.spawnTween = this.scene.tweens.add({
@@ -87,7 +48,7 @@ class EnemyManager {
                 this.spawn();
             },
             onRepeat: () => {
-                
+
                 this.spawn();
             },
             repeat: -1
@@ -95,7 +56,7 @@ class EnemyManager {
     }
 
     getNextName(): string {
-        let ret :string = "";
+        let ret: string = "";
         // max try count
         let maxTry = 100;
         for (let i = 0; i < maxTry; i++) {
@@ -105,7 +66,7 @@ class EnemyManager {
             if (gameplayConfig.tryAvoidDuplicate) {
                 var contains = false;
                 this.enemies.forEach(enemy => {
-                    if (enemy.lbl === name) {
+                    if (enemy.lbl.toLocaleLowerCase() === name.toLocaleLowerCase()) {
                         contains = true;
                     }
                 })
@@ -120,22 +81,29 @@ class EnemyManager {
             }
 
         }
-        
-        return ret[0].toUpperCase() + ret.substring(1, ret.length);        
+        return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
 
     spawn() {
-        
+
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
-        var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
-            type: EnemyType.Text,
-            label: name
-        });
         
+        var figureName = name.split(' ').join('-').toLowerCase();
+        // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
+        //     type: EnemyType.Text,
+        //     label: name
+        // });
+
+        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, {
+            type: EnemyType.Image,
+            label: name,
+            image: figureName
+        });
+
         // console.log('-------------------------')
         this.enemies.forEach(item => {
-           // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
+            // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
 
         });
         // console.log(this.enemies.length + "  name:" + name);
@@ -143,7 +111,7 @@ class EnemyManager {
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
 
-       enemy.startRun();
+        enemy.startRun();
     }
 
     removeEnemy(enemy: Enemy) {
@@ -168,7 +136,7 @@ class EnemyManager {
         // console.log("Children count: " + this.container.getAll().length);
     }
 
-    getSpawnPoint() : Phaser.Geom.Point {
+    getSpawnPoint(): Phaser.Geom.Point {
         var pt = new Phaser.Geom.Point(0, 0);
         var rdDegree = Phaser.Math.Between(0, 365) / 360 * 2 * Math.PI;
         pt.x = Math.cos(rdDegree) * this.spawnRadius;
@@ -209,7 +177,7 @@ class EnemyManager {
             function err(res) {
                 // console.log("API3 failed");
             }
-        ); 
+        );
     }
 
     // api3 callback
@@ -270,7 +238,7 @@ class EnemyManager {
 
 
 
-    
+
 
     checkIfInputLegalWithEnemy(inputLbl: string, enemyLbl: string): ErrorInputCode {
 

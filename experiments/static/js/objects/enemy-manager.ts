@@ -198,62 +198,20 @@ class EnemyManager {
             ar = this.findBiggestDamage(ar);
         }
 
-        let errorInputs = this.checkIfInputLegalArray(ar, input);
-        legal = errorInputs.length == 0;
-        // console.log("illegal count: " + errorInputs.length);
-
-        if (legal) {
-            for (let i in ar) {
-                let entry = ar[i];
-                let entryName = ar[i].name;
-                let entryValue = ar[i].value;
-
-                // since network has latency, 
-                // the enemy could have been eliminated when the callback is invoked
-                // we need to be careful about the availability of the enemy
-                let enemiesWithName = this.findEnemyByName(entryName);
-                enemiesWithName.forEach(e => {
-                    e.damage(entryValue, input);
-                });
-            }
-        }
-    }
-
-    checkIfInputLegalArray(ar: SimResultItem[], input: string): ErrorInput[] {
-        let ret: ErrorInput[] = [];
         for (let i in ar) {
-            var enemyName = ar[i].name;
-            var code = this.checkIfInputLegalWithEnemy(input, enemyName);
-            if (code != ErrorInputCode.NoError) {
-                let errorInput: ErrorInput = {
-                    code: code,
-                    enemyName: enemyName
-                };
-                ret.push(errorInput);
-            }
+            let entry = ar[i];
+            let entryName = ar[i].name;
+            let entryValue = ar[i].value;
+
+            // since network has latency, 
+            // the enemy could have been eliminated when the callback is invoked
+            // we need to be careful about the availability of the enemy
+            let enemiesWithName = this.findEnemyByName(entryName);
+            enemiesWithName.forEach(e => {
+                e.damage(entryValue, input);
+            });
         }
-
-        return ret;
-    }
-
-
-    checkIfInputLegalWithEnemy(inputLbl: string, enemyLbl: string): ErrorInputCode {
-
-        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
-        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
-
-        if (inputLbl === enemyLbl)
-            return ErrorInputCode.Same;
-
-        if (enemyLbl.indexOf(inputLbl) != -1) {
-            return ErrorInputCode.Contain;
-        }
-
-        if (inputLbl.indexOf(enemyLbl) != -1) {
-            return ErrorInputCode.Wrap;
-        }
-
-        return ErrorInputCode.NoError;
+       
     }
 
     findBiggestDamage(ar: SimResultItem[]): SimResultItem[] {

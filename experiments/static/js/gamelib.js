@@ -123,7 +123,8 @@ var ErrorInputCode;
     ErrorInputCode[ErrorInputCode["Wrap"] = 3] = "Wrap";
     ErrorInputCode[ErrorInputCode["TooShort"] = 4] = "TooShort";
     ErrorInputCode[ErrorInputCode["Repeat"] = 5] = "Repeat";
-    ErrorInputCode[ErrorInputCode["NotWord"] = 6] = "NotWord";
+    ErrorInputCode[ErrorInputCode["DamagedBefore"] = 6] = "DamagedBefore";
+    ErrorInputCode[ErrorInputCode["NotWord"] = 7] = "NotWord";
 })(ErrorInputCode || (ErrorInputCode = {}));
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
@@ -394,6 +395,15 @@ function getGame() {
     var thisGame = window.game;
     return thisGame;
 }
+var CenterObject = /** @class */ (function () {
+    function CenterObject(scene, parentContainer, designSize) {
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+        this.designSize = designSize;
+        this.inner = this.scene.add.container(0, 0);
+    }
+    return CenterObject;
+}());
 var EnemyType;
 (function (EnemyType) {
     EnemyType[EnemyType["Text"] = 0] = "Text";
@@ -476,7 +486,7 @@ var Enemy = /** @class */ (function () {
         }
         return ret;
     };
-    Enemy.prototype.checkIfDamagedByThisWord = function (input) {
+    Enemy.prototype.checkIfDamagedByThisWordBefore = function (input) {
         for (var i in this.damagedHistory) {
             if (this.damagedHistory[i] === input) {
                 return true;
@@ -485,28 +495,43 @@ var Enemy = /** @class */ (function () {
         return false;
     };
     Enemy.prototype.damage = function (val, input) {
-        var realDamage = this.getRealHealthDamage(val);
-        if (realDamage == 0) {
-            return;
+        var ret = {
+            damage: 0,
+            code: this.checkIfInputLegalWithEnemy(input, this.lbl)
+        };
+        // Found error
+        if (ret.code != ErrorInputCode.NoError) {
+            return ret;
         }
-        if (gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWord(input)) {
-            return;
+        // Zero damage
+        ret.damage = this.getRealHealthDamage(val);
+        if (ret.damage == 0) {
+            return ret;
         }
-        console.debug(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
-        this.health -= realDamage;
+        // Damaged by thie same input word before
+        if (!gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWordBefore(input)) {
+            ret.code = ErrorInputCode.DamagedBefore;
+            return ret;
+        }
+        // Update history
+        this.damagedHistory.push(input);
+        console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
+        // Handle health
+        this.health -= ret.damage;
         if (this.health <= 0) {
             this.eliminated();
         }
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
+        return ret;
     };
     Enemy.prototype.eliminated = function () {
         this.stopRun();
     };
     Enemy.prototype.checkIfInputLegalWithEnemy = function (inputLbl, enemyLbl) {
-        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
-        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
-        if (inputLbl === enemyLbl)
+        inputLbl = inputLbl.trim().toLowerCase();
+        enemyLbl = enemyLbl.trim().toLowerCase();
+        if (inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
         if (enemyLbl.indexOf(inputLbl) != -1) {
             return ErrorInputCode.Contain;
@@ -696,55 +721,22 @@ var EnemyManager = /** @class */ (function () {
         if (gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
-        var errorInputs = this.checkIfInputLegalArray(ar, input);
-        legal = errorInputs.length == 0;
-        // console.log("illegal count: " + errorInputs.length);
-        if (legal) {
-            var _loop_1 = function (i) {
-                var entry = ar[i];
-                var entryName = ar[i].name;
-                var entryValue = ar[i].value;
-                // since network has latency, 
-                // the enemy could have been eliminated when the callback is invoked
-                // we need to be careful about the availability of the enemy
-                var enemiesWithName = this_1.findEnemyByName(entryName);
-                enemiesWithName.forEach(function (e) {
-                    e.damage(entryValue, input);
-                });
-            };
-            var this_1 = this;
-            for (var i in ar) {
-                _loop_1(i);
-            }
-        }
-    };
-    EnemyManager.prototype.checkIfInputLegalArray = function (ar, input) {
-        var ret = [];
+        var _loop_1 = function (i) {
+            var entry = ar[i];
+            var entryName = ar[i].name;
+            var entryValue = ar[i].value;
+            // since network has latency, 
+            // the enemy could have been eliminated when the callback is invoked
+            // we need to be careful about the availability of the enemy
+            var enemiesWithName = this_1.findEnemyByName(entryName);
+            enemiesWithName.forEach(function (e) {
+                e.damage(entryValue, input);
+            });
+        };
+        var this_1 = this;
         for (var i in ar) {
-            var enemyName = ar[i].name;
-            var code = this.checkIfInputLegalWithEnemy(input, enemyName);
-            if (code != ErrorInputCode.NoError) {
-                var errorInput = {
-                    code: code,
-                    enemyName: enemyName
-                };
-                ret.push(errorInput);
-            }
+            _loop_1(i);
         }
-        return ret;
-    };
-    EnemyManager.prototype.checkIfInputLegalWithEnemy = function (inputLbl, enemyLbl) {
-        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
-        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
-        if (inputLbl === enemyLbl)
-            return ErrorInputCode.Same;
-        if (enemyLbl.indexOf(inputLbl) != -1) {
-            return ErrorInputCode.Contain;
-        }
-        if (inputLbl.indexOf(enemyLbl) != -1) {
-            return ErrorInputCode.Wrap;
-        }
-        return ErrorInputCode.NoError;
     };
     EnemyManager.prototype.findBiggestDamage = function (ar) {
         var ret = [];

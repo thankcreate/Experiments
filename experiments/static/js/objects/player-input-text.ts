@@ -120,7 +120,7 @@ class PlayerInputText {
             return ErrorInputCode.TooShort;
         }
         else if(!gameplayConfig.allowSameInput && this.checkIfRecentHistoryHasSame(inputLbl, 1)) {
-            return ErrorInputCode.Repeat
+            return ErrorInputCode.Repeat;
         }
         return ErrorInputCode.NoError;
     }

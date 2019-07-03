@@ -131,7 +131,7 @@ class Enemy {
         return ret;
     }
 
-    checkIfDamagedByThisWord(input: string) : boolean {
+    checkIfDamagedByThisWordBefore(input: string) : boolean {
         for(let i in this.damagedHistory) {
             if(this.damagedHistory[i] === input) {
                 return true;
@@ -142,23 +142,43 @@ class Enemy {
     }
     
 
-    damage(val: number, input:string) {        
-        let realDamage = this.getRealHealthDamage(val);        
-        if(realDamage == 0) {
-            return;
+    damage(val: number, input:string) : DamageResult {         
+        let ret: DamageResult = {
+            damage: 0, 
+            code:this.checkIfInputLegalWithEnemy(input, this.lbl)
+        };
+
+        // Found error
+        if(ret.code != ErrorInputCode.NoError) {
+            return ret;
         }
 
-        if(gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWord(input)) {
-            return;
+        // Zero damage
+        ret.damage = this.getRealHealthDamage(val);        
+        if(ret.damage == 0) {
+            return ret;
         }
 
-        console.debug(this.lbl + " sim: " + val + "   damaged by: " + realDamage);
-        this.health -= realDamage;
+        // Damaged by thie same input word before
+        if(!gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWordBefore(input)) {
+            ret.code = ErrorInputCode.DamagedBefore;
+            return ret;
+        }
+
+        // Update history
+        this.damagedHistory.push(input);
+
+        console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
+
+        // Handle health
+        this.health -= ret.damage;
         if (this.health <= 0) {
             this.eliminated();            
         }
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
+
+        return ret;
     }
 
     eliminated() {
@@ -169,10 +189,10 @@ class Enemy {
 
     checkIfInputLegalWithEnemy(inputLbl: string, enemyLbl: string): ErrorInputCode {
 
-        inputLbl = inputLbl.trim().replace(/ /g, '').toLowerCase();
-        enemyLbl = enemyLbl.trim().replace(/ /g, '').toLowerCase();
+        inputLbl = inputLbl.trim().toLowerCase();
+        enemyLbl = enemyLbl.trim().toLowerCase();
 
-        if (inputLbl === enemyLbl)
+        if (inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
 
         if (enemyLbl.indexOf(inputLbl) != -1) {

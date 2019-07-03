@@ -11,17 +11,13 @@ type PhMask = Phaser.Display.Masks.GeometryMask;
 
 enum ErrorInputCode {
     NoError,
-    Same,
+    Same,                   // input is the exactly the same as the enemy
     Contain,
     Wrap,
     TooShort,
-    Repeat,
+    Repeat,                 // repeat input in the input box
+    DamagedBefore,          // damaged by the same word before
     NotWord
-}
-
-interface ErrorInput {
-    code: ErrorInputCode,
-    enemyName: string
 }
 
 interface SimResultItem {
@@ -33,6 +29,11 @@ interface SimResult {
     input: string,
     array: string[],
     outputArray: SimResultItem[]
+}
+
+interface DamageResult {
+    damage: number,
+    code: ErrorInputCode,
 }
 
 interface TextStyle{

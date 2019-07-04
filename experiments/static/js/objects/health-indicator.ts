@@ -7,7 +7,7 @@ class HealthIndicator {
     text: PhText; 
     textStyle: TextStyle;
     
-    textPosi: PhPoint = MakePoint(0, 1);
+    textPosi: PhPoint = MakePoint2(0, 1);
 
     graphics: PhGraphics;
     num: number;
@@ -105,7 +105,7 @@ class HealthIndicator {
     }
 
     getAbsolutePosi(ct : PhContainer , posi: PhPoint) : PhPoint{
-        var ret = MakePoint(posi.x, posi.y);
+        var ret = MakePoint2(posi.x, posi.y);
         while(ct != null) {
             ret.x += ct.x;
             ret.y += ct.y;

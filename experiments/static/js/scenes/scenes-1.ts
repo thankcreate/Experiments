@@ -9,6 +9,8 @@ class Scene1 extends BaseScene {
     enemyManager: EnemyManager;
     playerInput: PlayerInputText;
 
+    centerObject: CenterObject;
+
     constructor() {
         super('Scene1');
 
@@ -23,29 +25,23 @@ class Scene1 extends BaseScene {
 
     preload() {
         this.load.image('circle', 'assets/circle.png'); 
+        this.load.image('speaker', 'assets/speaker_dot.png'); 
     }
 
     create() {
         this.container = this.add.container(400, 299);
 
-        // center
-        // circle
-        this.circle = this.add.image(0, 0, 'circle').setScale(1.5);        
-        this.container.add(this.circle);
+        // Center cicle-like object
+        this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
 
-        // input area
-        this.playerInput = new PlayerInputText(this, this.container);
-        this.playerInput.init(this.circle);
+        // Enemies
+        this.enemyManager = new EnemyManager(this, this.container);       
 
-        // enemies
-        this.enemyManager = new EnemyManager(this, this.container);
-        
-        
+        this.centerObject.playerInputText.confirmedEvent.on(
+            input => {this.enemyManager.inputTextConfirmed(input)});
+
         this.enemyManager.startSpawn();
-        
 
-        // gra
-        // var face = new QuickDrawFigure(this, this.container, "smiley-face");                
     }
 
 
@@ -57,7 +53,6 @@ class Scene1 extends BaseScene {
         this.container.setPosition(w / 2, h / 2);
 
         this.enemyManager.update(time, dt);
-        this.playerInput.update(time, dt);
     }
 }
 

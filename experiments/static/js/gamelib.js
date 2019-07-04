@@ -51,21 +51,17 @@ var Scene1 = /** @class */ (function (_super) {
     }
     Scene1.prototype.preload = function () {
         this.load.image('circle', 'assets/circle.png');
+        this.load.image('speaker', 'assets/speaker_dot.png');
     };
     Scene1.prototype.create = function () {
+        var _this = this;
         this.container = this.add.container(400, 299);
-        // center
-        // circle
-        this.circle = this.add.image(0, 0, 'circle').setScale(1.5);
-        this.container.add(this.circle);
-        // input area
-        this.playerInput = new PlayerInputText(this, this.container);
-        this.playerInput.init(this.circle);
-        // enemies
+        // Center cicle-like object
+        this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+        // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
+        this.centerObject.playerInputText.confirmedEvent.on(function (input) { _this.enemyManager.inputTextConfirmed(input); });
         this.enemyManager.startSpawn();
-        // gra
-        // var face = new QuickDrawFigure(this, this.container, "smiley-face");                
     };
     Scene1.prototype.update = function (time, dt) {
         dt = dt / 1000;
@@ -73,7 +69,6 @@ var Scene1 = /** @class */ (function (_super) {
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
-        this.playerInput.update(time, dt);
     };
     return Scene1;
 }(BaseScene));
@@ -126,6 +121,36 @@ var ErrorInputCode;
     ErrorInputCode[ErrorInputCode["DamagedBefore"] = 6] = "DamagedBefore";
     ErrorInputCode[ErrorInputCode["NotWord"] = 7] = "NotWord";
 })(ErrorInputCode || (ErrorInputCode = {}));
+var TypedEvent = /** @class */ (function () {
+    function TypedEvent() {
+        var _this = this;
+        this.listeners = [];
+        this.listenersOncer = [];
+        this.on = function (listener) {
+            _this.listeners.push(listener);
+            return {
+                dispose: function () { return _this.off(listener); }
+            };
+        };
+        this.once = function (listener) {
+            _this.listenersOncer.push(listener);
+        };
+        this.off = function (listener) {
+            var callbackIndex = _this.listeners.indexOf(listener);
+            if (callbackIndex > -1)
+                _this.listeners.splice(callbackIndex, 1);
+        };
+        this.emit = function (event) {
+            _this.listeners.forEach(function (listener) { return listener(event); });
+            _this.listenersOncer.forEach(function (listener) { return listener(event); });
+            _this.listenersOncer = [];
+        };
+        this.pipe = function (te) {
+            return _this.on(function (e) { return te.emit(e); });
+        };
+    }
+    return TypedEvent;
+}());
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
 function getLogicWidth() {
@@ -388,20 +413,77 @@ function getDefaultTextStyle() {
     };
     return ret;
 }
-function MakePoint(x, y) {
+function MakePoint2(x, y) {
     return new Phaser.Geom.Point(x, y);
+}
+function cpp(pt) {
+    return new Phaser.Geom.Point(pt.x, pt.y);
 }
 function getGame() {
     var thisGame = window.game;
     return thisGame;
 }
+function lerp(start, end, perc) {
+    return (end - start) * perc + start;
+}
 var CenterObject = /** @class */ (function () {
     function CenterObject(scene, parentContainer, designSize) {
+        var _this = this;
+        this.speakerRight = 56;
+        this.speakerLeft = -56;
         this.scene = scene;
         this.parentContainer = parentContainer;
-        this.designSize = designSize;
+        this.designSize = cpp(designSize);
         this.inner = this.scene.add.container(0, 0);
+        this.parentContainer.add(this.inner);
+        this.mainImage = this.scene.add.image(0, 0, "circle");
+        this.inner.add(this.mainImage);
+        this.speakerImage = this.scene.add.image(this.speakerRight, 28, "speaker");
+        this.inner.add(this.speakerImage);
+        this.playerInputText = new PlayerInputText(this.scene, this.inner, this);
+        this.playerInputText.init(this.getDesignWidth());
+        this.playerInputText.changedEvent.on(function (inputControl) { _this.playerInputChanged(inputControl); });
     }
+    CenterObject.prototype.playerInputChanged = function (inputControl) {
+        var percent = inputControl.text.width / this.getTextMaxWidth();
+        percent = Math.max(0, percent);
+        percent = Math.min(1, percent);
+        var desti = lerp(this.speakerRight, this.speakerLeft, percent);
+        // this.speakerImage.x = desti;
+        if (percent == 0) {
+            this.backToZeroTween = this.scene.tweens.add({
+                targets: this.speakerImage,
+                x: desti,
+                // alpha: {
+                //     getStart: () => 0,
+                //     getEnd: () => 1,
+                //     duration: 500
+                // },
+                duration: 150
+            });
+        }
+        else {
+            if (this.backToZeroTween)
+                this.backToZeroTween.stop();
+            // this.speakerImage.x = desti;
+            this.backToZeroTween = this.scene.tweens.add({
+                targets: this.speakerImage,
+                x: desti,
+                // alpha: {
+                //     getStart: () => 0,
+                //     getEnd: () => 1,
+                //     duration: 500
+                // },
+                duration: 50
+            });
+        }
+    };
+    CenterObject.prototype.getDesignWidth = function () {
+        return this.designSize.x;
+    };
+    CenterObject.prototype.getTextMaxWidth = function () {
+        return this.getDesignWidth() * 0.65;
+    };
     return CenterObject;
 }());
 var EnemyType;
@@ -752,6 +834,7 @@ var EnemyManager = /** @class */ (function () {
             ret.push(entry);
         return ret;
     };
+    // haha
     EnemyManager.prototype.findEnemyByName = function (name) {
         var ret = [];
         for (var i in this.enemies) {
@@ -761,6 +844,13 @@ var EnemyManager = /** @class */ (function () {
             }
         }
         return ret;
+    };
+    /**
+     * PlayerInputTextListener interface implement
+     * @param input
+     */
+    EnemyManager.prototype.inputTextConfirmed = function (input) {
+        this.sendInputToServer(input);
     };
     return EnemyManager;
 }());
@@ -788,7 +878,7 @@ var EnemyText = /** @class */ (function (_super) {
 var HealthIndicator = /** @class */ (function () {
     // mvTween: PhTween;
     function HealthIndicator(scene, parentContainer, posi, num) {
-        this.textPosi = MakePoint(0, 1);
+        this.textPosi = MakePoint2(0, 1);
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(posi.x, posi.y);
@@ -858,7 +948,7 @@ var HealthIndicator = /** @class */ (function () {
         this.maskGraph.y = p.y;
     };
     HealthIndicator.prototype.getAbsolutePosi = function (ct, posi) {
-        var ret = MakePoint(posi.x, posi.y);
+        var ret = MakePoint2(posi.x, posi.y);
         while (ct != null) {
             ret.x += ct.x;
             ret.y += ct.y;
@@ -869,10 +959,13 @@ var HealthIndicator = /** @class */ (function () {
     return HealthIndicator;
 }());
 var PlayerInputText = /** @class */ (function () {
-    function PlayerInputText(scene, container) {
+    function PlayerInputText(scene, container, centerObject) {
+        this.confirmedEvent = new TypedEvent();
+        this.changedEvent = new TypedEvent();
         this.inputHistory = []; //store only valid input history
         this.scene = scene;
         this.parentContainer = container;
+        this.centerObject = centerObject;
         this.fontSize = 32;
         this.lblStyl = {
             fontSize: this.fontSize + 'px',
@@ -881,22 +974,19 @@ var PlayerInputText = /** @class */ (function () {
         this.y = -6 - this.fontSize;
         this.maxCount = 100;
         this.text; // main text input
-        this.circle;
         this.shortWords = new Set();
         this.shortWords.add("go");
         this.shortWords.add("hi");
         this.shortWords.add("no");
-    }
-    PlayerInputText.prototype.init = function (circle) {
-        this.circle = circle;
-        var circleWidth = this.circle.getBounds().width;
-        this.text = this.scene.add.text(-circleWidth / 2 * 0.65, this.y, "", this.lblStyl);
-        this.parentContainer.add(this.text);
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         $(document).keypress(this.keypress.bind(this));
         $(document).keydown(this.keydown.bind(this));
+    }
+    PlayerInputText.prototype.init = function (width) {
+        this.text = this.scene.add.text(-this.getAvailableWidth() / 2, this.y, "", this.lblStyl);
+        this.parentContainer.add(this.text);
     };
     // keypress to handle all the valid characters
     PlayerInputText.prototype.keypress = function (event) {
@@ -907,13 +997,19 @@ var PlayerInputText = /** @class */ (function () {
         if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             return;
         }
-        if (t.length < this.maxCount) {
+        if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
             var codeS = String.fromCharCode(code);
             if (t.length == 0)
                 codeS = codeS.toUpperCase();
             t += codeS;
         }
         this.text.setText(t);
+        this.changedEvent.emit(this);
+        console.log("dis width: " + this.text.displayWidth);
+        console.log("width: " + this.text.width);
+    };
+    PlayerInputText.prototype.getAvailableWidth = function () {
+        return this.centerObject.getTextMaxWidth();
     };
     // keydown to handle the commands
     PlayerInputText.prototype.keydown = function (event) {
@@ -934,6 +1030,7 @@ var PlayerInputText = /** @class */ (function () {
             this.confirm();
         }
         this.text.setText(t);
+        this.changedEvent.emit(this);
     };
     PlayerInputText.prototype.confirm = function () {
         var inputWord = this.text.text;
@@ -941,7 +1038,7 @@ var PlayerInputText = /** @class */ (function () {
         var legal = checkLegal == ErrorInputCode.NoError;
         if (legal) {
             this.inputHistory.push(inputWord);
-            this.scene.enemyManager.sendInputToServer(inputWord);
+            this.confirmedEvent.emit(inputWord);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
@@ -976,8 +1073,6 @@ var PlayerInputText = /** @class */ (function () {
             }
         }
         return false;
-    };
-    PlayerInputText.prototype.update = function (time, dt) {
     };
     PlayerInputText.prototype.checkInput = function () {
     };

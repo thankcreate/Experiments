@@ -1,4 +1,5 @@
 class EnemyManager {
+    
     scene: BaseScene;
     container: Phaser.GameObjects.Container; // main scene container
 
@@ -231,6 +232,7 @@ class EnemyManager {
         return ret;
     }
 
+    // haha
     findEnemyByName(name: string): Enemy[] {
 
         let ret = [];
@@ -243,4 +245,12 @@ class EnemyManager {
         return ret;
     }
 
+
+    /**
+     * PlayerInputTextListener interface implement
+     * @param input 
+     */
+    inputTextConfirmed(input: string): void {
+        this.sendInputToServer(input);
+    }
 }

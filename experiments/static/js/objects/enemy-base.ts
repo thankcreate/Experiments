@@ -205,6 +205,8 @@ class Enemy {
 
         return ErrorInputCode.NoError;
     }
+
+    
 }
 
 

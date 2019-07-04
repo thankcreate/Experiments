@@ -173,8 +173,13 @@ function getDefaultTextStyle() : TextStyle{
     return ret;
 }
 
-function MakePoint(x: number, y: number) : Phaser.Geom.Point {
+function MakePoint2(x: number, y: number) : Phaser.Geom.Point {
     return new Phaser.Geom.Point(x, y);
+}
+
+
+function cpp(pt: PhPoint) : PhPoint {
+    return new Phaser.Geom.Point(pt.x, pt.y);
 }
 
 function getGame() : Phaser.Game {
@@ -182,3 +187,7 @@ function getGame() : Phaser.Game {
     return thisGame;
 }
 
+
+function lerp(start: number, end: number, perc: number) : number {
+    return (end - start) * perc + start;
+}

@@ -1,21 +1,25 @@
 class PlayerInputText {
-
-    scene: Scene1;
+    
+    confirmedEvent: TypedEvent<string> = new TypedEvent();
+    changedEvent: TypedEvent<PlayerInputText> = new TypedEvent();
+    
+    scene: PhScene;
     parentContainer: Phaser.GameObjects.Container;
     fontSize;
     lblStyl;
     maxCount;
     text: Phaser.GameObjects.Text;
-    circle;
-    y;
 
+    y;
     shortWords : Set<string>;
 
     inputHistory : string[] = []; //store only valid input history
-
-    constructor(scene: Scene1, container) {
+    centerObject: CenterObject;
+    
+    constructor(scene: PhScene, container: PhContainer, centerObject: CenterObject) {
         this.scene = scene;
         this.parentContainer = container;
+        this.centerObject = centerObject;
 
         this.fontSize = 32;
         this.lblStyl = {
@@ -27,27 +31,25 @@ class PlayerInputText {
         this.maxCount = 100;
         this.text; // main text input
 
-        this.circle;
 
         this.shortWords = new Set();
         this.shortWords.add("go");
         this.shortWords.add("hi");
         this.shortWords.add("no");
-    }
-
-    init(circle) {
-        this.circle = circle;
-        var circleWidth = this.circle.getBounds().width;
-        this.text = this.scene.add.text(- circleWidth / 2 * 0.65, this.y,
-            "", this.lblStyl);
-        this.parentContainer.add(this.text);
 
 
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         $(document).keypress(this.keypress.bind(this));
-        $(document).keydown(this.keydown.bind(this));        
+        $(document).keydown(this.keydown.bind(this));
+    }
+
+    init(width: number) {
+        this.text = this.scene.add.text(- this.getAvailableWidth() / 2, this.y,
+            "", this.lblStyl);
+        
+        this.parentContainer.add(this.text);
     }
 
     // keypress to handle all the valid characters
@@ -57,22 +59,33 @@ class PlayerInputText {
         var code = event.keyCode;
         
         // console.log("keykown: " + code);
-        if(code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
-             return;
+        if(code == Phaser.Input.Keyboard.KeyCodes.ENTER) {            
+            return;
         }
         
-        if (t.length < this.maxCount) {
+        
+        if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
             var codeS = String.fromCharCode(code);
             if (t.length == 0)
                 codeS = codeS.toUpperCase();
             t += codeS;
         }   
     
+        
         this.text.setText(t);
+        this.changedEvent.emit(this);
+        
+        console.log("dis width: " + this.text.displayWidth);
+        console.log("width: " + this.text.width);
+    }
+
+    getAvailableWidth() : number{
+        return this.centerObject.getTextMaxWidth();
     }
 
     // keydown to handle the commands
     keydown(event) {
+
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
@@ -81,17 +94,21 @@ class PlayerInputText {
             || code == Phaser.Input.Keyboard.KeyCodes.DELETE /* delete*/) {
             if (t.length > 0) {
                 t = t.substring(0, t.length - 1);
+                
             }
         }        
         else if (code == Phaser.Input.Keyboard.KeyCodes.ESC) {
             t = "";
+            
         }
         else if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             t = "";
+           
             this.confirm();
         }         
 
         this.text.setText(t);
+        this.changedEvent.emit(this);
     }
 
     confirm() {
@@ -101,7 +118,7 @@ class PlayerInputText {
         let legal = checkLegal == ErrorInputCode.NoError;
         if(legal) {
             this.inputHistory.push(inputWord);
-            this.scene.enemyManager.sendInputToServer(inputWord);
+            this.confirmedEvent.emit(inputWord);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
@@ -141,9 +158,6 @@ class PlayerInputText {
     }
 
 
-    update(time, dt) {
-
-    }
 
     checkInput() {
 

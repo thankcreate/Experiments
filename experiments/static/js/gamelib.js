@@ -660,6 +660,7 @@ var EnemyImage = /** @class */ (function (_super) {
 }(Enemy));
 var EnemyManager = /** @class */ (function () {
     function EnemyManager(scene, container) {
+        this.spawnHistory = [];
         this.scene = scene;
         this.container = container;
         this.interval = gameplayConfig.spawnInterval;
@@ -716,6 +717,7 @@ var EnemyManager = /** @class */ (function () {
     EnemyManager.prototype.spawn = function () {
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
+        this.insertSpawnHistory(posi, name);
         var figureName = name.split(' ').join('-').toLowerCase();
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
@@ -735,6 +737,14 @@ var EnemyManager = /** @class */ (function () {
         enemy.duration = this.enemyRunDuration;
         enemy.startRun();
     };
+    EnemyManager.prototype.insertSpawnHistory = function (posi, name) {
+        var rad = Math.atan2(posi.y, posi.x);
+        var item = {
+            degree: rad,
+            name: name
+        };
+        this.spawnHistory.push(item);
+    };
     EnemyManager.prototype.removeEnemy = function (enemy) {
         for (var i in this.enemies) {
             if (this.enemies[i] == enemy) {
@@ -753,11 +763,26 @@ var EnemyManager = /** @class */ (function () {
         // console.log("Children count: " + this.container.getAll().length);
     };
     EnemyManager.prototype.getSpawnPoint = function () {
+        var threshould = Math.PI / 2;
         var pt = new Phaser.Geom.Point(0, 0);
-        var rdDegree = Phaser.Math.Between(0, 365) / 360 * 2 * Math.PI;
-        pt.x = Math.cos(rdDegree) * this.spawnRadius;
-        pt.y = Math.sin(rdDegree) * this.spawnRadius;
+        var rdDegree = 0;
+        while (true) {
+            rdDegree = (Math.random() * 2 - 1) * Math.PI;
+            pt.x = Math.cos(rdDegree) * this.spawnRadius;
+            pt.y = Math.sin(rdDegree) * this.spawnRadius;
+            if (this.spawnHistory.length == 0)
+                break;
+            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
+            if (this.getAngleDiff(lastOne.degree, rdDegree) > threshould)
+                break;
+        }
+        // console.log(rdDegree);
         return pt;
+    };
+    EnemyManager.prototype.getAngleDiff = function (angl1, angle2) {
+        var diff1 = Math.abs(angl1 - angle2);
+        var diff2 = Math.PI * 2 - diff1;
+        return Math.min(diff1, diff2);
     };
     // inputConfirm(input: string) {
     //     var enemies = this.enemies;        
@@ -1039,10 +1064,24 @@ var PlayerInputText = /** @class */ (function () {
         if (legal) {
             this.inputHistory.push(inputWord);
             this.confirmedEvent.emit(inputWord);
+            this.showConfirmEffect(inputWord);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
         }
+    };
+    PlayerInputText.prototype.showConfirmEffect = function (oriWord) {
+        var fakeText = this.scene.add.text(this.text.x, this.text.y, oriWord, this.lblStyl);
+        this.text.parentContainer.add(fakeText);
+        var fadeTween = this.scene.tweens.add({
+            targets: fakeText,
+            alpha: 0,
+            y: '-= 40',
+            duration: 250,
+            onComplete: function () {
+                fakeText.destroy();
+            }
+        });
     };
     /**
      * Check without the need to compare with other enemy lables

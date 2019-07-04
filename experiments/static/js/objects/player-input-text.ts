@@ -119,10 +119,28 @@ class PlayerInputText {
         if(legal) {
             this.inputHistory.push(inputWord);
             this.confirmedEvent.emit(inputWord);
+            this.showConfirmEffect(inputWord);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
         }
+    }
+
+    showConfirmEffect(oriWord : string) {
+        let fakeText = this.scene.add.text(this.text.x, this.text.y,
+        oriWord, this.lblStyl);
+
+        this.text.parentContainer.add(fakeText);
+
+        let fadeTween = this.scene.tweens.add({
+            targets: fakeText,            
+            alpha: 0,
+            y: '-= 40',
+            duration: 250,
+            onComplete: function () {                
+                fakeText.destroy();
+            }
+        });
     }
 
 

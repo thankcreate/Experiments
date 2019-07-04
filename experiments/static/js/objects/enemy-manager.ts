@@ -17,6 +17,8 @@ class EnemyManager {
     enemyRunDuration;
     spawnRadius;
 
+    spawnHistory : SpawnHistoryItem[] = [];
+
     constructor(scene, container) {
         this.scene = scene;
         this.container = container;
@@ -86,9 +88,10 @@ class EnemyManager {
     }
 
     spawn() {
-
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
+
+        this.insertSpawnHistory(posi, name);
         
         var figureName = name.split(' ').join('-').toLowerCase();
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
@@ -105,14 +108,21 @@ class EnemyManager {
         // console.log('-------------------------')
         this.enemies.forEach(item => {
             // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
-
         });
         // console.log(this.enemies.length + "  name:" + name);
 
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
-
         enemy.startRun();
+    }
+
+    insertSpawnHistory(posi: PhPoint, name: string) {
+        let rad = Math.atan2(posi.y, posi.x);
+        let item :SpawnHistoryItem = {
+            degree: rad, 
+            name: name
+        };
+        this.spawnHistory.push(item);
     }
 
     removeEnemy(enemy: Enemy) {
@@ -138,12 +148,32 @@ class EnemyManager {
     }
 
     getSpawnPoint(): Phaser.Geom.Point {
+        var threshould  = Math.PI / 2;
         var pt = new Phaser.Geom.Point(0, 0);
-        var rdDegree = Phaser.Math.Between(0, 365) / 360 * 2 * Math.PI;
-        pt.x = Math.cos(rdDegree) * this.spawnRadius;
-        pt.y = Math.sin(rdDegree) * this.spawnRadius;
 
+        var rdDegree = 0;
+        while(true) {
+            
+            rdDegree = (Math.random() * 2 - 1) * Math.PI;
+            pt.x = Math.cos(rdDegree) * this.spawnRadius;
+            pt.y = Math.sin(rdDegree) * this.spawnRadius;
+         
+            if(this.spawnHistory.length == 0)
+                break;
+
+            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
+            if(this.getAngleDiff(lastOne.degree, rdDegree) > threshould) 
+                break;        
+        }     
+
+        // console.log(rdDegree);
         return pt;
+    }
+
+    getAngleDiff(angl1: number, angle2: number) : number{
+        let diff1 = Math.abs(angl1 - angle2);
+        let diff2 = Math.PI * 2 - diff1;
+        return Math.min(diff1, diff2);
     }
 
     // inputConfirm(input: string) {

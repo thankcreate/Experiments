@@ -9,6 +9,11 @@ type PhTween = Phaser.Tweens.Tween;
 type PhMask = Phaser.Display.Masks.GeometryMask;
 type PhEventEmitter = Phaser.Events.EventEmitter;
 
+interface SpawnHistoryItem {
+    degree: number; 
+    name: string
+}
+
 enum ErrorInputCode {
     NoError,
     Same,                   // input is the exactly the same as the enemy

@@ -11,6 +11,30 @@ type PhEventEmitter = Phaser.Events.EventEmitter;
 type PhCanvasTexture = Phaser.Textures.CanvasTexture;
 type PhRenderTexture = Phaser.GameObjects.RenderTexture;
 
+type PhGO = Phaser.GameObjects.GameObject;
+
+class Wrapper<T> {
+    scene: BaseScene
+    parentContainer: PhContainer;
+    inner: PhContainer;
+    wrappedObject: T;
+
+    constructor(scene: BaseScene, parentContainer: PhContainer) {
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+    }
+
+    add(go: PhGO) {
+        this.parentContainer.add(go);
+    }
+}
+
+type ImageWrapper = Wrapper<PhImage>;
+class ImageWrapperClass extends Wrapper<PhImage> {};
+
+type TextWrapper = Wrapper<PhText>;
+class TextWrapperClass extends Wrapper<PhText> {};
+
 
 interface SpawnHistoryItem {
     degree: number; 

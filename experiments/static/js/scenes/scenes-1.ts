@@ -49,7 +49,7 @@ class Scene1 extends BaseScene {
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);        
-        this.fitImageToSize(this.footer, 90);
+        this.fitImageToSize(this.footer, 100);
     }
 
     fitImageToSize(image: PhImage, height: number, width?: number, ) {

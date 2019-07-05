@@ -71,7 +71,7 @@ var Scene1 = /** @class */ (function (_super) {
         var footerMarginBottom = 25;
         var footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
-        this.fitImageToSize(this.footer, 90);
+        this.fitImageToSize(this.footer, 100);
     };
     Scene1.prototype.fitImageToSize = function (image, height, width) {
         var oriRatio = image.width / image.height;
@@ -136,6 +136,32 @@ var phaserConfig = {
     canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1]
 };
+var Wrapper = /** @class */ (function () {
+    function Wrapper(scene, parentContainer) {
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+    }
+    Wrapper.prototype.add = function (go) {
+        this.parentContainer.add(go);
+    };
+    return Wrapper;
+}());
+var ImageWrapperClass = /** @class */ (function (_super) {
+    __extends(ImageWrapperClass, _super);
+    function ImageWrapperClass() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return ImageWrapperClass;
+}(Wrapper));
+;
+var TextWrapperClass = /** @class */ (function (_super) {
+    __extends(TextWrapperClass, _super);
+    function TextWrapperClass() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return TextWrapperClass;
+}(Wrapper));
+;
 var GameState;
 (function (GameState) {
     GameState[GameState["Home"] = 0] = "Home";

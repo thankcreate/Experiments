@@ -8,10 +8,18 @@ type Phgame = Phaser.Game;
 type PhTween = Phaser.Tweens.Tween;
 type PhMask = Phaser.Display.Masks.GeometryMask;
 type PhEventEmitter = Phaser.Events.EventEmitter;
+type PhCanvasTexture = Phaser.Textures.CanvasTexture;
+type PhRenderTexture = Phaser.GameObjects.RenderTexture;
+
 
 interface SpawnHistoryItem {
     degree: number; 
     name: string
+}
+
+enum GameState {
+    Home,
+    Scene1,
 }
 
 enum ErrorInputCode {

@@ -19,17 +19,17 @@ function myResize(gm) {
 
     gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
 
-    if (windowR > scaleR) {
-        var canvas = document.querySelector("canvas");
+    var canvas = document.querySelector("canvas");
+    if (windowR > scaleR) {        
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerHeight + "px";
     }
-    else {
-        var canvas = document.querySelector("canvas");
+    else {    
         canvas.style.width = window.innerWidth + "px";
-        canvas.style.height = window.innerWidth / scaleR + "px";
-        
+        canvas.style.height = window.innerWidth / scaleR + "px";                
     }
+
+    // canvas.style.verticalAlign= "middle";    
 }
 
 

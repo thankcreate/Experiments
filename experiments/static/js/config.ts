@@ -34,14 +34,19 @@ var gameplayConfig = {
 }
 
 var phaserConfig = {
-    type: Phaser.AUTO,
+    // type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     backgroundColor: '#EEEEEE',
+    // backgroundColor: '#E4E4E4',
     scale: {
-        mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+        // mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+        // autoCenter: Phaser.Scale.CENTER_VERTICALLY,
         parent: 'phaser-example',
         width: 8000,
+        // width: 1200,
         height: 1200,
         minWidth: 1200
     },
+    canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1]
 };

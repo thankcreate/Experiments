@@ -11,6 +11,8 @@ class Scene1 extends BaseScene {
 
     centerObject: CenterObject;
 
+    footer: PhImage;
+
     constructor() {
         super('Scene1');
 
@@ -25,7 +27,9 @@ class Scene1 extends BaseScene {
 
     preload() {
         this.load.image('circle', 'assets/circle.png'); 
-        this.load.image('speaker', 'assets/speaker_dot.png'); 
+        this.load.image('speaker_dot', 'assets/speaker_dot.png'); 
+        this.load.image('speaker', 'assets/speaker.png'); 
+        this.load.image('footer', 'assets/footer.png'); 
     }
 
     create() {
@@ -40,8 +44,23 @@ class Scene1 extends BaseScene {
         this.centerObject.playerInputText.confirmedEvent.on(
             input => {this.enemyManager.inputTextConfirmed(input)});
 
-        this.enemyManager.startSpawn();
+        // this.enemyManager.startSpawn();
 
+        let footerMarginBottom = 25;
+        let footerMarginLeft = 30;
+        this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);        
+        this.fitImageToSize(this.footer, 90);
+    }
+
+    fitImageToSize(image: PhImage, height: number, width?: number, ) {
+        let oriRatio = image.width / image.height;
+        image.displayHeight = height;
+        if(width) {
+            image.displayWidth = width;
+        }
+        else {
+            image.displayWidth = oriRatio * height;
+        }        
     }
 
 
@@ -53,6 +72,8 @@ class Scene1 extends BaseScene {
         this.container.setPosition(w / 2, h / 2);
 
         this.enemyManager.update(time, dt);
+        
+        this.centerObject.update();
     }
 }
 

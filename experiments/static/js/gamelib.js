@@ -17,6 +17,10 @@ var BaseScene = /** @class */ (function (_super) {
     function BaseScene() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    BaseScene.prototype.getControllerScene = function () {
+        var controller = this.scene.get("Controller");
+        return controller;
+    };
     BaseScene.prototype.playSpeech = function (text) {
         var controller = this.scene.get("Controller");
         controller.speechManager.quickLoadAndPlay(text);
@@ -51,7 +55,9 @@ var Scene1 = /** @class */ (function (_super) {
     }
     Scene1.prototype.preload = function () {
         this.load.image('circle', 'assets/circle.png');
-        this.load.image('speaker', 'assets/speaker_dot.png');
+        this.load.image('speaker_dot', 'assets/speaker_dot.png');
+        this.load.image('speaker', 'assets/speaker.png');
+        this.load.image('footer', 'assets/footer.png');
     };
     Scene1.prototype.create = function () {
         var _this = this;
@@ -61,7 +67,21 @@ var Scene1 = /** @class */ (function (_super) {
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
         this.centerObject.playerInputText.confirmedEvent.on(function (input) { _this.enemyManager.inputTextConfirmed(input); });
-        this.enemyManager.startSpawn();
+        // this.enemyManager.startSpawn();
+        var footerMarginBottom = 25;
+        var footerMarginLeft = 30;
+        this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
+        this.fitImageToSize(this.footer, 90);
+    };
+    Scene1.prototype.fitImageToSize = function (image, height, width) {
+        var oriRatio = image.width / image.height;
+        image.displayHeight = height;
+        if (width) {
+            image.displayWidth = width;
+        }
+        else {
+            image.displayWidth = oriRatio * height;
+        }
     };
     Scene1.prototype.update = function (time, dt) {
         dt = dt / 1000;
@@ -69,6 +89,7 @@ var Scene1 = /** @class */ (function (_super) {
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
+        this.centerObject.update();
     };
     return Scene1;
 }(BaseScene));
@@ -99,17 +120,27 @@ var gameplayConfig = {
     drawDataDefaultSize: 150
 };
 var phaserConfig = {
-    type: Phaser.AUTO,
+    // type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     backgroundColor: '#EEEEEE',
+    // backgroundColor: '#E4E4E4',
     scale: {
-        mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+        // mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+        // autoCenter: Phaser.Scale.CENTER_VERTICALLY,
         parent: 'phaser-example',
         width: 8000,
+        // width: 1200,
         height: 1200,
         minWidth: 1200
     },
+    canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1]
 };
+var GameState;
+(function (GameState) {
+    GameState[GameState["Home"] = 0] = "Home";
+    GameState[GameState["Scene1"] = 1] = "Scene1";
+})(GameState || (GameState = {}));
 var ErrorInputCode;
 (function (ErrorInputCode) {
     ErrorInputCode[ErrorInputCode["NoError"] = 0] = "NoError";
@@ -167,16 +198,16 @@ function myResize(gm) {
     var windowR = window.innerWidth / window.innerHeight;
     var scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
     gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
+    var canvas = document.querySelector("canvas");
     if (windowR > scaleR) {
-        var canvas = document.querySelector("canvas");
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerHeight + "px";
     }
     else {
-        var canvas = document.querySelector("canvas");
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerWidth / scaleR + "px";
     }
+    // canvas.style.verticalAlign= "middle";    
 }
 function getArrayInputData() {
     var data = { "input": "", "array": "" };
@@ -423,27 +454,110 @@ function getGame() {
     var thisGame = window.game;
     return thisGame;
 }
+function getGameState() {
+    var thisGame = getGame();
+    if (!thisGame.hasOwnProperty("gameState")) {
+        thisGame.gameState = GameState.Home;
+    }
+    return thisGame.gameState;
+}
+function setGameState(state) {
+    var thisGame = getGame();
+    thisGame.gameState = state;
+}
 function lerp(start, end, perc) {
     return (end - start) * perc + start;
 }
+var S = Math.sin;
+var C = Math.cos;
+var T = Math.tan;
+function R(r, g, b, a) {
+    a = a === undefined ? 1 : a;
+    return "rgba(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + "," + a + ")";
+}
+;
 var CenterObject = /** @class */ (function () {
     function CenterObject(scene, parentContainer, designSize) {
         var _this = this;
         this.speakerRight = 56;
         this.speakerLeft = -56;
+        this.frame = 0;
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.designSize = cpp(designSize);
         this.inner = this.scene.add.container(0, 0);
         this.parentContainer.add(this.inner);
-        this.mainImage = this.scene.add.image(0, 0, "circle");
+        this.initDwtieer();
+        this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
         this.inner.add(this.mainImage);
-        this.speakerImage = this.scene.add.image(this.speakerRight, 28, "speaker");
+        this.speakerImage = this.scene.add.image(this.speakerRight, 28, "speaker_dot");
+        this.speakerImage.setTexture("speaker");
         this.inner.add(this.speakerImage);
-        this.playerInputText = new PlayerInputText(this.scene, this.inner, this);
-        this.playerInputText.init(this.getDesignWidth());
+        this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
+        this.playerInputText.init("");
         this.playerInputText.changedEvent.on(function (inputControl) { _this.playerInputChanged(inputControl); });
+        this.inner.setScale(1.3);
+        this.inner.setRotation(-Math.PI / 2);
+        this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
+        this.inner.add(this.text);
+        this.initInteraction();
     }
+    CenterObject.prototype.initDwtieer = function () {
+        // let sc = 1200 / 1080 / 1.5;
+        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        this.c = this.canvasTexture.getSourceImage();
+        this.x = this.c.getContext('2d');
+        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(0.4);
+        // img.setRotation(-Math.PI / 2);
+        this.inner.add(this.outterDwitterImage);
+    };
+    CenterObject.prototype.initInteraction = function () {
+        var _this = this;
+        this.mainImage.on('pointerover', function () {
+            // if(this.scene)
+            // console.log("over");
+            var state = getGameState();
+            if (state == GameState.Home) {
+                _this.playerInputText.homePointerOver();
+            }
+        });
+        this.mainImage.on('pointerout', function () {
+            var state = getGameState();
+            if (state == GameState.Home) {
+                _this.playerInputText.homePointerOut();
+            }
+        });
+        this.mainImage.on('pointerdown', function () {
+            var state = getGameState();
+            console.log(state);
+            if (state == GameState.Home) {
+                setGameState(GameState.Scene1);
+                _this.playerInputText.homePointerDown();
+                var delayDt = 1500;
+                var dt = 1000;
+                _this.centerRotateTween = _this.scene.tweens.add({
+                    delay: delayDt,
+                    targets: _this.inner,
+                    rotation: 0,
+                    scale: 1.2,
+                    duration: dt,
+                    completeDelay: 1000,
+                    onComplete: function () {
+                        _this.playerInputText.transferToScene1TweenCompleted();
+                        _this.speakerImage.setTexture("speaker_dot");
+                        setGameState(GameState.Scene1);
+                    }
+                });
+                var fadeOutter = _this.scene.tweens.add({
+                    delay: delayDt,
+                    targets: _this.outterDwitterImage,
+                    alpha: 0,
+                    scale: 2,
+                    duration: dt,
+                });
+            }
+        });
+    };
     CenterObject.prototype.playerInputChanged = function (inputControl) {
         var percent = inputControl.text.width / this.getTextMaxWidth();
         percent = Math.max(0, percent);
@@ -454,11 +568,6 @@ var CenterObject = /** @class */ (function () {
             this.backToZeroTween = this.scene.tweens.add({
                 targets: this.speakerImage,
                 x: desti,
-                // alpha: {
-                //     getStart: () => 0,
-                //     getEnd: () => 1,
-                //     duration: 500
-                // },
                 duration: 150
             });
         }
@@ -469,11 +578,6 @@ var CenterObject = /** @class */ (function () {
             this.backToZeroTween = this.scene.tweens.add({
                 targets: this.speakerImage,
                 x: desti,
-                // alpha: {
-                //     getStart: () => 0,
-                //     getEnd: () => 1,
-                //     duration: 500
-                // },
                 duration: 50
             });
         }
@@ -483,6 +587,47 @@ var CenterObject = /** @class */ (function () {
     };
     CenterObject.prototype.getTextMaxWidth = function () {
         return this.getDesignWidth() * 0.65;
+    };
+    CenterObject.prototype.update = function () {
+        var pointer = this.scene.input.activePointer;
+        this.text.setText([
+            'x: ' + pointer.worldX,
+            'y: ' + pointer.worldY,
+            'isDown: ' + pointer.isDown,
+            'rightButtonDown: ' + pointer.rightButtonDown()
+        ]);
+        this.updateDwitter();
+    };
+    CenterObject.prototype.updateDwitter = function () {
+        var time = this.frame / 60;
+        // if (time * 60 | 0 == this.frame - 1)
+        // {
+        //     time += 0.000001;
+        // }
+        this.frame++;
+        this.u2(time, this.c, this.x);
+    };
+    CenterObject.prototype.u2 = function (t, c, x) {
+        // c.width = 1920;
+        // for (var i = 0; i < 31; i++) { 
+        //     for (var j = 25; j > -25; j--) { 
+        //         x.fillRect(960 + j * i * .5 * C(i * .2) + C(2 * t + i * .2) * 300, 540 + j * i * .5 * S(i * .2) + S(2.2 * t + i * .2) * 200, 9, 9);
+        //     } 
+        // }
+        var a = 0;
+        c.width |= c.style.background = "#CDF";
+        for (var j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
+            a = j / 159 + t;
+            x.lineWidth = 29;
+        }
+        x.stroke();
+    };
+    CenterObject.prototype.u3 = function (t, c, x) {
+        var Y = 0;
+        var X = 0;
+        var r = 140 - 16 * (t < 10 ? t : 0);
+        for (var U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
+            X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     };
     return CenterObject;
 }());
@@ -984,19 +1129,23 @@ var HealthIndicator = /** @class */ (function () {
     return HealthIndicator;
 }());
 var PlayerInputText = /** @class */ (function () {
-    function PlayerInputText(scene, container, centerObject) {
+    function PlayerInputText(scene, container, centerObject, dummyTitle) {
         this.confirmedEvent = new TypedEvent();
         this.changedEvent = new TypedEvent();
+        this.fontSize = 32;
+        this.titleSize = 24;
         this.inputHistory = []; //store only valid input history
+        this.gap = 4;
+        this.gapTitle = 6;
+        this.canAcceptInput = false;
         this.scene = scene;
         this.parentContainer = container;
         this.centerObject = centerObject;
-        this.fontSize = 32;
         this.lblStyl = {
             fontSize: this.fontSize + 'px',
-            fill: '#FFFFFF', fontFamily: "Georgia, serif"
+            fill: '#FFFFFF',
+            fontFamily: "Georgia, serif"
         };
-        this.y = -6 - this.fontSize;
         this.maxCount = 100;
         this.text; // main text input
         this.shortWords = new Set();
@@ -1008,13 +1157,22 @@ var PlayerInputText = /** @class */ (function () {
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         $(document).keypress(this.keypress.bind(this));
         $(document).keydown(this.keydown.bind(this));
+        this.titleStyle = {
+            fontSize: this.titleSize + 'px',
+            fill: '#FFFFFF',
+            fontFamily: "Georgia, serif"
+        };
+        this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
+        this.parentContainer.add(this.title);
     }
-    PlayerInputText.prototype.init = function (width) {
-        this.text = this.scene.add.text(-this.getAvailableWidth() / 2, this.y, "", this.lblStyl);
+    PlayerInputText.prototype.init = function (defaultStr) {
+        this.text = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gap, defaultStr, this.lblStyl).setOrigin(0, 1);
         this.parentContainer.add(this.text);
     };
     // keypress to handle all the valid characters
     PlayerInputText.prototype.keypress = function (event) {
+        if (!this.getCanAcceptInput())
+            return;
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
@@ -1038,6 +1196,8 @@ var PlayerInputText = /** @class */ (function () {
     };
     // keydown to handle the commands
     PlayerInputText.prototype.keydown = function (event) {
+        if (!this.getCanAcceptInput())
+            return;
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
@@ -1064,20 +1224,21 @@ var PlayerInputText = /** @class */ (function () {
         if (legal) {
             this.inputHistory.push(inputWord);
             this.confirmedEvent.emit(inputWord);
-            this.showConfirmEffect(inputWord);
+            this.showConfirmEffect(inputWord, this.text, 250);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
         }
     };
-    PlayerInputText.prototype.showConfirmEffect = function (oriWord) {
-        var fakeText = this.scene.add.text(this.text.x, this.text.y, oriWord, this.lblStyl);
-        this.text.parentContainer.add(fakeText);
+    PlayerInputText.prototype.showConfirmEffect = function (oriWord, refText, dt) {
+        refText.text = "";
+        var fakeText = this.scene.add.text(refText.x, refText.y, oriWord, refText.style).setOrigin(refText.originX, refText.originY);
+        refText.parentContainer.add(fakeText);
         var fadeTween = this.scene.tweens.add({
             targets: fakeText,
             alpha: 0,
             y: '-= 40',
-            duration: 250,
+            duration: dt,
             onComplete: function () {
                 fakeText.destroy();
             }
@@ -1114,6 +1275,45 @@ var PlayerInputText = /** @class */ (function () {
         return false;
     };
     PlayerInputText.prototype.checkInput = function () {
+    };
+    PlayerInputText.prototype.homePointerOver = function () {
+        this.title.setText("Project 65535");
+        if (this.titleOut)
+            this.titleOut.stop();
+        this.titleIn = this.scene.tweens.add({
+            targets: this.title,
+            alpha: 1,
+            duration: 400,
+        });
+    };
+    PlayerInputText.prototype.homePointerOut = function () {
+        this.title.setText("Project 65535");
+        if (this.titleIn)
+            this.titleIn.stop();
+        this.titleOut = this.scene.tweens.add({
+            targets: this.title,
+            alpha: 0,
+            duration: 250,
+        });
+    };
+    /**
+     * Current logic is that we get into scene1 once player clicked the center circle
+     * Transfer to the scene 1 game play
+     */
+    PlayerInputText.prototype.homePointerDown = function () {
+        this.title.setText("Project 65536");
+        if (this.titleOut)
+            this.titleOut.stop();
+    };
+    PlayerInputText.prototype.transferToScene1TweenCompleted = function () {
+        this.showConfirmEffect(this.title.text, this.title, 1000);
+        this.setCanAcceptInput(true);
+    };
+    PlayerInputText.prototype.setCanAcceptInput = function (val) {
+        this.canAcceptInput = val;
+    };
+    PlayerInputText.prototype.getCanAcceptInput = function () {
+        return this.canAcceptInput;
     };
     return PlayerInputText;
 }());

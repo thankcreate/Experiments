@@ -183,11 +183,40 @@ function cpp(pt: PhPoint) : PhPoint {
 }
 
 function getGame() : Phaser.Game {
-    let thisGame : Phaser.Game = (<any>window).game;
+    let thisGame : Phaser.Game = (<any>window).game;        
     return thisGame;
 }
+
+
+function getGameState() : GameState {
+    let thisGame : any = getGame();
+    if(!thisGame.hasOwnProperty("gameState")) {
+        thisGame.gameState = GameState.Home;
+    }
+    return thisGame.gameState;
+}
+
+function setGameState(state: GameState) : void{      
+    let thisGame : any = getGame();  
+    thisGame.gameState = state;
+}
+
+
 
 
 function lerp(start: number, end: number, perc: number) : number {
     return (end - start) * perc + start;
 }
+
+
+var S = Math.sin;
+var C = Math.cos;
+var T = Math.tan;
+
+function R (r,g,b,a)
+{
+    a = a === undefined ? 1 : a;
+    
+    return "rgba("+(r|0)+","+(g|0)+","+(b|0)+","+a+")";
+};
+

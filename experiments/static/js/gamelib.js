@@ -23,7 +23,7 @@ var BaseScene = /** @class */ (function (_super) {
     };
     BaseScene.prototype.playSpeech = function (text) {
         var controller = this.scene.get("Controller");
-        controller.speechManager.quickLoadAndPlay(text);
+        controller.playSpeechInController(text);
     };
     return BaseScene;
 }(Phaser.Scene));
@@ -38,6 +38,9 @@ var Controller = /** @class */ (function (_super) {
         this.speechManager = new SpeechManager(this);
         this.scene.launch('Scene1');
         myResize(this.game);
+    };
+    Controller.prototype.playSpeechInController = function (text) {
+        this.speechManager.quickLoadAndPlay(text);
     };
     return Controller;
 }(BaseScene));
@@ -136,15 +139,72 @@ var phaserConfig = {
     canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1]
 };
+var PhPointClass = /** @class */ (function (_super) {
+    __extends(PhPointClass, _super);
+    function PhPointClass() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return PhPointClass;
+}(Phaser.Geom.Point));
+;
+var PhTextClass = /** @class */ (function (_super) {
+    __extends(PhTextClass, _super);
+    function PhTextClass() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return PhTextClass;
+}(Phaser.GameObjects.Text));
+;
+var PhContainerClass = /** @class */ (function (_super) {
+    __extends(PhContainerClass, _super);
+    function PhContainerClass() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return PhContainerClass;
+}(Phaser.GameObjects.Container));
+;
+var PhImageClass = /** @class */ (function (_super) {
+    __extends(PhImageClass, _super);
+    function PhImageClass() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return PhImageClass;
+}(Phaser.GameObjects.Image));
+;
 var Wrapper = /** @class */ (function () {
-    function Wrapper(scene, parentContainer, target) {
+    /**
+     * Target will be added into inner container
+     * inner container will be added into parentContainer automatically
+     * NO NEED to add this wrapper into the parent
+     * @param scene
+     * @param parentContainer
+     * @param target
+     */
+    function Wrapper(scene, parentContainer, x, y, target) {
         this.scene = scene;
         this.parentContainer = parentContainer;
-        this.inner = this.scene.add.container(0, 0);
+        this.inner = this.scene.add.container(x, y);
+        this.parentContainer.add(this.inner);
         this.inner.add(target);
+        this.init();
     }
+    Wrapper.prototype.init = function () {
+    };
     Wrapper.prototype.add = function (go) {
-        this.parentContainer.add(go);
+        this.inner.add(go);
+    };
+    Wrapper.prototype.setScale = function (x, y) {
+        this.inner.setScale(x, y);
+    };
+    Wrapper.prototype.x = function () {
+        return this.inner.x;
+    };
+    Wrapper.prototype.y = function () {
+        return this.inner.y;
+    };
+    Wrapper.prototype.setPosition = function (x, y) {
+        this.inner.x = x;
+        this.inner.y = y;
     };
     return Wrapper;
 }());
@@ -509,6 +569,26 @@ var SpeakerButton = /** @class */ (function (_super) {
     function SpeakerButton() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    SpeakerButton.prototype.init = function () {
+        this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
+        this.inner.add(this.icon);
+    };
+    SpeakerButton.prototype.toSpeakerMode = function (dt) {
+        if (dt === void 0) { dt = 250; }
+        this.scene.tweens.add({
+            targets: this.icon,
+            alpha: 1,
+            duration: dt,
+        });
+    };
+    SpeakerButton.prototype.toNothingMode = function (dt) {
+        if (dt === void 0) { dt = 250; }
+        this.scene.tweens.add({
+            targets: this.icon,
+            alpha: 0,
+            duration: 250,
+        });
+    };
     return SpeakerButton;
 }(ImageWrapperClass));
 var CenterObject = /** @class */ (function () {
@@ -525,9 +605,7 @@ var CenterObject = /** @class */ (function () {
         this.initDwtieer();
         this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
         this.inner.add(this.mainImage);
-        this.speakerImage = this.scene.add.image(this.speakerRight, 28, "speaker_dot");
-        this.speakerImage.setTexture("speaker");
-        this.inner.add(this.speakerImage);
+        this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(0, 0, "speaker"));
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
         this.playerInputText.changedEvent.on(function (inputControl) { _this.playerInputChanged(inputControl); });
@@ -579,7 +657,7 @@ var CenterObject = /** @class */ (function () {
                     completeDelay: 1000,
                     onComplete: function () {
                         _this.playerInputText.transferToScene1TweenCompleted();
-                        _this.speakerImage.setTexture("speaker_dot");
+                        _this.speakerBtn.toSpeakerMode(1000);
                         setGameState(GameState.Scene1);
                     }
                 });
@@ -601,7 +679,7 @@ var CenterObject = /** @class */ (function () {
         // this.speakerImage.x = desti;
         if (percent == 0) {
             this.backToZeroTween = this.scene.tweens.add({
-                targets: this.speakerImage,
+                targets: this.speakerBtn.inner,
                 x: desti,
                 duration: 150
             });
@@ -611,7 +689,7 @@ var CenterObject = /** @class */ (function () {
                 this.backToZeroTween.stop();
             // this.speakerImage.x = desti;
             this.backToZeroTween = this.scene.tweens.add({
-                targets: this.speakerImage,
+                targets: this.speakerBtn.inner,
                 x: desti,
                 duration: 50
             });

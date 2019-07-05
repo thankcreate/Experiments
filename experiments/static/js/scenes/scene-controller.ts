@@ -7,7 +7,7 @@ class BaseScene extends Phaser.Scene {
 
     playSpeech(text: string) {
         let controller: Controller = <Controller> this.scene.get("Controller");
-        controller.speechManager.quickLoadAndPlay(text);
+        controller.playSpeechInController(text);
     }
 
 }
@@ -28,6 +28,10 @@ class Controller extends BaseScene {
         this.speechManager = new SpeechManager(this);
         this.scene.launch('Scene1');        
         myResize(this.game);                
+    }
+
+    playSpeechInController(text: string) {
+        this.speechManager.quickLoadAndPlay(text);
     }
 }
 

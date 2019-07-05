@@ -1,18 +1,39 @@
 class SpeakerButton extends ImageWrapperClass {
+    icon: PhImage;
 
+    init() {
+        this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
+        this.inner.add(this.icon);
+    }
+
+    toSpeakerMode(dt = 250) {
+        this.scene.tweens.add({
+            targets: this.icon,
+            alpha: 1,
+            duration: dt,            
+        });
+    }
+
+    toNothingMode(dt = 250) {
+        this.scene.tweens.add({
+            targets: this.icon,
+            alpha: 0,
+            duration: 250,            
+        });
+    }
 }
 
 
 class CenterObject {
     inner: PhContainer;
     parentContainer: PhContainer;
-    scene: PhScene;
+    scene: BaseScene;
 
     designSize: PhPoint;
 
 
     mainImage: PhImage;
-    speakerImage: PhImage;
+    speakerBtn: SpeakerButton;
     outterDwitterImage: PhImage;
 
     playerInputText: PlayerInputText;
@@ -31,7 +52,7 @@ class CenterObject {
         
     centerRotateTween: PhTween;
 
-    constructor(scene: PhScene, parentContainer: PhContainer, designSize: PhPoint) {
+    constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.designSize = cpp(designSize);
@@ -46,10 +67,9 @@ class CenterObject {
 
 
 
-
-        this.speakerImage = this.scene.add.image(this.speakerRight, 28, "speaker_dot");
-        this.speakerImage.setTexture("speaker")
-        this.inner.add(this.speakerImage);
+        this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(
+            0, 0, "speaker"
+        ));        
 
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
@@ -115,7 +135,7 @@ class CenterObject {
                     completeDelay: 1000,
                     onComplete:  () => {
                         this.playerInputText.transferToScene1TweenCompleted();
-                        this.speakerImage.setTexture("speaker_dot");
+                        this.speakerBtn.toSpeakerMode(1000);
                         setGameState(GameState.Scene1);
                     }
                 });
@@ -141,7 +161,7 @@ class CenterObject {
 
         if (percent == 0) {
             this.backToZeroTween = this.scene.tweens.add({
-                targets: this.speakerImage,
+                targets: this.speakerBtn.inner,
                 x: desti,
                 duration: 150
             });
@@ -152,7 +172,7 @@ class CenterObject {
             // this.speakerImage.x = desti;
 
             this.backToZeroTween = this.scene.tweens.add({
-                targets: this.speakerImage,
+                targets: this.speakerBtn.inner,
                 x: desti,
                 duration: 50
             });

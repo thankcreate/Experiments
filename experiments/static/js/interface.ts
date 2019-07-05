@@ -1,8 +1,12 @@
 type PhPoint = Phaser.Geom.Point;
+class PhPointClass extends Phaser.Geom.Point{};
 type PhText = Phaser.GameObjects.Text;
+class PhTextClass extends Phaser.GameObjects.Text{};
 type PhGraphics = Phaser.GameObjects.Graphics;
 type PhContainer = Phaser.GameObjects.Container;
+class PhContainerClass extends Phaser.GameObjects.Container{};
 type PhImage = Phaser.GameObjects.Image;
+class PhImageClass extends Phaser.GameObjects.Image{};
 type PhScene = Phaser.Scene;
 type Phgame = Phaser.Game;
 type PhTween = Phaser.Tweens.Tween;
@@ -13,22 +17,56 @@ type PhRenderTexture = Phaser.GameObjects.RenderTexture;
 
 type PhGO = Phaser.GameObjects.GameObject;
 
+
 class Wrapper<T extends PhGO> {
     scene: BaseScene
     parentContainer: PhContainer;
     inner: PhContainer;
     wrappedObject: T;
 
-    constructor(scene: BaseScene, parentContainer: PhContainer, target: T) {
+    /**
+     * Target will be added into inner container
+     * inner container will be added into parentContainer automatically
+     * NO NEED to add this wrapper into the parent
+     * @param scene 
+     * @param parentContainer 
+     * @param target 
+     */
+    constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, target: T) {
         this.scene = scene;
         this.parentContainer = parentContainer;
 
-        this.inner = this.scene.add.container(0, 0);
+        this.inner = this.scene.add.container(x, y);
+        this.parentContainer.add(this.inner);
+
         this.inner.add(target);
+
+        this.init();
+    }
+
+    init() {
+
     }
 
     add(go: PhGO) {
-        this.parentContainer.add(go);
+        this.inner.add(go);
+    }
+
+    setScale(x: number, y?: number) {
+        this.inner.setScale(x, y);
+    }
+
+    x() {
+        return this.inner.x;
+    }
+    
+    y() {
+        return this.inner.y;
+    }
+
+    setPosition(x: number, y: number) {
+        this.inner.x = x;
+        this.inner.y = y;
     }
 }
 

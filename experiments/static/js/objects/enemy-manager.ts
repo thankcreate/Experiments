@@ -38,9 +38,7 @@ class EnemyManager {
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
-
-
-
+    
     startSpawn() {
         this.spawnTween = this.scene.tweens.add({
             targets: this,

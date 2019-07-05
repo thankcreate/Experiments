@@ -137,9 +137,11 @@ var phaserConfig = {
     scene: [Controller, Scene1]
 };
 var Wrapper = /** @class */ (function () {
-    function Wrapper(scene, parentContainer) {
+    function Wrapper(scene, parentContainer, target) {
         this.scene = scene;
         this.parentContainer = parentContainer;
+        this.inner = this.scene.add.container(0, 0);
+        this.inner.add(target);
     }
     Wrapper.prototype.add = function (go) {
         this.parentContainer.add(go);
@@ -502,6 +504,13 @@ function R(r, g, b, a) {
     return "rgba(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + "," + a + ")";
 }
 ;
+var SpeakerButton = /** @class */ (function (_super) {
+    __extends(SpeakerButton, _super);
+    function SpeakerButton() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return SpeakerButton;
+}(ImageWrapperClass));
 var CenterObject = /** @class */ (function () {
     function CenterObject(scene, parentContainer, designSize) {
         var _this = this;

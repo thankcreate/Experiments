@@ -13,15 +13,18 @@ type PhRenderTexture = Phaser.GameObjects.RenderTexture;
 
 type PhGO = Phaser.GameObjects.GameObject;
 
-class Wrapper<T> {
+class Wrapper<T extends PhGO> {
     scene: BaseScene
     parentContainer: PhContainer;
     inner: PhContainer;
     wrappedObject: T;
 
-    constructor(scene: BaseScene, parentContainer: PhContainer) {
+    constructor(scene: BaseScene, parentContainer: PhContainer, target: T) {
         this.scene = scene;
         this.parentContainer = parentContainer;
+
+        this.inner = this.scene.add.container(0, 0);
+        this.inner.add(target);
     }
 
     add(go: PhGO) {

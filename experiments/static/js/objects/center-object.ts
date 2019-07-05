@@ -1,3 +1,8 @@
+class SpeakerButton extends ImageWrapperClass {
+
+}
+
+
 class CenterObject {
     inner: PhContainer;
     parentContainer: PhContainer;

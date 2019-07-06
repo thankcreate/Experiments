@@ -17,6 +17,18 @@ type PhRenderTexture = Phaser.GameObjects.RenderTexture;
 
 type PhGO = Phaser.GameObjects.GameObject;
 
+type StateHandler = (state: FsmState) => void;
+type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
+
+/**
+ * EN is short for EventNames
+ */
+class EN {
+    static START = "START";
+    static STOP = "STOP";
+    static BACK = "BACK";
+
+}
 
 class Wrapper<T extends PhGO> {
     scene: BaseScene

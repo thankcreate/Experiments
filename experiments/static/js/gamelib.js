@@ -171,6 +171,17 @@ var PhImageClass = /** @class */ (function (_super) {
     return PhImageClass;
 }(Phaser.GameObjects.Image));
 ;
+/**
+ * EN is short for EventNames
+ */
+var EN = /** @class */ (function () {
+    function EN() {
+    }
+    EN.START = "START";
+    EN.STOP = "STOP";
+    EN.BACK = "BACK";
+    return EN;
+}());
 var Wrapper = /** @class */ (function () {
     /**
      * Target will be added into inner container
@@ -929,7 +940,21 @@ var EnemyManager = /** @class */ (function () {
         this.lblStyl = getDefaultTextStyle();
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
+        this.initFsm();
     }
+    EnemyManager.prototype.initFsm = function () {
+        var _this = this;
+        this.fsm = new Fsm("MainFsm");
+        var defaultState = this.fsm.addState("Default").setAsStartup().setOnEnter(function (s) {
+            // 
+        });
+        var startedState = this.fsm.addState("Started").addEventToPrev(EN.START).setOnEnter(function (s) {
+            _this.startSpawn();
+            s.finished();
+        });
+        this.fsm.start();
+        this.fsm.event(EN.START);
+    };
     EnemyManager.prototype.startSpawn = function () {
         var _this = this;
         this.spawnTween = this.scene.tweens.add({
@@ -1158,6 +1183,138 @@ var EnemyText = /** @class */ (function (_super) {
     };
     return EnemyText;
 }(Enemy));
+var Fsm = /** @class */ (function () {
+    function Fsm(name) {
+        this.name = "DefaultFsm";
+        this.states = new Map();
+        this.isRunning = true;
+        this.name = name;
+    }
+    Fsm.prototype.addState = function (stateName, autoConnect) {
+        if (autoConnect === void 0) { autoConnect = true; }
+        var state = new FsmState(stateName, this);
+        var res = true;
+        if (autoConnect)
+            res = this.addAndConnectToLast(state);
+        else
+            res = this.addStateInner(state);
+        this.lastAddedState = state;
+        if (res)
+            return state;
+        else
+            return null;
+    };
+    Fsm.prototype.addStateInner = function (state) {
+        if (this.states.has(state.name)) {
+            console.warn("Added multiple state to fsm: [" + name + "]:[" + state.name + "]");
+            return false;
+        }
+        state.fsm = this;
+        this.states.set(state.name, state);
+        return true;
+    };
+    Fsm.prototype.addAndConnectToLast = function (state) {
+        var res = this.addStateInner(state);
+        if (!res)
+            return false;
+        if (this.lastAddedState) {
+            this.lastAddedState.next = state;
+            state.prev = this.lastAddedState;
+        }
+        return true;
+    };
+    Fsm.prototype.update = function (time, dt) {
+        if (!this.isRunning)
+            return;
+        if (this.curState && this.curState.onUpdate)
+            this.curState.onUpdate(this.curState, time, dt);
+    };
+    Fsm.prototype.stateFinsiehd = function (state) {
+        if (state.next) {
+            this.runState(state.next);
+        }
+    };
+    /**
+     * invoke a event
+     * @param key
+     */
+    Fsm.prototype.event = function (key) {
+        if (this.curState) {
+            if (this.curState.eventRoute.has(key)) {
+                var targetName = this.curState.eventRoute.get(key);
+                var state = this.states.get(targetName);
+                if (state) {
+                    this.runState(state);
+                }
+            }
+        }
+    };
+    Fsm.prototype.runState = function (state) {
+        this.curState = state;
+        state.onEnter(state);
+    };
+    Fsm.prototype.setStartup = function (state) {
+        this.startupState = state;
+    };
+    Fsm.prototype.start = function () {
+        if (this.startupState) {
+            this.runState(this.startupState);
+        }
+        else {
+            console.warn("No startup state for FSM: " + this.name);
+        }
+    };
+    return Fsm;
+}());
+var FsmState = /** @class */ (function () {
+    function FsmState(name, fsm) {
+        this.eventRoute = new Map();
+        this.name = name;
+        this.fsm = fsm;
+    }
+    FsmState.prototype.setAsStartup = function () {
+        this.fsm.setStartup(this);
+        return this;
+    };
+    FsmState.prototype.addEventToPrev = function (key) {
+        if (this.prev) {
+            this.prev.addEvent(key, this.name);
+        }
+        return this;
+    };
+    FsmState.prototype.addEvent = function (key, target) {
+        if (this.eventRoute.has(key))
+            console.warn("Added multiple event to state: [" + name + "]:[" + key + "]");
+        var targetName = "";
+        if (target instanceof FsmState)
+            targetName = target.name;
+        else
+            targetName = target;
+        this.eventRoute.set(key, targetName);
+        return this;
+    };
+    FsmState.prototype.setOnEnter = function (handler) {
+        this.onEnter = handler;
+        return this;
+    };
+    FsmState.prototype.setOnUpdate = function (handler) {
+        this.onUpdate = handler;
+        return this;
+    };
+    FsmState.prototype.setOnExit = function (handler) {
+        this.onExit = handler;
+        return this;
+    };
+    FsmState.prototype.finished = function () {
+        this.exitProcess();
+    };
+    FsmState.prototype.exitProcess = function () {
+        if (this.onExit)
+            this.onExit(this);
+        this.fsm.stateFinsiehd(this);
+    };
+    return FsmState;
+}());
 var HealthIndicator = /** @class */ (function () {
     // mvTween: PhTween;
     function HealthIndicator(scene, parentContainer, posi, num) {

@@ -1,5 +1,5 @@
 class EnemyManager {
-    
+
     scene: BaseScene;
     container: Phaser.GameObjects.Container; // main scene container
 
@@ -9,7 +9,7 @@ class EnemyManager {
     enemies: Enemy[];
     labels;
 
-    lblStyl : TextStyle;
+    lblStyl: TextStyle;
 
     spawnTween: Phaser.Tweens.Tween;
     fadeTween: Phaser.Tweens.Tween;
@@ -17,16 +17,17 @@ class EnemyManager {
     enemyRunDuration;
     spawnRadius;
 
-    spawnHistory : SpawnHistoryItem[] = [];
+    spawnHistory: SpawnHistoryItem[] = [];
+
+    fsm: Fsm;
 
     constructor(scene, container) {
+
         this.scene = scene;
         this.container = container;
 
         this.interval = gameplayConfig.spawnInterval;
-
         this.dummy = 1;
-
         this.enemies = [];
 
 
@@ -37,8 +38,26 @@ class EnemyManager {
 
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
+
+        this.initFsm();
     }
-    
+
+    initFsm() {
+        this.fsm = new Fsm("MainFsm");
+
+        let defaultState = this.fsm.addState("Default").setAsStartup().setOnEnter((s) => {
+            // 
+        });
+
+        let startedState = this.fsm.addState("Started").addEventToPrev(EN.START).setOnEnter((s) => {
+            this.startSpawn();
+            s.finished();
+        });
+        
+        this.fsm.start();
+        this.fsm.event(EN.START);
+    }
+
     startSpawn() {
         this.spawnTween = this.scene.tweens.add({
             targets: this,
@@ -90,7 +109,7 @@ class EnemyManager {
         var name = this.getNextName();
 
         this.insertSpawnHistory(posi, name);
-        
+
         var figureName = name.split(' ').join('-').toLowerCase();
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
@@ -116,8 +135,8 @@ class EnemyManager {
 
     insertSpawnHistory(posi: PhPoint, name: string) {
         let rad = Math.atan2(posi.y, posi.x);
-        let item :SpawnHistoryItem = {
-            degree: rad, 
+        let item: SpawnHistoryItem = {
+            degree: rad,
             name: name
         };
         this.spawnHistory.push(item);
@@ -146,29 +165,29 @@ class EnemyManager {
     }
 
     getSpawnPoint(): Phaser.Geom.Point {
-        var threshould  = Math.PI / 2;
+        var threshould = Math.PI / 2;
         var pt = new Phaser.Geom.Point(0, 0);
 
         var rdDegree = 0;
-        while(true) {
-            
+        while (true) {
+
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
             pt.x = Math.cos(rdDegree) * this.spawnRadius;
             pt.y = Math.sin(rdDegree) * this.spawnRadius;
-         
-            if(this.spawnHistory.length == 0)
+
+            if (this.spawnHistory.length == 0)
                 break;
 
             var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
-            if(this.getAngleDiff(lastOne.degree, rdDegree) > threshould) 
-                break;        
-        }     
+            if (this.getAngleDiff(lastOne.degree, rdDegree) > threshould)
+                break;
+        }
 
         // console.log(rdDegree);
         return pt;
     }
 
-    getAngleDiff(angl1: number, angle2: number) : number{
+    getAngleDiff(angl1: number, angle2: number): number {
         let diff1 = Math.abs(angl1 - angle2);
         let diff2 = Math.PI * 2 - diff1;
         return Math.min(diff1, diff2);
@@ -240,7 +259,7 @@ class EnemyManager {
                 e.damage(entryValue, input);
             });
         }
-       
+
     }
 
     findBiggestDamage(ar: SimResultItem[]): SimResultItem[] {

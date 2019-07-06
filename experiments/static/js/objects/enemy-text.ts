@@ -20,6 +20,5 @@ class EnemyText extends Enemy {
         lc.x -= gameplayConfig.healthIndicatorWidth / 2;
         lc.x -= 4;
         this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
-
     }
 }

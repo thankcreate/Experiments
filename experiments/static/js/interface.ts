@@ -23,7 +23,7 @@ type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 /**
  * EN is short for EventNames
  */
-class EN {
+class E {
     static START = "START";
     static STOP = "STOP";
     static BACK = "BACK";

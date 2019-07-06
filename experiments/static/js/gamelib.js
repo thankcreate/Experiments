@@ -75,6 +75,7 @@ var Scene1 = /** @class */ (function (_super) {
         var footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
+        this.initFsm();
     };
     Scene1.prototype.fitImageToSize = function (image, height, width) {
         var oriRatio = image.width / image.height;
@@ -93,6 +94,95 @@ var Scene1 = /** @class */ (function (_super) {
         this.container.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
         this.centerObject.update();
+    };
+    Scene1.prototype.initFsm = function () {
+        var _this = this;
+        this.fsm = new Fsm(this);
+        this.fsm.addState("Home").setAsStartup().setOnEnter(function (s) {
+            _this.centerObject.mainImage.on('pointerover', function () {
+                if (!s.isActive())
+                    return;
+                _this.centerObject.playerInputText.homePointerOver();
+            });
+            _this.centerObject.mainImage.on('pointerout', function () {
+                if (!s.isActive())
+                    return;
+                _this.centerObject.playerInputText.homePointerOut();
+            });
+            _this.centerObject.mainImage.on('pointerdown', function () {
+                if (!s.isActive())
+                    return;
+                _this.centerObject.playerInputText.homePointerDown();
+                s.finished();
+            });
+        });
+        this.fsm.addState("HomeToGameAnimation").setOnEnter(function (s) {
+            var delayDt = 1500;
+            var dt = 1000;
+            var centerRotateTween = _this.tweens.add({
+                delay: delayDt,
+                targets: _this.centerObject.inner,
+                rotation: 0,
+                scale: 1.2,
+                duration: dt,
+                completeDelay: 1000,
+                onComplete: function () {
+                    // Finished
+                    s.finished();
+                }
+            });
+            var fadeOutter = _this.tweens.add({
+                delay: delayDt,
+                targets: _this.centerObject.outterDwitterImage,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            });
+        });
+        this.fsm.addState("NormalGame").setOnEnter(function (s) {
+            _this.centerObject.playerInputText.transferToScene1TweenCompleted();
+            _this.centerObject.speakerBtn.toSpeakerMode(1000);
+            _this.enemyManager.startSpawn();
+            $(document).keydown(function (event) {
+                console.log(s.isActive());
+                if (!s.isActive())
+                    return;
+                var code = event.keyCode;
+                console.log(code + " " + Phaser.Input.Keyboard.KeyCodes.B);
+                if (code == Phaser.Input.Keyboard.KeyCodes.B) {
+                    console.log("transfer");
+                    s.fsm.event("BackToHome");
+                }
+            });
+        });
+        this.fsm.addState("BackToHomeAnimation", false).addEventFromPrev("BackToHome")
+            .setOnEnter(function (s) {
+            console.log("hahahahaha");
+            var delayDt = 1500;
+            var dt = 1000;
+            var centerRotateTween = _this.tweens.add({
+                delay: delayDt,
+                targets: _this.centerObject.inner,
+                rotation: _this.centerObject.initRotation,
+                scale: _this.centerObject.initScale,
+                duration: dt,
+                completeDelay: 1000,
+                onComplete: function () {
+                    _this.centerObject.playerInputText.transferToScene1TweenCompleted();
+                    _this.centerObject.speakerBtn.toSpeakerMode(1000);
+                    // Finished
+                    s.finished();
+                }
+            });
+            var fadeOutter = _this.tweens.add({
+                delay: delayDt,
+                targets: _this.centerObject.outterDwitterImage,
+                alpha: 1,
+                scale: _this.centerObject.initOutterDwitterScale,
+                duration: dt,
+            });
+        });
+        this.fsm.start();
     };
     return Scene1;
 }(BaseScene));
@@ -174,13 +264,13 @@ var PhImageClass = /** @class */ (function (_super) {
 /**
  * EN is short for EventNames
  */
-var EN = /** @class */ (function () {
-    function EN() {
+var E = /** @class */ (function () {
+    function E() {
     }
-    EN.START = "START";
-    EN.STOP = "STOP";
-    EN.BACK = "BACK";
-    return EN;
+    E.START = "START";
+    E.STOP = "STOP";
+    E.BACK = "BACK";
+    return E;
 }());
 var Wrapper = /** @class */ (function () {
     /**
@@ -607,6 +697,9 @@ var CenterObject = /** @class */ (function () {
         var _this = this;
         this.speakerRight = 56;
         this.speakerLeft = -56;
+        this.initScale = 1.3;
+        this.initRotation = -Math.PI / 2;
+        this.initOutterDwitterScale = 0.4;
         this.frame = 0;
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -620,18 +713,21 @@ var CenterObject = /** @class */ (function () {
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
         this.playerInputText.changedEvent.on(function (inputControl) { _this.playerInputChanged(inputControl); });
-        this.inner.setScale(1.3);
-        this.inner.setRotation(-Math.PI / 2);
+        this.inner.setScale(this.initScale);
+        this.inner.setRotation(this.initRotation);
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
-        this.initInteraction();
+        // this.initInteraction();
     }
     CenterObject.prototype.initDwtieer = function () {
         // let sc = 1200 / 1080 / 1.5;
         this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
         this.c = this.canvasTexture.getSourceImage();
+        // this.graph = this.scene.add.graphics();
+        // this.x = 
         this.x = this.c.getContext('2d');
-        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(0.4);
+        // this.x = this.graph;
+        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
         // img.setRotation(-Math.PI / 2);
         this.inner.add(this.outterDwitterImage);
     };
@@ -940,20 +1036,19 @@ var EnemyManager = /** @class */ (function () {
         this.lblStyl = getDefaultTextStyle();
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
-        this.initFsm();
+        // this.initFsm();
     }
     EnemyManager.prototype.initFsm = function () {
         var _this = this;
-        this.fsm = new Fsm("MainFsm");
+        this.fsm = new Fsm(this.scene);
         var defaultState = this.fsm.addState("Default").setAsStartup().setOnEnter(function (s) {
             // 
         });
-        var startedState = this.fsm.addState("Started").addEventToPrev(EN.START).setOnEnter(function (s) {
+        var startedState = this.fsm.addState("Started").addEventFromPrev(E.START).setOnEnter(function (s) {
             _this.startSpawn();
             s.finished();
         });
         this.fsm.start();
-        this.fsm.event(EN.START);
     };
     EnemyManager.prototype.startSpawn = function () {
         var _this = this;
@@ -1184,10 +1279,11 @@ var EnemyText = /** @class */ (function (_super) {
     return EnemyText;
 }(Enemy));
 var Fsm = /** @class */ (function () {
-    function Fsm(name) {
-        this.name = "DefaultFsm";
+    function Fsm(scene, name) {
+        if (name === void 0) { name = "DefaultFsm"; }
         this.states = new Map();
         this.isRunning = true;
+        this.scene = scene;
         this.name = name;
     }
     Fsm.prototype.addState = function (stateName, autoConnect) {
@@ -1208,6 +1304,9 @@ var Fsm = /** @class */ (function () {
         if (this.states.has(state.name)) {
             console.warn("Added multiple state to fsm: [" + name + "]:[" + state.name + "]");
             return false;
+        }
+        if (this.lastAddedState) {
+            state.prev = this.lastAddedState;
         }
         state.fsm = this;
         this.states.set(state.name, state);
@@ -1264,6 +1363,32 @@ var Fsm = /** @class */ (function () {
             console.warn("No startup state for FSM: " + this.name);
         }
     };
+    Fsm.prototype.addEvent = function (eventName, from, to) {
+        from = this.getStateName(from);
+        to = this.getStateName(to);
+        if (!this.states.has(from)) {
+            console.warn("Can't find FsmState + " + from);
+            return;
+        }
+        if (!this.states.has(to)) {
+            console.warn("Can't find FsmState + " + to);
+            return;
+        }
+        var fromState = this.states.get(from);
+        if (fromState.eventRoute.has(eventName)) {
+            console.warn("Added multiple event to state: [" + fromState.name + "]:[" + eventName + "]");
+            // don't return still add
+        }
+        fromState.eventRoute.set(eventName, to);
+    };
+    Fsm.prototype.getStateName = function (state) {
+        var targetName = "";
+        if (state instanceof FsmState)
+            targetName = state.name;
+        else
+            targetName = state;
+        return targetName;
+    };
     return Fsm;
 }());
 var FsmState = /** @class */ (function () {
@@ -1271,26 +1396,41 @@ var FsmState = /** @class */ (function () {
         this.eventRoute = new Map();
         this.name = name;
         this.fsm = fsm;
+        this.otherInit();
     }
+    /**
+     * used for init in inheritance
+     */
+    FsmState.prototype.otherInit = function () {
+    };
     FsmState.prototype.setAsStartup = function () {
         this.fsm.setStartup(this);
         return this;
     };
-    FsmState.prototype.addEventToPrev = function (key) {
+    FsmState.prototype.addEventFromPrev = function (eventName) {
         if (this.prev) {
-            this.prev.addEvent(key, this.name);
+            this.addEventFrom(eventName, this.prev.name);
         }
         return this;
     };
-    FsmState.prototype.addEvent = function (key, target) {
-        if (this.eventRoute.has(key))
-            console.warn("Added multiple event to state: [" + name + "]:[" + key + "]");
-        var targetName = "";
-        if (target instanceof FsmState)
-            targetName = target.name;
-        else
-            targetName = target;
-        this.eventRoute.set(key, targetName);
+    /**
+     *
+     * @param from
+     * @param eventName
+     */
+    FsmState.prototype.addEventFrom = function (eventName, from) {
+        var fromName = this.fsm.getStateName(from);
+        this.fsm.addEvent(eventName, fromName, this.name);
+        return this;
+    };
+    /**
+     * Add event from this to target
+     * @param eventName
+     * @param to
+     */
+    FsmState.prototype.addEventTo = function (eventName, to) {
+        var toName = this.fsm.getStateName(to);
+        this.fsm.addEvent(eventName, this.name, toName);
         return this;
     };
     FsmState.prototype.setOnEnter = function (handler) {
@@ -1312,6 +1452,9 @@ var FsmState = /** @class */ (function () {
         if (this.onExit)
             this.onExit(this);
         this.fsm.stateFinsiehd(this);
+    };
+    FsmState.prototype.isActive = function () {
+        return this.fsm.curState == this;
     };
     return FsmState;
 }());
@@ -1458,8 +1601,8 @@ var PlayerInputText = /** @class */ (function () {
         }
         this.text.setText(t);
         this.changedEvent.emit(this);
-        console.log("dis width: " + this.text.displayWidth);
-        console.log("width: " + this.text.width);
+        // console.log("dis width: " + this.text.displayWidth);
+        // console.log("width: " + this.text.width);
     };
     PlayerInputText.prototype.getAvailableWidth = function () {
         return this.centerObject.getTextMaxWidth();
@@ -1693,6 +1836,7 @@ var SpeechManager = /** @class */ (function () {
     SpeechManager.prototype.quickLoadAndPlay = function (text, play) {
         var _this = this;
         if (play === void 0) { play = true; }
+        console.log("Begin quick load and play");
         // in quick mode the key is just the input text
         // we can judge if we have the key stored directly
         var key = text;
@@ -1707,12 +1851,15 @@ var SpeechManager = /** @class */ (function () {
         }
         else {
             apiTextToSpeech2(text, "no_id", function (oReq) {
+                console.log("suc in quickLoadAndPlay");
                 var arrayBuffer = oReq.response;
                 // this blob may leak memory
                 var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
                 var url = URL.createObjectURL(blob);
                 // console.log(url);    
                 _this.phaserLoadAndPlay(text, text, url, false, play);
+            }, function (err) {
+                console.log("error in quickLoadAndPlay");
             });
         }
     };

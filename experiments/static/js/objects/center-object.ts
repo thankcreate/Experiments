@@ -52,6 +52,11 @@ class CenterObject {
         
     centerRotateTween: PhTween;
 
+    initScale = 1.3;
+    initRotation = -Math.PI / 2;
+
+    initOutterDwitterScale = 0.4;
+
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -75,8 +80,8 @@ class CenterObject {
         this.playerInputText.init("");
         this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl) });
 
-        this.inner.setScale(1.3);
-        this.inner.setRotation(-Math.PI / 2);
+        this.inner.setScale(this.initScale);
+        this.inner.setRotation(this.initRotation);
         
 
 
@@ -84,19 +89,24 @@ class CenterObject {
         this.inner.add(this.text);
 
  
-        this.initInteraction();
+        // this.initInteraction();
     }
 
+    graph: PhGraphics;
     initDwtieer() {
        // let sc = 1200 / 1080 / 1.5;
 
         this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
         this.c = this.canvasTexture.getSourceImage();
+
+        // this.graph = this.scene.add.graphics();
+        
+        // this.x = 
         this.x = this.c.getContext('2d');
-        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(0.4);
+        // this.x = this.graph;
+        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
         // img.setRotation(-Math.PI / 2);
         this.inner.add(this.outterDwitterImage);
-        
     }
 
 
@@ -136,6 +146,7 @@ class CenterObject {
                     onComplete:  () => {
                         this.playerInputText.transferToScene1TweenCompleted();
                         this.speakerBtn.toSpeakerMode(1000);
+                        
                         setGameState(GameState.Scene1);
                     }
                 });

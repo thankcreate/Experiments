@@ -9,6 +9,8 @@ class SpeechManager {
     }
     
     quickLoadAndPlay(text: string, play = true) {
+        console.log("Begin quick load and play");
+
         // in quick mode the key is just the input text
         // we can judge if we have the key stored directly
         let key = text;
@@ -23,14 +25,20 @@ class SpeechManager {
         }
         else
         {
-            apiTextToSpeech2(text, "no_id", (oReq) => {              
+            apiTextToSpeech2(text, "no_id", (oReq) => {            
+                console.log("suc in quickLoadAndPlay")
+                
                 var arrayBuffer = oReq.response;    
                 // this blob may leak memory
                 var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
                 var url = URL.createObjectURL(blob);
                 // console.log(url);    
                 this.phaserLoadAndPlay(text, text, url, false, play);
-            });
+            },
+            err => {
+                console.log("error in quickLoadAndPlay")
+            }            
+            );
         }
     }
 

@@ -1,11 +1,13 @@
 class Fsm {
     
-    name: string = "DefaultFsm";
+    scene: PhScene; 
+    name: string;
     states: Map<string, FsmState> = new Map();
     curState : FsmState;
     startupState: FsmState;
 
-    constructor(name?: string) {
+    constructor(scene: PhScene, name: string = "DefaultFsm") {
+        this.scene = scene;
         this.name = name;
     }
 
@@ -34,6 +36,10 @@ class Fsm {
         if(this.states.has(state.name)) {
             console.warn("Added multiple state to fsm: [" + name  + "]:[" + state.name + "]");
             return false;
+        }
+
+        if(this.lastAddedState) {
+            state.prev = this.lastAddedState;
         }
 
         
@@ -107,6 +113,39 @@ class Fsm {
             console.warn("No startup state for FSM: " + this.name);
         }       
     }
+
+    addEvent(eventName: string, from: string | FsmState, to: string | FsmState) {
+        from = this.getStateName(from);
+        to = this.getStateName(to);
+
+        if(!this.states.has(from)) {
+            console.warn("Can't find FsmState + " + from);
+            return;
+        }
+
+        if(!this.states.has(to)) {
+            console.warn("Can't find FsmState + " + to);
+            return;
+        }
+
+        let fromState = this.states.get(from);
+        if(fromState.eventRoute.has(eventName)) {
+            console.warn("Added multiple event to state: [" + fromState.name  + "]:[" + eventName + "]");
+            // don't return still add
+        }
+
+        fromState.eventRoute.set(eventName, to);        
+    }
+
+    getStateName(state: string | FsmState) : string {
+        let targetName = "";
+        if(state instanceof FsmState)
+            targetName = state.name;
+        else
+            targetName = state;
+
+        return targetName;
+    }
 }
 
 
@@ -115,12 +154,31 @@ class FsmState {
     name: string;
     fsm: Fsm;
 
+    /**
+     * Prev is only a temp value used in the construction process /
+     * It only points to the previously constructed state in the Fsm,
+     * doesn't not mean prev.next = this
+     * Never use this value outside of this class
+     */
     prev: FsmState;
+
+    /**
+     * Next points to the default FsmState in a finish
+     */
     next: FsmState;
 
     constructor(name: string, fsm: Fsm) {        
         this.name = name;
         this.fsm = fsm;
+
+        this.otherInit();
+    }
+
+    /**
+     * used for init in inheritance
+     */
+    otherInit() {
+
     }
 
     eventRoute: Map<string, string> = new Map();
@@ -130,25 +188,36 @@ class FsmState {
         return this;
     }
 
-    addEventToPrev(key: string): FsmState {
-        if(this.prev) {
-            this.prev.addEvent(key, this.name);
+    addEventFromPrev(eventName: string): FsmState {
+        if(this.prev) {            
+            this.addEventFrom(eventName, this.prev.name);
         }
-        
+
         return this;
     }
 
-    addEvent(key: string, target: string | FsmState): FsmState {
-        if(this.eventRoute.has(key))
-            console.warn("Added multiple event to state: [" + name  + "]:[" + key + "]");
-        
-        let targetName = "";
-        if(target instanceof FsmState)
-            targetName = target.name;
-        else
-            targetName = target;
 
-        this.eventRoute.set(key, targetName);
+
+    /**
+     * 
+     * @param from 
+     * @param eventName 
+     */
+    addEventFrom(eventName:string, from: string | FsmState) : FsmState{
+        let fromName = this.fsm.getStateName(from);
+        this.fsm.addEvent(eventName, fromName, this.name);
+        return this;
+    }
+
+    /**
+     * Add event from this to target
+     * @param eventName 
+     * @param to 
+     */
+    
+    addEventTo(eventName: string, to: string | FsmState): FsmState {               
+        let toName = this.fsm.getStateName(to);
+        this.fsm.addEvent(eventName, this.name, toName);
         return this;
     }
 
@@ -192,5 +261,9 @@ class FsmState {
         if(this.onExit)
             this.onExit(this);
         this.fsm.stateFinsiehd(this);
+    }
+
+    isActive() : boolean{
+        return this.fsm.curState == this;
     }
 }

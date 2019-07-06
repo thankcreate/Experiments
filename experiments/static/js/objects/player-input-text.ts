@@ -100,8 +100,8 @@ class PlayerInputText {
         this.text.setText(t);
         this.changedEvent.emit(this);
 
-        console.log("dis width: " + this.text.displayWidth);
-        console.log("width: " + this.text.width);
+        // console.log("dis width: " + this.text.displayWidth);
+        // console.log("width: " + this.text.width);
     }
 
     getAvailableWidth(): number {

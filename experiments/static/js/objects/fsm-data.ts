@@ -1,5 +1,6 @@
 var mainFsm =
 {
+  name: 'MainFsm',
   initial: "Home",
   events: [
     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
@@ -10,6 +11,7 @@ var mainFsm =
 
 
 interface IFsm {
+  name: string,
   initial: string,
   events: {
     name: string;

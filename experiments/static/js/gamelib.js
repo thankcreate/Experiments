@@ -1,84 +1,61 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var BaseScene = /** @class */ (function (_super) {
-    __extends(BaseScene, _super);
-    function BaseScene() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    BaseScene.prototype.getControllerScene = function () {
-        var controller = this.scene.get("Controller");
+class BaseScene extends Phaser.Scene {
+    getControllerScene() {
+        let controller = this.scene.get("Controller");
         return controller;
-    };
-    BaseScene.prototype.playSpeech = function (text) {
-        var controller = this.scene.get("Controller");
-        controller.playSpeechInController(text);
-    };
-    return BaseScene;
-}(Phaser.Scene));
-var Controller = /** @class */ (function (_super) {
-    __extends(Controller, _super);
-    function Controller() {
-        return _super.call(this, 'Controller') || this;
     }
-    Controller.prototype.preload = function () {
-    };
-    Controller.prototype.create = function () {
+    playSpeech(text) {
+        let controller = this.scene.get("Controller");
+        controller.playSpeechInController(text);
+    }
+}
+class Controller extends BaseScene {
+    constructor() {
+        super('Controller');
+    }
+    preload() {
+    }
+    create() {
         this.speechManager = new SpeechManager(this);
         this.scene.launch('Scene1');
         myResize(this.game);
-    };
-    Controller.prototype.playSpeechInController = function (text) {
-        this.speechManager.quickLoadAndPlay(text);
-    };
-    return Controller;
-}(BaseScene));
-/// <reference path="scene-controller.ts" />
-var Scene1 = /** @class */ (function (_super) {
-    __extends(Scene1, _super);
-    function Scene1() {
-        var _this = _super.call(this, 'Scene1') || this;
-        _this.circle;
-        _this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
-        _this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
-        _this.container;
-        _this.enemyManager;
-        return _this;
     }
-    Scene1.prototype.preload = function () {
+    playSpeechInController(text) {
+        this.speechManager.quickLoadAndPlay(text);
+    }
+}
+/// <reference path="scene-controller.ts" />
+class Scene1 extends BaseScene {
+    constructor() {
+        super('Scene1');
+        this.circle;
+        this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
+        this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
+        this.container;
+        this.enemyManager;
+    }
+    preload() {
         this.load.image('circle', 'assets/circle.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('footer', 'assets/footer.png');
-    };
-    Scene1.prototype.create = function () {
-        var _this = this;
+    }
+    create() {
         this.container = this.add.container(400, 299);
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
-        this.centerObject.playerInputText.confirmedEvent.on(function (input) { _this.enemyManager.inputTextConfirmed(input); });
+        this.centerObject.playerInputText.confirmedEvent.on(input => { this.enemyManager.inputTextConfirmed(input); });
         // this.enemyManager.startSpawn();
-        var footerMarginBottom = 25;
-        var footerMarginLeft = 30;
+        let footerMarginBottom = 25;
+        let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
         this.initFsm();
-    };
-    Scene1.prototype.fitImageToSize = function (image, height, width) {
-        var oriRatio = image.width / image.height;
+    }
+    fitImageToSize(image, height, width) {
+        let oriRatio = image.width / image.height;
         image.displayHeight = height;
         if (width) {
             image.displayWidth = width;
@@ -86,64 +63,63 @@ var Scene1 = /** @class */ (function (_super) {
         else {
             image.displayWidth = oriRatio * height;
         }
-    };
-    Scene1.prototype.update = function (time, dt) {
+    }
+    update(time, dt) {
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
         this.centerObject.update();
-    };
-    Scene1.prototype.initFsm = function () {
-        var _this = this;
-        this.fsm = new Fsm(this);
-        this.fsm.addState("Home").setAsStartup().setOnEnter(function (s) {
-            _this.centerObject.mainImage.on('pointerover', function () {
+    }
+    initFsm() {
+        this.fsm = new Fsm(this, getMainFsm());
+        this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
+            this.centerObject.mainImage.on('pointerover', () => {
                 if (!s.isActive())
                     return;
-                _this.centerObject.playerInputText.homePointerOver();
+                this.centerObject.playerInputText.homePointerOver();
             });
-            _this.centerObject.mainImage.on('pointerout', function () {
+            this.centerObject.mainImage.on('pointerout', () => {
                 if (!s.isActive())
                     return;
-                _this.centerObject.playerInputText.homePointerOut();
+                this.centerObject.playerInputText.homePointerOut();
             });
-            _this.centerObject.mainImage.on('pointerdown', function () {
+            this.centerObject.mainImage.on('pointerdown', () => {
                 if (!s.isActive())
                     return;
-                _this.centerObject.playerInputText.homePointerDown();
+                this.centerObject.playerInputText.homePointerDown();
                 s.finished();
             });
         });
-        this.fsm.addState("HomeToGameAnimation").setOnEnter(function (s) {
-            var delayDt = 1500;
-            var dt = 1000;
-            var centerRotateTween = _this.tweens.add({
+        this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
+            let delayDt = 1500;
+            let dt = 1000;
+            let centerRotateTween = this.tweens.add({
                 delay: delayDt,
-                targets: _this.centerObject.inner,
+                targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
                 duration: dt,
                 completeDelay: 1000,
-                onComplete: function () {
+                onComplete: () => {
                     // Finished
                     s.finished();
                 }
             });
-            var fadeOutter = _this.tweens.add({
+            let fadeOutter = this.tweens.add({
                 delay: delayDt,
-                targets: _this.centerObject.outterDwitterImage,
+                targets: this.centerObject.outterDwitterImage,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
             });
         });
-        this.fsm.addState("NormalGame").setOnEnter(function (s) {
-            _this.centerObject.playerInputText.transferToScene1TweenCompleted();
-            _this.centerObject.speakerBtn.toSpeakerMode(1000);
-            _this.enemyManager.startSpawn();
-            $(document).keydown(function (event) {
+        this.fsm.getState("NormalGame").setOnEnter(s => {
+            this.centerObject.playerInputText.transferToScene1TweenCompleted();
+            this.centerObject.speakerBtn.toSpeakerMode(1000);
+            this.enemyManager.startSpawn();
+            $(document).keydown(event => {
                 console.log(s.isActive());
                 if (!s.isActive())
                     return;
@@ -155,37 +131,35 @@ var Scene1 = /** @class */ (function (_super) {
                 }
             });
         });
-        this.fsm.addState("BackToHomeAnimation", false).addEventFromPrev("BackToHome")
-            .setOnEnter(function (s) {
+        this.fsm.getState("BackToHomeAnimation").setOnEnter(s => {
             console.log("hahahahaha");
-            var delayDt = 1500;
-            var dt = 1000;
-            var centerRotateTween = _this.tweens.add({
+            let delayDt = 1500;
+            let dt = 1000;
+            let centerRotateTween = this.tweens.add({
                 delay: delayDt,
-                targets: _this.centerObject.inner,
-                rotation: _this.centerObject.initRotation,
-                scale: _this.centerObject.initScale,
+                targets: this.centerObject.inner,
+                rotation: this.centerObject.initRotation,
+                scale: this.centerObject.initScale,
                 duration: dt,
                 completeDelay: 1000,
-                onComplete: function () {
-                    _this.centerObject.playerInputText.transferToScene1TweenCompleted();
-                    _this.centerObject.speakerBtn.toSpeakerMode(1000);
+                onComplete: () => {
+                    this.centerObject.playerInputText.transferToScene1TweenCompleted();
+                    this.centerObject.speakerBtn.toSpeakerMode(1000);
                     // Finished
                     s.finished();
                 }
             });
-            var fadeOutter = _this.tweens.add({
+            let fadeOutter = this.tweens.add({
                 delay: delayDt,
-                targets: _this.centerObject.outterDwitterImage,
+                targets: this.centerObject.outterDwitterImage,
                 alpha: 1,
-                scale: _this.centerObject.initOutterDwitterScale,
+                scale: this.centerObject.initOutterDwitterScale,
                 duration: dt,
             });
         });
         this.fsm.start();
-    };
-    return Scene1;
-}(BaseScene));
+    }
+}
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
@@ -229,50 +203,33 @@ var phaserConfig = {
     canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1]
 };
-var PhPointClass = /** @class */ (function (_super) {
-    __extends(PhPointClass, _super);
-    function PhPointClass() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return PhPointClass;
-}(Phaser.Geom.Point));
+class PhPointClass extends Phaser.Geom.Point {
+}
 ;
-var PhTextClass = /** @class */ (function (_super) {
-    __extends(PhTextClass, _super);
-    function PhTextClass() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return PhTextClass;
-}(Phaser.GameObjects.Text));
+class PhTextClass extends Phaser.GameObjects.Text {
+}
 ;
-var PhContainerClass = /** @class */ (function (_super) {
-    __extends(PhContainerClass, _super);
-    function PhContainerClass() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return PhContainerClass;
-}(Phaser.GameObjects.Container));
+class PhContainerClass extends Phaser.GameObjects.Container {
+}
 ;
-var PhImageClass = /** @class */ (function (_super) {
-    __extends(PhImageClass, _super);
-    function PhImageClass() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return PhImageClass;
-}(Phaser.GameObjects.Image));
+class PhImageClass extends Phaser.GameObjects.Image {
+}
 ;
+class St {
+}
+St.Home = "Home";
+St.HomeToGameAnimation = "HomeToGameAnimation";
+St.NormalGame = "NormalGame";
+St.BackToHomeAnimation = "BackToHomeAnimation";
 /**
  * EN is short for EventNames
  */
-var E = /** @class */ (function () {
-    function E() {
-    }
-    E.START = "START";
-    E.STOP = "STOP";
-    E.BACK = "BACK";
-    return E;
-}());
-var Wrapper = /** @class */ (function () {
+class Ev {
+}
+Ev.Start = "Start";
+Ev.Stop = "Stop";
+Ev.Back = "Back";
+class Wrapper {
     /**
      * Target will be added into inner container
      * inner container will be added into parentContainer automatically
@@ -281,7 +238,7 @@ var Wrapper = /** @class */ (function () {
      * @param parentContainer
      * @param target
      */
-    function Wrapper(scene, parentContainer, x, y, target) {
+    constructor(scene, parentContainer, x, y, target) {
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(x, y);
@@ -289,41 +246,30 @@ var Wrapper = /** @class */ (function () {
         this.inner.add(target);
         this.init();
     }
-    Wrapper.prototype.init = function () {
-    };
-    Wrapper.prototype.add = function (go) {
+    init() {
+    }
+    add(go) {
         this.inner.add(go);
-    };
-    Wrapper.prototype.setScale = function (x, y) {
+    }
+    setScale(x, y) {
         this.inner.setScale(x, y);
-    };
-    Wrapper.prototype.x = function () {
+    }
+    x() {
         return this.inner.x;
-    };
-    Wrapper.prototype.y = function () {
+    }
+    y() {
         return this.inner.y;
-    };
-    Wrapper.prototype.setPosition = function (x, y) {
+    }
+    setPosition(x, y) {
         this.inner.x = x;
         this.inner.y = y;
-    };
-    return Wrapper;
-}());
-var ImageWrapperClass = /** @class */ (function (_super) {
-    __extends(ImageWrapperClass, _super);
-    function ImageWrapperClass() {
-        return _super !== null && _super.apply(this, arguments) || this;
     }
-    return ImageWrapperClass;
-}(Wrapper));
+}
+class ImageWrapperClass extends Wrapper {
+}
 ;
-var TextWrapperClass = /** @class */ (function (_super) {
-    __extends(TextWrapperClass, _super);
-    function TextWrapperClass() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return TextWrapperClass;
-}(Wrapper));
+class TextWrapperClass extends Wrapper {
+}
 ;
 var GameState;
 (function (GameState) {
@@ -341,41 +287,39 @@ var ErrorInputCode;
     ErrorInputCode[ErrorInputCode["DamagedBefore"] = 6] = "DamagedBefore";
     ErrorInputCode[ErrorInputCode["NotWord"] = 7] = "NotWord";
 })(ErrorInputCode || (ErrorInputCode = {}));
-var TypedEvent = /** @class */ (function () {
-    function TypedEvent() {
-        var _this = this;
+class TypedEvent {
+    constructor() {
         this.listeners = [];
         this.listenersOncer = [];
-        this.on = function (listener) {
-            _this.listeners.push(listener);
+        this.on = (listener) => {
+            this.listeners.push(listener);
             return {
-                dispose: function () { return _this.off(listener); }
+                dispose: () => this.off(listener)
             };
         };
-        this.once = function (listener) {
-            _this.listenersOncer.push(listener);
+        this.once = (listener) => {
+            this.listenersOncer.push(listener);
         };
-        this.off = function (listener) {
-            var callbackIndex = _this.listeners.indexOf(listener);
+        this.off = (listener) => {
+            const callbackIndex = this.listeners.indexOf(listener);
             if (callbackIndex > -1)
-                _this.listeners.splice(callbackIndex, 1);
+                this.listeners.splice(callbackIndex, 1);
         };
-        this.emit = function (event) {
-            _this.listeners.forEach(function (listener) { return listener(event); });
-            _this.listenersOncer.forEach(function (listener) { return listener(event); });
-            _this.listenersOncer = [];
+        this.emit = (event) => {
+            this.listeners.forEach(listener => listener(event));
+            this.listenersOncer.forEach(listener => listener(event));
+            this.listenersOncer = [];
         };
-        this.pipe = function (te) {
-            return _this.on(function (e) { return te.emit(e); });
+        this.pipe = (te) => {
+            return this.on(e => te.emit(e));
         };
     }
-    return TypedEvent;
-}());
+}
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
 function getLogicWidth() {
-    var windowR = window.innerWidth / window.innerHeight;
-    var scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
+    let windowR = window.innerWidth / window.innerHeight;
+    let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
     if (windowR > scaleR) {
         return windowR * phaserConfig.scale.height;
     }
@@ -384,8 +328,8 @@ function getLogicWidth() {
     }
 }
 function myResize(gm) {
-    var windowR = window.innerWidth / window.innerHeight;
-    var scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
+    let windowR = window.innerWidth / window.innerHeight;
+    let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
     gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
     var canvas = document.querySelector("canvas");
     if (windowR > scaleR) {
@@ -459,17 +403,17 @@ function yabali() {
 function testSpeechAPI() {
     var inputText = $('#arg1').val();
     var id = $('#arg2').val();
-    apiTextToSpeech(inputText, id, function (sucData) {
+    apiTextToSpeech(inputText, id, sucData => {
         console.log(sucData);
-    }, function (errData) {
+    }, errData => {
         console.log("fail speech");
     });
 }
 function testSpeechAPI2() {
     var inputText = $('#arg1').val();
     var id = $('#arg2').val();
-    var dataOb = { input: inputText, id: id };
-    var dataStr = JSON.stringify(dataOb);
+    let dataOb = { input: inputText, id: id };
+    let dataStr = JSON.stringify(dataOb);
     var oReq = new XMLHttpRequest();
     oReq.open("POST", "/api_speech", true);
     oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -487,16 +431,16 @@ function testSpeechAPI2() {
     oReq.send(dataStr);
 }
 function distance(a, b) {
-    var diffX = b.x - a.x;
-    var diffY = b.y - a.y;
+    let diffX = b.x - a.x;
+    let diffY = b.y - a.y;
     return Math.sqrt(diffX * diffX + diffY * diffY);
 }
 function myMove(from, to, mv) {
-    var diffX = to.x - from.x;
-    var diffY = to.y - from.y;
-    var d = distance(from, to);
-    var ratio = mv / d;
-    var rt = { x: from.x + diffX * ratio, y: from.y + diffY * ratio };
+    let diffX = to.x - from.x;
+    let diffY = to.y - from.y;
+    let d = distance(from, to);
+    let ratio = mv / d;
+    let rt = { x: from.x + diffX * ratio, y: from.y + diffY * ratio };
     return rt;
 }
 function getFormData($form) {
@@ -533,7 +477,7 @@ function formatTwoParamsInput(param1, param2) {
     return JSON.stringify(ob);
 }
 function api2WithTwoParams(arg1, arg2, suc, err) {
-    var inputString = formatTwoParamsInput(arg1, arg2);
+    let inputString = formatTwoParamsInput(arg1, arg2);
     api2(inputString, suc, err);
 }
 // API 3 is to get the similarty between one input string and a collection of strings
@@ -545,19 +489,19 @@ function formatArrayParamsInput(param1, param2) {
     return JSON.stringify(ob);
 }
 function api3WithTwoParams(inputString, arrayStrings, suc, err) {
-    var data = formatArrayParamsInput(inputString, arrayStrings);
+    let data = formatArrayParamsInput(inputString, arrayStrings);
     api3(data, suc, err);
 }
 // API speech is to get the path of the generated audio by the input text
 function apiTextToSpeech(inputText, identifier, suc, err) {
-    var dataOb = { input: inputText, id: identifier, api: 1 };
-    var dataStr = JSON.stringify(dataOb);
+    let dataOb = { input: inputText, id: identifier, api: 1 };
+    let dataStr = JSON.stringify(dataOb);
     api("api_speech", dataStr, suc, err);
 }
 // API speech is to get the path of the generated audio by the input text
 function apiTextToSpeech2(inputText, identifier, suc, err) {
-    var dataOb = { input: inputText, id: identifier, api: 2 };
-    var dataStr = JSON.stringify(dataOb);
+    let dataOb = { input: inputText, id: identifier, api: 2 };
+    let dataStr = JSON.stringify(dataOb);
     var oReq = new XMLHttpRequest();
     oReq.open("POST", "/api_speech", true);
     oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -626,7 +570,7 @@ function getDefaultFontFamily() {
     return gameplayConfig.defaultFontFamily;
 }
 function getDefaultTextStyle() {
-    var ret = {
+    let ret = {
         fontSize: gameplayConfig.defaultTextSize,
         fill: '#000000',
         fontFamily: getDefaultFontFamily(),
@@ -640,18 +584,18 @@ function cpp(pt) {
     return new Phaser.Geom.Point(pt.x, pt.y);
 }
 function getGame() {
-    var thisGame = window.game;
+    let thisGame = window.game;
     return thisGame;
 }
 function getGameState() {
-    var thisGame = getGame();
+    let thisGame = getGame();
     if (!thisGame.hasOwnProperty("gameState")) {
         thisGame.gameState = GameState.Home;
     }
     return thisGame.gameState;
 }
 function setGameState(state) {
-    var thisGame = getGame();
+    let thisGame = getGame();
     thisGame.gameState = state;
 }
 function lerp(start, end, perc) {
@@ -665,36 +609,28 @@ function R(r, g, b, a) {
     return "rgba(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + "," + a + ")";
 }
 ;
-var SpeakerButton = /** @class */ (function (_super) {
-    __extends(SpeakerButton, _super);
-    function SpeakerButton() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    SpeakerButton.prototype.init = function () {
+class SpeakerButton extends ImageWrapperClass {
+    init() {
         this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
         this.inner.add(this.icon);
-    };
-    SpeakerButton.prototype.toSpeakerMode = function (dt) {
-        if (dt === void 0) { dt = 250; }
+    }
+    toSpeakerMode(dt = 250) {
         this.scene.tweens.add({
             targets: this.icon,
             alpha: 1,
             duration: dt,
         });
-    };
-    SpeakerButton.prototype.toNothingMode = function (dt) {
-        if (dt === void 0) { dt = 250; }
+    }
+    toNothingMode(dt = 250) {
         this.scene.tweens.add({
             targets: this.icon,
             alpha: 0,
             duration: 250,
         });
-    };
-    return SpeakerButton;
-}(ImageWrapperClass));
-var CenterObject = /** @class */ (function () {
-    function CenterObject(scene, parentContainer, designSize) {
-        var _this = this;
+    }
+}
+class CenterObject {
+    constructor(scene, parentContainer, designSize) {
         this.speakerRight = 56;
         this.speakerLeft = -56;
         this.initScale = 1.3;
@@ -712,14 +648,14 @@ var CenterObject = /** @class */ (function () {
         this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(0, 0, "speaker"));
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
-        this.playerInputText.changedEvent.on(function (inputControl) { _this.playerInputChanged(inputControl); });
+        this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl); });
         this.inner.setScale(this.initScale);
         this.inner.setRotation(this.initRotation);
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
         // this.initInteraction();
     }
-    CenterObject.prototype.initDwtieer = function () {
+    initDwtieer() {
         // let sc = 1200 / 1080 / 1.5;
         this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
         this.c = this.canvasTexture.getSourceImage();
@@ -730,59 +666,58 @@ var CenterObject = /** @class */ (function () {
         this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
         // img.setRotation(-Math.PI / 2);
         this.inner.add(this.outterDwitterImage);
-    };
-    CenterObject.prototype.initInteraction = function () {
-        var _this = this;
-        this.mainImage.on('pointerover', function () {
+    }
+    initInteraction() {
+        this.mainImage.on('pointerover', () => {
             // if(this.scene)
             // console.log("over");
-            var state = getGameState();
+            let state = getGameState();
             if (state == GameState.Home) {
-                _this.playerInputText.homePointerOver();
+                this.playerInputText.homePointerOver();
             }
         });
-        this.mainImage.on('pointerout', function () {
-            var state = getGameState();
+        this.mainImage.on('pointerout', () => {
+            let state = getGameState();
             if (state == GameState.Home) {
-                _this.playerInputText.homePointerOut();
+                this.playerInputText.homePointerOut();
             }
         });
-        this.mainImage.on('pointerdown', function () {
-            var state = getGameState();
+        this.mainImage.on('pointerdown', () => {
+            let state = getGameState();
             console.log(state);
             if (state == GameState.Home) {
                 setGameState(GameState.Scene1);
-                _this.playerInputText.homePointerDown();
-                var delayDt = 1500;
-                var dt = 1000;
-                _this.centerRotateTween = _this.scene.tweens.add({
+                this.playerInputText.homePointerDown();
+                let delayDt = 1500;
+                let dt = 1000;
+                this.centerRotateTween = this.scene.tweens.add({
                     delay: delayDt,
-                    targets: _this.inner,
+                    targets: this.inner,
                     rotation: 0,
                     scale: 1.2,
                     duration: dt,
                     completeDelay: 1000,
-                    onComplete: function () {
-                        _this.playerInputText.transferToScene1TweenCompleted();
-                        _this.speakerBtn.toSpeakerMode(1000);
+                    onComplete: () => {
+                        this.playerInputText.transferToScene1TweenCompleted();
+                        this.speakerBtn.toSpeakerMode(1000);
                         setGameState(GameState.Scene1);
                     }
                 });
-                var fadeOutter = _this.scene.tweens.add({
+                let fadeOutter = this.scene.tweens.add({
                     delay: delayDt,
-                    targets: _this.outterDwitterImage,
+                    targets: this.outterDwitterImage,
                     alpha: 0,
                     scale: 2,
                     duration: dt,
                 });
             }
         });
-    };
-    CenterObject.prototype.playerInputChanged = function (inputControl) {
-        var percent = inputControl.text.width / this.getTextMaxWidth();
+    }
+    playerInputChanged(inputControl) {
+        let percent = inputControl.text.width / this.getTextMaxWidth();
         percent = Math.max(0, percent);
         percent = Math.min(1, percent);
-        var desti = lerp(this.speakerRight, this.speakerLeft, percent);
+        let desti = lerp(this.speakerRight, this.speakerLeft, percent);
         // this.speakerImage.x = desti;
         if (percent == 0) {
             this.backToZeroTween = this.scene.tweens.add({
@@ -801,15 +736,15 @@ var CenterObject = /** @class */ (function () {
                 duration: 50
             });
         }
-    };
-    CenterObject.prototype.getDesignWidth = function () {
+    }
+    getDesignWidth() {
         return this.designSize.x;
-    };
-    CenterObject.prototype.getTextMaxWidth = function () {
+    }
+    getTextMaxWidth() {
         return this.getDesignWidth() * 0.65;
-    };
-    CenterObject.prototype.update = function () {
-        var pointer = this.scene.input.activePointer;
+    }
+    update() {
+        let pointer = this.scene.input.activePointer;
         this.text.setText([
             'x: ' + pointer.worldX,
             'y: ' + pointer.worldY,
@@ -817,48 +752,47 @@ var CenterObject = /** @class */ (function () {
             'rightButtonDown: ' + pointer.rightButtonDown()
         ]);
         this.updateDwitter();
-    };
-    CenterObject.prototype.updateDwitter = function () {
-        var time = this.frame / 60;
+    }
+    updateDwitter() {
+        let time = this.frame / 60;
         // if (time * 60 | 0 == this.frame - 1)
         // {
         //     time += 0.000001;
         // }
         this.frame++;
         this.u2(time, this.c, this.x);
-    };
-    CenterObject.prototype.u2 = function (t, c, x) {
+    }
+    u2(t, c, x) {
         // c.width = 1920;
         // for (var i = 0; i < 31; i++) { 
         //     for (var j = 25; j > -25; j--) { 
         //         x.fillRect(960 + j * i * .5 * C(i * .2) + C(2 * t + i * .2) * 300, 540 + j * i * .5 * S(i * .2) + S(2.2 * t + i * .2) * 200, 9, 9);
         //     } 
         // }
-        var a = 0;
+        let a = 0;
         c.width |= c.style.background = "#CDF";
-        for (var j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
+        for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
             a = j / 159 + t;
             x.lineWidth = 29;
         }
         x.stroke();
-    };
-    CenterObject.prototype.u3 = function (t, c, x) {
-        var Y = 0;
-        var X = 0;
-        var r = 140 - 16 * (t < 10 ? t : 0);
-        for (var U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
+    }
+    u3(t, c, x) {
+        let Y = 0;
+        let X = 0;
+        let r = 140 - 16 * (t < 10 ? t : 0);
+        for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
-    };
-    return CenterObject;
-}());
+    }
+}
 var EnemyType;
 (function (EnemyType) {
     EnemyType[EnemyType["Text"] = 0] = "Text";
     EnemyType[EnemyType["TextWithImage"] = 1] = "TextWithImage";
     EnemyType[EnemyType["Image"] = 2] = "Image";
 })(EnemyType || (EnemyType = {}));
-var Enemy = /** @class */ (function () {
-    function Enemy(scene, enemyManager, posi, lblStyle, config) {
+class Enemy {
+    constructor(scene, enemyManager, posi, lblStyle, config) {
         this.centerRadius = 125;
         this.health = gameplayConfig.defaultHealth;
         this.damagedHistory = []; //store only valid input history
@@ -875,42 +809,42 @@ var Enemy = /** @class */ (function () {
         this.dest = new Phaser.Geom.Point(0, 0);
         this.initContent();
     }
-    Enemy.prototype.initContent = function () {
+    initContent() {
         // init in inheritance
-    };
-    Enemy.prototype.update = function (time, dt) {
+    }
+    update(time, dt) {
         this.checkIfReachEnd();
         this.healthIndicator.update(time, dt);
-    };
-    Enemy.prototype.checkIfReachEnd = function () {
+    }
+    checkIfReachEnd() {
         if (this.inStop)
             return;
-        var dis = distance(this.dest, this.inner);
-        var stopDis = this.getStopDistance();
+        let dis = distance(this.dest, this.inner);
+        let stopDis = this.getStopDistance();
         // console.log(stopDis);
         // console.log("dis:" + dis +  "stopdis:" + stopDis );
         if (dis < stopDis)
             this.stopRun();
-    };
-    Enemy.prototype.getStopDistance = function () {
+    }
+    getStopDistance() {
         return this.centerRadius;
-    };
-    Enemy.prototype.startRun = function () {
+    }
+    startRun() {
         this.inner.alpha = 0; // muse init from here, or it will have a blink
         this.mvTween = this.scene.tweens.add({
             targets: this.inner,
             x: this.dest.x,
             y: this.dest.y,
             alpha: {
-                getStart: function () { return 0; },
-                getEnd: function () { return 1; },
+                getStart: () => 0,
+                getEnd: () => 1,
                 duration: 500
             },
             duration: this.duration
         });
-    };
-    Enemy.prototype.stopRun = function () {
-        var thisEnemy = this;
+    }
+    stopRun() {
+        let thisEnemy = this;
         thisEnemy.enemyManager.removeEnemy(thisEnemy);
         this.inStop = true;
         this.mvTween.stop();
@@ -922,27 +856,27 @@ var Enemy = /** @class */ (function () {
                 thisEnemy.inner.destroy();
             }
         });
-    };
-    Enemy.prototype.getRealHealthDamage = function (val) {
-        var ret = 0;
-        var tiers = gameplayConfig.damageTiers;
-        for (var i in tiers) {
-            var tier = tiers[i];
+    }
+    getRealHealthDamage(val) {
+        let ret = 0;
+        let tiers = gameplayConfig.damageTiers;
+        for (let i in tiers) {
+            let tier = tiers[i];
             if (val >= tier[0])
                 return tier[1];
         }
         return ret;
-    };
-    Enemy.prototype.checkIfDamagedByThisWordBefore = function (input) {
-        for (var i in this.damagedHistory) {
+    }
+    checkIfDamagedByThisWordBefore(input) {
+        for (let i in this.damagedHistory) {
             if (this.damagedHistory[i] === input) {
                 return true;
             }
         }
         return false;
-    };
-    Enemy.prototype.damage = function (val, input) {
-        var ret = {
+    }
+    damage(val, input) {
+        let ret = {
             damage: 0,
             code: this.checkIfInputLegalWithEnemy(input, this.lbl)
         };
@@ -971,11 +905,11 @@ var Enemy = /** @class */ (function () {
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
         return ret;
-    };
-    Enemy.prototype.eliminated = function () {
+    }
+    eliminated() {
         this.stopRun();
-    };
-    Enemy.prototype.checkIfInputLegalWithEnemy = function (inputLbl, enemyLbl) {
+    }
+    checkIfInputLegalWithEnemy(inputLbl, enemyLbl) {
         inputLbl = inputLbl.trim().toLowerCase();
         enemyLbl = enemyLbl.trim().toLowerCase();
         if (inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
@@ -987,28 +921,26 @@ var Enemy = /** @class */ (function () {
             return ErrorInputCode.Wrap;
         }
         return ErrorInputCode.NoError;
-    };
-    return Enemy;
-}());
-var EnemyImage = /** @class */ (function (_super) {
-    __extends(EnemyImage, _super);
-    function EnemyImage(scene, enemyManager, posi, lblStyle, config) {
-        return _super.call(this, scene, enemyManager, posi, lblStyle, config) || this;
     }
-    EnemyImage.prototype.initContent = function () {
-        _super.prototype.initContent.call(this);
+}
+class EnemyImage extends Enemy {
+    constructor(scene, enemyManager, posi, lblStyle, config) {
+        super(scene, enemyManager, posi, lblStyle, config);
+    }
+    initContent() {
+        super.initContent();
         this.gap = 10;
         // figure
         this.figure = new QuickDrawFigure(this.scene, this.inner, this.config.image);
-        var lb = this.figure.getLeftBottom();
-        var rb = this.figure.getRightBottom();
+        let lb = this.figure.getLeftBottom();
+        let rb = this.figure.getRightBottom();
         this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
         // text
         this.text = this.scene.add.text((lb.x + lb.y) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
         this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
         this.text.setOrigin(0.5, 0);
         this.inner.add(this.text);
-        var lc = this.text.getLeftCenter();
+        let lc = this.text.getLeftCenter();
         lc.x -= gameplayConfig.healthIndicatorWidth / 2;
         lc.x -= 4;
         this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
@@ -1017,14 +949,13 @@ var EnemyImage = /** @class */ (function (_super) {
         // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
-    };
-    EnemyImage.prototype.getStopDistance = function () {
+    }
+    getStopDistance() {
         return this.centerRadius + gameplayConfig.drawDataDefaultSize / 2 + 10;
-    };
-    return EnemyImage;
-}(Enemy));
-var EnemyManager = /** @class */ (function () {
-    function EnemyManager(scene, container) {
+    }
+}
+class EnemyManager {
+    constructor(scene, container) {
         this.spawnHistory = [];
         this.scene = scene;
         this.container = container;
@@ -1036,46 +967,32 @@ var EnemyManager = /** @class */ (function () {
         this.lblStyl = getDefaultTextStyle();
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
-        // this.initFsm();
     }
-    EnemyManager.prototype.initFsm = function () {
-        var _this = this;
-        this.fsm = new Fsm(this.scene);
-        var defaultState = this.fsm.addState("Default").setAsStartup().setOnEnter(function (s) {
-            // 
-        });
-        var startedState = this.fsm.addState("Started").addEventFromPrev(E.START).setOnEnter(function (s) {
-            _this.startSpawn();
-            s.finished();
-        });
-        this.fsm.start();
-    };
-    EnemyManager.prototype.startSpawn = function () {
-        var _this = this;
+    startSpawn() {
         this.spawnTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
             duration: this.interval,
-            onStart: function () {
+            onStart: () => {
                 // console.log('onstart');
-                _this.spawn();
+                this.spawn();
             },
-            onRepeat: function () {
-                _this.spawn();
+            onRepeat: () => {
+                this.spawn();
             },
             repeat: -1
         });
-    };
-    EnemyManager.prototype.getNextName = function () {
-        var ret = "";
+    }
+    getNextName() {
+        let ret = "";
         // max try count
-        var maxTry = 100;
-        for (var i = 0; i < maxTry; i++) {
+        let maxTry = 100;
+        for (let i = 0; i < maxTry; i++) {
             var lblIndex = Phaser.Math.Between(0, this.labels.length - 1);
             var name = this.labels[lblIndex];
             if (gameplayConfig.tryAvoidDuplicate) {
                 var contains = false;
-                this.enemies.forEach(function (enemy) {
+                this.enemies.forEach(enemy => {
                     if (enemy.lbl.toLocaleLowerCase() === name.toLocaleLowerCase()) {
                         contains = true;
                     }
@@ -1091,8 +1008,8 @@ var EnemyManager = /** @class */ (function () {
             }
         }
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
-    };
-    EnemyManager.prototype.spawn = function () {
+    }
+    spawn() {
         var posi = this.getSpawnPoint();
         var name = this.getNextName();
         this.insertSpawnHistory(posi, name);
@@ -1107,40 +1024,40 @@ var EnemyManager = /** @class */ (function () {
             image: figureName
         });
         // console.log('-------------------------')
-        this.enemies.forEach(function (item) {
+        this.enemies.forEach(item => {
             // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
         });
         // console.log(this.enemies.length + "  name:" + name);
         this.enemies.push(enemy);
         enemy.duration = this.enemyRunDuration;
         enemy.startRun();
-    };
-    EnemyManager.prototype.insertSpawnHistory = function (posi, name) {
-        var rad = Math.atan2(posi.y, posi.x);
-        var item = {
+    }
+    insertSpawnHistory(posi, name) {
+        let rad = Math.atan2(posi.y, posi.x);
+        let item = {
             degree: rad,
             name: name
         };
         this.spawnHistory.push(item);
-    };
-    EnemyManager.prototype.removeEnemy = function (enemy) {
-        for (var i in this.enemies) {
+    }
+    removeEnemy(enemy) {
+        for (let i in this.enemies) {
             if (this.enemies[i] == enemy) {
                 this.enemies.splice(parseInt(i), 1);
             }
         }
-    };
-    EnemyManager.prototype.update = function (time, dt) {
+    }
+    update(time, dt) {
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
-        for (var i in this.enemies) {
+        for (let i in this.enemies) {
             this.enemies[i].update(time, dt);
         }
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);
-    };
-    EnemyManager.prototype.getSpawnPoint = function () {
+    }
+    getSpawnPoint() {
         var threshould = Math.PI / 2;
         var pt = new Phaser.Geom.Point(0, 0);
         var rdDegree = 0;
@@ -1156,12 +1073,12 @@ var EnemyManager = /** @class */ (function () {
         }
         // console.log(rdDegree);
         return pt;
-    };
-    EnemyManager.prototype.getAngleDiff = function (angl1, angle2) {
-        var diff1 = Math.abs(angl1 - angle2);
-        var diff2 = Math.PI * 2 - diff1;
+    }
+    getAngleDiff(angl1, angle2) {
+        let diff1 = Math.abs(angl1 - angle2);
+        let diff2 = Math.PI * 2 - diff1;
         return Math.min(diff1, diff2);
-    };
+    }
     // inputConfirm(input: string) {
     //     var enemies = this.enemies;        
     //     var inputWord = input;
@@ -1173,61 +1090,56 @@ var EnemyManager = /** @class */ (function () {
     //         console.log("ErrorInputCode before send: " + checkLegal);
     //     }
     // }
-    EnemyManager.prototype.sendInputToServer = function (inputWord) {
-        var _this = this;
+    sendInputToServer(inputWord) {
         this.scene.playSpeech(inputWord);
         var enemyLabels = [];
-        for (var i in this.enemies) {
+        for (let i in this.enemies) {
             var enemy = this.enemies[i];
             enemyLabels.push(enemy.lbl);
         }
         api3WithTwoParams(inputWord, enemyLabels, 
         // suc
-        function (res) {
+        res => {
             // console.log(res);
-            _this.confirmCallbackSuc(res);
+            this.confirmCallbackSuc(res);
         }, 
         // err
         function err(res) {
             // console.log("API3 failed");
         });
-    };
+    }
     // api3 callback
-    EnemyManager.prototype.confirmCallbackSuc = function (res) {
+    confirmCallbackSuc(res) {
         var ar = res.outputArray;
         var input = res.input;
         // filter the duplicate labels
         var seen = {};
-        ar = ar.filter(function (item) {
+        ar = ar.filter(item => {
             return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         });
-        var legal = true;
+        let legal = true;
         // if we only want to damage the most similar word
         if (gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
-        var _loop_1 = function (i) {
-            var entry = ar[i];
-            var entryName = ar[i].name;
-            var entryValue = ar[i].value;
+        for (let i in ar) {
+            let entry = ar[i];
+            let entryName = ar[i].name;
+            let entryValue = ar[i].value;
             // since network has latency, 
             // the enemy could have been eliminated when the callback is invoked
             // we need to be careful about the availability of the enemy
-            var enemiesWithName = this_1.findEnemyByName(entryName);
-            enemiesWithName.forEach(function (e) {
+            let enemiesWithName = this.findEnemyByName(entryName);
+            enemiesWithName.forEach(e => {
                 e.damage(entryValue, input);
             });
-        };
-        var this_1 = this;
-        for (var i in ar) {
-            _loop_1(i);
         }
-    };
-    EnemyManager.prototype.findBiggestDamage = function (ar) {
-        var ret = [];
-        var max = -1;
-        var entry = null;
-        ar.forEach(function (element) {
+    }
+    findBiggestDamage(ar) {
+        let ret = [];
+        let max = -1;
+        let entry = null;
+        ar.forEach(element => {
             if (element.value > max) {
                 max = element.value;
                 entry = element;
@@ -1236,161 +1148,161 @@ var EnemyManager = /** @class */ (function () {
         if (entry)
             ret.push(entry);
         return ret;
-    };
+    }
     // haha
-    EnemyManager.prototype.findEnemyByName = function (name) {
-        var ret = [];
-        for (var i in this.enemies) {
-            var e = this.enemies[i];
+    findEnemyByName(name) {
+        let ret = [];
+        for (let i in this.enemies) {
+            let e = this.enemies[i];
             if (e.lbl === name) {
                 ret.push(e);
             }
         }
         return ret;
-    };
+    }
     /**
      * PlayerInputTextListener interface implement
      * @param input
      */
-    EnemyManager.prototype.inputTextConfirmed = function (input) {
+    inputTextConfirmed(input) {
         this.sendInputToServer(input);
-    };
-    return EnemyManager;
-}());
-/// <reference path="enemy-base.ts" />
-var EnemyText = /** @class */ (function (_super) {
-    __extends(EnemyText, _super);
-    function EnemyText(scene, enemyManager, posi, lblStyle, config) {
-        return _super.call(this, scene, enemyManager, posi, lblStyle, config) || this;
     }
-    EnemyText.prototype.initContent = function () {
-        _super.prototype.initContent.call(this);
+}
+/// <reference path="enemy-base.ts" />
+class EnemyText extends Enemy {
+    constructor(scene, enemyManager, posi, lblStyle, config) {
+        super(scene, enemyManager, posi, lblStyle, config);
+    }
+    initContent() {
+        super.initContent();
         // text
         this.text = this.scene.add.text(0, 0, this.lbl, this.lblStyle);
         this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
         this.text.setOrigin(this.initPosi.x > 0 ? 0 : 1, this.initPosi.y > 0 ? 0 : 1);
         this.inner.add(this.text);
         // healthText
-        var lc = this.text.getLeftCenter();
+        let lc = this.text.getLeftCenter();
         lc.x -= gameplayConfig.healthIndicatorWidth / 2;
         lc.x -= 4;
         this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
-    };
-    return EnemyText;
-}(Enemy));
-var fsmJson = {
-    initial: 'Default',
-    final: ['end'],
-    states: ['haha'],
+    }
+}
+var mainFsm = {
+    name: 'MainFsm',
+    initial: "Home",
     events: [
-        { name: 'Default', from: ['new', 'andmore'], to: 'haha' },
-        { name: 'ss', from: 'haha', to: "end" },
-        { name: 'bd', from: 'end', to: 'kl' },
-        { name: 'bs', from: 'kl', to: 'ffdsa' }
+        { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+        { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
+        { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
     ],
 };
-if (typeof require !== 'undefined') {
-    var StateMachine = require('fsm-as-promised');
-    var fsm = StateMachine({
-        events: [
-            { name: 'jump', from: 'here', to: 'there' }
-        ],
-        callbacks: {
-            onjump: function (options) {
-                // do something
-                console.log("hh");
-                return options;
-            }
-        }
-    });
-    fsm.jump();
+function getMainFsm() {
+    return mainFsm;
 }
-var Fsm = /** @class */ (function () {
-    function Fsm(scene, name) {
-        if (name === void 0) { name = "DefaultFsm"; }
+// var mainFsm = 
+// {
+//   initial: "Home",  
+//   events: [
+//     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+//     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
+//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+//   ], 
+// };
+// var traverse = require('babel-traverse').default;
+// var babylon = require("babylon");
+// var generator = require("babel-generator").default
+// const ast = babylon.parse(code);
+// traverse(ast, {
+//   enter: path => {
+//     const { node, parent } = path;        
+//     // do with the node
+//   }
+// });
+class Fsm {
+    // constructor(scene: PhScene, name: string = "DefaultFsm") {
+    //     this.scene = scene;
+    //     this.name = name;
+    // }
+    constructor(scene, fsm) {
         this.states = new Map();
         this.isRunning = true;
-        this.scene = scene;
-        this.name = name;
+        this.name = fsm.name;
+        for (let i in fsm.events) {
+            let event = fsm.events[i];
+            let eName = event.name;
+            let eFrom = event.from;
+            let eTo = event.to;
+            let stFrom = this.states.get(eFrom);
+            if (!stFrom) {
+                stFrom = this.addState(eFrom);
+                console.debug("Added FsmState + " + eFrom);
+            }
+            if (!this.states.has(eTo)) {
+                this.addState(eTo);
+                console.debug("Can't find FsmState + " + eTo);
+            }
+            stFrom.addEventTo(eName, eTo);
+        }
     }
-    Fsm.prototype.addState = function (stateName, autoConnect) {
-        if (autoConnect === void 0) { autoConnect = true; }
-        var state = new FsmState(stateName, this);
-        var res = true;
-        if (autoConnect)
-            res = this.addAndConnectToLast(state);
-        else
-            res = this.addStateInner(state);
-        this.lastAddedState = state;
+    getState(stateName) {
+        return this.states.get(stateName);
+    }
+    addState(stateName) {
+        let state = new FsmState(stateName, this);
+        let res = true;
+        res = this.addStateInner(state);
         if (res)
             return state;
         else
             return null;
-    };
-    Fsm.prototype.addStateInner = function (state) {
+    }
+    addStateInner(state) {
         if (this.states.has(state.name)) {
             console.warn("Added multiple state to fsm: [" + name + "]:[" + state.name + "]");
             return false;
         }
-        if (this.lastAddedState) {
-            state.prev = this.lastAddedState;
-        }
         state.fsm = this;
         this.states.set(state.name, state);
         return true;
-    };
-    Fsm.prototype.addAndConnectToLast = function (state) {
-        var res = this.addStateInner(state);
-        if (!res)
-            return false;
-        if (this.lastAddedState) {
-            this.lastAddedState.next = state;
-            state.prev = this.lastAddedState;
-        }
-        return true;
-    };
-    Fsm.prototype.update = function (time, dt) {
+    }
+    update(time, dt) {
         if (!this.isRunning)
             return;
         if (this.curState && this.curState.onUpdate)
             this.curState.onUpdate(this.curState, time, dt);
-    };
-    Fsm.prototype.stateFinsiehd = function (state) {
-        if (state.next) {
-            this.runState(state.next);
-        }
-    };
+    }
     /**
      * invoke a event
      * @param key
      */
-    Fsm.prototype.event = function (key) {
+    event(key) {
         if (this.curState) {
+            this.curState.exitProcess();
             if (this.curState.eventRoute.has(key)) {
-                var targetName = this.curState.eventRoute.get(key);
-                var state = this.states.get(targetName);
+                let targetName = this.curState.eventRoute.get(key);
+                let state = this.states.get(targetName);
                 if (state) {
                     this.runState(state);
                 }
             }
         }
-    };
-    Fsm.prototype.runState = function (state) {
+    }
+    runState(state) {
         this.curState = state;
         state.onEnter(state);
-    };
-    Fsm.prototype.setStartup = function (state) {
+    }
+    setStartup(state) {
         this.startupState = state;
-    };
-    Fsm.prototype.start = function () {
+    }
+    start() {
         if (this.startupState) {
             this.runState(this.startupState);
         }
         else {
             console.warn("No startup state for FSM: " + this.name);
         }
-    };
-    Fsm.prototype.addEvent = function (eventName, from, to) {
+    }
+    addEvent(eventName, from, to) {
         from = this.getStateName(from);
         to = this.getStateName(to);
         if (!this.states.has(from)) {
@@ -1401,25 +1313,25 @@ var Fsm = /** @class */ (function () {
             console.warn("Can't find FsmState + " + to);
             return;
         }
-        var fromState = this.states.get(from);
+        let fromState = this.states.get(from);
         if (fromState.eventRoute.has(eventName)) {
             console.warn("Added multiple event to state: [" + fromState.name + "]:[" + eventName + "]");
             // don't return still add
         }
         fromState.eventRoute.set(eventName, to);
-    };
-    Fsm.prototype.getStateName = function (state) {
-        var targetName = "";
+    }
+    getStateName(state) {
+        let targetName = "";
         if (state instanceof FsmState)
             targetName = state.name;
         else
             targetName = state;
         return targetName;
-    };
-    return Fsm;
-}());
-var FsmState = /** @class */ (function () {
-    function FsmState(name, fsm) {
+    }
+}
+Fsm.FinishedEventName = "Finished";
+class FsmState {
+    constructor(name, fsm) {
         this.eventRoute = new Map();
         this.name = name;
         this.fsm = fsm;
@@ -1428,66 +1340,58 @@ var FsmState = /** @class */ (function () {
     /**
      * used for init in inheritance
      */
-    FsmState.prototype.otherInit = function () {
-    };
-    FsmState.prototype.setAsStartup = function () {
+    otherInit() {
+    }
+    setAsStartup() {
         this.fsm.setStartup(this);
         return this;
-    };
-    FsmState.prototype.addEventFromPrev = function (eventName) {
-        if (this.prev) {
-            this.addEventFrom(eventName, this.prev.name);
-        }
-        return this;
-    };
+    }
     /**
      *
      * @param from
      * @param eventName
      */
-    FsmState.prototype.addEventFrom = function (eventName, from) {
-        var fromName = this.fsm.getStateName(from);
+    addEventFrom(eventName, from) {
+        let fromName = this.fsm.getStateName(from);
         this.fsm.addEvent(eventName, fromName, this.name);
         return this;
-    };
+    }
     /**
      * Add event from this to target
      * @param eventName
      * @param to
      */
-    FsmState.prototype.addEventTo = function (eventName, to) {
-        var toName = this.fsm.getStateName(to);
+    addEventTo(eventName, to) {
+        let toName = this.fsm.getStateName(to);
         this.fsm.addEvent(eventName, this.name, toName);
         return this;
-    };
-    FsmState.prototype.setOnEnter = function (handler) {
+    }
+    setOnEnter(handler) {
         this.onEnter = handler;
         return this;
-    };
-    FsmState.prototype.setOnUpdate = function (handler) {
+    }
+    setOnUpdate(handler) {
         this.onUpdate = handler;
         return this;
-    };
-    FsmState.prototype.setOnExit = function (handler) {
+    }
+    setOnExit(handler) {
         this.onExit = handler;
         return this;
-    };
-    FsmState.prototype.finished = function () {
-        this.exitProcess();
-    };
-    FsmState.prototype.exitProcess = function () {
+    }
+    finished() {
+        this.fsm.event(Fsm.FinishedEventName);
+    }
+    exitProcess() {
         if (this.onExit)
             this.onExit(this);
-        this.fsm.stateFinsiehd(this);
-    };
-    FsmState.prototype.isActive = function () {
+    }
+    isActive() {
         return this.fsm.curState == this;
-    };
-    return FsmState;
-}());
-var HealthIndicator = /** @class */ (function () {
+    }
+}
+class HealthIndicator {
     // mvTween: PhTween;
-    function HealthIndicator(scene, parentContainer, posi, num) {
+    constructor(scene, parentContainer, posi, num) {
         this.textPosi = MakePoint2(0, 1);
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -1505,31 +1409,29 @@ var HealthIndicator = /** @class */ (function () {
         this.maskGraph = this.scene.make.graphics({});
         this.maskGraph.fillStyle(0x0000ff, 1); // background circle
         this.maskGraph.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2);
-        var p = this.getAbsolutePosi(this.inner, this.textPosi);
+        let p = this.getAbsolutePosi(this.inner, this.textPosi);
         this.maskGraph.x = p.x;
         this.maskGraph.y = p.y;
         this.mask = this.maskGraph.createGeometryMask();
         this.text.setMask(this.mask);
     }
-    HealthIndicator.prototype.makeCenterText = function (num, offsetX, offsetY) {
-        if (offsetX === void 0) { offsetX = 0; }
-        if (offsetY === void 0) { offsetY = 0; }
+    makeCenterText(num, offsetX = 0, offsetY = 0) {
         this.textStyle = getDefaultTextStyle();
         this.textStyle.fontFamily = gameplayConfig.healthIndicatorFontFamily;
         this.textStyle.fill = '#FFFFFF';
         this.textStyle.fontSize = '28px';
-        var t = this.scene.add.text(this.textPosi.x + offsetX, this.textPosi.y + offsetY, num.toString(), this.textStyle);
+        let t = this.scene.add.text(this.textPosi.x + offsetX, this.textPosi.y + offsetY, num.toString(), this.textStyle);
         t.setOrigin(0.5, 0.5);
         this.inner.add(t);
         if (this.mask) {
             t.setMask(this.mask);
         }
         return t;
-    };
-    HealthIndicator.prototype.damagedTo = function (num) {
-        var curNum = this.num;
-        var newNum = num;
-        var outTween = this.scene.tweens.add({
+    }
+    damagedTo(num) {
+        let curNum = this.num;
+        let newNum = num;
+        let outTween = this.scene.tweens.add({
             targets: this.text,
             y: '+=' + gameplayConfig.healthIndicatorWidth,
             // alpha: {
@@ -1540,7 +1442,7 @@ var HealthIndicator = /** @class */ (function () {
             duration: 500
         });
         this.text = this.makeCenterText(num, 0, -gameplayConfig.healthIndicatorWidth);
-        var inTween = this.scene.tweens.add({
+        let inTween = this.scene.tweens.add({
             targets: this.text,
             y: '+=' + gameplayConfig.healthIndicatorWidth,
             // alpha: {
@@ -1550,14 +1452,14 @@ var HealthIndicator = /** @class */ (function () {
             // },
             duration: 500
         });
-    };
-    HealthIndicator.prototype.update = function (time, dt) {
-        var p = this.getAbsolutePosi(this.inner, this.textPosi);
+    }
+    update(time, dt) {
+        let p = this.getAbsolutePosi(this.inner, this.textPosi);
         // console.log("getAbsolutePosi:" + p.x + " " + p.y);
         this.maskGraph.x = p.x;
         this.maskGraph.y = p.y;
-    };
-    HealthIndicator.prototype.getAbsolutePosi = function (ct, posi) {
+    }
+    getAbsolutePosi(ct, posi) {
         var ret = MakePoint2(posi.x, posi.y);
         while (ct != null) {
             ret.x += ct.x;
@@ -1565,11 +1467,10 @@ var HealthIndicator = /** @class */ (function () {
             ct = ct.parentContainer;
         }
         return ret;
-    };
-    return HealthIndicator;
-}());
-var PlayerInputText = /** @class */ (function () {
-    function PlayerInputText(scene, container, centerObject, dummyTitle) {
+    }
+}
+class PlayerInputText {
+    constructor(scene, container, centerObject, dummyTitle) {
         this.confirmedEvent = new TypedEvent();
         this.changedEvent = new TypedEvent();
         this.fontSize = 32;
@@ -1605,12 +1506,12 @@ var PlayerInputText = /** @class */ (function () {
         this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         this.parentContainer.add(this.title);
     }
-    PlayerInputText.prototype.init = function (defaultStr) {
+    init(defaultStr) {
         this.text = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gap, defaultStr, this.lblStyl).setOrigin(0, 1);
         this.parentContainer.add(this.text);
-    };
+    }
     // keypress to handle all the valid characters
-    PlayerInputText.prototype.keypress = function (event) {
+    keypress(event) {
         if (!this.getCanAcceptInput())
             return;
         // console.log('keydown');
@@ -1630,12 +1531,12 @@ var PlayerInputText = /** @class */ (function () {
         this.changedEvent.emit(this);
         // console.log("dis width: " + this.text.displayWidth);
         // console.log("width: " + this.text.width);
-    };
-    PlayerInputText.prototype.getAvailableWidth = function () {
+    }
+    getAvailableWidth() {
         return this.centerObject.getTextMaxWidth();
-    };
+    }
     // keydown to handle the commands
-    PlayerInputText.prototype.keydown = function (event) {
+    keydown(event) {
         if (!this.getCanAcceptInput())
             return;
         // console.log('keydown');
@@ -1656,11 +1557,11 @@ var PlayerInputText = /** @class */ (function () {
         }
         this.text.setText(t);
         this.changedEvent.emit(this);
-    };
-    PlayerInputText.prototype.confirm = function () {
+    }
+    confirm() {
         var inputWord = this.text.text;
-        var checkLegal = this.checkIfInputLegalBeforeSend(inputWord);
-        var legal = checkLegal == ErrorInputCode.NoError;
+        let checkLegal = this.checkIfInputLegalBeforeSend(inputWord);
+        let legal = checkLegal == ErrorInputCode.NoError;
         if (legal) {
             this.inputHistory.push(inputWord);
             this.confirmedEvent.emit(inputWord);
@@ -1669,12 +1570,12 @@ var PlayerInputText = /** @class */ (function () {
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
         }
-    };
-    PlayerInputText.prototype.showConfirmEffect = function (oriWord, refText, dt) {
+    }
+    showConfirmEffect(oriWord, refText, dt) {
         refText.text = "";
-        var fakeText = this.scene.add.text(refText.x, refText.y, oriWord, refText.style).setOrigin(refText.originX, refText.originY);
+        let fakeText = this.scene.add.text(refText.x, refText.y, oriWord, refText.style).setOrigin(refText.originX, refText.originY);
         refText.parentContainer.add(fakeText);
-        var fadeTween = this.scene.tweens.add({
+        let fadeTween = this.scene.tweens.add({
             targets: fakeText,
             alpha: 0,
             y: '-= 40',
@@ -1683,13 +1584,13 @@ var PlayerInputText = /** @class */ (function () {
                 fakeText.destroy();
             }
         });
-    };
+    }
     /**
      * Check without the need to compare with other enemy lables
      * This is mostly done before sending the input to the server on the client side
      * @param inputLbl player input
      */
-    PlayerInputText.prototype.checkIfInputLegalBeforeSend = function (inputLbl) {
+    checkIfInputLegalBeforeSend(inputLbl) {
         var inputLblWithoutSpace = inputLbl.trim().replace(/ /g, '').toLowerCase();
         if (!this.shortWords.has(inputLblWithoutSpace) && inputLblWithoutSpace.length <= 2) {
             return ErrorInputCode.TooShort;
@@ -1698,25 +1599,24 @@ var PlayerInputText = /** @class */ (function () {
             return ErrorInputCode.Repeat;
         }
         return ErrorInputCode.NoError;
-    };
+    }
     /**
      * Check if the input history has the same input
      * @param inputLbl
      * @param recentCount
      */
-    PlayerInputText.prototype.checkIfRecentHistoryHasSame = function (inputLbl, recentCount) {
-        if (recentCount === void 0) { recentCount = 3; }
+    checkIfRecentHistoryHasSame(inputLbl, recentCount = 3) {
         inputLbl = inputLbl.trim();
-        for (var i = this.inputHistory.length - 1; i >= 0 && --recentCount >= 0; i--) {
+        for (let i = this.inputHistory.length - 1; i >= 0 && --recentCount >= 0; i--) {
             if (this.inputHistory[i].trim() === inputLbl) {
                 return true;
             }
         }
         return false;
-    };
-    PlayerInputText.prototype.checkInput = function () {
-    };
-    PlayerInputText.prototype.homePointerOver = function () {
+    }
+    checkInput() {
+    }
+    homePointerOver() {
         this.title.setText("Project 65535");
         if (this.titleOut)
             this.titleOut.stop();
@@ -1725,8 +1625,8 @@ var PlayerInputText = /** @class */ (function () {
             alpha: 1,
             duration: 400,
         });
-    };
-    PlayerInputText.prototype.homePointerOut = function () {
+    }
+    homePointerOut() {
         this.title.setText("Project 65535");
         if (this.titleIn)
             this.titleIn.stop();
@@ -1735,32 +1635,30 @@ var PlayerInputText = /** @class */ (function () {
             alpha: 0,
             duration: 250,
         });
-    };
+    }
     /**
      * Current logic is that we get into scene1 once player clicked the center circle
      * Transfer to the scene 1 game play
      */
-    PlayerInputText.prototype.homePointerDown = function () {
+    homePointerDown() {
         this.title.setText("Project 65536");
         if (this.titleOut)
             this.titleOut.stop();
-    };
-    PlayerInputText.prototype.transferToScene1TweenCompleted = function () {
+    }
+    transferToScene1TweenCompleted() {
         this.showConfirmEffect(this.title.text, this.title, 1000);
         this.setCanAcceptInput(true);
-    };
-    PlayerInputText.prototype.setCanAcceptInput = function (val) {
+    }
+    setCanAcceptInput(val) {
         this.canAcceptInput = val;
-    };
-    PlayerInputText.prototype.getCanAcceptInput = function () {
+    }
+    getCanAcceptInput() {
         return this.canAcceptInput;
-    };
-    return PlayerInputText;
-}());
+    }
+}
 var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
-var QuickDrawFigure = /** @class */ (function () {
-    function QuickDrawFigure(scene, parentContainer, lbl) {
-        var _this = this;
+class QuickDrawFigure {
+    constructor(scene, parentContainer, lbl) {
         this.curIndex = -1;
         this.interval = 200;
         this.sampleRate = gameplayConfig.drawDataSample;
@@ -1776,28 +1674,28 @@ var QuickDrawFigure = /** @class */ (function () {
         this.parentContainer = parentContainer;
         this.lbl = lbl;
         this.inner = this.scene.add.graphics({ lineStyle: this.graphicLineStyle });
-        var fullPath = this.getFilePathByLbl(lbl);
-        $.getJSON(fullPath, function (json) {
-            _this.figures = json;
+        let fullPath = this.getFilePathByLbl(lbl);
+        $.getJSON(fullPath, json => {
+            this.figures = json;
             // this.drawFigure(this.figures[3]);          
-            _this.startChange();
+            this.startChange();
         });
         this.parentContainer.add(this.inner);
     }
     // 
-    QuickDrawFigure.prototype.drawFigure = function (figure) {
+    drawFigure(figure) {
         var strokes = figure.drawing;
         this.inner.clear();
         // let maxY = -10000;
         // let maxX = -10000;
         // the sample is 255, which means that x, y are both <= 255        
         // console.log("drawFigure");
-        for (var strokeI = 0; strokeI < strokes.length; strokeI++) {
+        for (let strokeI = 0; strokeI < strokes.length; strokeI++) {
             // console.log("drawFigure strokeI:" + strokeI);
             var xArr = strokes[strokeI][0];
             var yArr = strokes[strokeI][1];
             var count = xArr.length;
-            for (var i = 0; i < count - 1; i++) {
+            for (let i = 0; i < count - 1; i++) {
                 this.mappedLineBetween(xArr[i], yArr[i], xArr[i + 1], yArr[i + 1]);
                 // maxX = Math.max(maxX, xArr[i]);
                 // maxY = Math.max(maxY, yArr[i]);
@@ -1805,71 +1703,67 @@ var QuickDrawFigure = /** @class */ (function () {
             }
         }
         // console.log("MaxX: " + maxX + "   MaxY: " + maxY) ;        
-    };
-    QuickDrawFigure.prototype.mappedLineBetween = function (x1, y1, x2, y2) {
-        var mappedPosi1 = this.getMappedPosi(x1, y1);
-        var mappedPosi2 = this.getMappedPosi(x2, y2);
+    }
+    mappedLineBetween(x1, y1, x2, y2) {
+        let mappedPosi1 = this.getMappedPosi(x1, y1);
+        let mappedPosi2 = this.getMappedPosi(x2, y2);
         this.inner.lineBetween(mappedPosi1[0], mappedPosi1[1], mappedPosi2[0], mappedPosi2[1]);
-    };
-    QuickDrawFigure.prototype.getFilePathByLbl = function (lbl) {
-        var folderPath = gameplayConfig.quickDrawDataPath;
+    }
+    getFilePathByLbl(lbl) {
+        let folderPath = gameplayConfig.quickDrawDataPath;
         return folderPath + lbl + ".json";
-    };
-    QuickDrawFigure.prototype.startChange = function () {
-        var _this = this;
+    }
+    startChange() {
         this.changeTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
             duration: this.interval,
-            onStart: function () {
-                _this.change();
+            onStart: () => {
+                this.change();
             },
-            onRepeat: function () {
-                _this.change();
+            onRepeat: () => {
+                this.change();
             },
             repeat: -1
         });
-    };
-    QuickDrawFigure.prototype.change = function () {
+    }
+    change() {
         if (!this.figures || this.figures.length == 0)
             return;
         this.curIndex = (this.curIndex + 1) % this.figures.length;
         this.drawFigure(this.figures[this.curIndex]);
-    };
-    QuickDrawFigure.prototype.getMappedPosi = function (x, y) {
-        var scaleRate = this.newSize / this.sampleRate;
-        var posi = [
+    }
+    getMappedPosi(x, y) {
+        let scaleRate = this.newSize / this.sampleRate;
+        let posi = [
             x * scaleRate - this.newSize * this.originX,
             y * scaleRate - this.newSize * this.originY
         ];
         return posi;
-    };
-    QuickDrawFigure.prototype.getRightBottom = function () {
-        var mappedPosi = this.getMappedPosi(this.sampleRate, this.sampleRate);
+    }
+    getRightBottom() {
+        let mappedPosi = this.getMappedPosi(this.sampleRate, this.sampleRate);
         return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
-    };
-    QuickDrawFigure.prototype.getLeftBottom = function () {
-        var mappedPosi = this.getMappedPosi(0, this.sampleRate);
+    }
+    getLeftBottom() {
+        let mappedPosi = this.getMappedPosi(0, this.sampleRate);
         return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
-    };
-    return QuickDrawFigure;
-}());
-var SpeechManager = /** @class */ (function () {
-    function SpeechManager(scene) {
+    }
+}
+class SpeechManager {
+    constructor(scene) {
         this.loadedSpeechFilesStatic = {};
         this.loadedSpeechFilesQuick = {};
         this.scene = scene;
     }
-    SpeechManager.prototype.quickLoadAndPlay = function (text, play) {
-        var _this = this;
-        if (play === void 0) { play = true; }
+    quickLoadAndPlay(text, play = true) {
         console.log("Begin quick load and play");
         // in quick mode the key is just the input text
         // we can judge if we have the key stored directly
-        var key = text;
-        var cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
-        var cachedByMySelf = this.loadedSpeechFilesQuick.hasOwnProperty(key);
-        var cached = cachedInPhaser && cachedByMySelf;
+        let key = text;
+        let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+        let cachedByMySelf = this.loadedSpeechFilesQuick.hasOwnProperty(key);
+        let cached = cachedInPhaser && cachedByMySelf;
         if (cached) {
             if (play) {
                 // console.log("play cahced");
@@ -1877,49 +1771,45 @@ var SpeechManager = /** @class */ (function () {
             }
         }
         else {
-            apiTextToSpeech2(text, "no_id", function (oReq) {
+            apiTextToSpeech2(text, "no_id", (oReq) => {
                 console.log("suc in quickLoadAndPlay");
                 var arrayBuffer = oReq.response;
                 // this blob may leak memory
                 var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
                 var url = URL.createObjectURL(blob);
                 // console.log(url);    
-                _this.phaserLoadAndPlay(text, text, url, false, play);
-            }, function (err) {
+                this.phaserLoadAndPlay(text, text, url, false, play);
+            }, err => {
                 console.log("error in quickLoadAndPlay");
             });
         }
-    };
-    SpeechManager.prototype.staticLoadAndPlay = function (text, play) {
-        var _this = this;
-        if (play === void 0) { play = true; }
-        apiTextToSpeech(text, "no_id", function (sucRet) {
-            var retID = sucRet.id;
-            var retText = sucRet.input;
-            var retPath = sucRet.outputPath;
-            var md5 = sucRet.md5;
-            _this.phaserLoadAndPlay(retText, md5, retPath, true, play);
+    }
+    staticLoadAndPlay(text, play = true) {
+        apiTextToSpeech(text, "no_id", (sucRet) => {
+            let retID = sucRet.id;
+            let retText = sucRet.input;
+            let retPath = sucRet.outputPath;
+            let md5 = sucRet.md5;
+            this.phaserLoadAndPlay(retText, md5, retPath, true, play);
         });
-    };
-    SpeechManager.prototype.clearSpeechCacheStatic = function () {
-        for (var key in this.loadedSpeechFilesStatic) {
+    }
+    clearSpeechCacheStatic() {
+        for (let key in this.loadedSpeechFilesStatic) {
             this.scene.load.cacheManager.audio.remove(key);
         }
         this.loadedSpeechFilesStatic = {};
-    };
-    SpeechManager.prototype.clearSpeechCacheQuick = function () {
-        for (var key in this.loadedSpeechFilesStatic) {
+    }
+    clearSpeechCacheQuick() {
+        for (let key in this.loadedSpeechFilesStatic) {
             this.scene.load.cacheManager.audio.remove(key);
         }
         this.loadedSpeechFilesQuick = {};
-    };
-    SpeechManager.prototype.phaserLoadAndPlay = function (text, key, fullPath, isStatic, play) {
+    }
+    phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true) {
         // console.log("isStatic: " + isStatic);
-        if (isStatic === void 0) { isStatic = true; }
-        if (play === void 0) { play = true; }
         // console.log("------------------------------");      
-        var cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
-        var cachedByMySelf = isStatic ?
+        let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+        let cachedByMySelf = isStatic ?
             this.loadedSpeechFilesStatic.hasOwnProperty(key) :
             this.loadedSpeechFilesQuick.hasOwnProperty(key);
         // double check
@@ -1929,21 +1819,20 @@ var SpeechManager = /** @class */ (function () {
         else {
             // console.log(fullPath);
             this.scene.load.audio(key, [fullPath]);
-            var localThis_1 = this;
+            let localThis = this;
             this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
                 // console.log("actually!!!!!!!!1");
                 if (isStatic)
-                    localThis_1.loadedSpeechFilesStatic[key] = true;
+                    localThis.loadedSpeechFilesStatic[key] = true;
                 else
-                    localThis_1.loadedSpeechFilesQuick[key] = true;
+                    localThis.loadedSpeechFilesQuick[key] = true;
                 if (arg1 === key) {
                     if (play)
-                        localThis_1.scene.sound.play(key);
+                        localThis.scene.sound.play(key);
                 }
-                localThis_1.scene.load.removeListener('filecomplete', onCompleted);
+                localThis.scene.load.removeListener('filecomplete', onCompleted);
             });
             this.scene.load.start();
         }
-    };
-    return SpeechManager;
-}());
+    }
+}

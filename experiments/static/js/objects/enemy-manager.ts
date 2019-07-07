@@ -38,23 +38,9 @@ class EnemyManager {
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
 
-        // this.initFsm();
     }
 
-    initFsm() {
-        this.fsm = new Fsm(this.scene);        
-
-        let defaultState = this.fsm.addState("Default").setAsStartup().setOnEnter((s) => {
-            // 
-        });
-
-        let startedState = this.fsm.addState("Started").addEventFromPrev(Ev.Start).setOnEnter((s) => {
-            this.startSpawn();
-            s.finished();
-        });
-        
-        this.fsm.start();        
-    }
+    
 
     startSpawn() {
         this.spawnTween = this.scene.tweens.add({

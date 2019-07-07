@@ -84,9 +84,9 @@ class Scene1 extends BaseScene {
     }
 
     initFsm() {
-        this.fsm = new Fsm(this);
+        this.fsm = new Fsm(this, getMainFsm());
                 
-        this.fsm.addState("Home").setAsStartup().setOnEnter(s => {
+        this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
                 if (!s.isActive())
                     return;
@@ -112,7 +112,7 @@ class Scene1 extends BaseScene {
             });
         });
 
-        this.fsm.addState("HomeToGameAnimation").setOnEnter(s => {
+        this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
             let delayDt = 1500;
             let dt = 1000;
             let centerRotateTween = this.tweens.add({
@@ -137,7 +137,7 @@ class Scene1 extends BaseScene {
             });
         });
 
-        this.fsm.addState("NormalGame").setOnEnter(s=>{
+        this.fsm.getState("NormalGame").setOnEnter(s => {
             this.centerObject.playerInputText.transferToScene1TweenCompleted();
             this.centerObject.speakerBtn.toSpeakerMode(1000);
             this.enemyManager.startSpawn();
@@ -157,8 +157,7 @@ class Scene1 extends BaseScene {
             });
         });
 
-        this.fsm.addState("BackToHomeAnimation", false).addEventFromPrev("BackToHome")
-        .setOnEnter(s=>{
+        this.fsm.getState("BackToHomeAnimation").setOnEnter(s=>{
             console.log("hahahahaha");
             let delayDt = 1500;
             let dt = 1000;

@@ -1,31 +1,51 @@
 class Fsm {
     
+    static FinishedEventName = "Finished";
     scene: PhScene; 
     name: string;
     states: Map<string, FsmState> = new Map();
     curState : FsmState;
     startupState: FsmState;
 
-    constructor(scene: PhScene, name: string = "DefaultFsm") {
-        this.scene = scene;
-        this.name = name;
+    // constructor(scene: PhScene, name: string = "DefaultFsm") {
+    //     this.scene = scene;
+    //     this.name = name;
+    // }
+
+    constructor(scene: PhScene, fsm: IFsm) {
+        this.name = fsm.name;
+        for(let i in fsm.events) {
+            let event = fsm.events[i];
+            let eName = event.name;
+            let eFrom = event.from;
+            let eTo = event.to;
+            let stFrom = this.states.get(eFrom);
+            if(!stFrom) {
+                stFrom = this.addState(eFrom);
+                console.debug("Added FsmState + " + eFrom);                
+            }
+    
+            if(!this.states.has(eTo)) {
+                this.addState(eTo);
+                console.debug("Can't find FsmState + " + eTo);                
+            }    
+            stFrom.addEventTo(eName, eTo);
+        }
     }
 
     isRunning: boolean = true;
 
-    lastAddedState: FsmState;
+    getState(stateName: string) : FsmState {
+        return this.states.get(stateName);
+    }
 
-
-    addState(stateName: string, autoConnect: boolean = true) : FsmState {
+    addState(stateName: string) : FsmState {
         let state = new FsmState(stateName, this);
         let res = true;
-        if(autoConnect)
-            res = this.addAndConnectToLast(state);
-        else
-            res = this.addStateInner(state);
+        
+        res = this.addStateInner(state);
 
-
-        this.lastAddedState = state;
+        
         if(res)
             return state;
         else
@@ -37,11 +57,6 @@ class Fsm {
             console.warn("Added multiple state to fsm: [" + name  + "]:[" + state.name + "]");
             return false;
         }
-
-        if(this.lastAddedState) {
-            state.prev = this.lastAddedState;
-        }
-
         
         state.fsm = this;
         this.states.set(state.name, state);        
@@ -49,19 +64,6 @@ class Fsm {
         return true;
     }
 
-    private addAndConnectToLast(state: FsmState) : boolean {             
-        
-        let res = this.addStateInner(state);
-        if(!res)
-            return false;
-
-        if(this.lastAddedState) {
-            this.lastAddedState.next = state;
-            state.prev = this.lastAddedState;
-        }
-
-        return true;
-    }
 
     update(time, dt) {
         if(!this.isRunning)
@@ -70,11 +72,7 @@ class Fsm {
             this.curState.onUpdate(this.curState, time, dt);
     }
 
-    stateFinsiehd(state: FsmState) {
-        if(state.next) {
-            this.runState(state.next);
-        }
-    }
+
 
     /**
      * invoke a event
@@ -82,6 +80,8 @@ class Fsm {
      */
     event(key: string) : void{
         if(this.curState) {
+            this.curState.exitProcess();
+
             if(this.curState.eventRoute.has(key)) {
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
@@ -154,19 +154,6 @@ class FsmState {
     name: string;
     fsm: Fsm;
 
-    /**
-     * Prev is only a temp value used in the construction process /
-     * It only points to the previously constructed state in the Fsm,
-     * doesn't not mean prev.next = this
-     * Never use this value outside of this class
-     */
-    prev: FsmState;
-
-    /**
-     * Next points to the default FsmState in a finish
-     */
-    next: FsmState;
-
     constructor(name: string, fsm: Fsm) {        
         this.name = name;
         this.fsm = fsm;
@@ -188,14 +175,7 @@ class FsmState {
         return this;
     }
 
-    addEventFromPrev(eventName: string): FsmState {
-        if(this.prev) {            
-            this.addEventFrom(eventName, this.prev.name);
-        }
-
-        return this;
-    }
-
+    
 
 
     /**
@@ -254,13 +234,12 @@ class FsmState {
 
 
     finished() {
-        this.exitProcess();
+        this.fsm.event(Fsm.FinishedEventName);
     }
 
-    private exitProcess() {
+    exitProcess() {
         if(this.onExit)
             this.onExit(this);
-        this.fsm.stateFinsiehd(this);
     }
 
     isActive() : boolean{

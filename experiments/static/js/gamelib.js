@@ -95,18 +95,15 @@ class Scene1 extends BaseScene {
         this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
             let delayDt = 1500;
             let dt = 1000;
-            let centerRotateTween = this.tweens.add({
+            TweenPromise.create(this, {
                 delay: delayDt,
                 targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
                 duration: dt,
-                completeDelay: 1000,
-                onComplete: () => {
-                    // Finished
-                    s.finished();
-                }
-            });
+                completeDelay: 1000
+            })
+                .then(res => s.finished());
             let fadeOutter = this.tweens.add({
                 delay: delayDt,
                 targets: this.centerObject.outterDwitterImage,
@@ -215,6 +212,15 @@ class PhContainerClass extends Phaser.GameObjects.Container {
 class PhImageClass extends Phaser.GameObjects.Image {
 }
 ;
+var TweenPromise = {
+    create: function (scene, config) {
+        let tp = new Promise(res => {
+            config.onComplete = res;
+            let centerRotateTween = scene.tweens.add(config);
+        });
+        return tp;
+    }
+};
 class St {
 }
 St.Home = "Home";
@@ -1836,3 +1842,28 @@ class SpeechManager {
         }
     }
 }
+let code = `
+let names = {
+	S: 'haha'
+}
+
+// let fsmTest = 
+// {
+//   initial: "Home",  
+//   events: [
+//     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+//     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
+//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+
+//   ], 
+// };
+`;
+// var traverse = require('babel-traverse').default;
+// var babylon = require("babylon");
+// var generator = require("babel-generator").default
+// const ast = babylon.parse(code);
+// traverse(ast, {
+// 	enter: path => {
+// 		const { node, parent } = path;
+// 	}
+// });

@@ -20,6 +20,15 @@ type PhGO = Phaser.GameObjects.GameObject;
 type StateHandler = (state: FsmState) => void;
 type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 
+var TweenPromise = {
+    create: function (scene: PhScene, config: Phaser.Types.Tweens.TweenBuilderConfig | any) {        
+        let tp = new Promise(res => {
+            config.onComplete = res;
+            let centerRotateTween = scene.tweens.add(config);
+        });
+        return tp;        
+    }
+}
 
 class St {
     static Home = "Home";

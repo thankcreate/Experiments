@@ -9,7 +9,6 @@ var mainFsm =
   ],
 };
 
-
 interface IFsm {
   name: string,
   initial: string,

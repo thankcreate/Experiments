@@ -107,26 +107,24 @@ class Scene1 extends BaseScene {
 
                 this.centerObject.playerInputText.homePointerDown();
                 s.finished();
-
-
             });
         });
 
         this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
             let delayDt = 1500;
             let dt = 1000;
-            let centerRotateTween = this.tweens.add({
+
+            TweenPromise.create(this,{
                 delay: delayDt,
                 targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
                 duration: dt,
-                completeDelay: 1000,
-                onComplete: () => {
-                    // Finished
-                    s.finished();
-                }
-            });
+                completeDelay: 1000 
+            })
+            .then( res =>
+                s.finished()
+            );
 
             let fadeOutter =  this.tweens.add({
                 delay: delayDt,

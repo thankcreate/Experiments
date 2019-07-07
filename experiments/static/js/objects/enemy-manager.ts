@@ -48,7 +48,7 @@ class EnemyManager {
             // 
         });
 
-        let startedState = this.fsm.addState("Started").addEventFromPrev(E.START).setOnEnter((s) => {
+        let startedState = this.fsm.addState("Started").addEventFromPrev(Ev.Start).setOnEnter((s) => {
             this.startSpawn();
             s.finished();
         });

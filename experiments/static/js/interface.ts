@@ -20,15 +20,23 @@ type PhGO = Phaser.GameObjects.GameObject;
 type StateHandler = (state: FsmState) => void;
 type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 
-/**
- * EN is short for EventNames
- */
-class E {
-    static START = "START";
-    static STOP = "STOP";
-    static BACK = "BACK";
 
-}
+class St {
+    static Home = "Home";
+    static HomeToGameAnimation = "HomeToGameAnimation";
+    static NormalGame = "NormalGame";
+    static BackToHomeAnimation = "BackToHomeAnimation";
+  }
+  
+  /**
+   * EN is short for EventNames
+   */
+  class Ev {
+    static Start = "Start";
+    static Stop = "Stop";
+    static Back = "Back";
+  }
+  
 
 class Wrapper<T extends PhGO> {
     scene: BaseScene

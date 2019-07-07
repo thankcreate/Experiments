@@ -99,6 +99,8 @@ class CenterObject {
         this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
         this.c = this.canvasTexture.getSourceImage();
 
+        
+
         // this.graph = this.scene.add.graphics();
         
         // this.x = 

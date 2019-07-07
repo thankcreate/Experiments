@@ -1278,6 +1278,33 @@ var EnemyText = /** @class */ (function (_super) {
     };
     return EnemyText;
 }(Enemy));
+var fsmJson = {
+    initial: 'Default',
+    final: ['end'],
+    states: ['haha'],
+    events: [
+        { name: 'Default', from: ['new', 'andmore'], to: 'haha' },
+        { name: 'ss', from: 'haha', to: "end" },
+        { name: 'bd', from: 'end', to: 'kl' },
+        { name: 'bs', from: 'kl', to: 'ffdsa' }
+    ],
+};
+if (typeof require !== 'undefined') {
+    var StateMachine = require('fsm-as-promised');
+    var fsm = StateMachine({
+        events: [
+            { name: 'jump', from: 'here', to: 'there' }
+        ],
+        callbacks: {
+            onjump: function (options) {
+                // do something
+                console.log("hh");
+                return options;
+            }
+        }
+    });
+    fsm.jump();
+}
 var Fsm = /** @class */ (function () {
     function Fsm(scene, name) {
         if (name === void 0) { name = "DefaultFsm"; }

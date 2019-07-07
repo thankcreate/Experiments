@@ -85,6 +85,29 @@ class Scene1 extends BaseScene {
 
     initFsm() {
         this.fsm = new Fsm(this, getMainFsm());
+
+        
+
+
+        // t.actions.push((state, result) => {
+        //     return new Promise((resolve, reject) => {                
+        //         console.log("P started");
+        //         setTimeout( ()=>{                    
+        //             resolve('caonima');
+        //         }, 2000);
+        //     });            
+        // });
+        // t.actions.push( (state, result)  => {
+        //     console.log(result);
+        //     return undefined;
+        // });
+        // t.actions.push( (state, result)  => {
+        //     console.log(result);
+        //     return undefined;
+        // });
+
+
+        
                 
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
@@ -109,6 +132,7 @@ class Scene1 extends BaseScene {
                 s.finished();
             });
         });
+
 
         this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
             let delayDt = 1500;
@@ -185,6 +209,21 @@ class Scene1 extends BaseScene {
         });
 
         this.fsm.start();
+
+
+
+
+        var t  = this.fsm.getState("Home").setAsStartup();
+        t.addAction((state, result, resolve, reject) =>{            
+            setTimeout(()=>{            
+                resolve('caonima');
+            }, 1000);
+        });
+        t.addAction(() =>{
+            console.log("no param");
+        });
+        
+        t.runActions();
     }
 }
 

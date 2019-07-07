@@ -74,6 +74,22 @@ class Scene1 extends BaseScene {
     }
     initFsm() {
         this.fsm = new Fsm(this, getMainFsm());
+        // t.actions.push((state, result) => {
+        //     return new Promise((resolve, reject) => {                
+        //         console.log("P started");
+        //         setTimeout( ()=>{                    
+        //             resolve('caonima');
+        //         }, 2000);
+        //     });            
+        // });
+        // t.actions.push( (state, result)  => {
+        //     console.log(result);
+        //     return undefined;
+        // });
+        // t.actions.push( (state, result)  => {
+        //     console.log(result);
+        //     return undefined;
+        // });
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
                 if (!s.isActive())
@@ -155,6 +171,16 @@ class Scene1 extends BaseScene {
             });
         });
         this.fsm.start();
+        var t = this.fsm.getState("Home").setAsStartup();
+        t.addAction((state, result, resolve, reject) => {
+            setTimeout(() => {
+                resolve('caonima');
+            }, 1000);
+        });
+        t.addAction(() => {
+            console.log("no param");
+        });
+        t.runActions();
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -1338,6 +1364,7 @@ class Fsm {
 Fsm.FinishedEventName = "Finished";
 class FsmState {
     constructor(name, fsm) {
+        this.actions = [];
         this.eventRoute = new Map();
         this.name = name;
         this.fsm = fsm;
@@ -1347,6 +1374,46 @@ class FsmState {
      * used for init in inheritance
      */
     otherInit() {
+    }
+    needStopActions() {
+        return !this.isActive();
+    }
+    addAction(func) {
+        this.actions.push((stateI, resultI) => {
+            if (func.length > 2) {
+                return new Promise((resolveI, rejectI) => {
+                    console.log("hafd");
+                    func(stateI, resultI, resolveI, rejectI);
+                });
+            }
+            else {
+                func(stateI, resultI);
+            }
+        });
+    }
+    runActions() {
+        if (this.actions.length == 0)
+            return;
+        // Add first promise
+        let curPromise = this.actions[0](this, null);
+        for (let i = 1; i < this.actions.length; i++) {
+            // Add check stop promise
+            curPromise = curPromise.then(result => {
+                return new Promise((resolve, reject) => {
+                    if (this.needStopActions())
+                        reject("Need stop");
+                    else
+                        resolve(result);
+                });
+            });
+            // Add every 'then'
+            curPromise = curPromise.then(res => {
+                return this.actions[i](this, res);
+            });
+        }
+        curPromise.catch(reason => {
+            console.log('catched');
+        });
     }
     setAsStartup() {
         this.fsm.setStartup(this);

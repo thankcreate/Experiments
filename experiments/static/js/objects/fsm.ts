@@ -1,10 +1,10 @@
 class Fsm {
-    
+
     static FinishedEventName = "Finished";
-    scene: PhScene; 
+    scene: PhScene;
     name: string;
     states: Map<string, FsmState> = new Map();
-    curState : FsmState;
+    curState: FsmState;
     startupState: FsmState;
 
     // constructor(scene: PhScene, name: string = "DefaultFsm") {
@@ -14,61 +14,61 @@ class Fsm {
 
     constructor(scene: PhScene, fsm: IFsm) {
         this.name = fsm.name;
-        for(let i in fsm.events) {
+        for (let i in fsm.events) {
             let event = fsm.events[i];
             let eName = event.name;
             let eFrom = event.from;
             let eTo = event.to;
             let stFrom = this.states.get(eFrom);
-            if(!stFrom) {
+            if (!stFrom) {
                 stFrom = this.addState(eFrom);
-                console.debug("Added FsmState + " + eFrom);                
+                console.debug("Added FsmState + " + eFrom);
             }
-    
-            if(!this.states.has(eTo)) {
+
+            if (!this.states.has(eTo)) {
                 this.addState(eTo);
-                console.debug("Can't find FsmState + " + eTo);                
-            }    
+                console.debug("Can't find FsmState + " + eTo);
+            }
             stFrom.addEventTo(eName, eTo);
         }
     }
 
     isRunning: boolean = true;
 
-    getState(stateName: string) : FsmState {
+    getState(stateName: string): FsmState {
         return this.states.get(stateName);
     }
 
-    addState(stateName: string) : FsmState {
+    addState(stateName: string): FsmState {
         let state = new FsmState(stateName, this);
         let res = true;
-        
+
         res = this.addStateInner(state);
 
-        
-        if(res)
+
+        if (res)
             return state;
         else
             return null;
     }
 
-    private addStateInner(state : FsmState) : boolean {
-        if(this.states.has(state.name)) {
-            console.warn("Added multiple state to fsm: [" + name  + "]:[" + state.name + "]");
+    private addStateInner(state: FsmState): boolean {
+        if (this.states.has(state.name)) {
+            console.warn("Added multiple state to fsm: [" + name + "]:[" + state.name + "]");
             return false;
         }
-        
+
         state.fsm = this;
-        this.states.set(state.name, state);        
+        this.states.set(state.name, state);
 
         return true;
     }
 
 
     update(time, dt) {
-        if(!this.isRunning)
-            return;    
-        if(this.curState && this.curState.onUpdate)
+        if (!this.isRunning)
+            return;
+        if (this.curState && this.curState.onUpdate)
             this.curState.onUpdate(this.curState, time, dt);
     }
 
@@ -78,15 +78,15 @@ class Fsm {
      * invoke a event
      * @param key 
      */
-    event(key: string) : void{
-        if(this.curState) {
+    event(key: string): void {
+        if (this.curState) {
             this.curState.exitProcess();
 
-            if(this.curState.eventRoute.has(key)) {
+            if (this.curState.eventRoute.has(key)) {
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
 
-                if(state) {
+                if (state) {
                     this.runState(state);
                 }
             }
@@ -96,50 +96,50 @@ class Fsm {
     runState(state: FsmState) {
         this.curState = state;
         state.onEnter(state);
-        
+
     }
 
-    
+
 
     setStartup(state: FsmState) {
-        this.startupState = state;    
+        this.startupState = state;
     }
 
     start() {
-        if(this.startupState) {
+        if (this.startupState) {
             this.runState(this.startupState);
         }
         else {
             console.warn("No startup state for FSM: " + this.name);
-        }       
+        }
     }
 
     addEvent(eventName: string, from: string | FsmState, to: string | FsmState) {
         from = this.getStateName(from);
         to = this.getStateName(to);
 
-        if(!this.states.has(from)) {
+        if (!this.states.has(from)) {
             console.warn("Can't find FsmState + " + from);
             return;
         }
 
-        if(!this.states.has(to)) {
+        if (!this.states.has(to)) {
             console.warn("Can't find FsmState + " + to);
             return;
         }
 
         let fromState = this.states.get(from);
-        if(fromState.eventRoute.has(eventName)) {
-            console.warn("Added multiple event to state: [" + fromState.name  + "]:[" + eventName + "]");
+        if (fromState.eventRoute.has(eventName)) {
+            console.warn("Added multiple event to state: [" + fromState.name + "]:[" + eventName + "]");
             // don't return still add
         }
 
-        fromState.eventRoute.set(eventName, to);        
+        fromState.eventRoute.set(eventName, to);
     }
 
-    getStateName(state: string | FsmState) : string {
+    getStateName(state: string | FsmState): string {
         let targetName = "";
-        if(state instanceof FsmState)
+        if (state instanceof FsmState)
             targetName = state.name;
         else
             targetName = state;
@@ -154,7 +154,9 @@ class FsmState {
     name: string;
     fsm: Fsm;
 
-    constructor(name: string, fsm: Fsm) {        
+    actions: FsmAction[] = [];
+
+    constructor(name: string, fsm: Fsm) {
         this.name = name;
         this.fsm = fsm;
 
@@ -168,14 +170,61 @@ class FsmState {
 
     }
 
+    needStopActions() {
+        return !this.isActive();
+    }
+
+
+    addAction(func: (state?, result?, resolve?, reject?) => any) {
+        this.actions.push((stateI, resultI) => {
+            if (func.length > 2) {
+                return new Promise((resolveI, rejectI) => {
+                    console.log("hafd");
+                    func(stateI, resultI, resolveI, rejectI);
+                });
+            }
+            else {
+                func(stateI, resultI);
+            }
+        });
+    }
+
+    runActions() {
+        if (this.actions.length == 0)
+            return;
+
+        // Add first promise
+        let curPromise = this.actions[0](this, null);
+
+        for (let i = 1; i < this.actions.length; i++) {
+            // Add check stop promise
+            curPromise = curPromise.then(result => {
+                return new Promise((resolve, reject) => {
+                    if (this.needStopActions())
+                        reject("Need stop");
+                    else
+                        resolve(result);
+                })
+            });
+            // Add every 'then'
+            curPromise = curPromise.then(res => {
+                return this.actions[i](this, res);
+            });
+        }
+
+        curPromise.catch(reason => {
+            console.log('catched');
+        });
+    }
+
     eventRoute: Map<string, string> = new Map();
 
-    setAsStartup(): FsmState{
+    setAsStartup(): FsmState {
         this.fsm.setStartup(this);
         return this;
     }
 
-    
+
 
 
     /**
@@ -183,7 +232,7 @@ class FsmState {
      * @param from 
      * @param eventName 
      */
-    addEventFrom(eventName:string, from: string | FsmState) : FsmState{
+    addEventFrom(eventName: string, from: string | FsmState): FsmState {
         let fromName = this.fsm.getStateName(from);
         this.fsm.addEvent(eventName, fromName, this.name);
         return this;
@@ -194,8 +243,8 @@ class FsmState {
      * @param eventName 
      * @param to 
      */
-    
-    addEventTo(eventName: string, to: string | FsmState): FsmState {               
+
+    addEventTo(eventName: string, to: string | FsmState): FsmState {
         let toName = this.fsm.getStateName(to);
         this.fsm.addEvent(eventName, this.name, toName);
         return this;
@@ -204,19 +253,19 @@ class FsmState {
     /**
      * Don't call from outside
      */
-    onEnter : StateHandler;
-    setOnEnter(handler: StateHandler) : FsmState {
+    onEnter: StateHandler;
+    setOnEnter(handler: StateHandler): FsmState {
         this.onEnter = handler;
         return this;
     }
 
 
-    
+
     /**
      * Don't call from outside
      */
-    onUpdate :StateUpdateHandler;
-    setOnUpdate(handler: StateUpdateHandler) : FsmState {
+    onUpdate: StateUpdateHandler;
+    setOnUpdate(handler: StateUpdateHandler): FsmState {
         this.onUpdate = handler;
         return this;
     }
@@ -227,7 +276,7 @@ class FsmState {
      * * Don't do any async job in onExit
      */
     onExit: StateHandler;
-    setOnExit(handler: StateHandler) : FsmState {
+    setOnExit(handler: StateHandler): FsmState {
         this.onExit = handler;
         return this;
     }
@@ -238,11 +287,11 @@ class FsmState {
     }
 
     exitProcess() {
-        if(this.onExit)
+        if (this.onExit)
             this.onExit(this);
     }
 
-    isActive() : boolean{
+    isActive(): boolean {
         return this.fsm.curState == this;
     }
 }

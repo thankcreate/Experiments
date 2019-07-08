@@ -3,7 +3,7 @@ var mainFsm =
   name: 'MainFsm',
   initial: "Home",
   events: [
-    { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+    { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },   
     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
   ],

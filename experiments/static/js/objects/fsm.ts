@@ -102,7 +102,7 @@ class Fsm {
      */
     event(key: string): void {
         if (this.curState) {
-            this.curState.exitProcess();
+            this.curState._exit(this.curState);
 
             if (this.curState.eventRoute.has(key)) {
                 let targetName = this.curState.eventRoute.get(key);
@@ -177,6 +177,9 @@ class FsmState {
     fsm: Fsm;
 
     actions: FsmAction[] = [];
+    
+    autoRemoveListners: {target: OnOffable, key:string, func: any}[] = [];
+
 
     constructor(name: string, fsm: Fsm) {
         this.name = name;
@@ -197,8 +200,16 @@ class FsmState {
     }
 
 
-    addAction(func: (state?, result?, resolve?, reject?) => any) {
+
+    autoOn(target: OnOffable, key:string, func: any) {
+        target.on(key, func);
+        this.autoRemoveListners.push({target, key, func});
+    }
+
+
+    addAction(func: (state?, result?, resolve?, reject?) => any): FsmState {
         this.actions.push(func);
+        return this;
     }
 
     getPromiseMiddleware(index: number): PromiseMiddleware {
@@ -291,13 +302,15 @@ class FsmState {
      * @param handler 
      */
     _onEnter(state: FsmState): FsmState {
-        this.onEnter(state);
+        if(this.onEnter)
+            this.onEnter(state);
+
         this.runActions();
         return this;
     }
 
     
-    onEnter: StateHandler;
+    private onEnter: StateHandler;
     setOnEnter(handler: StateHandler): FsmState {
         this.onEnter = handler;
         return this;
@@ -314,12 +327,32 @@ class FsmState {
         return this;
     }
 
+    private removeAutoRemoveListners() {
+        for(let i in this.autoRemoveListners) {
+            let listener = this.autoRemoveListners[i];
+            listener.target.off(listener.key, listener.func);
+        }
+
+        // remove all cached
+        this.autoRemoveListners.length = 0;
+    }
+
+    _exit(state: FsmState): FsmState {
+        if (this.onExit)
+            this.onExit(this);
+
+        this.removeAutoRemoveListners();
+
+        return this;
+    };
+
+
     /**
      * If you want to exit, just call finish() instead \
      * Don't call from outside
-     * * Don't do any async job in onExit
+     * * DON'T do any async job in onExit
      */
-    onExit: StateHandler;
+    private onExit: StateHandler;
     setOnExit(handler: StateHandler): FsmState {
         this.onExit = handler;
         return this;
@@ -329,11 +362,7 @@ class FsmState {
     finished() {
         this.fsm.event(Fsm.FinishedEventName);
     }
-
-    exitProcess() {
-        if (this.onExit)
-            this.onExit(this);
-    }
+    
 
     isActive(): boolean {
         return this.fsm.curState == this;

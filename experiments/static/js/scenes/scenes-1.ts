@@ -90,59 +90,74 @@ class Scene1 extends BaseScene {
 
     initFsm() {
         this.fsm = new Fsm(this, this.getMainFsm());
-
-
-                
+        
+      
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
-            this.centerObject.mainImage.on('pointerover', () => {
-                if (!s.isActive())
-                    return;
+            let mainImage = this.centerObject.mainImage;
 
-                console.log("over here");
+            s.autoOn(mainImage, 'pointerover', e => {
                 this.centerObject.playerInputText.homePointerOver();
             });
 
-            this.centerObject.mainImage.on('pointerout', () => {
-                if (!s.isActive())
-                    return;
-
+            s.autoOn(mainImage, 'pointerout', e => {
                 this.centerObject.playerInputText.homePointerOut();
             });
 
-            this.centerObject.mainImage.on('pointerdown', () => {
-                if (!s.isActive())
-                    return;
-
+            s.autoOn(mainImage, 'pointerdown', e=> {
                 this.centerObject.playerInputText.homePointerDown();
                 s.finished();
             });
-        });
+        });              
 
+        this.fsm.getState("HomeToGameAnimation")
+        .addDelayAction(this, 1500)
+        .addAction((state, result, resolve, reject) => {
 
-        this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
-            let delayDt = 1500;
             let dt = 1000;
-
-            TweenPromise.create(this,{
-                delay: delayDt,
+            TweenPromise.create(this,{                
                 targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
                 duration: dt,
                 completeDelay: 1000 
             })
-            .then( res =>
-                s.finished()
-            );
+            .then(resolve);   // <--------- Resolve
 
-            let fadeOutter =  this.tweens.add({
-                delay: delayDt,
+            let fadeOutter =  this.tweens.add({                
                 targets: this.centerObject.outterDwitterImage,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
             });
-        });
+        })
+        .addDelayAction(this, 500)
+        .addFinishAction();
+
+        
+        // this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
+        //     let delayDt = 1500;
+        //     let dt = 1000;
+
+        //     TweenPromise.create(this,{
+        //         delay: delayDt,
+        //         targets: this.centerObject.inner,
+        //         rotation: 0,
+        //         scale: 1.2,
+        //         duration: dt,
+        //         completeDelay: 1000 
+        //     })
+        //     .then( res =>
+        //         s.finished()
+        //     );
+
+        //     let fadeOutter =  this.tweens.add({
+        //         delay: delayDt,
+        //         targets: this.centerObject.outterDwitterImage,
+        //         alpha: 0,
+        //         scale: 2,
+        //         duration: dt,
+        //     });
+        // });
 
         this.fsm.getState("NormalGame").setOnEnter(s => {
             this.centerObject.playerInputText.transferToScene1TweenCompleted();

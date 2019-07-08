@@ -24,21 +24,14 @@ type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 type PromiseMiddleware = (state, result) => Promise<any>;
 type FsmAction = (state?, result?, resolve?, reject?) => void;
 
-class St {
-    static Home = "Home";
-    static HomeToGameAnimation = "HomeToGameAnimation";
-    static NormalGame = "NormalGame";
-    static BackToHomeAnimation = "BackToHomeAnimation";
-  }
+interface OnOffable{
+    on(event: string | symbol, fn: Function)
+    off(event: string | symbol, fn: Function)
+}
+
+
   
-  /**
-   * EN is short for EventNames
-   */
-  class Ev {
-    static Start = "Start";
-    static Stop = "Stop";
-    static Back = "Back";
-  }
+
   
 
 class Wrapper<T extends PhGO> {

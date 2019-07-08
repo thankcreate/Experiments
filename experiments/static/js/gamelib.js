@@ -79,44 +79,61 @@ class Scene1 extends BaseScene {
     initFsm() {
         this.fsm = new Fsm(this, this.getMainFsm());
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
-            this.centerObject.mainImage.on('pointerover', () => {
-                if (!s.isActive())
-                    return;
-                console.log("over here");
+            let mainImage = this.centerObject.mainImage;
+            s.autoOn(mainImage, 'pointerover', e => {
                 this.centerObject.playerInputText.homePointerOver();
             });
-            this.centerObject.mainImage.on('pointerout', () => {
-                if (!s.isActive())
-                    return;
+            s.autoOn(mainImage, 'pointerout', e => {
                 this.centerObject.playerInputText.homePointerOut();
             });
-            this.centerObject.mainImage.on('pointerdown', () => {
-                if (!s.isActive())
-                    return;
+            s.autoOn(mainImage, 'pointerdown', e => {
                 this.centerObject.playerInputText.homePointerDown();
                 s.finished();
             });
         });
-        this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
-            let delayDt = 1500;
+        this.fsm.getState("HomeToGameAnimation")
+            .addDelayAction(this, 1500)
+            .addAction((state, result, resolve, reject) => {
             let dt = 1000;
             TweenPromise.create(this, {
-                delay: delayDt,
                 targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
                 duration: dt,
                 completeDelay: 1000
             })
-                .then(res => s.finished());
+                .then(resolve); // <--------- Resolve
             let fadeOutter = this.tweens.add({
-                delay: delayDt,
                 targets: this.centerObject.outterDwitterImage,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
             });
-        });
+        })
+            .addDelayAction(this, 500)
+            .addFinishAction();
+        // this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
+        //     let delayDt = 1500;
+        //     let dt = 1000;
+        //     TweenPromise.create(this,{
+        //         delay: delayDt,
+        //         targets: this.centerObject.inner,
+        //         rotation: 0,
+        //         scale: 1.2,
+        //         duration: dt,
+        //         completeDelay: 1000 
+        //     })
+        //     .then( res =>
+        //         s.finished()
+        //     );
+        //     let fadeOutter =  this.tweens.add({
+        //         delay: delayDt,
+        //         targets: this.centerObject.outterDwitterImage,
+        //         alpha: 0,
+        //         scale: 2,
+        //         duration: dt,
+        //     });
+        // });
         this.fsm.getState("NormalGame").setOnEnter(s => {
             this.centerObject.playerInputText.transferToScene1TweenCompleted();
             this.centerObject.speakerBtn.toSpeakerMode(1000);
@@ -217,20 +234,6 @@ class PhContainerClass extends Phaser.GameObjects.Container {
 class PhImageClass extends Phaser.GameObjects.Image {
 }
 ;
-class St {
-}
-St.Home = "Home";
-St.HomeToGameAnimation = "HomeToGameAnimation";
-St.NormalGame = "NormalGame";
-St.BackToHomeAnimation = "BackToHomeAnimation";
-/**
- * EN is short for EventNames
- */
-class Ev {
-}
-Ev.Start = "Start";
-Ev.Stop = "Stop";
-Ev.Back = "Back";
 class Wrapper {
     /**
      * Target will be added into inner container
@@ -1257,7 +1260,7 @@ class Fsm {
      */
     event(key) {
         if (this.curState) {
-            this.curState.exitProcess();
+            this.curState._exit(this.curState);
             if (this.curState.eventRoute.has(key)) {
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
@@ -1313,6 +1316,7 @@ Fsm.FinishedEventName = "Finished";
 class FsmState {
     constructor(name, fsm) {
         this.actions = [];
+        this.autoRemoveListners = [];
         this.eventRoute = new Map();
         this.name = name;
         this.fsm = fsm;
@@ -1326,8 +1330,13 @@ class FsmState {
     needStopActions() {
         return !this.isActive();
     }
+    autoOn(target, key, func) {
+        target.on(key, func);
+        this.autoRemoveListners.push({ target, key, func });
+    }
     addAction(func) {
         this.actions.push(func);
+        return this;
     }
     getPromiseMiddleware(index) {
         return this.convertActionToPromiseMiddleware(this.actions[index]);
@@ -1404,7 +1413,8 @@ class FsmState {
      * @param handler
      */
     _onEnter(state) {
-        this.onEnter(state);
+        if (this.onEnter)
+            this.onEnter(state);
         this.runActions();
         return this;
     }
@@ -1416,16 +1426,27 @@ class FsmState {
         this.onUpdate = handler;
         return this;
     }
+    removeAutoRemoveListners() {
+        for (let i in this.autoRemoveListners) {
+            let listener = this.autoRemoveListners[i];
+            listener.target.off(listener.key, listener.func);
+        }
+        // remove all cached
+        this.autoRemoveListners.length = 0;
+    }
+    _exit(state) {
+        if (this.onExit)
+            this.onExit(this);
+        this.removeAutoRemoveListners();
+        return this;
+    }
+    ;
     setOnExit(handler) {
         this.onExit = handler;
         return this;
     }
     finished() {
         this.fsm.event(Fsm.FinishedEventName);
-    }
-    exitProcess() {
-        if (this.onExit)
-            this.onExit(this);
     }
     isActive() {
         return this.fsm.curState == this;
@@ -1441,16 +1462,32 @@ var TweenPromise = {
         return tp;
     }
 };
+FsmState.prototype.addLogAction = function (message) {
+    let self = this;
+    self.addAction((state, result) => {
+        console.log(message);
+    });
+    return self;
+};
+FsmState.prototype.addFinishAction = function () {
+    let self = this;
+    self.addAction((state, result) => {
+        state.finished();
+    });
+    return self;
+};
 FsmState.prototype.addDelayAction = function (scene, dt) {
     this.addAction((state, result, resolve, reject) => {
         scene.time.delayedCall(dt, resolve, [], null);
     });
+    return this;
 };
 FsmState.prototype.addTweenAction = function (scene, config) {
     this.addAction((state, result, resolve, reject) => {
         config.onComplete = resolve;
         let tweeen = scene.tweens.add(config);
     });
+    return this;
 };
 var mainFsm = {
     name: 'MainFsm',

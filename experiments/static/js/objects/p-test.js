@@ -40,31 +40,34 @@
 // let chain = new Promise((resolve, rej)=> {
 //     resolve('haha');
 // })
-let chain =  new Promise((resolve, reject) => {
-        setTimeout(()=>{
-            reject('33');
-        }, 2000);
-    })
 
-.then(res => {
-    console.log('123');
-    return new Promise((resolve, reject) => {
-        setTimeout(()=>{
-            resolve('11');
-        }, 2000);
-    });
-},  rej => {
-    reject('33');
-    console.log("thisrej");
-})
-.then(res => {
-    console.log(res + "1");
-}, rej => {
-    console.log("ag");
-})
-.catch(reason => {
-    console.log('catch here');
-});
+
+
+// let chain =  new Promise((resolve, reject) => {
+//         setTimeout(()=>{
+//             reject('33');
+//         }, 2000);
+//     })
+
+// .then(res => {
+//     console.log('123');
+//     return new Promise((resolve, reject) => {
+//         setTimeout(()=>{
+//             resolve('11');
+//         }, 2000);
+//     });
+// },  rej => {
+//     reject('33');
+//     console.log("thisrej");
+// })
+// .then(res => {
+//     console.log(res + "1");
+// }, rej => {
+//     console.log("ag");
+// })
+// .catch(reason => {
+//     console.log('catch here');
+// });
 
 
 // function tc() {
@@ -77,3 +80,11 @@ let chain =  new Promise((resolve, reject) => {
 
 // var k = new tc();
 // k.func();
+
+
+let func1 = (arg1, arg2) => {
+    console.log(arg1, arg2);
+}
+
+let func2 = func1.bind(this, 1);
+func2(3);

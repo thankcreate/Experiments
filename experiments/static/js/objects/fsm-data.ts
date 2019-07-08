@@ -7,21 +7,11 @@ var mainFsm =
     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
   ],
+  
 };
 
-interface IFsm {
-  name: string,
-  initial: string,
-  events: {
-    name: string;
-    from: string;
-    to: string;
-  }[],
-}
 
-function getMainFsm(): IFsm {
-  return mainFsm;
-}
+
 
 // var mainFsm = 
 // {

@@ -84,14 +84,21 @@ class Scene1 extends BaseScene {
         this.centerObject.update();
     }
 
+    getMainFsm() : IFsmData{
+        return mainFsm;
+    }
+
     initFsm() {
-        this.fsm = new Fsm(this, getMainFsm());
+        this.fsm = new Fsm(this, this.getMainFsm());
+
+
                 
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
                 if (!s.isActive())
                     return;
 
+                console.log("over here");
                 this.centerObject.playerInputText.homePointerOver();
             });
 

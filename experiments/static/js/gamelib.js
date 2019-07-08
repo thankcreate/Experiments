@@ -73,12 +73,16 @@ class Scene1 extends BaseScene {
         this.enemyManager.update(time, dt);
         this.centerObject.update();
     }
+    getMainFsm() {
+        return mainFsm;
+    }
     initFsm() {
-        this.fsm = new Fsm(this, getMainFsm());
+        this.fsm = new Fsm(this, this.getMainFsm());
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
                 if (!s.isActive())
                     return;
+                console.log("over here");
                 this.centerObject.playerInputText.homePointerOver();
             });
             this.centerObject.mainImage.on('pointerout', () => {
@@ -1194,6 +1198,7 @@ class Fsm {
         this.states = new Map();
         this.isRunning = true;
         this.name = fsm.name;
+        // Add all events
         for (let i in fsm.events) {
             let event = fsm.events[i];
             let eName = event.name;
@@ -1209,6 +1214,14 @@ class Fsm {
                 // console.debug("Added FsmState  + " + eTo);
             }
             stFrom.addEventTo(eName, eTo);
+        }
+        // Set startup state
+        if (fsm.initial) {
+            let initState = this.states.get(fsm.initial);
+            if (!initState) {
+                initState = this.addState(fsm.initial);
+            }
+            initState.setAsStartup();
         }
     }
     getState(stateName) {
@@ -1448,9 +1461,6 @@ var mainFsm = {
         { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
     ],
 };
-function getMainFsm() {
-    return mainFsm;
-}
 // var mainFsm = 
 // {
 //   initial: "Home",  

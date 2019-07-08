@@ -1,3 +1,14 @@
+interface IFsmData {
+    name: string,
+    initial: string,
+    events: {
+      name: string;
+      from: string;
+      to: string;
+    }[],
+  }
+
+
 class Fsm {
 
     static FinishedEventName = "Finished";
@@ -12,8 +23,10 @@ class Fsm {
     //     this.name = name;
     // }
 
-    constructor(scene: PhScene, fsm: IFsm) {
+    constructor(scene: PhScene, fsm: IFsmData) {
         this.name = fsm.name;
+
+        // Add all events
         for (let i in fsm.events) {
             let event = fsm.events[i];
             let eName = event.name;
@@ -30,6 +43,15 @@ class Fsm {
                 // console.debug("Added FsmState  + " + eTo);
             }
             stFrom.addEventTo(eName, eTo);
+        }
+
+        // Set startup state
+        if(fsm.initial) {
+            let initState = this.states.get(fsm.initial);
+            if(!initState) {
+                initState = this.addState(fsm.initial);
+            }
+            initState.setAsStartup();
         }
     }
 

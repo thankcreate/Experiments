@@ -47,17 +47,24 @@ class Scene1 extends BaseScene {
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
 
+        // Add confirmed listener for confirmedEvent to enemyManager
         this.centerObject.playerInputText.confirmedEvent.on(
             input => { this.enemyManager.inputTextConfirmed(input) });
 
-        // this.enemyManager.startSpawn();
 
+        // Bottom badge
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
 
+        // Main FSM
         this.initFsm();
+        
+        
+        // Dwitter test
+        let dw = new Dwitter65536(this, this.container, 0, 0, 1920, 1080);
+        
     }
 
 
@@ -75,14 +82,14 @@ class Scene1 extends BaseScene {
 
 
     update(time, dt) {
+        super.update(time, dt);
+
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
 
         this.container.setPosition(w / 2, h / 2);
-
         this.enemyManager.update(time, dt);
-
         this.centerObject.update();
     }
 

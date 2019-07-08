@@ -13,7 +13,16 @@ class BaseScene extends Phaser.Scene {
     }
 
 
-
+    /**
+     * Muse sure called super first
+     * @param time 
+     * @param dt 
+     */
+    update(time, dt) {
+        this.updateObjects.forEach(e=>{
+            e.update(time, dt);
+        });        
+    }
 }
 
 class Controller extends BaseScene {
@@ -31,7 +40,8 @@ class Controller extends BaseScene {
     create() {
         this.speechManager = new SpeechManager(this);
         this.scene.launch('Scene1');        
-        myResize(this.game);                
+        myResize(this.game);             
+        
     }
 
     playSpeechInController(text: string) {

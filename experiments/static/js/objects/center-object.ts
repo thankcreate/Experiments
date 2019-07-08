@@ -259,10 +259,11 @@ class CenterObject {
         //     } 
         // }
         let a = 0;
-        c.width|=c.style.background=<any>"#CDF";
+        c.width |= c.style.background = <any>"#CDF";
         for(let j=3e3;j--;x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a)) {
             a=j/159+t;
             x.lineWidth=29;
+            // console.log(j);
         }
             
         x.stroke();

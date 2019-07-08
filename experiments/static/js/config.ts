@@ -37,7 +37,7 @@ var gameplayConfig = {
 }
 
 var phaserConfig = {
-    // type: Phaser.AUTO,
+    // type: Phaser.WEBGL,
     type: Phaser.CANVAS,
     backgroundColor: '#EEEEEE',
     // backgroundColor: '#E4E4E4',

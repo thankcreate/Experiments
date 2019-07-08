@@ -57,6 +57,7 @@ class Wrapper<T extends PhGO> {
         this.inner = this.scene.add.container(x, y);
         this.parentContainer.add(this.inner);
 
+        this.wrappedObject = target;
         this.inner.add(target);
 
         this.init();
@@ -74,11 +75,11 @@ class Wrapper<T extends PhGO> {
         this.inner.setScale(x, y);
     }
 
-    x() {
+    getX() {
         return this.inner.x;
     }
     
-    y() {
+    getY() {
         return this.inner.y;
     }
 

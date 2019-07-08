@@ -12,6 +12,16 @@ class BaseScene extends Phaser.Scene {
         let controller = this.scene.get("Controller");
         controller.playSpeechInController(text);
     }
+    /**
+     * Muse sure called super first
+     * @param time
+     * @param dt
+     */
+    update(time, dt) {
+        this.updateObjects.forEach(e => {
+            e.update(time, dt);
+        });
+    }
 }
 class Controller extends BaseScene {
     constructor() {
@@ -51,13 +61,17 @@ class Scene1 extends BaseScene {
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
+        // Add confirmed listener for confirmedEvent to enemyManager
         this.centerObject.playerInputText.confirmedEvent.on(input => { this.enemyManager.inputTextConfirmed(input); });
-        // this.enemyManager.startSpawn();
+        // Bottom badge
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
+        // Main FSM
         this.initFsm();
+        // Dwitter test
+        let dw = new Dwitter65536(this, this.container, 0, 0, 1920, 1080);
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -70,6 +84,7 @@ class Scene1 extends BaseScene {
         }
     }
     update(time, dt) {
+        super.update(time, dt);
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
@@ -192,7 +207,7 @@ var gameplayConfig = {
     titleChangedTo: "Project 65536",
 };
 var phaserConfig = {
-    // type: Phaser.AUTO,
+    // type: Phaser.WEBGL,
     type: Phaser.CANVAS,
     backgroundColor: '#EEEEEE',
     // backgroundColor: '#E4E4E4',
@@ -234,6 +249,7 @@ class Wrapper {
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(x, y);
         this.parentContainer.add(this.inner);
+        this.wrappedObject = target;
         this.inner.add(target);
         this.init();
     }
@@ -245,10 +261,10 @@ class Wrapper {
     setScale(x, y) {
         this.inner.setScale(x, y);
     }
-    x() {
+    getX() {
         return this.inner.x;
     }
-    y() {
+    getY() {
         return this.inner.y;
     }
     setPosition(x, y) {
@@ -782,6 +798,7 @@ class CenterObject {
         for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
             a = j / 159 + t;
             x.lineWidth = 29;
+            // console.log(j);
         }
         x.stroke();
     }
@@ -791,6 +808,56 @@ class CenterObject {
         let r = 140 - 16 * (t < 10 ? t : 0);
         for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
+    }
+}
+class Dwitter extends Wrapper {
+    constructor(scene, parentContainer, x, y, width, height) {
+        let graphics = scene.add.graphics();
+        super(scene, parentContainer, x, y, graphics);
+        this.width = width;
+        this.height = height;
+        this.dwitterInit();
+    }
+    dwitterInit() {
+        // Default origin set to 0.5
+        this.setOrigin(0.5, 0.5);
+        this.frame = 0;
+        this.x = this.wrappedObject;
+        this.inner.setScale(0.7);
+        // Push to the scene's update array
+        this.scene.updateObjects.push(this);
+    }
+    update(time, dt) {
+        let innerTime = this.frame / 60;
+        // if (time * 60 | 0 == this.frame - 1)
+        // {
+        //     time += 0.000001;
+        // }
+        this.frame++;
+        this.u(innerTime, this.c, this.x);
+    }
+    setOrigin(xOri, yOri) {
+        this.wrappedObject.x = -this.width * xOri;
+        this.wrappedObject.y = -this.height * yOri;
+    }
+    u(t, c, x) {
+    }
+}
+class Dwitter65536 extends Dwitter {
+    u(t, c, x) {
+        return;
+        let a = 0;
+        console.log("haha" + 3e3);
+        // x.clear();
+        // c.width|=c.style.background=<any>"#CDF";
+        // x.fillStyle(0xff0000, 1);
+        // x.fillRect(0, 0, 100,100);
+        x.lineStyle(29, 0x000000);
+        x.beginPath();
+        for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
+            a = j / 159 + t;
+        }
+        x.strokePath();
     }
 }
 var EnemyType;

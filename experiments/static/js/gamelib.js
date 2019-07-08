@@ -1,5 +1,9 @@
 "use strict";
 class BaseScene extends Phaser.Scene {
+    constructor() {
+        super(...arguments);
+        this.updateObjects = [];
+    }
     getControllerScene() {
         let controller = this.scene.get("Controller");
         return controller;
@@ -140,7 +144,7 @@ class Scene1 extends BaseScene {
             this.centerObject.prepareToHome();
             this.enemyManager.stopSpawnAndClear();
         })
-            .addDelayAction(this, 1500)
+            .addDelayAction(this, 300)
             .addTweenAllAction(this, [
             {
                 targets: this.centerObject.inner,
@@ -996,9 +1000,14 @@ class EnemyManager {
     }
     stopSpawnAndClear() {
         this.stopSpawn();
-        this.enemies.forEach(e => {
-            e.disolve();
-        });
+        // Must iterate from back
+        // disolve will use slice to remove itself from the array
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            this.enemies[i].disolve();
+        }
+        // this.enemies.forEach(e=>{
+        //     e.disolve();
+        // });
         this.enemies.length = 0;
         this.spawnHistory.length = 0;
     }
@@ -1664,6 +1673,8 @@ class PlayerInputText {
         this.shortWords.add("no");
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
+        // * Caution: Management of the lifetime of the listners here 
+        // * has been moved to the FSM state: NormalGame: onEnter
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         // $(document).keypress(this.keypress.bind(this));
         // $(document).keydown(this.keydown.bind(this));

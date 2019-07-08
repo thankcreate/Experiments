@@ -1,5 +1,7 @@
 class BaseScene extends Phaser.Scene {
 
+    updateObjects: Updatable[] = [];
+
     getControllerScene(): Controller {
         let controller: Controller = <Controller> this.scene.get("Controller");
         return controller;
@@ -9,6 +11,8 @@ class BaseScene extends Phaser.Scene {
         let controller: Controller = <Controller> this.scene.get("Controller");
         controller.playSpeechInController(text);
     }
+
+
 
 }
 

@@ -17,6 +17,8 @@ class Scene1 extends BaseScene {
     fsm: Fsm;
     mm = 0;
 
+
+
     constructor() {
         super('Scene1');
 
@@ -164,7 +166,7 @@ class Scene1 extends BaseScene {
             this.centerObject.prepareToHome();  
             this.enemyManager.stopSpawnAndClear();          
         })
-        .addDelayAction(this, 1500)
+        .addDelayAction(this, 300)
         .addTweenAllAction(this, [
             {
                 targets: this.centerObject.inner,

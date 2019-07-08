@@ -48,6 +48,8 @@ class PlayerInputText {
 
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
+        // * Caution: Management of the lifetime of the listners here 
+        // * has been moved to the FSM state: NormalGame: onEnter
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         // $(document).keypress(this.keypress.bind(this));
         // $(document).keydown(this.keydown.bind(this));

@@ -67,9 +67,15 @@ class EnemyManager {
     stopSpawnAndClear() {
         this.stopSpawn();
 
-        this.enemies.forEach(e=>{
-            e.disolve();
-        });
+        // Must iterate from back
+        // disolve will use slice to remove itself from the array
+        for(let i = this.enemies.length - 1; i >=0; i--) {
+            this.enemies[i].disolve();
+        }
+
+        // this.enemies.forEach(e=>{
+        //     e.disolve();
+        // });
 
         this.enemies.length = 0;
         this.spawnHistory.length = 0;

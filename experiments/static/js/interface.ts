@@ -30,7 +30,9 @@ interface OnOffable{
 }
 
 
-  
+interface Updatable {
+    update(time, dt)
+}
 
   
 

@@ -86,29 +86,6 @@ class Scene1 extends BaseScene {
 
     initFsm() {
         this.fsm = new Fsm(this, getMainFsm());
-
-        
-
-
-        // t.actions.push((state, result) => {
-        //     return new Promise((resolve, reject) => {                
-        //         console.log("P started");
-        //         setTimeout( ()=>{                    
-        //             resolve('caonima');
-        //         }, 2000);
-        //     });            
-        // });
-        // t.actions.push( (state, result)  => {
-        //     console.log(result);
-        //     return undefined;
-        // });
-        // t.actions.push( (state, result)  => {
-        //     console.log(result);
-        //     return undefined;
-        // });
-
-
-        
                 
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
@@ -210,23 +187,6 @@ class Scene1 extends BaseScene {
         });
 
         this.fsm.start();
-
-        var t  = this.fsm.getState("Home").setAsStartup();
-        t.addAction((state, result, resolve, reject) =>{   
-            console.log('first');
-            setTimeout(()=>{            
-                resolve('caonima');
-            }, 0);
-        });
-
-        let vv = 2000;
-        t.addActionDelay(this, vv);     
-        t.addAction(()=>{
-            console.log("123");
-        });  
-       
-
-        t.runActions();
     }
 }
 

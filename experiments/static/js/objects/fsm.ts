@@ -95,7 +95,7 @@ class Fsm {
 
     runState(state: FsmState) {
         this.curState = state;
-        state.onEnter(state);
+        state._onEnter(state);
 
     }
 
@@ -197,6 +197,9 @@ class FsmState {
         }
     }
 
+    /**
+     * runActions is called internally by _onEnter
+     */
     runActions() {
         if (this.actions.length == 0)
             return;
@@ -260,8 +263,18 @@ class FsmState {
     }
 
     /**
-     * Don't call from outside
+     * The real onEnter process, including 2 processes:
+     * 1. custum onEnter
+     * 2. run actions
+     * @param handler 
      */
+    _onEnter(state: FsmState): FsmState {
+        this.onEnter(state);
+        this.runActions();
+        return this;
+    }
+
+    
     onEnter: StateHandler;
     setOnEnter(handler: StateHandler): FsmState {
         this.onEnter = handler;

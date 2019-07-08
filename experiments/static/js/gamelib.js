@@ -75,22 +75,6 @@ class Scene1 extends BaseScene {
     }
     initFsm() {
         this.fsm = new Fsm(this, getMainFsm());
-        // t.actions.push((state, result) => {
-        //     return new Promise((resolve, reject) => {                
-        //         console.log("P started");
-        //         setTimeout( ()=>{                    
-        //             resolve('caonima');
-        //         }, 2000);
-        //     });            
-        // });
-        // t.actions.push( (state, result)  => {
-        //     console.log(result);
-        //     return undefined;
-        // });
-        // t.actions.push( (state, result)  => {
-        //     console.log(result);
-        //     return undefined;
-        // });
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.centerObject.mainImage.on('pointerover', () => {
                 if (!s.isActive())
@@ -172,19 +156,6 @@ class Scene1 extends BaseScene {
             });
         });
         this.fsm.start();
-        var t = this.fsm.getState("Home").setAsStartup();
-        t.addAction((state, result, resolve, reject) => {
-            console.log('first');
-            setTimeout(() => {
-                resolve('caonima');
-            }, 0);
-        });
-        let vv = 2000;
-        t.addActionDelay(this, vv);
-        t.addAction(() => {
-            console.log("123");
-        });
-        t.runActions();
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -1285,7 +1256,7 @@ class Fsm {
     }
     runState(state) {
         this.curState = state;
-        state.onEnter(state);
+        state._onEnter(state);
     }
     setStartup(state) {
         this.startupState = state;
@@ -1361,6 +1332,9 @@ class FsmState {
             });
         }
     }
+    /**
+     * runActions is called internally by _onEnter
+     */
     runActions() {
         if (this.actions.length == 0)
             return;
@@ -1408,6 +1382,17 @@ class FsmState {
     addEventTo(eventName, to) {
         let toName = this.fsm.getStateName(to);
         this.fsm.addEvent(eventName, this.name, toName);
+        return this;
+    }
+    /**
+     * The real onEnter process, including 2 processes:
+     * 1. custum onEnter
+     * 2. run actions
+     * @param handler
+     */
+    _onEnter(state) {
+        this.onEnter(state);
+        this.runActions();
         return this;
     }
     setOnEnter(handler) {

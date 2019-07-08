@@ -28,6 +28,7 @@ class Controller extends BaseScene {
 class Scene1 extends BaseScene {
     constructor() {
         super('Scene1');
+        this.mm = 0;
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -173,12 +174,15 @@ class Scene1 extends BaseScene {
         this.fsm.start();
         var t = this.fsm.getState("Home").setAsStartup();
         t.addAction((state, result, resolve, reject) => {
+            console.log('first');
             setTimeout(() => {
                 resolve('caonima');
-            }, 1000);
+            }, 0);
         });
+        let vv = 2000;
+        t.addActionDelay(this, vv);
         t.addAction(() => {
-            console.log("no param");
+            console.log("123");
         });
         t.runActions();
     }
@@ -238,15 +242,6 @@ class PhContainerClass extends Phaser.GameObjects.Container {
 class PhImageClass extends Phaser.GameObjects.Image {
 }
 ;
-var TweenPromise = {
-    create: function (scene, config) {
-        let tp = new Promise(res => {
-            config.onComplete = res;
-            let centerRotateTween = scene.tweens.add(config);
-        });
-        return tp;
-    }
-};
 class St {
 }
 St.Home = "Home";
@@ -1219,37 +1214,6 @@ class EnemyText extends Enemy {
         this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
     }
 }
-var mainFsm = {
-    name: 'MainFsm',
-    initial: "Home",
-    events: [
-        { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
-        { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
-        { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
-    ],
-};
-function getMainFsm() {
-    return mainFsm;
-}
-// var mainFsm = 
-// {
-//   initial: "Home",  
-//   events: [
-//     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
-//     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
-//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
-//   ], 
-// };
-// var traverse = require('babel-traverse').default;
-// var babylon = require("babylon");
-// var generator = require("babel-generator").default
-// const ast = babylon.parse(code);
-// traverse(ast, {
-//   enter: path => {
-//     const { node, parent } = path;        
-//     // do with the node
-//   }
-// });
 class Fsm {
     // constructor(scene: PhScene, name: string = "DefaultFsm") {
     //     this.scene = scene;
@@ -1267,11 +1231,11 @@ class Fsm {
             let stFrom = this.states.get(eFrom);
             if (!stFrom) {
                 stFrom = this.addState(eFrom);
-                console.debug("Added FsmState + " + eFrom);
+                // console.debug("Added FsmState + " + eFrom);
             }
             if (!this.states.has(eTo)) {
                 this.addState(eTo);
-                console.debug("Can't find FsmState + " + eTo);
+                // console.debug("Added FsmState  + " + eTo);
             }
             stFrom.addEventTo(eName, eTo);
         }
@@ -1379,23 +1343,30 @@ class FsmState {
         return !this.isActive();
     }
     addAction(func) {
-        this.actions.push((stateI, resultI) => {
-            if (func.length > 2) {
-                return new Promise((resolveI, rejectI) => {
-                    console.log("hafd");
-                    func(stateI, resultI, resolveI, rejectI);
-                });
-            }
-            else {
-                func(stateI, resultI);
-            }
-        });
+        this.actions.push(func);
+    }
+    getPromiseMiddleware(index) {
+        return this.convertActionToPromiseMiddleware(this.actions[index]);
+    }
+    convertActionToPromiseMiddleware(action) {
+        if (action.length > 2) {
+            return (state, result) => new Promise((resolve, reject) => {
+                action(state, result, resolve, reject);
+            });
+        }
+        else {
+            return (state, result) => new Promise((resolve, reject) => {
+                action(state, result);
+                resolve(undefined);
+            });
+        }
     }
     runActions() {
         if (this.actions.length == 0)
             return;
         // Add first promise
-        let curPromise = this.actions[0](this, null);
+        // let curPromise = this.actions[0](this, null);
+        let curPromise = this.getPromiseMiddleware(0)(this, null);
         for (let i = 1; i < this.actions.length; i++) {
             // Add check stop promise
             curPromise = curPromise.then(result => {
@@ -1408,11 +1379,11 @@ class FsmState {
             });
             // Add every 'then'
             curPromise = curPromise.then(res => {
-                return this.actions[i](this, res);
+                return this.getPromiseMiddleware(i)(this, res);
             });
         }
         curPromise.catch(reason => {
-            console.log('catched');
+            console.log('catched: ' + reason);
         });
     }
     setAsStartup() {
@@ -1462,6 +1433,58 @@ class FsmState {
         return this.fsm.curState == this;
     }
 }
+/// <reference path="fsm.ts" />
+var TweenPromise = {
+    create: function (scene, config) {
+        let tp = new Promise(res => {
+            config.onComplete = res;
+            let centerRotateTween = scene.tweens.add(config);
+        });
+        return tp;
+    }
+};
+FsmState.prototype.addDelayAction = function (scene, dt) {
+    this.addAction((state, result, resolve, reject) => {
+        scene.time.delayedCall(dt, resolve, [], null);
+    });
+};
+FsmState.prototype.addTweenAction = function (scene, config) {
+    this.addAction((state, result, resolve, reject) => {
+        config.onComplete = resolve;
+        let tweeen = scene.tweens.add(config);
+    });
+};
+var mainFsm = {
+    name: 'MainFsm',
+    initial: "Home",
+    events: [
+        { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+        { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
+        { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+    ],
+};
+function getMainFsm() {
+    return mainFsm;
+}
+// var mainFsm = 
+// {
+//   initial: "Home",  
+//   events: [
+//     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+//     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
+//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+//   ], 
+// };
+// var traverse = require('babel-traverse').default;
+// var babylon = require("babylon");
+// var generator = require("babel-generator").default
+// const ast = babylon.parse(code);
+// traverse(ast, {
+//   enter: path => {
+//     const { node, parent } = path;        
+//     // do with the node
+//   }
+// });
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {

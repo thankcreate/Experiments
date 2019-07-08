@@ -15,6 +15,7 @@ class Scene1 extends BaseScene {
     footer: PhImage;
 
     fsm: Fsm;
+    mm = 0;
 
     constructor() {
         super('Scene1');
@@ -210,19 +211,21 @@ class Scene1 extends BaseScene {
 
         this.fsm.start();
 
-
-
-
         var t  = this.fsm.getState("Home").setAsStartup();
-        t.addAction((state, result, resolve, reject) =>{            
+        t.addAction((state, result, resolve, reject) =>{   
+            console.log('first');
             setTimeout(()=>{            
                 resolve('caonima');
-            }, 1000);
+            }, 0);
         });
-        t.addAction(() =>{
-            console.log("no param");
-        });
-        
+
+        let vv = 2000;
+        t.addActionDelay(this, vv);     
+        t.addAction(()=>{
+            console.log("123");
+        });  
+       
+
         t.runActions();
     }
 }

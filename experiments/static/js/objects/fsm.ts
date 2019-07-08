@@ -22,12 +22,12 @@ class Fsm {
             let stFrom = this.states.get(eFrom);
             if (!stFrom) {
                 stFrom = this.addState(eFrom);
-                console.debug("Added FsmState + " + eFrom);
+                // console.debug("Added FsmState + " + eFrom);
             }
 
             if (!this.states.has(eTo)) {
                 this.addState(eTo);
-                console.debug("Can't find FsmState + " + eTo);
+                // console.debug("Added FsmState  + " + eTo);
             }
             stFrom.addEventTo(eName, eTo);
         }
@@ -176,17 +176,25 @@ class FsmState {
 
 
     addAction(func: (state?, result?, resolve?, reject?) => any) {
-        this.actions.push((stateI, resultI) => {
-            if (func.length > 2) {
-                return new Promise((resolveI, rejectI) => {
-                    console.log("hafd");
-                    func(stateI, resultI, resolveI, rejectI);
-                });
-            }
-            else {
-                func(stateI, resultI);
-            }
-        });
+        this.actions.push(func);
+    }
+
+    getPromiseMiddleware(index: number): PromiseMiddleware {
+        return this.convertActionToPromiseMiddleware(this.actions[index]);
+    }
+
+    convertActionToPromiseMiddleware(action: FsmAction): PromiseMiddleware {
+        if(action.length > 2) {            
+            return (state, result) => new Promise((resolve, reject) =>{
+                action(state, result, resolve, reject);
+            });                        
+        } 
+        else {
+            return (state, result) => new Promise((resolve, reject) =>{
+                action(state, result);
+                resolve(undefined);
+            });
+        }
     }
 
     runActions() {
@@ -194,7 +202,8 @@ class FsmState {
             return;
 
         // Add first promise
-        let curPromise = this.actions[0](this, null);
+        // let curPromise = this.actions[0](this, null);
+        let curPromise = this.getPromiseMiddleware(0)(this, null);
 
         for (let i = 1; i < this.actions.length; i++) {
             // Add check stop promise
@@ -208,12 +217,12 @@ class FsmState {
             });
             // Add every 'then'
             curPromise = curPromise.then(res => {
-                return this.actions[i](this, res);
+                return this.getPromiseMiddleware(i)(this, res);
             });
         }
 
         curPromise.catch(reason => {
-            console.log('catched');
+            console.log('catched: ' + reason);
         });
     }
 

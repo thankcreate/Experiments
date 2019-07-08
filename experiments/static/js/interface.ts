@@ -21,18 +21,8 @@ type StateHandler = (state: FsmState) => void;
 type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 
 
-type PromiseFunc = (res) => Promise<any>;
-type FsmAction = (state?, result?) => Promise<any> | undefined;
-
-var TweenPromise = {
-    create: function (scene: PhScene, config: Phaser.Types.Tweens.TweenBuilderConfig | any) {        
-        let tp = new Promise(res => {
-            config.onComplete = res;
-            let centerRotateTween = scene.tweens.add(config);
-        });
-        return tp;        
-    }
-}
+type PromiseMiddleware = (state, result) => Promise<any>;
+type FsmAction = (state?, result?, resolve?, reject?) => void;
 
 class St {
     static Home = "Home";

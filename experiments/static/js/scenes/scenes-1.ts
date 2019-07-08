@@ -89,9 +89,17 @@ class Scene1 extends BaseScene {
     }
 
     initFsm() {
-        this.fsm = new Fsm(this, this.getMainFsm());
-        
-      
+        this.fsm = new Fsm(this, this.getMainFsm());     
+
+        this.initFsmHome();
+        this.initFsmHomeToGameAnimation();
+        this.initFsmNormalGame();
+        this.initFsmBackToHomeAnimation();       
+
+        this.fsm.start();
+    }
+
+    initFsmHome(){
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             let mainImage = this.centerObject.mainImage;
 
@@ -107,108 +115,72 @@ class Scene1 extends BaseScene {
                 this.centerObject.playerInputText.homePointerDown();
                 s.finished();
             });
-        });              
+        });   
+    }
 
+    initFsmHomeToGameAnimation(){
+        let dt = 1000;
         this.fsm.getState("HomeToGameAnimation")
         .addDelayAction(this, 1500)
-        .addAction((state, result, resolve, reject) => {
-
-            let dt = 1000;
-            TweenPromise.create(this,{                
+        .addTweenAllAction(this, [
+            {                
                 targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
-                duration: dt,
-                completeDelay: 1000 
-            })
-            .then(resolve);   // <--------- Resolve
-
-            let fadeOutter =  this.tweens.add({                
+                duration: dt,                
+            },
+            {                
                 targets: this.centerObject.outterDwitterImage,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
-            });
-        })
-        .addDelayAction(this, 500)
-        .addFinishAction();
+            }
+        ])
+        .addDelayAction(this, 1000)
+        .addFinishAction();       
+    }
 
-        
-        // this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
-        //     let delayDt = 1500;
-        //     let dt = 1000;
-
-        //     TweenPromise.create(this,{
-        //         delay: delayDt,
-        //         targets: this.centerObject.inner,
-        //         rotation: 0,
-        //         scale: 1.2,
-        //         duration: dt,
-        //         completeDelay: 1000 
-        //     })
-        //     .then( res =>
-        //         s.finished()
-        //     );
-
-        //     let fadeOutter =  this.tweens.add({
-        //         delay: delayDt,
-        //         targets: this.centerObject.outterDwitterImage,
-        //         alpha: 0,
-        //         scale: 2,
-        //         duration: dt,
-        //     });
-        // });
-
+    initFsmNormalGame(){
         this.fsm.getState("NormalGame").setOnEnter(s => {
-            this.centerObject.playerInputText.transferToScene1TweenCompleted();
-            this.centerObject.speakerBtn.toSpeakerMode(1000);
+            this.centerObject.prepareToGame();
             this.enemyManager.startSpawn();
 
-            $(document).keydown(event =>{
-                console.log(s.isActive());
-                if(!s.isActive()) 
-                    return;                    
-
-                var code = event.keyCode;
-                
-                console.log(code + " " +Phaser.Input.Keyboard.KeyCodes.B);
-                if (code == Phaser.Input.Keyboard.KeyCodes.B) {
-                    console.log("transfer");
-                    s.fsm.event("BackToHome");
+            s.autoOn($(document), 'keydown', e =>{       
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.B) {                    
+                    s.event("BackToHome");   // <-------------
                 }
             });
-        });
 
-        this.fsm.getState("BackToHomeAnimation").setOnEnter(s=>{
-            console.log("hahahahaha");
-            let delayDt = 1500;
-            let dt = 1000;
-            let centerRotateTween = this.tweens.add({
-                delay: delayDt,
+            s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+            s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+    
+        });
+    }
+
+    initFsmBackToHomeAnimation(){
+        let dt2 = 1000;
+        this.fsm.getState("BackToHomeAnimation")
+        .addAction(()=>{
+            this.centerObject.prepareToHome();  
+            this.enemyManager.stopSpawnAndClear();          
+        })
+        .addDelayAction(this, 1500)
+        .addTweenAllAction(this, [
+            {
                 targets: this.centerObject.inner,
                 rotation: this.centerObject.initRotation,
                 scale: this.centerObject.initScale,
-                duration: dt,
+                duration: dt2,
                 completeDelay: 1000,
-                onComplete: () => {
-                    this.centerObject.playerInputText.transferToScene1TweenCompleted();
-                    this.centerObject.speakerBtn.toSpeakerMode(1000);
-
-                    // Finished
-                    s.finished();
-                }
-            });
-
-            let fadeOutter =  this.tweens.add({
-                delay: delayDt,
+            },
+            {                
                 targets: this.centerObject.outterDwitterImage,
                 alpha: 1,
                 scale: this.centerObject.initOutterDwitterScale,
-                duration: dt,
-            });
-        });
-
-        this.fsm.start();
+                duration: dt2,
+            }
+        ])
+        .addFinishAction();
     }
 }
 

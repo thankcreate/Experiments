@@ -78,7 +78,7 @@ class Enemy {
         // console.log(stopDis);
         // console.log("dis:" + dis +  "stopdis:" + stopDis );
         if (dis < stopDis)
-            this.stopRun();
+            this.stopRunAndDestroySelf();
     }
 
     getStopDistance() : number{
@@ -101,7 +101,7 @@ class Enemy {
     }
 
     inStop: boolean = false;
-    stopRun() {   
+    stopRunAndDestroySelf() {   
         let thisEnemy = this;
 
         thisEnemy.enemyManager.removeEnemy(thisEnemy);
@@ -182,7 +182,7 @@ class Enemy {
     }
 
     eliminated() {
-        this.stopRun();
+        this.stopRunAndDestroySelf();
     }
 
 
@@ -206,7 +206,9 @@ class Enemy {
         return ErrorInputCode.NoError;
     }
 
-    
+    disolve() {
+        this.stopRunAndDestroySelf();
+    }
 }
 
 

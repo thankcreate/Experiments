@@ -207,8 +207,8 @@ class FsmState {
     }
 
 
-    addAction(func: (state?, result?, resolve?, reject?) => any): FsmState {
-        this.actions.push(func);
+    addAction(action :FsmAction): FsmState {
+        this.actions.push(action);
         return this;
     }
 
@@ -361,6 +361,14 @@ class FsmState {
 
     finished() {
         this.fsm.event(Fsm.FinishedEventName);
+    }
+
+    /**
+     * Only call this if you know what you are doing
+     * @param evName 
+     */
+    event(evName: string) {
+        this.fsm.event(evName);
     }
     
 

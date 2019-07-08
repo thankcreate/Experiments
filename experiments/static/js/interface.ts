@@ -13,16 +13,16 @@ type PhTween = Phaser.Tweens.Tween;
 type PhMask = Phaser.Display.Masks.GeometryMask;
 type PhEventEmitter = Phaser.Events.EventEmitter;
 type PhCanvasTexture = Phaser.Textures.CanvasTexture;
-type PhRenderTexture = Phaser.GameObjects.RenderTexture;
-
+type PhRenderTexture = Phaser.GameObjects.RenderTexture
 type PhGO = Phaser.GameObjects.GameObject;
+
 
 type StateHandler = (state: FsmState) => void;
 type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 
-
+type TweenConfig = Phaser.Types.Tweens.TweenBuilderConfig | any;
 type PromiseMiddleware = (state, result) => Promise<any>;
-type FsmAction = (state?, result?, resolve?, reject?) => void;
+type FsmAction = (state?: FsmState, result?, resolve?, reject?) => void;
 
 interface OnOffable{
     on(event: string | symbol, fn: Function)

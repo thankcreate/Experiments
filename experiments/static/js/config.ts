@@ -30,7 +30,10 @@ var gameplayConfig = {
     healthIndicatorWidth: 32,
 
     drawDataSample: 255,
-    drawDataDefaultSize: 150
+    drawDataDefaultSize: 150,
+
+    titleOriginal: "Project 65535",
+    titleChangedTo: "Project 65536",
 }
 
 var phaserConfig = {

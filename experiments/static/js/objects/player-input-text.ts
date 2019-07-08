@@ -49,8 +49,8 @@ class PlayerInputText {
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
-        $(document).keypress(this.keypress.bind(this));
-        $(document).keydown(this.keydown.bind(this));
+        // $(document).keypress(this.keypress.bind(this));
+        // $(document).keydown(this.keydown.bind(this));
 
 
         this.titleStyle = {
@@ -153,6 +153,10 @@ class PlayerInputText {
         }
     }
 
+    /**
+     * Set the real label to a empty string\
+     * then construct a new pseudo text and show a fade tween on it
+     */
     showConfirmEffect(oriWord: string, refText: PhText, dt: number) {
 
         refText.text = "";
@@ -244,16 +248,22 @@ class PlayerInputText {
      * Transfer to the scene 1 game play
      */
     homePointerDown(): void {
-        this.title.setText("Project 65536");
+        this.title.setText(gameplayConfig.titleChangedTo);
 
         if (this.titleOut)
             this.titleOut.stop();       
 
     }
 
-    transferToScene1TweenCompleted(){
+    prepareToNormalGame(){
         this.showConfirmEffect(this.title.text, this.title, 1000);
         this.setCanAcceptInput(true);
+    }
+
+    prepareToGoBack() {
+        // this.title.setText(gameplayConfig.titleOriginal);
+        this.showConfirmEffect(this.text.text, this.text, 1000);
+        this.setCanAcceptInput(false);
     }
 
     setCanAcceptInput(val: boolean) {

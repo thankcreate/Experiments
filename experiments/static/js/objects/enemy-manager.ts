@@ -59,6 +59,22 @@ class EnemyManager {
         });
     }
 
+    stopSpawn() {
+        if(this.spawnTween)
+            this.spawnTween.stop();
+    }
+
+    stopSpawnAndClear() {
+        this.stopSpawn();
+
+        this.enemies.forEach(e=>{
+            e.disolve();
+        });
+
+        this.enemies.length = 0;
+        this.spawnHistory.length = 0;
+    }
+
     getNextName(): string {
         let ret: string = "";
         // max try count

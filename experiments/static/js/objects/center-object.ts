@@ -146,7 +146,7 @@ class CenterObject {
                     duration: dt,
                     completeDelay: 1000,
                     onComplete:  () => {
-                        this.playerInputText.transferToScene1TweenCompleted();
+                        this.playerInputText.prepareToNormalGame();
                         this.speakerBtn.toSpeakerMode(1000);
                         
                         setGameState(GameState.Scene1);
@@ -227,6 +227,28 @@ class CenterObject {
         this.frame++;
 
         this.u2(time, this.c, this.x);
+    }
+
+
+    prepareToGame() {
+        this.playerInputText.prepareToNormalGame();
+        this.speakerBtn.toSpeakerMode(1000);
+        this.speakerBtn.inner.x = this.speakerRight;
+    }
+
+    prepareToHome() {
+        this.playerInputText.prepareToGoBack();
+        this.speakerBtn.toNothingMode(1000);
+        // this.speakerBtn.inner.x = this.speakerRight;
+
+        if (this.backToZeroTween)
+            this.backToZeroTween.stop();
+            
+        this.backToZeroTween = this.scene.tweens.add({
+            targets: this.speakerBtn.inner,
+            x: this.speakerRight,
+            duration: 150
+        });
     }
 
     u2(t, c: any, x) {

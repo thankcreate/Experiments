@@ -6,6 +6,7 @@ var mainFsm =
     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },   
     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+    { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },
   ],
   
 };

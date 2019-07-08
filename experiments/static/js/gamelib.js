@@ -78,6 +78,13 @@ class Scene1 extends BaseScene {
     }
     initFsm() {
         this.fsm = new Fsm(this, this.getMainFsm());
+        this.initFsmHome();
+        this.initFsmHomeToGameAnimation();
+        this.initFsmNormalGame();
+        this.initFsmBackToHomeAnimation();
+        this.fsm.start();
+    }
+    initFsmHome() {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             let mainImage = this.centerObject.mainImage;
             s.autoOn(mainImage, 'pointerover', e => {
@@ -91,92 +98,65 @@ class Scene1 extends BaseScene {
                 s.finished();
             });
         });
+    }
+    initFsmHomeToGameAnimation() {
+        let dt = 1000;
         this.fsm.getState("HomeToGameAnimation")
             .addDelayAction(this, 1500)
-            .addAction((state, result, resolve, reject) => {
-            let dt = 1000;
-            TweenPromise.create(this, {
+            .addTweenAllAction(this, [
+            {
                 targets: this.centerObject.inner,
                 rotation: 0,
                 scale: 1.2,
                 duration: dt,
-                completeDelay: 1000
-            })
-                .then(resolve); // <--------- Resolve
-            let fadeOutter = this.tweens.add({
+            },
+            {
                 targets: this.centerObject.outterDwitterImage,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
-            });
-        })
-            .addDelayAction(this, 500)
+            }
+        ])
+            .addDelayAction(this, 1000)
             .addFinishAction();
-        // this.fsm.getState("HomeToGameAnimation").setOnEnter(s => {
-        //     let delayDt = 1500;
-        //     let dt = 1000;
-        //     TweenPromise.create(this,{
-        //         delay: delayDt,
-        //         targets: this.centerObject.inner,
-        //         rotation: 0,
-        //         scale: 1.2,
-        //         duration: dt,
-        //         completeDelay: 1000 
-        //     })
-        //     .then( res =>
-        //         s.finished()
-        //     );
-        //     let fadeOutter =  this.tweens.add({
-        //         delay: delayDt,
-        //         targets: this.centerObject.outterDwitterImage,
-        //         alpha: 0,
-        //         scale: 2,
-        //         duration: dt,
-        //     });
-        // });
+    }
+    initFsmNormalGame() {
         this.fsm.getState("NormalGame").setOnEnter(s => {
-            this.centerObject.playerInputText.transferToScene1TweenCompleted();
-            this.centerObject.speakerBtn.toSpeakerMode(1000);
+            this.centerObject.prepareToGame();
             this.enemyManager.startSpawn();
-            $(document).keydown(event => {
-                console.log(s.isActive());
-                if (!s.isActive())
-                    return;
-                var code = event.keyCode;
-                console.log(code + " " + Phaser.Input.Keyboard.KeyCodes.B);
-                if (code == Phaser.Input.Keyboard.KeyCodes.B) {
-                    console.log("transfer");
-                    s.fsm.event("BackToHome");
+            s.autoOn($(document), 'keydown', e => {
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.B) {
+                    s.event("BackToHome"); // <-------------
                 }
             });
+            s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+            s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
         });
-        this.fsm.getState("BackToHomeAnimation").setOnEnter(s => {
-            console.log("hahahahaha");
-            let delayDt = 1500;
-            let dt = 1000;
-            let centerRotateTween = this.tweens.add({
-                delay: delayDt,
+    }
+    initFsmBackToHomeAnimation() {
+        let dt2 = 1000;
+        this.fsm.getState("BackToHomeAnimation")
+            .addAction(() => {
+            this.centerObject.prepareToHome();
+            this.enemyManager.stopSpawnAndClear();
+        })
+            .addDelayAction(this, 1500)
+            .addTweenAllAction(this, [
+            {
                 targets: this.centerObject.inner,
                 rotation: this.centerObject.initRotation,
                 scale: this.centerObject.initScale,
-                duration: dt,
+                duration: dt2,
                 completeDelay: 1000,
-                onComplete: () => {
-                    this.centerObject.playerInputText.transferToScene1TweenCompleted();
-                    this.centerObject.speakerBtn.toSpeakerMode(1000);
-                    // Finished
-                    s.finished();
-                }
-            });
-            let fadeOutter = this.tweens.add({
-                delay: delayDt,
+            },
+            {
                 targets: this.centerObject.outterDwitterImage,
                 alpha: 1,
                 scale: this.centerObject.initOutterDwitterScale,
-                duration: dt,
-            });
-        });
-        this.fsm.start();
+                duration: dt2,
+            }
+        ])
+            .addFinishAction();
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -203,7 +183,9 @@ var gameplayConfig = {
     healthIndicatorFontFamily: '"Trebuchet MS", Helvetica, sans-serif',
     healthIndicatorWidth: 32,
     drawDataSample: 255,
-    drawDataDefaultSize: 150
+    drawDataDefaultSize: 150,
+    titleOriginal: "Project 65535",
+    titleChangedTo: "Project 65536",
 };
 var phaserConfig = {
     // type: Phaser.AUTO,
@@ -703,7 +685,7 @@ class CenterObject {
                     duration: dt,
                     completeDelay: 1000,
                     onComplete: () => {
-                        this.playerInputText.transferToScene1TweenCompleted();
+                        this.playerInputText.prepareToNormalGame();
                         this.speakerBtn.toSpeakerMode(1000);
                         setGameState(GameState.Scene1);
                     }
@@ -767,6 +749,23 @@ class CenterObject {
         this.frame++;
         this.u2(time, this.c, this.x);
     }
+    prepareToGame() {
+        this.playerInputText.prepareToNormalGame();
+        this.speakerBtn.toSpeakerMode(1000);
+        this.speakerBtn.inner.x = this.speakerRight;
+    }
+    prepareToHome() {
+        this.playerInputText.prepareToGoBack();
+        this.speakerBtn.toNothingMode(1000);
+        // this.speakerBtn.inner.x = this.speakerRight;
+        if (this.backToZeroTween)
+            this.backToZeroTween.stop();
+        this.backToZeroTween = this.scene.tweens.add({
+            targets: this.speakerBtn.inner,
+            x: this.speakerRight,
+            duration: 150
+        });
+    }
     u2(t, c, x) {
         // c.width = 1920;
         // for (var i = 0; i < 31; i++) { 
@@ -829,7 +828,7 @@ class Enemy {
         // console.log(stopDis);
         // console.log("dis:" + dis +  "stopdis:" + stopDis );
         if (dis < stopDis)
-            this.stopRun();
+            this.stopRunAndDestroySelf();
     }
     getStopDistance() {
         return this.centerRadius;
@@ -848,7 +847,7 @@ class Enemy {
             duration: this.duration
         });
     }
-    stopRun() {
+    stopRunAndDestroySelf() {
         let thisEnemy = this;
         thisEnemy.enemyManager.removeEnemy(thisEnemy);
         this.inStop = true;
@@ -912,7 +911,7 @@ class Enemy {
         return ret;
     }
     eliminated() {
-        this.stopRun();
+        this.stopRunAndDestroySelf();
     }
     checkIfInputLegalWithEnemy(inputLbl, enemyLbl) {
         inputLbl = inputLbl.trim().toLowerCase();
@@ -926,6 +925,9 @@ class Enemy {
             return ErrorInputCode.Wrap;
         }
         return ErrorInputCode.NoError;
+    }
+    disolve() {
+        this.stopRunAndDestroySelf();
     }
 }
 class EnemyImage extends Enemy {
@@ -987,6 +989,18 @@ class EnemyManager {
             },
             repeat: -1
         });
+    }
+    stopSpawn() {
+        if (this.spawnTween)
+            this.spawnTween.stop();
+    }
+    stopSpawnAndClear() {
+        this.stopSpawn();
+        this.enemies.forEach(e => {
+            e.disolve();
+        });
+        this.enemies.length = 0;
+        this.spawnHistory.length = 0;
     }
     getNextName() {
         let ret = "";
@@ -1334,8 +1348,8 @@ class FsmState {
         target.on(key, func);
         this.autoRemoveListners.push({ target, key, func });
     }
-    addAction(func) {
-        this.actions.push(func);
+    addAction(action) {
+        this.actions.push(action);
         return this;
     }
     getPromiseMiddleware(index) {
@@ -1448,6 +1462,13 @@ class FsmState {
     finished() {
         this.fsm.event(Fsm.FinishedEventName);
     }
+    /**
+     * Only call this if you know what you are doing
+     * @param evName
+     */
+    event(evName) {
+        this.fsm.event(evName);
+    }
     isActive() {
         return this.fsm.curState == this;
     }
@@ -1476,6 +1497,13 @@ FsmState.prototype.addFinishAction = function () {
     });
     return self;
 };
+FsmState.prototype.addEventAction = function (eventName) {
+    let self = this;
+    self.addAction((state, result) => {
+        state.event(eventName);
+    });
+    return self;
+};
 FsmState.prototype.addDelayAction = function (scene, dt) {
     this.addAction((state, result, resolve, reject) => {
         scene.time.delayedCall(dt, resolve, [], null);
@@ -1489,6 +1517,18 @@ FsmState.prototype.addTweenAction = function (scene, config) {
     });
     return this;
 };
+FsmState.prototype.addTweenAllAction = function (scene, configs) {
+    this.addAction((state, result, resolve, reject) => {
+        let promises = [];
+        configs.forEach(element => {
+            promises.push(TweenPromise.create(scene, element));
+        });
+        Promise.all(promises).then(data => {
+            resolve(data);
+        }).catch(e => console.log(e));
+    });
+    return this;
+};
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -1496,6 +1536,7 @@ var mainFsm = {
         { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
         { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
         { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+        { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },
     ],
 };
 // var mainFsm = 
@@ -1624,8 +1665,8 @@ class PlayerInputText {
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
-        $(document).keypress(this.keypress.bind(this));
-        $(document).keydown(this.keydown.bind(this));
+        // $(document).keypress(this.keypress.bind(this));
+        // $(document).keydown(this.keydown.bind(this));
         this.titleStyle = {
             fontSize: this.titleSize + 'px',
             fill: '#FFFFFF',
@@ -1699,6 +1740,10 @@ class PlayerInputText {
             // console.log("ErrorInputCode before send: " + checkLegal);
         }
     }
+    /**
+     * Set the real label to a empty string\
+     * then construct a new pseudo text and show a fade tween on it
+     */
     showConfirmEffect(oriWord, refText, dt) {
         refText.text = "";
         let fakeText = this.scene.add.text(refText.x, refText.y, oriWord, refText.style).setOrigin(refText.originX, refText.originY);
@@ -1769,13 +1814,18 @@ class PlayerInputText {
      * Transfer to the scene 1 game play
      */
     homePointerDown() {
-        this.title.setText("Project 65536");
+        this.title.setText(gameplayConfig.titleChangedTo);
         if (this.titleOut)
             this.titleOut.stop();
     }
-    transferToScene1TweenCompleted() {
+    prepareToNormalGame() {
         this.showConfirmEffect(this.title.text, this.title, 1000);
         this.setCanAcceptInput(true);
+    }
+    prepareToGoBack() {
+        // this.title.setText(gameplayConfig.titleOriginal);
+        this.showConfirmEffect(this.text.text, this.text, 1000);
+        this.setCanAcceptInput(false);
     }
     setCanAcceptInput(val) {
         this.canAcceptInput = val;

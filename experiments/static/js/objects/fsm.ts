@@ -90,8 +90,8 @@ class Fsm {
     update(time, dt) {
         if (!this.isRunning)
             return;
-        if (this.curState && this.curState.onUpdate)
-            this.curState.onUpdate(this.curState, time, dt);
+        if (this.curState && this.curState._onUpdate)
+            this.curState._onUpdate(this.curState, time, dt);
     }
 
 
@@ -178,7 +178,9 @@ class FsmState {
 
     actions: FsmAction[] = [];
     
+
     autoRemoveListners: {target: OnOffable, key:string, func: any}[] = [];
+    safeInOutWatchers: {target: PhImage, state: number}[] = [];
 
 
     constructor(name: string, fsm: Fsm) {
@@ -206,6 +208,14 @@ class FsmState {
         this.autoRemoveListners.push({target, key, func});
     }
 
+    autoSafeInOut(target: PhImage, inFunc: any, outFun: any) {
+        this.safeInOutWatchers.push({target, state: 0});
+
+        target.on('safein', inFunc);
+        target.on('safeout', outFun);
+        this.autoRemoveListners.push({target, key:'safein', func: inFunc});
+        this.autoRemoveListners.push({target, key:'safeout', func: outFun});
+    }
 
     addAction(action :FsmAction): FsmState {
         this.actions.push(action);
@@ -318,6 +328,22 @@ class FsmState {
 
 
 
+    _onUpdate(state: FsmState, time?, dt?) {
+        if(this.onUpdate)
+            this.onUpdate(state, time, dt);
+        
+        let mp = getGame().input.mousePointer;
+        this.safeInOutWatchers.forEach( e=>{            
+            if(e.target.getBounds().contains(mp.x, mp.y) && e.state == 0){
+                e.state = 1;
+                e.target.emit('safein');
+            }
+            else if(!e.target.getBounds().contains(mp.x, mp.y) && e.state == 1){
+                e.state = 0;
+                e.target.emit('safeout');
+            }
+        })
+    }
     /**
      * Don't call from outside
      */
@@ -342,6 +368,7 @@ class FsmState {
             this.onExit(this);
 
         this.removeAutoRemoveListners();
+        this.safeInOutWatchers.length = 0;
 
         return this;
     };

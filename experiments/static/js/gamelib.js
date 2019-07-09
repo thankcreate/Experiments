@@ -108,6 +108,7 @@ class Scene1 extends BaseScene {
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
+        this.updateObjects.push(this.fsm);
         this.fsm.start();
     }
     initFsmHome() {
@@ -117,24 +118,41 @@ class Scene1 extends BaseScene {
             ;
             console.log(mainImage.scale);
             console.log(mainImage.getBounds());
-            s.autoOn(mainImage, 'pointerover', e => {
+            s.autoSafeInOut(mainImage, e => {
                 console.log("pointerover");
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toBlinkMode();
-            });
-            s.autoOn(mainImage, 'pointerout', e => {
+            }, e => {
                 console.log("pointerout");
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toStaticMode();
             });
+            // s.autoOn(mainImage, 'pointerover', e => {
+            //     console.log("pointerover");
+            //     this.centerObject.playerInputText.homePointerOver();
+            //     this.dwitterBKG.toBlinkMode();
+            // });
+            // s.autoOn(mainImage, 'pointerout', e => {
+            //     console.log("pointerout");
+            //     this.centerObject.playerInputText.homePointerOut();
+            //     this.dwitterBKG.toStaticMode();
+            // });
             s.autoOn(mainImage, 'pointerdown', e => {
                 console.log("pointerdown");
                 this.centerObject.playerInputText.homePointerDown();
                 this.dwitterBKG.toStaticMode();
                 s.finished();
             });
+            s.autoOn(mainImage, 'test', e => {
+                console.log('ppppppp');
+            });
         });
         this.fsm.getState("Home").setOnUpdate(s => {
+            // let mainImage = this.centerObject.mainImage;
+            // mainImage.emit('test');
+            // let mp = getGame().input.mousePointer;
+            // console.log(mp.x + "  " + mp.y);
+            // console.log(mainImage.getBounds().contains(mp.x, mp.y));
         });
     }
     initFsmHomeToGameAnimation() {
@@ -722,7 +740,6 @@ class CenterObject {
         this.inner.setRotation(this.initRotation);
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
-        // this.initInteraction();
     }
     playerInputChanged(inputControl) {
         let percent = inputControl.text.width / this.getTextMaxWidth();
@@ -1395,8 +1412,8 @@ class Fsm {
     update(time, dt) {
         if (!this.isRunning)
             return;
-        if (this.curState && this.curState.onUpdate)
-            this.curState.onUpdate(this.curState, time, dt);
+        if (this.curState && this.curState._onUpdate)
+            this.curState._onUpdate(this.curState, time, dt);
     }
     /**
      * invoke a event
@@ -1461,6 +1478,7 @@ class FsmState {
     constructor(name, fsm) {
         this.actions = [];
         this.autoRemoveListners = [];
+        this.safeInOutWatchers = [];
         this.eventRoute = new Map();
         this.name = name;
         this.fsm = fsm;
@@ -1477,6 +1495,13 @@ class FsmState {
     autoOn(target, key, func) {
         target.on(key, func);
         this.autoRemoveListners.push({ target, key, func });
+    }
+    autoSafeInOut(target, inFunc, outFun) {
+        this.safeInOutWatchers.push({ target, state: 0 });
+        target.on('safein', inFunc);
+        target.on('safeout', outFun);
+        this.autoRemoveListners.push({ target, key: 'safein', func: inFunc });
+        this.autoRemoveListners.push({ target, key: 'safeout', func: outFun });
     }
     addAction(action) {
         this.actions.push(action);
@@ -1566,6 +1591,21 @@ class FsmState {
         this.onEnter = handler;
         return this;
     }
+    _onUpdate(state, time, dt) {
+        if (this.onUpdate)
+            this.onUpdate(state, time, dt);
+        let mp = getGame().input.mousePointer;
+        this.safeInOutWatchers.forEach(e => {
+            if (e.target.getBounds().contains(mp.x, mp.y) && e.state == 0) {
+                e.state = 1;
+                e.target.emit('safein');
+            }
+            else if (!e.target.getBounds().contains(mp.x, mp.y) && e.state == 1) {
+                e.state = 0;
+                e.target.emit('safeout');
+            }
+        });
+    }
     setOnUpdate(handler) {
         this.onUpdate = handler;
         return this;
@@ -1582,6 +1622,7 @@ class FsmState {
         if (this.onExit)
             this.onExit(this);
         this.removeAutoRemoveListners();
+        this.safeInOutWatchers.length = 0;
         return this;
     }
     ;
@@ -1959,6 +2000,9 @@ class PlayerInputText {
         // this.title.setText(gameplayConfig.titleOriginal);
         this.showConfirmEffect(this.text.text, this.text, 1000);
         this.setCanAcceptInput(false);
+        // set title alpha to 0 becuase when entered game mode, the title's alpha is still 1
+        // we only used a pseudo title to show the faked showConfirmEffect
+        this.title.alpha = 0;
     }
     setCanAcceptInput(val) {
         this.canAcceptInput = val;

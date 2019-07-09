@@ -266,6 +266,10 @@ class PlayerInputText {
         // this.title.setText(gameplayConfig.titleOriginal);
         this.showConfirmEffect(this.text.text, this.text, 1000);
         this.setCanAcceptInput(false);
+
+        // set title alpha to 0 becuase when entered game mode, the title's alpha is still 1
+        // we only used a pseudo title to show the faked showConfirmEffect
+        this.title.alpha = 0;
     }
 
     setCanAcceptInput(val: boolean) {

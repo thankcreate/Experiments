@@ -44,14 +44,11 @@ class CenterObject {
     backToZeroTween: PhTween;
 
     text: PhText;
-
-
         
     centerRotateTween: PhTween;
 
     initScale = 1.3;
     initRotation = -Math.PI / 2;
-
 
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
@@ -65,8 +62,6 @@ class CenterObject {
         this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
         this.inner.add(this.mainImage);
 
-
-
         this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(
             0, 0, "speaker"
         ));        
@@ -77,14 +72,9 @@ class CenterObject {
 
         this.inner.setScale(this.initScale);
         this.inner.setRotation(this.initRotation);
-        
-
 
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
-
- 
-        // this.initInteraction();
     }
 
     graph: PhGraphics;
@@ -135,8 +125,6 @@ class CenterObject {
             'isDown: ' + pointer.isDown,
             'rightButtonDown: ' + pointer.rightButtonDown()
         ]);
-
-
     }
 
     frame: number = 0;
@@ -150,7 +138,7 @@ class CenterObject {
     }
 
     prepareToHome() {
-        this.playerInputText.prepareToGoBack();
+        this.playerInputText.prepareToGoBack();        
         this.speakerBtn.toNothingMode(1000);
         // this.speakerBtn.inner.x = this.speakerRight;
 

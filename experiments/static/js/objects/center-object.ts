@@ -94,20 +94,49 @@ class CenterObject {
 
     graph: PhGraphics;
     initDwtieer() {
-       // let sc = 1200 / 1080 / 1.5;
-
-        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
-        this.c = this.canvasTexture.getSourceImage();
-
+       let sc = 1200 / 1080 / 1.5;
+        // let rt = this.scene.add.renderTexture(0, 0, 1920, 1080);
         
+
+        // // let gl = rt.gl;
+        // // console.log(gl.canvas);
+        // // console.log(rt.canvas);
+        // // let outCanvas = conv(gl, null);
+
+        // // this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        // // console.log(this.canvasTexture);
+        // // this.c = rt.canvas;
+        // this.c = document.getElementsByTagName("canvas")[0];
+        // console.log(this.c);
+        // this.x = this.c.getContext('2d');
+        // console.log(this.x);
 
         // this.graph = this.scene.add.graphics();
         
-        // this.x = 
+        
+
+
+
+
+        // this.c = $('canvas')[0];
+        // console.log(this.c);
+        // this.x = this.c.getContext('2d');
+        // console.log(this.x);
+
+        
+        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+       
+        console.log(this.canvasTexture);
+        this.c = this.canvasTexture.getSourceImage();
+        console.log(this.c);
+        
+               
         this.x = this.c.getContext('2d');
-        // this.x = this.graph;
+        console.log(this.x);
+
+
         this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
-        // img.setRotation(-Math.PI / 2);
+        
         this.inner.add(this.outterDwitterImage);
     }
 
@@ -226,7 +255,7 @@ class CenterObject {
 
         this.frame++;
 
-        this.u2(time, this.c, this.x);
+        this.u3(time, this.c, this.x);
     }
 
 
@@ -259,7 +288,12 @@ class CenterObject {
         //     } 
         // }
         let a = 0;
-        c.width |= c.style.background = <any>"#CDF";
+        let temp = c.style.background = <any>"#CDF";
+        c.width |= <any>"wocaonimaF";
+        // x.clearRect(0, 0, 1920, 1080);
+        // c.width = 1920;
+        // console.log(c.width);
+        
         for(let j=3e3;j--;x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a)) {
             a=j/159+t;
             x.lineWidth=29;

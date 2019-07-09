@@ -164,8 +164,8 @@ function getDefaultFontFamily(): string {
 }
 
 
-function getDefaultTextStyle() : TextStyle{
-    let ret : TextStyle = {
+function getDefaultTextStyle(): TextStyle {
+    let ret: TextStyle = {
         fontSize: gameplayConfig.defaultTextSize,
         fill: '#000000',
         fontFamily: getDefaultFontFamily(),
@@ -173,38 +173,38 @@ function getDefaultTextStyle() : TextStyle{
     return ret;
 }
 
-function MakePoint2(x: number, y: number) : Phaser.Geom.Point {
+function MakePoint2(x: number, y: number): Phaser.Geom.Point {
     return new Phaser.Geom.Point(x, y);
 }
 
 
-function cpp(pt: PhPoint) : PhPoint {
+function cpp(pt: PhPoint): PhPoint {
     return new Phaser.Geom.Point(pt.x, pt.y);
 }
 
-function getGame() : Phaser.Game {
-    let thisGame : Phaser.Game = (<any>window).game;        
+function getGame(): Phaser.Game {
+    let thisGame: Phaser.Game = (<any>window).game;
     return thisGame;
 }
 
 
-function getGameState() : GameState {
-    let thisGame : any = getGame();
-    if(!thisGame.hasOwnProperty("gameState")) {
+function getGameState(): GameState {
+    let thisGame: any = getGame();
+    if (!thisGame.hasOwnProperty("gameState")) {
         thisGame.gameState = GameState.Home;
     }
     return thisGame.gameState;
 }
 
-function setGameState(state: GameState) : void{      
-    let thisGame : any = getGame();  
+function setGameState(state: GameState): void {
+    let thisGame: any = getGame();
     thisGame.gameState = state;
 }
 
 
 
 
-function lerp(start: number, end: number, perc: number) : number {
+function lerp(start: number, end: number, perc: number): number {
     return (end - start) * perc + start;
 }
 
@@ -213,12 +213,65 @@ var S = Math.sin;
 var C = Math.cos;
 var T = Math.tan;
 
-function R (r,g,b,a)
-{
+function R(r, g, b, a) {
     a = a === undefined ? 1 : a;
-    
-    return "rgba("+(r|0)+","+(g|0)+","+(b|0)+","+a+")";
+
+    return "rgba(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + "," + a + ")";
 };
 
 
 
+function getPixels(ctx) {
+    return ctx.readPixels
+        ? getPixels3d(ctx)
+        : getPixels2d(ctx)
+}
+
+function getPixels3d(gl) {
+    var canvas = gl.canvas
+    var height = canvas.height
+    var width = canvas.width
+    var buffer = new Uint8Array(width * height * 4)
+
+    gl.readPixels(0, 0
+        , canvas.width
+        , canvas.height
+        , gl.RGBA
+        , gl.UNSIGNED_BYTE
+        , buffer
+    )
+
+    return buffer
+}
+
+function getPixels2d(ctx) {
+    var canvas = ctx.canvas
+    var height = canvas.height
+    var width = canvas.width
+
+    return ctx.getImageData(0, 0, width, height).data
+}
+
+
+let canvasPixels = getPixels3d;
+function conv(webgl, canvas2D) {
+
+    var outCanvas = canvas2D ? canvas2D.canvas || canvas2D : document.createElement('canvas');
+    var outContext = outCanvas.getContext('2d');
+    var outImageData;
+
+    webgl = webgl instanceof WebGLRenderingContext ? webgl : webgl.getContext('webgl') || webgl.getContext('experimental-webgl');
+
+    outCanvas.width = webgl.canvas.width;
+    outCanvas.height = webgl.canvas.height;
+    outImageData = outContext.getImageData(0, 0, outCanvas.width, outCanvas.height);
+
+    outImageData.data.set(new Uint8ClampedArray(canvasPixels(webgl).buffer));
+    outContext.putImageData(outImageData, 0, 0);
+    outContext.translate(0, outCanvas.height);
+    outContext.scale(1, -1);
+    outContext.drawImage(outCanvas, 0, 0);
+    outContext.setTransform(1, 0, 0, 1, 0, 0);
+
+    return outCanvas;
+};

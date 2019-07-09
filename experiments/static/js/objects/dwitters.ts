@@ -1,3 +1,7 @@
+/**
+ * The current Dwitter only uses Canvas context to draw things \
+ * This is because for some heavy-performance task, webgl is extremely laggy
+ */
 class Dwitter extends Wrapper<PhGraphics> implements Updatable {
 
     width: number;
@@ -25,6 +29,7 @@ class Dwitter extends Wrapper<PhGraphics> implements Updatable {
         this.setOrigin(0.5, 0.5);
         this.frame = 0;
         this.x = this.wrappedObject;
+        this.x.lineStyle(29, 0x000000);
 
         this.inner.setScale(0.7);
 
@@ -43,7 +48,7 @@ class Dwitter extends Wrapper<PhGraphics> implements Updatable {
 
         this.frame++;
 
-        this.u(innerTime, this.c, this.x);
+        // this.u(innerTime, this.c, this.x);
     }
 
     setOrigin(xOri: number, yOri:number) {
@@ -59,21 +64,28 @@ class Dwitter extends Wrapper<PhGraphics> implements Updatable {
 class Dwitter65536 extends Dwitter {
     
     u(t, c:any, x: PhGraphics) {    
-        return;           
         
-        let a = 0;
-        console.log("haha" + 3e3);
+        
+       // let a = 0;
         // x.clear();
-        // c.width|=c.style.background=<any>"#CDF";
+        
+        // x.lineStyle(29, 0x000000);
+        // x.beginPath();
+        // for(let j=3e3;j--;) {
+        //     a=j/159+t;           
+        //     x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a);            
+        // }
 
-        // x.fillStyle(0xff0000, 1);
-        // x.fillRect(0, 0, 100,100);
-        x.lineStyle(29, 0x000000);
-        x.beginPath();
-        for(let j=3e3;j--;x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a)) {
-            a=j/159+t;
-        }
+        // x.strokePath();
+        // x.closePath();
 
-        x.strokePath();
+
+        x.fillStyle(0x000000, 1);
+        let Y = 0;
+        let X = 0;
+        let r=140-16*(t<10?t:0);
+        for(let U=0;U<44;(r<8?"䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y-61)>>X-18&1:0)||x.fillRect(8*X,8*Y,8,8))X=120+r*C(U+=.11)|0,Y=67+r*S(U)|0
     }
+
+    
 }

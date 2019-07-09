@@ -616,6 +616,43 @@ function R(r, g, b, a) {
     return "rgba(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + "," + a + ")";
 }
 ;
+function getPixels(ctx) {
+    return ctx.readPixels
+        ? getPixels3d(ctx)
+        : getPixels2d(ctx);
+}
+function getPixels3d(gl) {
+    var canvas = gl.canvas;
+    var height = canvas.height;
+    var width = canvas.width;
+    var buffer = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+    return buffer;
+}
+function getPixels2d(ctx) {
+    var canvas = ctx.canvas;
+    var height = canvas.height;
+    var width = canvas.width;
+    return ctx.getImageData(0, 0, width, height).data;
+}
+let canvasPixels = getPixels3d;
+function conv(webgl, canvas2D) {
+    var outCanvas = canvas2D ? canvas2D.canvas || canvas2D : document.createElement('canvas');
+    var outContext = outCanvas.getContext('2d');
+    var outImageData;
+    webgl = webgl instanceof WebGLRenderingContext ? webgl : webgl.getContext('webgl') || webgl.getContext('experimental-webgl');
+    outCanvas.width = webgl.canvas.width;
+    outCanvas.height = webgl.canvas.height;
+    outImageData = outContext.getImageData(0, 0, outCanvas.width, outCanvas.height);
+    outImageData.data.set(new Uint8ClampedArray(canvasPixels(webgl).buffer));
+    outContext.putImageData(outImageData, 0, 0);
+    outContext.translate(0, outCanvas.height);
+    outContext.scale(1, -1);
+    outContext.drawImage(outCanvas, 0, 0);
+    outContext.setTransform(1, 0, 0, 1, 0, 0);
+    return outCanvas;
+}
+;
 class SpeakerButton extends ImageWrapperClass {
     init() {
         this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
@@ -663,15 +700,31 @@ class CenterObject {
         // this.initInteraction();
     }
     initDwtieer() {
-        // let sc = 1200 / 1080 / 1.5;
-        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
-        this.c = this.canvasTexture.getSourceImage();
+        let sc = 1200 / 1080 / 1.5;
+        // let rt = this.scene.add.renderTexture(0, 0, 1920, 1080);
+        // // let gl = rt.gl;
+        // // console.log(gl.canvas);
+        // // console.log(rt.canvas);
+        // // let outCanvas = conv(gl, null);
+        // // this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        // // console.log(this.canvasTexture);
+        // // this.c = rt.canvas;
+        // this.c = document.getElementsByTagName("canvas")[0];
+        // console.log(this.c);
+        // this.x = this.c.getContext('2d');
+        // console.log(this.x);
         // this.graph = this.scene.add.graphics();
-        // this.x = 
+        // this.c = $('canvas')[0];
+        // console.log(this.c);
+        // this.x = this.c.getContext('2d');
+        // console.log(this.x);
+        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        console.log(this.canvasTexture);
+        this.c = this.canvasTexture.getSourceImage();
+        console.log(this.c);
         this.x = this.c.getContext('2d');
-        // this.x = this.graph;
+        console.log(this.x);
         this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
-        // img.setRotation(-Math.PI / 2);
         this.inner.add(this.outterDwitterImage);
     }
     initInteraction() {
@@ -767,7 +820,7 @@ class CenterObject {
         //     time += 0.000001;
         // }
         this.frame++;
-        this.u2(time, this.c, this.x);
+        this.u3(time, this.c, this.x);
     }
     prepareToGame() {
         this.playerInputText.prepareToNormalGame();
@@ -794,7 +847,11 @@ class CenterObject {
         //     } 
         // }
         let a = 0;
-        c.width |= c.style.background = "#CDF";
+        let temp = c.style.background = "#CDF";
+        c.width |= "wocaonimaF";
+        // x.clearRect(0, 0, 1920, 1080);
+        // c.width = 1920;
+        // console.log(c.width);
         for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
             a = j / 159 + t;
             x.lineWidth = 29;
@@ -810,6 +867,10 @@ class CenterObject {
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
+/**
+ * The current Dwitter only uses Canvas context to draw things \
+ * This is because for some heavy-performance task, webgl is extremely laggy
+ */
 class Dwitter extends Wrapper {
     constructor(scene, parentContainer, x, y, width, height) {
         let graphics = scene.add.graphics();
@@ -823,6 +884,7 @@ class Dwitter extends Wrapper {
         this.setOrigin(0.5, 0.5);
         this.frame = 0;
         this.x = this.wrappedObject;
+        this.x.lineStyle(29, 0x000000);
         this.inner.setScale(0.7);
         // Push to the scene's update array
         this.scene.updateObjects.push(this);
@@ -834,7 +896,7 @@ class Dwitter extends Wrapper {
         //     time += 0.000001;
         // }
         this.frame++;
-        this.u(innerTime, this.c, this.x);
+        // this.u(innerTime, this.c, this.x);
     }
     setOrigin(xOri, yOri) {
         this.wrappedObject.x = -this.width * xOri;
@@ -845,19 +907,22 @@ class Dwitter extends Wrapper {
 }
 class Dwitter65536 extends Dwitter {
     u(t, c, x) {
-        return;
-        let a = 0;
-        console.log("haha" + 3e3);
+        // let a = 0;
         // x.clear();
-        // c.width|=c.style.background=<any>"#CDF";
-        // x.fillStyle(0xff0000, 1);
-        // x.fillRect(0, 0, 100,100);
-        x.lineStyle(29, 0x000000);
-        x.beginPath();
-        for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
-            a = j / 159 + t;
-        }
-        x.strokePath();
+        // x.lineStyle(29, 0x000000);
+        // x.beginPath();
+        // for(let j=3e3;j--;) {
+        //     a=j/159+t;           
+        //     x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a);            
+        // }
+        // x.strokePath();
+        // x.closePath();
+        x.fillStyle(0x000000, 1);
+        let Y = 0;
+        let X = 0;
+        let r = 140 - 16 * (t < 10 ? t : 0);
+        for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
+            X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
 var EnemyType;

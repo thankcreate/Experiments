@@ -1622,6 +1622,8 @@ class HealthIndicator {
         // text health
         this.text = this.makeCenterText(num);
         // text mask
+        // in canvas mode, nested children in a container won't accept the mask
+        // so I need to add fadein / fadeout
         this.maskGraph = this.scene.make.graphics({});
         this.maskGraph.fillStyle(0x0000ff, 1); // background circle
         this.maskGraph.fillCircle(0, 0, gameplayConfig.healthIndicatorWidth / 2);
@@ -1647,25 +1649,24 @@ class HealthIndicator {
     damagedTo(num) {
         let curNum = this.num;
         let newNum = num;
+        // In canvas mode, nested children in a container won't accept the mask
+        // so I need to add fadein/fadeout
+        let oldText = this.text;
         let outTween = this.scene.tweens.add({
             targets: this.text,
             y: '+=' + gameplayConfig.healthIndicatorWidth,
-            // alpha: {
-            //     getStart: () => 0,
-            //     getEnd: () => 1,
-            //     duration: 500
-            // },
-            duration: 500
+            alpha: 0,
+            duration: 500,
+            onComplete: () => {
+                oldText.destroy();
+            }
         });
         this.text = this.makeCenterText(num, 0, -gameplayConfig.healthIndicatorWidth);
+        this.text.alpha = 0;
         let inTween = this.scene.tweens.add({
             targets: this.text,
             y: '+=' + gameplayConfig.healthIndicatorWidth,
-            // alpha: {
-            //     getStart: () => 0,
-            //     getEnd: () => 1,
-            //     duration: 500
-            // },
+            alpha: 1,
             duration: 500
         });
     }

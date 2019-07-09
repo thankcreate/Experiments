@@ -56,9 +56,6 @@
 //             resolve('11');
 //         }, 2000);
 //     });
-// },  rej => {
-//     reject('33');
-//     console.log("thisrej");
 // })
 // .then(res => {
 //     console.log(res + "1");
@@ -111,3 +108,20 @@
 
 // obj.func3 = obj2.func.bind(obj2);
 // obj.func3();
+
+
+let p1 = new Promise((resolve, reject) => {
+    resolve('成功了')
+  })
+  
+  let p2 = new Promise((resolve, reject) => {
+    resolve('success')
+  })
+  
+  // let p3 = Promise.reject('fuck');
+  
+  Promise.all([p1, p2]).then((result) => {
+    console.log(result)               //['成功了', 'success']
+  }).catch((error) => {
+    console.log(error)
+  })

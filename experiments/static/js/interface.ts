@@ -15,6 +15,8 @@ type PhEventEmitter = Phaser.Events.EventEmitter;
 type PhCanvasTexture = Phaser.Textures.CanvasTexture;
 type PhRenderTexture = Phaser.GameObjects.RenderTexture
 type PhGO = Phaser.GameObjects.GameObject;
+type PhTimeEvent = Phaser.Time.TimerEvent;
+type Pany = Promise<any>;
 
 
 type StateHandler = (state: FsmState) => void;
@@ -62,8 +64,12 @@ class Wrapper<T extends PhGO> {
         if(target) {
             this.applyTarget(target);
         }        
-
+        
         this.init();
+    }
+
+    init() {
+
     }
 
     applyTarget(target: T) {
@@ -71,9 +77,6 @@ class Wrapper<T extends PhGO> {
         this.inner.add(target);
     }
 
-    init() {
-
-    }
 
     add(go: PhGO) {
         this.inner.add(go);

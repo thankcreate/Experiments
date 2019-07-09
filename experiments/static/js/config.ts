@@ -23,9 +23,19 @@ var gameplayConfig = {
     defaultTextSize: '32px',
     defaultImageTitleSize: '28px',
 
+    preloadFontFamily: "'Averia Serif Libre'",
+
     defaultFontFamily: "'Averia Serif Libre', Georgia, serif",
-    defaultFontFamilyFirefox: "Georgia, serif",
+    defaultFontFamilyFirefox: "'Averia Serif Libre', Georgia, serif",
     
+    
+
+
+    titleFontFamily: "Georgia, serif",
+    subtitleFontFamily:  "'Averia Serif Libre', Georgia, serif",
+
+
+
     healthIndicatorFontFamily: '"Trebuchet MS", Helvetica, sans-serif',
     healthIndicatorWidth: 32,
 

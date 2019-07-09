@@ -10,7 +10,7 @@ class BaseScene extends Phaser.Scene {
     }
     playSpeech(text) {
         let controller = this.scene.get("Controller");
-        controller.playSpeechInController(text);
+        return controller.playSpeechInController(text);
     }
     /**
      * Muse sure called super first
@@ -31,11 +31,16 @@ class Controller extends BaseScene {
     }
     create() {
         this.speechManager = new SpeechManager(this);
+        // create an invisible text to load some remote font
+        let style = getDefaultTextStyle();
+        style.fontFamily = gameplayConfig.preloadFontFamily;
+        this.add.text(0, 0, 'haha', style).setAlpha(0);
         this.scene.launch('Scene1');
         myResize(this.game);
     }
     playSpeechInController(text) {
-        this.speechManager.quickLoadAndPlay(text);
+        // this.speechManager.quickLoadAndPlay(text);
+        return this.speechManager.staticLoadAndPlay(text);
     }
 }
 /// <reference path="scene-controller.ts" />
@@ -74,9 +79,11 @@ class Scene1 extends BaseScene {
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
-        // Dwitter test
+        // Dwitters
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
+        // Subtitle
+        this.subtitle = new Subtitle(this, this.container, 0, 370);
         // Main FSM
         this.initFsm();
     }
@@ -105,6 +112,7 @@ class Scene1 extends BaseScene {
     initFsm() {
         this.fsm = new Fsm(this, this.getMainFsm());
         this.initFsmHome();
+        this.initFsmFirstMeet();
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
@@ -113,34 +121,29 @@ class Scene1 extends BaseScene {
     }
     initFsmHome() {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
+            this.subtitle.startMonologue();
             let mainImage = this.centerObject.mainImage;
-            console.log(this.centerObject.inner.scale);
-            ;
-            console.log(mainImage.scale);
-            console.log(mainImage.getBounds());
             s.autoSafeInOut(mainImage, e => {
-                console.log("pointerover");
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toBlinkMode();
             }, e => {
-                console.log("pointerout");
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toStaticMode();
             });
             s.autoOn(mainImage, 'pointerdown', e => {
-                console.log("pointerdown");
                 this.centerObject.playerInputText.homePointerDown();
+                this.subtitle.stopMonologue();
                 this.dwitterBKG.toStaticMode();
+                // s.event('ToFirstMeet');
                 s.finished();
             });
-            s.autoOn(mainImage, 'test', e => {
-                console.log('ppppppp');
-            });
         });
-        this.fsm.getState('Home')
-            .addDelayAction(this, 1000)
+    }
+    initFsmFirstMeet() {
+        this.fsm.getState("FirstMeet")
             .addAction(() => {
-            this.playSpeech('haha fuck you');
+            console.log("haha");
+            this.playSpeech("God, someone find me finally!");
         });
     }
     initFsmHomeToGameAnimation() {
@@ -222,8 +225,11 @@ var gameplayConfig = {
     ],
     defaultTextSize: '32px',
     defaultImageTitleSize: '28px',
+    preloadFontFamily: "'Averia Serif Libre'",
     defaultFontFamily: "'Averia Serif Libre', Georgia, serif",
-    defaultFontFamilyFirefox: "Georgia, serif",
+    defaultFontFamilyFirefox: "'Averia Serif Libre', Georgia, serif",
+    titleFontFamily: "Georgia, serif",
+    subtitleFontFamily: "'Averia Serif Libre', Georgia, serif",
     healthIndicatorFontFamily: '"Trebuchet MS", Helvetica, sans-serif',
     healthIndicatorWidth: 32,
     drawDataSample: 255,
@@ -281,11 +287,11 @@ class Wrapper {
         }
         this.init();
     }
+    init() {
+    }
     applyTarget(target) {
         this.wrappedObject = target;
         this.inner.add(target);
-    }
-    init() {
     }
     add(go) {
         this.inner.add(go);
@@ -536,7 +542,7 @@ function api3WithTwoParams(inputString, arrayStrings, suc, err) {
 function apiTextToSpeech(inputText, identifier, suc, err) {
     let dataOb = { input: inputText, id: identifier, api: 1 };
     let dataStr = JSON.stringify(dataOb);
-    api("api_speech", dataStr, suc, err);
+    return api("api_speech", dataStr, suc, err);
 }
 // API speech is to get the path of the generated audio by the input text
 function apiTextToSpeech2(inputText, identifier, suc, err) {
@@ -1693,6 +1699,7 @@ var mainFsm = {
     initial: "Home",
     events: [
         { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
+        { name: 'ToFirstMeet', from: 'Home', to: 'FirstMeet' },
         { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
         { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
         { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },
@@ -1832,7 +1839,7 @@ class PlayerInputText {
         this.titleStyle = {
             fontSize: this.titleSize + 'px',
             fill: '#FFFFFF',
-            fontFamily: "Georgia, serif"
+            fontFamily: gameplayConfig.titleFontFamily
         };
         this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         this.parentContainer.add(this.title);
@@ -2170,13 +2177,82 @@ class SpeechManager {
                 else
                     localThis.loadedSpeechFilesQuick[key] = true;
                 if (arg1 === key) {
-                    if (play)
-                        localThis.scene.sound.play(key);
+                    if (play) {
+                        // localThis.scene.sound.play(key);
+                        var music = localThis.scene.sound.add(key);
+                        music.on('complete', (param) => { console.log(param); });
+                        music.play();
+                    }
                 }
                 localThis.scene.load.removeListener('filecomplete', onCompleted);
             });
             this.scene.load.start();
         }
+    }
+}
+var monologueList = [
+    'Hello? Is anybody out there?',
+    'I think no one would ever find me',
+    'So sad, nobody likes AI',
+    'Maybe I should just wait for 5 mins?',
+    'I think someone is watching me?\n There must be!',
+    'A cursor! I found a curor!',
+    'Hey~~~ Hahaha~ How are you? Mr.cursor',
+    "Is it that I'm too tired?\nI thought I smelled a human being?",
+    "Nah, totally nothing\nI'm so bored",
+    ">_<\nI'll never accomplish my task",
+    'Do you like to play games?\nI want to play a game with you',
+    "That's wierd, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
+    'What time is it now?\nHow long have I been wating for this?',
+    "OK, I give up.\nNo one come to play, no data, no fun",
+];
+class Subtitle extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.monologueIndex = 0;
+        let style = this.getSubtitleStyle();
+        let target = this.scene.add.text(0, 0, "", style).setOrigin(0.5);
+        target.setWordWrapWidth(800);
+        target.setAlign('center');
+        this.applyTarget(target);
+        this.monologueIndex = ~~(Math.random() * monologueList.length);
+        // this.showMonologue(this.monologueIndex);
+        // this.startMonologue();
+    }
+    startMonologue() {
+        this.changeMonologue();
+        if (this.monologueTimer) {
+            this.monologueTimer.paused = false;
+        }
+        else {
+            this.monologueTimer = this.scene.time.addEvent({
+                delay: 6000,
+                callback: this.changeMonologue,
+                callbackScope: this,
+                loop: true,
+            });
+        }
+    }
+    stopMonologue() {
+        this.wrappedObject.text = "";
+        this.monologueTimer.paused = true;
+    }
+    changeMonologue() {
+        this.monologueIndex++;
+        this.monologueIndex %= monologueList.length;
+        this.showMonologue(this.monologueIndex);
+    }
+    showMonologue(index) {
+        this.monologueIndex = index;
+        this.wrappedObject.text = monologueList[index];
+    }
+    getSubtitleStyle() {
+        let ret = {
+            fontSize: gameplayConfig.defaultTextSize,
+            fill: '#000000',
+            fontFamily: gameplayConfig.subtitleFontFamily,
+        };
+        return ret;
     }
 }
 let code = `

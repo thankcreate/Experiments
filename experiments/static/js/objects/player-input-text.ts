@@ -58,7 +58,7 @@ class PlayerInputText {
         this.titleStyle = {
             fontSize: this.titleSize + 'px',
             fill: '#FFFFFF',
-            fontFamily: "Georgia, serif"
+            fontFamily: gameplayConfig.titleFontFamily
         };
 
         this.title = this.scene.add.text(- this.getAvailableWidth() / 2, -this.gapTitle,

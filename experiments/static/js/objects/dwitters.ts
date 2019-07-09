@@ -32,9 +32,6 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
             console.error("Graphics mode in dwitter is not allowed now");
         }
 
-
-
-
         this.dwitterInit();
     }
 

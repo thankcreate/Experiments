@@ -26,7 +26,7 @@ function getFormData($form) {
     return indexed_array;
 }
 
-function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any, dtType?: string) {
+function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any, dtType?: string): Pany {
     $.ajax({
         type: "POST",
         dataType: 'json',
@@ -77,10 +77,10 @@ function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (a
 }
 
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech(inputText: string, identifier: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
+function apiTextToSpeech(inputText: string, identifier: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) : Pany{
     let dataOb = { input: inputText, id: identifier, api: 1 };
     let dataStr = JSON.stringify(dataOb);
-    api("api_speech", dataStr, suc, err);
+    return api("api_speech", dataStr, suc, err);
 }
 
 // API speech is to get the path of the generated audio by the input text
@@ -172,6 +172,8 @@ function getDefaultTextStyle(): TextStyle {
     };
     return ret;
 }
+
+
 
 function MakePoint2(x: number, y: number): Phaser.Geom.Point {
     return new Phaser.Geom.Point(x, y);

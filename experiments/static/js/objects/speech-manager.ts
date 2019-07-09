@@ -42,7 +42,7 @@ class SpeechManager {
         }
     }
 
-    staticLoadAndPlay(text: string, play = true) {
+    staticLoadAndPlay(text: string, play = true) : Pany {
         apiTextToSpeech(text, "no_id", (sucRet) => {
             let retID = sucRet.id;
             let retText = sucRet.input;
@@ -96,8 +96,13 @@ class SpeechManager {
                         localThis.loadedSpeechFilesQuick[key] = true;
 
                     if (arg1 === key) {
-                        if (play)
-                            localThis.scene.sound.play(key);
+                        if (play) {
+                            // localThis.scene.sound.play(key);
+                            var music = localThis.scene.sound.add(key);
+                            music.on('complete', (param)=>{console.log(param);});
+                            music.play();
+                        }
+                            
                     }
 
                     localThis.scene.load.removeListener('filecomplete', onCompleted);

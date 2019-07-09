@@ -23,6 +23,8 @@ class Scene1 extends BaseScene {
 
     initDwitterScale: number = 0.52;
 
+    subtitle: Subtitle;
+
     constructor() {
         super('Scene1');
 
@@ -67,16 +69,16 @@ class Scene1 extends BaseScene {
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
 
-
-
-
-        // Dwitter test
+        // Dwitters
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
+
+        // Subtitle
+        this.subtitle = new Subtitle(this, this.container, 0, 370);
+
+
         // Main FSM
         this.initFsm();
-
     }
 
 
@@ -113,6 +115,7 @@ class Scene1 extends BaseScene {
         this.fsm = new Fsm(this, this.getMainFsm());
 
         this.initFsmHome();
+        this.initFsmFirstMeet();
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
@@ -123,40 +126,42 @@ class Scene1 extends BaseScene {
 
     initFsmHome() {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
-            let mainImage = this.centerObject.mainImage;
-            console.log(this.centerObject.inner.scale);;
-            console.log(mainImage.scale);
-            console.log(mainImage.getBounds());
+            this.subtitle.startMonologue();
 
-            s.autoSafeInOut(mainImage, e=>{
-                console.log("pointerover");
+            let mainImage = this.centerObject.mainImage;
+
+            s.autoSafeInOut(mainImage, e=>{                
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toBlinkMode();
-            }, e=>{
-                console.log("pointerout");
+            }, e=>{                
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toStaticMode();
             });
 
-            s.autoOn(mainImage, 'pointerdown', e => {
-                console.log("pointerdown");
+            s.autoOn(mainImage, 'pointerdown', e => {       
+
+                
+                
                 this.centerObject.playerInputText.homePointerDown();
+                this.subtitle.stopMonologue();
+
 
                 this.dwitterBKG.toStaticMode();
+                // s.event('ToFirstMeet');
                 s.finished();
             });
-
-            s.autoOn(mainImage, 'test', e =>{
-                console.log('ppppppp');
-            });
         });
-
-        this.fsm.getState('Home')
-        .addDelayAction(this, 1000)
-        .addAction(() =>{
-            this.playSpeech('haha fuck you');
-        })
     }
+
+    initFsmFirstMeet(){
+        this.fsm.getState("FirstMeet")
+        .addAction(()=>{
+            console.log("haha");
+            this.playSpeech("God, someone find me finally!")
+        });
+    }
+
+
 
     initFsmHomeToGameAnimation() {
         let dt = 1000;

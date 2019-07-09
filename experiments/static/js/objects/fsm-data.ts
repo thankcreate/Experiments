@@ -4,6 +4,7 @@ var mainFsm =
   initial: "Home",
   events: [
     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },   
+    { name: 'ToFirstMeet', from: 'Home', to: 'FirstMeet' },   
     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
     { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },

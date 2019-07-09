@@ -127,16 +127,6 @@ class Scene1 extends BaseScene {
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toStaticMode();
             });
-            // s.autoOn(mainImage, 'pointerover', e => {
-            //     console.log("pointerover");
-            //     this.centerObject.playerInputText.homePointerOver();
-            //     this.dwitterBKG.toBlinkMode();
-            // });
-            // s.autoOn(mainImage, 'pointerout', e => {
-            //     console.log("pointerout");
-            //     this.centerObject.playerInputText.homePointerOut();
-            //     this.dwitterBKG.toStaticMode();
-            // });
             s.autoOn(mainImage, 'pointerdown', e => {
                 console.log("pointerdown");
                 this.centerObject.playerInputText.homePointerDown();
@@ -147,12 +137,10 @@ class Scene1 extends BaseScene {
                 console.log('ppppppp');
             });
         });
-        this.fsm.getState("Home").setOnUpdate(s => {
-            // let mainImage = this.centerObject.mainImage;
-            // mainImage.emit('test');
-            // let mp = getGame().input.mousePointer;
-            // console.log(mp.x + "  " + mp.y);
-            // console.log(mainImage.getBounds().contains(mp.x, mp.y));
+        this.fsm.getState('Home')
+            .addDelayAction(this, 1000)
+            .addAction(() => {
+            this.playSpeech('haha fuck you');
         });
     }
     initFsmHomeToGameAnimation() {

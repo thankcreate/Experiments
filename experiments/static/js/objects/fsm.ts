@@ -332,7 +332,7 @@ class FsmState {
         if(this.onUpdate)
             this.onUpdate(state, time, dt);
         
-        let mp = getGame().input.mousePointer;
+        let mp = getGame().input.mousePointer;        
         this.safeInOutWatchers.forEach( e=>{            
             if( e.state == 0 && e.target.getBounds().contains(mp.x, mp.y)){
                 e.state = 1;

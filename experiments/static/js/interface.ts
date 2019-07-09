@@ -57,10 +57,18 @@ class Wrapper<T extends PhGO> {
         this.inner = this.scene.add.container(x, y);
         this.parentContainer.add(this.inner);
 
-        this.wrappedObject = target;
-        this.inner.add(target);
+        // Sometimes in the interitace classes the 'target' is undefined
+        // because super constructor need call first
+        if(target) {
+            this.applyTarget(target);
+        }        
 
         this.init();
+    }
+
+    applyTarget(target: T) {
+        this.wrappedObject = target;
+        this.inner.add(target);
     }
 
     init() {
@@ -71,8 +79,9 @@ class Wrapper<T extends PhGO> {
         this.inner.add(go);
     }
 
-    setScale(x: number, y?: number) {
+    setScale(x: number, y?: number): any {
         this.inner.setScale(x, y);
+        return this;
     }
 
     getX() {

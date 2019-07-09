@@ -18,6 +18,8 @@ class Scene1 extends BaseScene {
     mm = 0;
 
 
+    dwitterCenter: Dwitter;
+    initDwitterScale: number = 0.52;
 
     constructor() {
         super('Scene1');
@@ -58,12 +60,14 @@ class Scene1 extends BaseScene {
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
 
-        // Main FSM
-        this.initFsm();
+       
         
         
         // Dwitter test
-        let dw = new Dwitter65536(this, this.container, 0, 0, 1920, 1080);
+        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
+
+         // Main FSM
+        this.initFsm();
         
     }
 
@@ -139,7 +143,7 @@ class Scene1 extends BaseScene {
                 duration: dt,                
             },
             {                
-                targets: this.centerObject.outterDwitterImage,
+                targets: this.dwitterCenter.inner,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
@@ -183,9 +187,9 @@ class Scene1 extends BaseScene {
                 completeDelay: 1000,
             },
             {                
-                targets: this.centerObject.outterDwitterImage,
+                targets: this.dwitterCenter.inner,
                 alpha: 1,
-                scale: this.centerObject.initOutterDwitterScale,
+                scale: this.initDwitterScale,
                 duration: dt2,
             }
         ])

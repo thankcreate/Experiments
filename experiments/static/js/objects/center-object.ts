@@ -34,7 +34,7 @@ class CenterObject {
 
     mainImage: PhImage;
     speakerBtn: SpeakerButton;
-    outterDwitterImage: PhImage;
+    
 
     playerInputText: PlayerInputText;
 
@@ -45,9 +45,6 @@ class CenterObject {
 
     text: PhText;
 
-    canvasTexture: PhCanvasTexture;
-    c: any;
-    x: any;
 
         
     centerRotateTween: PhTween;
@@ -55,7 +52,6 @@ class CenterObject {
     initScale = 1.3;
     initRotation = -Math.PI / 2;
 
-    initOutterDwitterScale = 0.4;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
@@ -65,7 +61,6 @@ class CenterObject {
         this.inner = this.scene.add.container(0, 0);
         this.parentContainer.add(this.inner);
 
-        this.initDwtieer();
 
         this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
         this.inner.add(this.mainImage);
@@ -93,105 +88,6 @@ class CenterObject {
     }
 
     graph: PhGraphics;
-    initDwtieer() {
-       let sc = 1200 / 1080 / 1.5;
-        // let rt = this.scene.add.renderTexture(0, 0, 1920, 1080);
-        
-
-        // // let gl = rt.gl;
-        // // console.log(gl.canvas);
-        // // console.log(rt.canvas);
-        // // let outCanvas = conv(gl, null);
-
-        // // this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
-        // // console.log(this.canvasTexture);
-        // // this.c = rt.canvas;
-        // this.c = document.getElementsByTagName("canvas")[0];
-        // console.log(this.c);
-        // this.x = this.c.getContext('2d');
-        // console.log(this.x);
-
-        // this.graph = this.scene.add.graphics();
-        
-        
-
-
-
-
-        // this.c = $('canvas')[0];
-        // console.log(this.c);
-        // this.x = this.c.getContext('2d');
-        // console.log(this.x);
-
-        
-        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
-       
-        console.log(this.canvasTexture);
-        this.c = this.canvasTexture.getSourceImage();
-        console.log(this.c);
-        
-               
-        this.x = this.c.getContext('2d');
-        console.log(this.x);
-
-
-        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
-        
-        this.inner.add(this.outterDwitterImage);
-    }
-
-
-    initInteraction() {
-        this.mainImage.on('pointerover', () => {
-            // if(this.scene)
-            // console.log("over");
-            let state = getGameState();
-            if(state == GameState.Home) {
-                this.playerInputText.homePointerOver();
-            }
-        });
-
-        this.mainImage.on('pointerout', () => {
-            let state = getGameState();
-            if(state == GameState.Home) {
-                this.playerInputText.homePointerOut();
-            }            
-        });
-
-        this.mainImage.on('pointerdown', () => {
-            let state = getGameState();
-            console.log(state);
-            if(state == GameState.Home) {
-                setGameState(GameState.Scene1);
-                this.playerInputText.homePointerDown();
-
-                let delayDt = 1500;
-                let dt = 1000;
-                this.centerRotateTween = this.scene.tweens.add({
-                    delay: delayDt,
-                    targets: this.inner,
-                    rotation: 0,
-                    scale: 1.2,
-                    duration: dt,
-                    completeDelay: 1000,
-                    onComplete:  () => {
-                        this.playerInputText.prepareToNormalGame();
-                        this.speakerBtn.toSpeakerMode(1000);
-                        
-                        setGameState(GameState.Scene1);
-                    }
-                });
-
-                let fadeOutter =  this.scene.tweens.add({
-                    delay: delayDt,
-                    targets: this.outterDwitterImage,
-                    alpha: 0,
-                    scale: 2,
-                    duration: dt,
-                });
-            } 
-        });
-    }
 
 
     playerInputChanged(inputControl: PlayerInputText) {
@@ -241,22 +137,10 @@ class CenterObject {
         ]);
 
 
-        this.updateDwitter();
     }
 
     frame: number = 0;
-    updateDwitter() {
-        let time = this.frame / 60;
-
-        // if (time * 60 | 0 == this.frame - 1)
-        // {
-        //     time += 0.000001;
-        // }
-
-        this.frame++;
-
-        this.u3(time, this.c, this.x);
-    }
+    
 
 
     prepareToGame() {
@@ -280,28 +164,6 @@ class CenterObject {
         });
     }
 
-    u2(t, c: any, x) {
-        // c.width = 1920;
-        // for (var i = 0; i < 31; i++) { 
-        //     for (var j = 25; j > -25; j--) { 
-        //         x.fillRect(960 + j * i * .5 * C(i * .2) + C(2 * t + i * .2) * 300, 540 + j * i * .5 * S(i * .2) + S(2.2 * t + i * .2) * 200, 9, 9);
-        //     } 
-        // }
-        let a = 0;
-        let temp = c.style.background = <any>"#CDF";
-        c.width |= <any>"wocaonimaF";
-        // x.clearRect(0, 0, 1920, 1080);
-        // c.width = 1920;
-        // console.log(c.width);
-        
-        for(let j=3e3;j--;x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a)) {
-            a=j/159+t;
-            x.lineWidth=29;
-            // console.log(j);
-        }
-            
-        x.stroke();
-    }
 
     u3(t, c, x) {
         let Y = 0;

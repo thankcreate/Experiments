@@ -43,6 +43,7 @@ class Scene1 extends BaseScene {
     constructor() {
         super('Scene1');
         this.mm = 0;
+        this.initDwitterScale = 0.52;
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -68,10 +69,10 @@ class Scene1 extends BaseScene {
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
+        // Dwitter test
+        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         // Main FSM
         this.initFsm();
-        // Dwitter test
-        let dw = new Dwitter65536(this, this.container, 0, 0, 1920, 1080);
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -130,7 +131,7 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.centerObject.outterDwitterImage,
+                targets: this.dwitterCenter.inner,
                 alpha: 0,
                 scale: 2,
                 duration: dt,
@@ -169,9 +170,9 @@ class Scene1 extends BaseScene {
                 completeDelay: 1000,
             },
             {
-                targets: this.centerObject.outterDwitterImage,
+                targets: this.dwitterCenter.inner,
                 alpha: 1,
-                scale: this.centerObject.initOutterDwitterScale,
+                scale: this.initDwitterScale,
                 duration: dt2,
             }
         ])
@@ -249,9 +250,16 @@ class Wrapper {
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(x, y);
         this.parentContainer.add(this.inner);
+        // Sometimes in the interitace classes the 'target' is undefined
+        // because super constructor need call first
+        if (target) {
+            this.applyTarget(target);
+        }
+        this.init();
+    }
+    applyTarget(target) {
         this.wrappedObject = target;
         this.inner.add(target);
-        this.init();
     }
     init() {
     }
@@ -260,6 +268,7 @@ class Wrapper {
     }
     setScale(x, y) {
         this.inner.setScale(x, y);
+        return this;
     }
     getX() {
         return this.inner.x;
@@ -679,14 +688,12 @@ class CenterObject {
         this.speakerLeft = -56;
         this.initScale = 1.3;
         this.initRotation = -Math.PI / 2;
-        this.initOutterDwitterScale = 0.4;
         this.frame = 0;
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.designSize = cpp(designSize);
         this.inner = this.scene.add.container(0, 0);
         this.parentContainer.add(this.inner);
-        this.initDwtieer();
         this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
         this.inner.add(this.mainImage);
         this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(0, 0, "speaker"));
@@ -698,80 +705,6 @@ class CenterObject {
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
         // this.initInteraction();
-    }
-    initDwtieer() {
-        let sc = 1200 / 1080 / 1.5;
-        // let rt = this.scene.add.renderTexture(0, 0, 1920, 1080);
-        // // let gl = rt.gl;
-        // // console.log(gl.canvas);
-        // // console.log(rt.canvas);
-        // // let outCanvas = conv(gl, null);
-        // // this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
-        // // console.log(this.canvasTexture);
-        // // this.c = rt.canvas;
-        // this.c = document.getElementsByTagName("canvas")[0];
-        // console.log(this.c);
-        // this.x = this.c.getContext('2d');
-        // console.log(this.x);
-        // this.graph = this.scene.add.graphics();
-        // this.c = $('canvas')[0];
-        // console.log(this.c);
-        // this.x = this.c.getContext('2d');
-        // console.log(this.x);
-        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
-        console.log(this.canvasTexture);
-        this.c = this.canvasTexture.getSourceImage();
-        console.log(this.c);
-        this.x = this.c.getContext('2d');
-        console.log(this.x);
-        this.outterDwitterImage = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5).setScale(this.initOutterDwitterScale);
-        this.inner.add(this.outterDwitterImage);
-    }
-    initInteraction() {
-        this.mainImage.on('pointerover', () => {
-            // if(this.scene)
-            // console.log("over");
-            let state = getGameState();
-            if (state == GameState.Home) {
-                this.playerInputText.homePointerOver();
-            }
-        });
-        this.mainImage.on('pointerout', () => {
-            let state = getGameState();
-            if (state == GameState.Home) {
-                this.playerInputText.homePointerOut();
-            }
-        });
-        this.mainImage.on('pointerdown', () => {
-            let state = getGameState();
-            console.log(state);
-            if (state == GameState.Home) {
-                setGameState(GameState.Scene1);
-                this.playerInputText.homePointerDown();
-                let delayDt = 1500;
-                let dt = 1000;
-                this.centerRotateTween = this.scene.tweens.add({
-                    delay: delayDt,
-                    targets: this.inner,
-                    rotation: 0,
-                    scale: 1.2,
-                    duration: dt,
-                    completeDelay: 1000,
-                    onComplete: () => {
-                        this.playerInputText.prepareToNormalGame();
-                        this.speakerBtn.toSpeakerMode(1000);
-                        setGameState(GameState.Scene1);
-                    }
-                });
-                let fadeOutter = this.scene.tweens.add({
-                    delay: delayDt,
-                    targets: this.outterDwitterImage,
-                    alpha: 0,
-                    scale: 2,
-                    duration: dt,
-                });
-            }
-        });
     }
     playerInputChanged(inputControl) {
         let percent = inputControl.text.width / this.getTextMaxWidth();
@@ -811,16 +744,6 @@ class CenterObject {
             'isDown: ' + pointer.isDown,
             'rightButtonDown: ' + pointer.rightButtonDown()
         ]);
-        this.updateDwitter();
-    }
-    updateDwitter() {
-        let time = this.frame / 60;
-        // if (time * 60 | 0 == this.frame - 1)
-        // {
-        //     time += 0.000001;
-        // }
-        this.frame++;
-        this.u3(time, this.c, this.x);
     }
     prepareToGame() {
         this.playerInputText.prepareToNormalGame();
@@ -839,26 +762,6 @@ class CenterObject {
             duration: 150
         });
     }
-    u2(t, c, x) {
-        // c.width = 1920;
-        // for (var i = 0; i < 31; i++) { 
-        //     for (var j = 25; j > -25; j--) { 
-        //         x.fillRect(960 + j * i * .5 * C(i * .2) + C(2 * t + i * .2) * 300, 540 + j * i * .5 * S(i * .2) + S(2.2 * t + i * .2) * 200, 9, 9);
-        //     } 
-        // }
-        let a = 0;
-        let temp = c.style.background = "#CDF";
-        c.width |= "wocaonimaF";
-        // x.clearRect(0, 0, 1920, 1080);
-        // c.width = 1920;
-        // console.log(c.width);
-        for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
-            a = j / 159 + t;
-            x.lineWidth = 29;
-            // console.log(j);
-        }
-        x.stroke();
-    }
     u3(t, c, x) {
         let Y = 0;
         let X = 0;
@@ -872,57 +775,60 @@ class CenterObject {
  * This is because for some heavy-performance task, webgl is extremely laggy
  */
 class Dwitter extends Wrapper {
-    constructor(scene, parentContainer, x, y, width, height) {
-        let graphics = scene.add.graphics();
-        super(scene, parentContainer, x, y, graphics);
+    constructor(scene, parentContainer, x, y, width, height, useImage = true) {
+        super(scene, parentContainer, x, y, null);
+        this.useImage = useImage;
+        if (useImage) {
+            console.log("here use image");
+            this.constructImage();
+        }
+        else {
+            console.error("Graphics mode in dwitter is not allowed now");
+        }
         this.width = width;
         this.height = height;
         this.dwitterInit();
+    }
+    constructImage() {
+        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        this.c = this.canvasTexture.getSourceImage();
+        this.x = this.c.getContext('2d');
+        let img = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5);
+        this.applyTarget(img);
     }
     dwitterInit() {
         // Default origin set to 0.5
         this.setOrigin(0.5, 0.5);
         this.frame = 0;
-        this.x = this.wrappedObject;
-        this.x.lineStyle(29, 0x000000);
-        this.inner.setScale(0.7);
         // Push to the scene's update array
         this.scene.updateObjects.push(this);
     }
     update(time, dt) {
         let innerTime = this.frame / 60;
-        // if (time * 60 | 0 == this.frame - 1)
-        // {
-        //     time += 0.000001;
-        // }
         this.frame++;
-        // this.u(innerTime, this.c, this.x);
+        this.u(innerTime, this.c, this.x);
     }
     setOrigin(xOri, yOri) {
-        this.wrappedObject.x = -this.width * xOri;
-        this.wrappedObject.y = -this.height * yOri;
+        if (this.useImage) {
+            this.wrappedObject.setOrigin(xOri, yOri);
+        }
+        else {
+            console.error("Graphics mode in dwitter is not allowed now");
+        }
     }
     u(t, c, x) {
+        // In inheritance
     }
 }
 class Dwitter65536 extends Dwitter {
     u(t, c, x) {
-        // let a = 0;
-        // x.clear();
-        // x.lineStyle(29, 0x000000);
-        // x.beginPath();
-        // for(let j=3e3;j--;) {
-        //     a=j/159+t;           
-        //     x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a);            
-        // }
-        // x.strokePath();
-        // x.closePath();
-        x.fillStyle(0x000000, 1);
-        let Y = 0;
-        let X = 0;
-        let r = 140 - 16 * (t < 10 ? t : 0);
-        for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
-            X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
+        let a = 0;
+        c.width |= c.style.background = "#CDF";
+        for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * Math.pow((S(a - t * 2) / 2 + .5), 9), a, a)) {
+            a = j / 159 + t;
+            x.lineWidth = 29;
+        }
+        x.stroke();
     }
 }
 var EnemyType;

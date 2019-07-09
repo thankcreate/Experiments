@@ -1674,10 +1674,13 @@ var TweenPromise = {
     }
 };
 var TimeOutPromise = {
-    create: function (dt) {
+    create: function (dt, isResolve = true) {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                resolve('timeout');
+                if (isResolve)
+                    resolve('timeout');
+                else
+                    reject('timeout');
             }, dt);
         });
     }
@@ -2179,12 +2182,19 @@ class SpeechManager {
                 var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
                 var url = URL.createObjectURL(blob);
                 // console.log(url);    
-                this.phaserLoadAndPlay(text, text, url, false, play);
+                // this.phaserLoadAndPlay(text, text, url, false, play);
             }, err => {
                 console.log("error in quickLoadAndPlay");
             });
         }
     }
+    /**
+     * If after 'timeOut' the resource is still not ready to play\
+     * cancel the whole process
+     * @param text
+     * @param play
+     * @param timeOut
+     */
     staticLoadAndPlay(text, play = true, timeOut = 4) {
         return apiTextToSpeech(text, "no_id")
             .then(sucRet => {
@@ -2192,7 +2202,10 @@ class SpeechManager {
             let retText = sucRet.input;
             let retPath = sucRet.outputPath;
             let md5 = sucRet.md5;
-            return this.phaserLoadAndPlay(retText, md5, retPath, true, play);
+            return this.phaserLoad(retText, md5, retPath, true);
+        })
+            .then(key => {
+            return this.playSoundByKey(key);
         })
             .catch(e => {
             console.log("staticLoadAndPlay catched error");
@@ -2211,7 +2224,7 @@ class SpeechManager {
         }
         this.loadedSpeechFilesQuick = {};
     }
-    phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true) {
+    phaserLoad(text, key, fullPath, isStatic = true) {
         // console.log("isStatic: " + isStatic);
         // console.log("------------------------------");      
         let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
@@ -2220,14 +2233,30 @@ class SpeechManager {
             this.loadedSpeechFilesQuick.hasOwnProperty(key);
         // double check
         if (cachedByMySelf && cachedInPhaser) {
-            return this.playSoundByKey(key);
+            return Promise.resolve(key);
         }
         else {
-            console.log(fullPath);
-            return this.loadAudio(key, [fullPath], isStatic, play);
+            // console.log(fullPath);
+            return this.loadAudio(key, [fullPath], isStatic);
         }
     }
-    loadAudio(key, pathArray, isStatic = true, play = true) {
+    // phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true): Pany {
+    //     // console.log("isStatic: " + isStatic);
+    //     // console.log("------------------------------");      
+    //     let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+    //     let cachedByMySelf = isStatic ?
+    //         this.loadedSpeechFilesStatic.hasOwnProperty(key) :
+    //         this.loadedSpeechFilesQuick.hasOwnProperty(key);
+    //     // double check
+    //     if (cachedByMySelf && cachedInPhaser) {
+    //         return this.playSoundByKey(key);
+    //     }
+    //     else {
+    //         console.log(fullPath);
+    //         return this.loadAudio(key, [fullPath], isStatic, play);
+    //     }
+    // }
+    loadAudio(key, pathArray, isStatic = true) {
         return new Promise((resolve, reject) => {
             this.scene.load.audio(key, pathArray);
             let localThis = this;
@@ -2242,13 +2271,10 @@ class SpeechManager {
                 this.loadedSpeechFilesStatic[key] = true;
             else
                 this.loadedSpeechFilesQuick[key] = true;
-            if (suc === key) {
-                if (play)
-                    return this.playSoundByKey(key);
-                else {
-                    return Promise.resolve('only load');
-                }
-            }
+            if (suc === key)
+                return Promise.resolve(key);
+            else
+                return Promise.reject("suc != key");
         });
     }
     playSoundByKey(key) {

@@ -156,7 +156,7 @@ class Scene1 extends BaseScene {
     initFsmFirstMeet(){
         this.fsm.getState("FirstMeet")
         .addAction((state: FsmState, result, resolve, reject)=>{
-            this.playSpeech("God, someone find me finally!").then(suc=>{
+            this.playSpeech("God, someone find me finally!").then(suc=>{                
                 resolve(suc);
             }, err=>{
                 reject(err);

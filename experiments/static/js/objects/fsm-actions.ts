@@ -10,10 +10,13 @@ var TweenPromise = {
 }
 
 var TimeOutPromise = {
-    create: function (dt: number): Pany {
+    create: function (dt: number, isResolve:boolean = true): Pany {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                resolve('timeout')
+                if(isResolve)
+                    resolve('timeout')
+                else
+                    reject('timeout');
             }, dt)
         })
     }

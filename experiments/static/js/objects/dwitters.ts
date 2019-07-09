@@ -1,3 +1,4 @@
+var canvasIndex = 0;
 /**
  * The current Dwitter only uses Canvas context to draw things \
  * This is because for some heavy-performance task, webgl is extremely laggy
@@ -19,33 +20,36 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
         super(scene, parentContainer, x, y, null);
         this.useImage = useImage;
 
+        this.height = height;
+        this.width = width;
+
         if (useImage) {
-            console.log("here use image");
             this.constructImage();
         }
         else {
             console.error("Graphics mode in dwitter is not allowed now");
         }
 
-        this.width = width;
-        this.height = height;
+
+
 
         this.dwitterInit();
     }
 
     constructImage() {
-        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        canvasIndex++;
+        this.canvasTexture = this.scene.textures.createCanvas('dwitter' + canvasIndex, this.width, this.height);
         this.c = this.canvasTexture.getSourceImage();
         this.x = this.c.getContext('2d');
 
-        let img = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5);
+        let img = this.scene.add.image(0, 0, 'dwitter' + canvasIndex).setOrigin(0.5, 0.5);
         this.applyTarget(img);
     }
 
     dwitterInit() {
         // Default origin set to 0.5
         this.setOrigin(0.5, 0.5);
-        this.frame = 0;        
+        this.frame = 0;
 
         // Push to the scene's update array
         this.scene.updateObjects.push(this);
@@ -73,16 +77,42 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
 }
 
 class Dwitter65536 extends Dwitter {
-    u(t, c: any, x) {        
+    u(t, c: any, x) {
 
         let a = 0;
-        c.width |= c.style.background = <any>"#CDF"; 
-        
-        for(let j=3e3;j--;x.arc(960,540,430+60*S(j/500+a*4)*(S(a-t * 2)/2+.5)**9,a,a)) {
-            a=j/159+t;
-            x.lineWidth=29; 
+        c.width |= c.style.background = <any>"#CDF";
+
+        for (let j = 3e3; j--; x.arc(960, 540, 430 + 60 * S(j / 500 + a * 4) * (S(a - t * 2) / 2 + .5) ** 9, a, a)) {
+            a = j / 159 + t;
+            x.lineWidth = 29;
         }
-            
+
         x.stroke();
     }
+}
+
+
+class Dwitter65537 extends Dwitter {
+
+    dwitterInit() {
+        super.dwitterInit();
+        this.inner.alpha = 0.04;
+    }
+
+    u(t, c: any, x) {
+        let letbase = 5;
+        t = ~~(t / 5);
+        t += letbase;
+
+        let a = 0;
+        c.width |= 0
+
+        for (let i = 1e3; i--; ) {
+            x.arc(this.width / 2, this.height / 2, i ^ (t * 25 % 600), i / 100, i / 100 + .03);
+            x.stroke();
+            x.beginPath(x.lineWidth = 70);
+        }
+
+    }
+
 }

@@ -66,6 +66,7 @@ class Scene1 extends BaseScene {
         // Dwitter test
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
 
+        let d2 = new Dwitter65537(this, this.container, 0, 0, 2400, 1200, true);       
          // Main FSM
         this.initFsm();
         
@@ -159,7 +160,7 @@ class Scene1 extends BaseScene {
             this.enemyManager.startSpawn();
 
             s.autoOn($(document), 'keydown', e =>{       
-                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.B) {                    
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {                    
                     s.event("BackToHome");   // <-------------
                 }
             });

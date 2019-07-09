@@ -71,6 +71,7 @@ class Scene1 extends BaseScene {
         this.fitImageToSize(this.footer, 100);
         // Dwitter test
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
+        let d2 = new Dwitter65537(this, this.container, 0, 0, 2400, 1200, true);
         // Main FSM
         this.initFsm();
     }
@@ -145,7 +146,7 @@ class Scene1 extends BaseScene {
             this.centerObject.prepareToGame();
             this.enemyManager.startSpawn();
             s.autoOn($(document), 'keydown', e => {
-                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.B) {
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BackToHome"); // <-------------
                 }
             });
@@ -770,6 +771,7 @@ class CenterObject {
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
+var canvasIndex = 0;
 /**
  * The current Dwitter only uses Canvas context to draw things \
  * This is because for some heavy-performance task, webgl is extremely laggy
@@ -778,22 +780,22 @@ class Dwitter extends Wrapper {
     constructor(scene, parentContainer, x, y, width, height, useImage = true) {
         super(scene, parentContainer, x, y, null);
         this.useImage = useImage;
+        this.height = height;
+        this.width = width;
         if (useImage) {
-            console.log("here use image");
             this.constructImage();
         }
         else {
             console.error("Graphics mode in dwitter is not allowed now");
         }
-        this.width = width;
-        this.height = height;
         this.dwitterInit();
     }
     constructImage() {
-        this.canvasTexture = this.scene.textures.createCanvas('dwitter', 1920, 1080);
+        canvasIndex++;
+        this.canvasTexture = this.scene.textures.createCanvas('dwitter' + canvasIndex, this.width, this.height);
         this.c = this.canvasTexture.getSourceImage();
         this.x = this.c.getContext('2d');
-        let img = this.scene.add.image(0, 0, 'dwitter').setOrigin(0.5, 0.5);
+        let img = this.scene.add.image(0, 0, 'dwitter' + canvasIndex).setOrigin(0.5, 0.5);
         this.applyTarget(img);
     }
     dwitterInit() {
@@ -829,6 +831,24 @@ class Dwitter65536 extends Dwitter {
             x.lineWidth = 29;
         }
         x.stroke();
+    }
+}
+class Dwitter65537 extends Dwitter {
+    dwitterInit() {
+        super.dwitterInit();
+        this.inner.alpha = 0.04;
+    }
+    u(t, c, x) {
+        let letbase = 5;
+        t = ~~(t / 5);
+        t += letbase;
+        let a = 0;
+        c.width |= 0;
+        for (let i = 1e3; i--;) {
+            x.arc(this.width / 2, this.height / 2, i ^ (t * 25 % 600), i / 100, i / 100 + .03);
+            x.stroke();
+            x.beginPath(x.lineWidth = 70);
+        }
     }
 }
 var EnemyType;

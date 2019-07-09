@@ -26,7 +26,7 @@ function getFormData($form) {
     return indexed_array;
 }
 
-function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any, dtType?: string): Pany {
+function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (arg0: any) => any, dtType?: string) {
     $.ajax({
         type: "POST",
         dataType: 'json',
@@ -44,6 +44,23 @@ function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (ar
     });
 }
 
+function apiPromise(api: string, inputData: string, dtType?: string) : Pany{
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "POST",
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            url: "/" + api,
+            data: inputData,
+            success: function (result) {
+                resolve(result);
+            },
+            error: function (result) {
+                reject(result);
+            }
+        });
+    });
+}
 
 // API2 is to get the similarity between two strings
 function api2(input: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) {
@@ -77,10 +94,10 @@ function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (a
 }
 
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech(inputText: string, identifier: string, suc?: (arg0: any) => any, err?: (arg0: any) => any) : Pany{
+function apiTextToSpeech(inputText: string, identifier: string) : Pany{
     let dataOb = { input: inputText, id: identifier, api: 1 };
     let dataStr = JSON.stringify(dataOb);
-    return api("api_speech", dataStr, suc, err);
+    return apiPromise("api_speech", dataStr);
 }
 
 // API speech is to get the path of the generated audio by the input text
@@ -277,3 +294,7 @@ function conv(webgl, canvas2D) {
 
     return outCanvas;
 };
+
+function clamp(val: number, min: number, max: number): number {
+    return Math.max(Math.min(val, max), min);
+}

@@ -268,7 +268,7 @@ class FsmState {
         }
 
         curPromise.catch(reason => {
-            console.log('catched: ' + reason);
+            console.log('catched error in state: ' + reason);
         });
     }
 

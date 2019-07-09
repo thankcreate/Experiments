@@ -67,17 +67,17 @@ function yabali() {
     testSpeechAPI2();
 }
 
-function testSpeechAPI() {
-    var inputText = $('#arg1').val();
-    var id = $('#arg2').val();
-    apiTextToSpeech(inputText, id,
-        sucData => {
-            console.log(sucData);
-        },
-        errData => {
-            console.log("fail speech");
-        });
-}
+// function testSpeechAPI() {
+//     var inputText = $('#arg1').val();
+//     var id = $('#arg2').val();
+//     apiTextToSpeech(inputText, id,
+//         sucData => {
+//             console.log(sucData);
+//         },
+//         errData => {
+//             console.log("fail speech");
+//         });
+// }
 
 
 

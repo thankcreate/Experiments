@@ -6,7 +6,7 @@ var monologueList = [
     'I think someone is watching me?\n There must be!',
     'A cursor! I found a curor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',
-    "Is it that I'm too tired?\nI thought I smelled a human being?",
+    "Is it that I'm too tired?\nI thought I smelled a human being",
     "Nah, totally nothing\nI'm so bored",
     ">_<\nI'll never accomplish my task",
     'Do you like to play games?\nI want to play a game with you',
@@ -34,6 +34,7 @@ class Subtitle extends Wrapper<PhText> {
         
         
         this.monologueIndex = ~~(Math.random() * monologueList.length);
+        // this.monologueIndex = -1;
 
         // this.showMonologue(this.monologueIndex);
         // this.startMonologue();
@@ -67,6 +68,7 @@ class Subtitle extends Wrapper<PhText> {
     }
 
     showMonologue(index: number) {
+        index = clamp(index, 0, monologueList.length - 1);
         this.monologueIndex = index;
         this.wrappedObject.text = monologueList[index];
     }
@@ -81,5 +83,10 @@ class Subtitle extends Wrapper<PhText> {
         return ret;
     }
     
+
+    loadAndSay(val: string) : Pany {
+        this.wrappedObject.text = val;
+        return this.scene.playSpeech(val);
+    }
 
 }

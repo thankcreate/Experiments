@@ -7,7 +7,7 @@ class SpeechManager {
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
     }
-    
+
     quickLoadAndPlay(text: string, play = true) {
         console.log("Begin quick load and play");
 
@@ -17,41 +17,44 @@ class SpeechManager {
         let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
         let cachedByMySelf = this.loadedSpeechFilesQuick.hasOwnProperty(key);
         let cached = cachedInPhaser && cachedByMySelf;
-        if(cached) {
-            if(play) {
+        if (cached) {
+            if (play) {
                 // console.log("play cahced");
                 this.scene.sound.play(key);
             }
         }
-        else
-        {
-            apiTextToSpeech2(text, "no_id", (oReq) => {            
+        else {
+            apiTextToSpeech2(text, "no_id", (oReq) => {
                 console.log("suc in quickLoadAndPlay")
-                
-                var arrayBuffer = oReq.response;    
+
+                var arrayBuffer = oReq.response;
                 // this blob may leak memory
                 var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
                 var url = URL.createObjectURL(blob);
                 // console.log(url);    
                 this.phaserLoadAndPlay(text, text, url, false, play);
             },
-            err => {
-                console.log("error in quickLoadAndPlay")
-            }            
+                err => {
+                    console.log("error in quickLoadAndPlay")
+                }
             );
         }
     }
 
-    staticLoadAndPlay(text: string, play = true) : Pany {
-        apiTextToSpeech(text, "no_id", (sucRet) => {
-            let retID = sucRet.id;
-            let retText = sucRet.input;
-            let retPath = sucRet.outputPath;
-            let md5 = sucRet.md5;
-
-            this.phaserLoadAndPlay(retText, md5, retPath, true, play);
-        });
-
+    staticLoadAndPlay(text: string, play = true, timeOut:number = 4): Pany {
+        return apiTextToSpeech(text, "no_id")
+            .then(
+                sucRet => {
+                    let retID = sucRet.id;
+                    let retText = sucRet.input;
+                    let retPath = sucRet.outputPath;
+                    let md5 = sucRet.md5;
+                    return this.phaserLoadAndPlay(retText, md5, retPath, true, play);
+                })
+            .catch(e => {
+                console.log("staticLoadAndPlay catched error");
+                console.log(e)
+            });
     }
 
     clearSpeechCacheStatic() {
@@ -68,10 +71,9 @@ class SpeechManager {
         this.loadedSpeechFilesQuick = {};
     }
 
-    phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true) {
+    phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true): Pany {
 
         // console.log("isStatic: " + isStatic);
-
         // console.log("------------------------------");      
         let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
         let cachedByMySelf = isStatic ?
@@ -80,34 +82,49 @@ class SpeechManager {
 
         // double check
         if (cachedByMySelf && cachedInPhaser) {
-            this.scene.sound.play(key);
+            return this.playSoundByKey(key);
         }
         else {
-            // console.log(fullPath);
-            this.scene.load.audio(key, [fullPath]);
+            console.log(fullPath);
+            return this.loadAudio(key, [fullPath], isStatic, play);
+        }
+    }
+
+    loadAudio(key: string, pathArray: string[], isStatic = true, play = true): Pany {
+        return new Promise((resolve, reject) => {
+            this.scene.load.audio(key, pathArray);
             let localThis = this;
 
             this.scene.load.addListener('filecomplete',
-                function onCompleted(arg1, arg2, arg3) {
-                    // console.log("actually!!!!!!!!1");
-                    if (isStatic)
-                        localThis.loadedSpeechFilesStatic[key] = true;
-                    else
-                        localThis.loadedSpeechFilesQuick[key] = true;
-
-                    if (arg1 === key) {
-                        if (play) {
-                            // localThis.scene.sound.play(key);
-                            var music = localThis.scene.sound.add(key);
-                            music.on('complete', (param)=>{console.log(param);});
-                            music.play();
-                        }
-                            
-                    }
-
+                function onCompleted(arg1, arg2, arg3) {                   
+                    resolve(arg1);
                     localThis.scene.load.removeListener('filecomplete', onCompleted);
                 });
-            this.scene.load.start();            
-        }
+            this.scene.load.start();
+        })
+        .then(suc => {
+            if (isStatic)
+                this.loadedSpeechFilesStatic[key] = true;
+            else
+                this.loadedSpeechFilesQuick[key] = true;
+
+            if (suc === key) {
+                if (play)
+                    return this.playSoundByKey(key);
+                else {
+                    return Promise.resolve('only load');
+                }
+            }
+        });
+    }
+
+    playSoundByKey(key: string): Pany {
+        return new Promise((resolve, reject) => {
+            var music = this.scene.sound.add(key);
+            music.on('complete', (param) => {                
+                resolve(param);
+            });
+            music.play();
+        });
     }
 }

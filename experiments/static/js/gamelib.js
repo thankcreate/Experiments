@@ -8,9 +8,9 @@ class BaseScene extends Phaser.Scene {
         let controller = this.scene.get("Controller");
         return controller;
     }
-    playSpeech(text) {
+    playSpeech(text, timeOut = 4) {
         let controller = this.scene.get("Controller");
-        return controller.playSpeechInController(text);
+        return controller.playSpeechInController(text, timeOut);
     }
     /**
      * Muse sure called super first
@@ -38,9 +38,9 @@ class Controller extends BaseScene {
         this.scene.launch('Scene1');
         myResize(this.game);
     }
-    playSpeechInController(text) {
+    playSpeechInController(text, timeOut = 4) {
         // this.speechManager.quickLoadAndPlay(text);
-        return this.speechManager.staticLoadAndPlay(text);
+        return this.speechManager.staticLoadAndPlay(text, true, timeOut);
     }
 }
 /// <reference path="scene-controller.ts" />
@@ -134,16 +134,19 @@ class Scene1 extends BaseScene {
                 this.centerObject.playerInputText.homePointerDown();
                 this.subtitle.stopMonologue();
                 this.dwitterBKG.toStaticMode();
-                // s.event('ToFirstMeet');
-                s.finished();
+                s.event('ToFirstMeet');
+                // s.finished();
             });
         });
     }
     initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
-            .addAction(() => {
-            console.log("haha");
-            this.playSpeech("God, someone find me finally!");
+            .addAction((state, result, resolve, reject) => {
+            this.playSpeech("God, someone find me finally!").then(suc => {
+                resolve(suc);
+            }, err => {
+                reject(err);
+            });
         });
     }
     initFsmHomeToGameAnimation() {
@@ -446,15 +449,17 @@ function yabali() {
     // });
     testSpeechAPI2();
 }
-function testSpeechAPI() {
-    var inputText = $('#arg1').val();
-    var id = $('#arg2').val();
-    apiTextToSpeech(inputText, id, sucData => {
-        console.log(sucData);
-    }, errData => {
-        console.log("fail speech");
-    });
-}
+// function testSpeechAPI() {
+//     var inputText = $('#arg1').val();
+//     var id = $('#arg2').val();
+//     apiTextToSpeech(inputText, id,
+//         sucData => {
+//             console.log(sucData);
+//         },
+//         errData => {
+//             console.log("fail speech");
+//         });
+// }
 function testSpeechAPI2() {
     var inputText = $('#arg1').val();
     var id = $('#arg2').val();
@@ -514,6 +519,23 @@ function api(api, inputData, suc, err, dtType) {
         }
     });
 }
+function apiPromise(api, inputData, dtType) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "POST",
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            url: "/" + api,
+            data: inputData,
+            success: function (result) {
+                resolve(result);
+            },
+            error: function (result) {
+                reject(result);
+            }
+        });
+    });
+}
 // API2 is to get the similarity between two strings
 function api2(input, suc, err) {
     api("api_2", input, suc, err);
@@ -539,10 +561,10 @@ function api3WithTwoParams(inputString, arrayStrings, suc, err) {
     api3(data, suc, err);
 }
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech(inputText, identifier, suc, err) {
+function apiTextToSpeech(inputText, identifier) {
     let dataOb = { input: inputText, id: identifier, api: 1 };
     let dataStr = JSON.stringify(dataOb);
-    return api("api_speech", dataStr, suc, err);
+    return apiPromise("api_speech", dataStr);
 }
 // API speech is to get the path of the generated audio by the input text
 function apiTextToSpeech2(inputText, identifier, suc, err) {
@@ -692,6 +714,9 @@ function conv(webgl, canvas2D) {
     return outCanvas;
 }
 ;
+function clamp(val, min, max) {
+    return Math.max(Math.min(val, max), min);
+}
 class SpeakerButton extends ImageWrapperClass {
     init() {
         this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
@@ -1542,7 +1567,7 @@ class FsmState {
             });
         }
         curPromise.catch(reason => {
-            console.log('catched: ' + reason);
+            console.log('catched error in state: ' + reason);
         });
     }
     setAsStartup() {
@@ -1647,6 +1672,32 @@ var TweenPromise = {
         });
         return tp;
     }
+};
+var TimeOutPromise = {
+    create: function (dt) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('timeout');
+            }, dt);
+        });
+    }
+};
+FsmState.prototype.addSubtitleAction = function (subtitle, text, timeout = 4, minStay = 3, finishedSpeechWait = 1.5) {
+    let self = this;
+    self.addAction((state, result, resolve, reject) => {
+        let subtitleP = subtitle.loadAndSay(text).then(suc => {
+            return TimeOutPromise.create(finishedSpeechWait);
+        });
+        let minStayP = TimeOutPromise.create(minStay);
+        Promise.all([minStayP, subtitleP])
+            .then(s => {
+            resolve('suc');
+        })
+            .catch(e => {
+            resolve('load and Say fail');
+        });
+    });
+    return self;
 };
 FsmState.prototype.addLogAction = function (message) {
     let self = this;
@@ -2134,13 +2185,18 @@ class SpeechManager {
             });
         }
     }
-    staticLoadAndPlay(text, play = true) {
-        apiTextToSpeech(text, "no_id", (sucRet) => {
+    staticLoadAndPlay(text, play = true, timeOut = 4) {
+        return apiTextToSpeech(text, "no_id")
+            .then(sucRet => {
             let retID = sucRet.id;
             let retText = sucRet.input;
             let retPath = sucRet.outputPath;
             let md5 = sucRet.md5;
-            this.phaserLoadAndPlay(retText, md5, retPath, true, play);
+            return this.phaserLoadAndPlay(retText, md5, retPath, true, play);
+        })
+            .catch(e => {
+            console.log("staticLoadAndPlay catched error");
+            console.log(e);
         });
     }
     clearSpeechCacheStatic() {
@@ -2164,30 +2220,45 @@ class SpeechManager {
             this.loadedSpeechFilesQuick.hasOwnProperty(key);
         // double check
         if (cachedByMySelf && cachedInPhaser) {
-            this.scene.sound.play(key);
+            return this.playSoundByKey(key);
         }
         else {
-            // console.log(fullPath);
-            this.scene.load.audio(key, [fullPath]);
+            console.log(fullPath);
+            return this.loadAudio(key, [fullPath], isStatic, play);
+        }
+    }
+    loadAudio(key, pathArray, isStatic = true, play = true) {
+        return new Promise((resolve, reject) => {
+            this.scene.load.audio(key, pathArray);
             let localThis = this;
             this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
-                // console.log("actually!!!!!!!!1");
-                if (isStatic)
-                    localThis.loadedSpeechFilesStatic[key] = true;
-                else
-                    localThis.loadedSpeechFilesQuick[key] = true;
-                if (arg1 === key) {
-                    if (play) {
-                        // localThis.scene.sound.play(key);
-                        var music = localThis.scene.sound.add(key);
-                        music.on('complete', (param) => { console.log(param); });
-                        music.play();
-                    }
-                }
+                resolve(arg1);
                 localThis.scene.load.removeListener('filecomplete', onCompleted);
             });
             this.scene.load.start();
-        }
+        })
+            .then(suc => {
+            if (isStatic)
+                this.loadedSpeechFilesStatic[key] = true;
+            else
+                this.loadedSpeechFilesQuick[key] = true;
+            if (suc === key) {
+                if (play)
+                    return this.playSoundByKey(key);
+                else {
+                    return Promise.resolve('only load');
+                }
+            }
+        });
+    }
+    playSoundByKey(key) {
+        return new Promise((resolve, reject) => {
+            var music = this.scene.sound.add(key);
+            music.on('complete', (param) => {
+                resolve(param);
+            });
+            music.play();
+        });
     }
 }
 var monologueList = [
@@ -2198,7 +2269,7 @@ var monologueList = [
     'I think someone is watching me?\n There must be!',
     'A cursor! I found a curor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',
-    "Is it that I'm too tired?\nI thought I smelled a human being?",
+    "Is it that I'm too tired?\nI thought I smelled a human being",
     "Nah, totally nothing\nI'm so bored",
     ">_<\nI'll never accomplish my task",
     'Do you like to play games?\nI want to play a game with you',
@@ -2216,6 +2287,7 @@ class Subtitle extends Wrapper {
         target.setAlign('center');
         this.applyTarget(target);
         this.monologueIndex = ~~(Math.random() * monologueList.length);
+        // this.monologueIndex = -1;
         // this.showMonologue(this.monologueIndex);
         // this.startMonologue();
     }
@@ -2243,6 +2315,7 @@ class Subtitle extends Wrapper {
         this.showMonologue(this.monologueIndex);
     }
     showMonologue(index) {
+        index = clamp(index, 0, monologueList.length - 1);
         this.monologueIndex = index;
         this.wrappedObject.text = monologueList[index];
     }
@@ -2253,6 +2326,10 @@ class Subtitle extends Wrapper {
             fontFamily: gameplayConfig.subtitleFontFamily,
         };
         return ret;
+    }
+    loadAndSay(val) {
+        this.wrappedObject.text = val;
+        return this.scene.playSpeech(val);
     }
 }
 let code = `

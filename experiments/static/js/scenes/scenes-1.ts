@@ -147,17 +147,20 @@ class Scene1 extends BaseScene {
 
 
                 this.dwitterBKG.toStaticMode();
-                // s.event('ToFirstMeet');
-                s.finished();
+                s.event('ToFirstMeet');
+                // s.finished();
             });
         });
     }
 
     initFsmFirstMeet(){
         this.fsm.getState("FirstMeet")
-        .addAction(()=>{
-            console.log("haha");
-            this.playSpeech("God, someone find me finally!")
+        .addAction((state: FsmState, result, resolve, reject)=>{
+            this.playSpeech("God, someone find me finally!").then(suc=>{
+                resolve(suc);
+            }, err=>{
+                reject(err);
+            });
         });
     }
 

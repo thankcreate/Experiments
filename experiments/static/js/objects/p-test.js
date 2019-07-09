@@ -110,18 +110,69 @@
 // obj.func3();
 
 
+// let p1 = new Promise((resolve, reject) => {
+//     resolve('成功了')
+//   })
+  
+//   let p2 = new Promise((resolve, reject) => {
+//     resolve('success')
+//   })
+  
+//   // let p3 = Promise.reject('fuck');
+  
+//   Promise.all([p1, p2]).then((result) => {
+//     console.log(result)               //['成功了', 'success']
+//   }).catch((error) => {
+//     console.log(error)
+//   })
+
+
+// Promise.reject('haha').then(s=>{})
+// .then(s=>{
+//   console.log(s);
+// }, r=>{
+//   return new Promise((res, ref) => {
+//     res('im');
+//     setTimeout(() => {
+//       console.log('hahahah');
+//     }, 2000);
+
+//     setTimeout(() => {
+//       console.log('h1h1h1');
+//     }, 1000);
+//   })
+// })
+// .then(s=>console.log(s))
+
+// .catch(reason =>{
+//   console.log(reason);
+//   return Promise.reject('bb');
+// }).catch(reason=>{
+//   console.log(reason);
+// });
+
+
 let p1 = new Promise((resolve, reject) => {
+  setTimeout(()=>{
     resolve('成功了')
-  })
+  }, 3000)
   
-  let p2 = new Promise((resolve, reject) => {
-    resolve('success')
-  })
-  
-  // let p3 = Promise.reject('fuck');
-  
-  Promise.all([p1, p2]).then((result) => {
-    console.log(result)               //['成功了', 'success']
-  }).catch((error) => {
-    console.log(error)
-  })
+})
+
+let p2 = new Promise((resolve, reject) => {
+  resolve('success')
+})
+
+let p3 = Promise.reject('失败')
+
+// Promise.all([p1, p2]).then((result) => {
+//   console.log(result)               //['成功了', 'success']
+// }).catch((error) => {
+//   console.log(error)
+// })
+
+Promise.all([p1,p3,p2]).then((result) => {
+  console.log(result)
+}).catch((error) => {
+  console.log(error)      // 失败了，打出 '失败'
+})

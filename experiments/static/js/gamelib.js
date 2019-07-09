@@ -1596,11 +1596,11 @@ class FsmState {
             this.onUpdate(state, time, dt);
         let mp = getGame().input.mousePointer;
         this.safeInOutWatchers.forEach(e => {
-            if (e.target.getBounds().contains(mp.x, mp.y) && e.state == 0) {
+            if (e.state == 0 && e.target.getBounds().contains(mp.x, mp.y)) {
                 e.state = 1;
                 e.target.emit('safein');
             }
-            else if (!e.target.getBounds().contains(mp.x, mp.y) && e.state == 1) {
+            else if (e.state == 1 && !e.target.getBounds().contains(mp.x, mp.y)) {
                 e.state = 0;
                 e.target.emit('safeout');
             }

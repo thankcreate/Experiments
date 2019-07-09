@@ -82,9 +82,32 @@
 // k.func();
 
 
-let func1 = (arg1, arg2) => {
-    console.log(arg1, arg2);
-}
+// let func1 = (arg1, arg2) => {
+//     console.log(arg1, arg2);
+// }
 
-let func2 = func1.bind(this, 1);
-func2(3);
+// let func2 = func1.bind(this, 1);
+// func2(3);
+
+
+
+// var obj = {
+//     name: 'linxin',
+//     func: function() {
+//         console.log(this.name);
+//     }
+// }
+
+// var obj2 = {
+//     name: 'linxin2',
+//     func: function()  {
+//         console.log(this.name);
+//     }
+// }
+
+// function funcG() {
+//     console.log(this.name);
+// }
+
+// obj.func3 = obj2.func.bind(obj2);
+// obj.func3();

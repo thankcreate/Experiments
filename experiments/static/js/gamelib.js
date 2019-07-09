@@ -63,7 +63,12 @@ class Scene1 extends BaseScene {
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
         // Add confirmed listener for confirmedEvent to enemyManager
-        this.centerObject.playerInputText.confirmedEvent.on(input => { this.enemyManager.inputTextConfirmed(input); });
+        this.centerObject.playerInputText.confirmedEvent.on(input => {
+            this.enemyManager.inputTextConfirmed(input);
+            this.time.delayedCall(300, () => {
+                this.dwitterBKG.next();
+            }, null, null);
+        });
         // Bottom badge
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
@@ -71,7 +76,7 @@ class Scene1 extends BaseScene {
         this.fitImageToSize(this.footer, 100);
         // Dwitter test
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-        let d2 = new Dwitter65537(this, this.container, 0, 0, 2400, 1200, true);
+        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
         // Main FSM
         this.initFsm();
     }
@@ -108,16 +113,28 @@ class Scene1 extends BaseScene {
     initFsmHome() {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             let mainImage = this.centerObject.mainImage;
+            console.log(this.centerObject.inner.scale);
+            ;
+            console.log(mainImage.scale);
+            console.log(mainImage.getBounds());
             s.autoOn(mainImage, 'pointerover', e => {
+                console.log("pointerover");
                 this.centerObject.playerInputText.homePointerOver();
+                this.dwitterBKG.toBlinkMode();
             });
             s.autoOn(mainImage, 'pointerout', e => {
+                console.log("pointerout");
                 this.centerObject.playerInputText.homePointerOut();
+                this.dwitterBKG.toStaticMode();
             });
             s.autoOn(mainImage, 'pointerdown', e => {
+                console.log("pointerdown");
                 this.centerObject.playerInputText.homePointerDown();
+                this.dwitterBKG.toStaticMode();
                 s.finished();
             });
+        });
+        this.fsm.getState("Home").setOnUpdate(s => {
         });
     }
     initFsmHomeToGameAnimation() {
@@ -779,6 +796,7 @@ var canvasIndex = 0;
 class Dwitter extends Wrapper {
     constructor(scene, parentContainer, x, y, width, height, useImage = true) {
         super(scene, parentContainer, x, y, null);
+        this.isRunning = true;
         this.useImage = useImage;
         this.height = height;
         this.width = width;
@@ -806,6 +824,8 @@ class Dwitter extends Wrapper {
         this.scene.updateObjects.push(this);
     }
     update(time, dt) {
+        if (!this.isRunning)
+            return;
         let innerTime = this.frame / 60;
         this.frame++;
         this.u(innerTime, this.c, this.x);
@@ -834,18 +854,61 @@ class Dwitter65536 extends Dwitter {
     }
 }
 class Dwitter65537 extends Dwitter {
+    constructor() {
+        super(...arguments);
+        this.freq = 5; // frequency
+        this.phase = 5; // initial phase
+        this.lastT = -1;
+    }
     dwitterInit() {
         super.dwitterInit();
-        this.inner.alpha = 0.04;
+        this.inner.alpha = 0.03;
+        this.needModify = true;
+        this.param1 = 25;
+        this.needStopOnFirstShow = true;
     }
     u(t, c, x) {
-        let letbase = 5;
-        t = ~~(t / 5);
-        t += letbase;
+        // console.log(t);
+        if (this.needModify) {
+            t = ~~(t / this.freq);
+            t += this.phase;
+        }
+        if (t === this.lastT) {
+            // console.log("same return " + t +"   "+ this.lastT);
+            return;
+        }
+        this.lastT = t;
+        // console.log("here");
+        this._u(t, c, x);
+    }
+    next() {
+        this.lastT++;
+        this._u(this.lastT, this.c, this.x);
+    }
+    toBlinkMode() {
+        this.isRunning = true;
+        this.needModify = false;
+        this.param1 = 200;
+    }
+    toStaticMode() {
+        this.isRunning = false;
+        this.needModify = true;
+        this.param1 = 25;
+    }
+    toSlowStepMode() {
+        this.isRunning = true;
+        this.needModify = true;
+        this.param1 = 25;
+    }
+    _u(t, c, x) {
+        if (this.needStopOnFirstShow) {
+            this.needStopOnFirstShow = false;
+            this.isRunning = false;
+        }
         let a = 0;
         c.width |= 0;
         for (let i = 1e3; i--;) {
-            x.arc(this.width / 2, this.height / 2, i ^ (t * 25 % 600), i / 100, i / 100 + .03);
+            x.arc(this.width / 2, this.height / 2, i ^ (t * this.param1 % 600), i / 100, i / 100 + .03);
             x.stroke();
             x.beginPath(x.lineWidth = 70);
         }

@@ -16,6 +16,8 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
 
     useImage: boolean;
 
+    isRunning: boolean = true;
+
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, width: number, height: number, useImage: boolean = true) {
         super(scene, parentContainer, x, y, null);
         this.useImage = useImage;
@@ -55,8 +57,11 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
         this.scene.updateObjects.push(this);
     }
 
+    
 
     update(time, dt) {
+        if(!this.isRunning)
+            return;
         let innerTime = this.frame / 60;
         this.frame++;
         this.u(innerTime, this.c, this.x);
@@ -94,25 +99,83 @@ class Dwitter65536 extends Dwitter {
 
 class Dwitter65537 extends Dwitter {
 
+    freq = 5        // frequency
+    phase = 5;      // initial phase
+    lastT = -1;
+
+    needModify;
+    param1;    
+    needStopOnFirstShow;
+   
+
     dwitterInit() {
         super.dwitterInit();
-        this.inner.alpha = 0.04;
+        this.inner.alpha = 0.03;
+
+        this.needModify = true;
+        this.param1 = 25;       
+        this.needStopOnFirstShow = true;
     }
 
-    u(t, c: any, x) {
-        let letbase = 5;
-        t = ~~(t / 5);
-        t += letbase;
+
+
+
+    u(t, c, x) {
+        // console.log(t);
+        if(this.needModify) {
+            t = ~~(t / this.freq);
+            t += this.phase;
+        }
+      
+        if(t === this.lastT) {
+           // console.log("same return " + t +"   "+ this.lastT);
+            return;
+        }
+            
+
+        this.lastT = t;
+        // console.log("here");
+        this._u(t, c, x);
+    }
+
+    next() {
+        this.lastT++;
+        this._u(this.lastT, this.c, this.x);
+    }
+
+    toBlinkMode() {
+        this.isRunning = true;
+        this.needModify = false;
+        this.param1 = 200;
+    }
+
+    toStaticMode() {
+        this.isRunning = false;
+        this.needModify = true;        
+        this.param1 = 25;
+    }
+
+    toSlowStepMode() {
+        this.isRunning = true;
+        this.needModify = true;
+        this.param1 = 25;
+    }
+
+    _u(t, c , x) {
+        if(this.needStopOnFirstShow ){
+            this.needStopOnFirstShow = false;
+            this.isRunning = false;
+        }
+
 
         let a = 0;
         c.width |= 0
 
         for (let i = 1e3; i--; ) {
-            x.arc(this.width / 2, this.height / 2, i ^ (t * 25 % 600), i / 100, i / 100 + .03);
+            x.arc(this.width / 2, this.height / 2, i ^ (t * this.param1 % 600), i / 100, i / 100 + .03);
             x.stroke();
             x.beginPath(x.lineWidth = 70);
         }
-
     }
 
 }

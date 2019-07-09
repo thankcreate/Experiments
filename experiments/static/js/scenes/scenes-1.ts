@@ -19,6 +19,8 @@ class Scene1 extends BaseScene {
 
 
     dwitterCenter: Dwitter;
+    dwitterBKG: Dwitter65537
+
     initDwitterScale: number = 0.52;
 
     constructor() {
@@ -51,7 +53,12 @@ class Scene1 extends BaseScene {
 
         // Add confirmed listener for confirmedEvent to enemyManager
         this.centerObject.playerInputText.confirmedEvent.on(
-            input => { this.enemyManager.inputTextConfirmed(input) });
+            input => {
+                this.enemyManager.inputTextConfirmed(input)
+                this.time.delayedCall(300, ()=>{
+                    this.dwitterBKG.next();
+                }, null, null);                
+            });
 
 
         // Bottom badge
@@ -60,16 +67,16 @@ class Scene1 extends BaseScene {
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.fitImageToSize(this.footer, 100);
 
-       
-        
-        
+
+
+
         // Dwitter test
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
 
-        let d2 = new Dwitter65537(this, this.container, 0, 0, 2400, 1200, true);       
-         // Main FSM
+        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
+        // Main FSM
         this.initFsm();
-        
+
     }
 
 
@@ -98,103 +105,118 @@ class Scene1 extends BaseScene {
         this.centerObject.update();
     }
 
-    getMainFsm() : IFsmData{
+    getMainFsm(): IFsmData {
         return mainFsm;
     }
 
     initFsm() {
-        this.fsm = new Fsm(this, this.getMainFsm());     
+        this.fsm = new Fsm(this, this.getMainFsm());
 
         this.initFsmHome();
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
-        this.initFsmBackToHomeAnimation();       
+        this.initFsmBackToHomeAnimation();
 
         this.fsm.start();
     }
 
-    initFsmHome(){
+    initFsmHome() {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             let mainImage = this.centerObject.mainImage;
+            console.log(this.centerObject.inner.scale);;
+            console.log(mainImage.scale);
+            console.log(mainImage.getBounds());
 
             s.autoOn(mainImage, 'pointerover', e => {
+                console.log("pointerover");
                 this.centerObject.playerInputText.homePointerOver();
+                this.dwitterBKG.toBlinkMode();
             });
 
             s.autoOn(mainImage, 'pointerout', e => {
+                console.log("pointerout");
                 this.centerObject.playerInputText.homePointerOut();
+
+                this.dwitterBKG.toStaticMode();
             });
 
-            s.autoOn(mainImage, 'pointerdown', e=> {
+            s.autoOn(mainImage, 'pointerdown', e => {
+                console.log("pointerdown");
                 this.centerObject.playerInputText.homePointerDown();
+
+                this.dwitterBKG.toStaticMode();
                 s.finished();
             });
-        });   
+        });
+
+        this.fsm.getState("Home").setOnUpdate( s=>{
+            
+        });
     }
 
-    initFsmHomeToGameAnimation(){
+    initFsmHomeToGameAnimation() {
         let dt = 1000;
         this.fsm.getState("HomeToGameAnimation")
-        .addDelayAction(this, 1500)
-        .addTweenAllAction(this, [
-            {                
-                targets: this.centerObject.inner,
-                rotation: 0,
-                scale: 1.2,
-                duration: dt,                
-            },
-            {                
-                targets: this.dwitterCenter.inner,
-                alpha: 0,
-                scale: 2,
-                duration: dt,
-            }
-        ])
-        .addDelayAction(this, 1000)
-        .addFinishAction();       
+            .addDelayAction(this, 1500)
+            .addTweenAllAction(this, [
+                {
+                    targets: this.centerObject.inner,
+                    rotation: 0,
+                    scale: 1.2,
+                    duration: dt,
+                },
+                {
+                    targets: this.dwitterCenter.inner,
+                    alpha: 0,
+                    scale: 2,
+                    duration: dt,
+                }
+            ])
+            .addDelayAction(this, 1000)
+            .addFinishAction();
     }
 
-    initFsmNormalGame(){
+    initFsmNormalGame() {
         this.fsm.getState("NormalGame").setOnEnter(s => {
             this.centerObject.prepareToGame();
             this.enemyManager.startSpawn();
 
-            s.autoOn($(document), 'keydown', e =>{       
-                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {                    
+            s.autoOn($(document), 'keydown', e => {
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BackToHome");   // <-------------
                 }
             });
 
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-    
+
         });
     }
 
-    initFsmBackToHomeAnimation(){
+    initFsmBackToHomeAnimation() {
         let dt2 = 1000;
         this.fsm.getState("BackToHomeAnimation")
-        .addAction(()=>{
-            this.centerObject.prepareToHome();  
-            this.enemyManager.stopSpawnAndClear();          
-        })
-        .addDelayAction(this, 300)
-        .addTweenAllAction(this, [
-            {
-                targets: this.centerObject.inner,
-                rotation: this.centerObject.initRotation,
-                scale: this.centerObject.initScale,
-                duration: dt2,
-                completeDelay: 1000,
-            },
-            {                
-                targets: this.dwitterCenter.inner,
-                alpha: 1,
-                scale: this.initDwitterScale,
-                duration: dt2,
-            }
-        ])
-        .addFinishAction();
+            .addAction(() => {
+                this.centerObject.prepareToHome();
+                this.enemyManager.stopSpawnAndClear();
+            })
+            .addDelayAction(this, 300)
+            .addTweenAllAction(this, [
+                {
+                    targets: this.centerObject.inner,
+                    rotation: this.centerObject.initRotation,
+                    scale: this.centerObject.initScale,
+                    duration: dt2,
+                    completeDelay: 1000,
+                },
+                {
+                    targets: this.dwitterCenter.inner,
+                    alpha: 1,
+                    scale: this.initDwitterScale,
+                    duration: dt2,
+                }
+            ])
+            .addFinishAction();
     }
 }
 

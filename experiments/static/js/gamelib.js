@@ -44,11 +44,18 @@ class Controller extends BaseScene {
     }
 }
 /// <reference path="scene-controller.ts" />
+var GameMode;
+/// <reference path="scene-controller.ts" />
+(function (GameMode) {
+    GameMode[GameMode["Normal"] = 0] = "Normal";
+    GameMode[GameMode["Zen"] = 1] = "Zen";
+})(GameMode || (GameMode = {}));
 class Scene1 extends BaseScene {
     constructor() {
         super('Scene1');
         this.mm = 0;
         this.initDwitterScale = 0.52;
+        this.mode = GameMode.Normal;
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -64,14 +71,9 @@ class Scene1 extends BaseScene {
     }
     create() {
         this.container = this.add.container(400, 299);
+        this.abContainer = this.add.container(0, 0);
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
-        this.centerObject.btnMode1.clickedEvent.on(() => {
-            this.modeBtnClicked(0);
-        });
-        this.centerObject.btnMode2.clickedEvent.on(() => {
-            this.modeBtnClicked(1);
-        });
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
         // Add confirmed listener for confirmedEvent to enemyManager
@@ -85,12 +87,23 @@ class Scene1 extends BaseScene {
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
+        this.footerInitPosi = MakePoint(this.footer);
         this.fitImageToSize(this.footer, 100);
         // Dwitters
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
+        // Back button
+        this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
+        this.backBtn.text.setColor('#000000');
+        this.backBtn.text.setFontSize(44);
+        // HP        
+        let hpBottom = 36;
+        let hpLeft = 36;
+        this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
+        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        this.hp.inner.y += 250;
         // Main FSM
         this.initFsm();
     }
@@ -120,6 +133,7 @@ class Scene1 extends BaseScene {
         this.fsm = new Fsm(this, this.getMainFsm());
         this.initFsmHome();
         this.initFsmFirstMeet();
+        this.initFsmModeSelect();
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
@@ -127,7 +141,8 @@ class Scene1 extends BaseScene {
         this.fsm.start();
     }
     initFsmHome() {
-        this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
+        let state = this.fsm.getState("Home");
+        state.setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage, e => {
@@ -140,52 +155,88 @@ class Scene1 extends BaseScene {
                 this.centerObject.playerInputText.homePointerDown();
                 this.subtitle.stopMonologue();
                 this.dwitterBKG.toStaticMode();
-                s.event('ToFirstMeet');
-                // s.finished();
+                s.event('TO_FIRST_MEET');
             });
         });
     }
     initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
+            .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            // .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
             // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
-            .addAction(() => {
+            .addEventAction("TO_MODE_SELECT");
+    }
+    initFsmModeSelect() {
+        //* Enter Actions
+        let state = this.fsm.getState("ModeSelect");
+        // Hide content of centerObject
+        state.addAction(() => {
             this.centerObject.speakerBtn.inner.alpha = 0;
             this.centerObject.playerInputText.title.alpha = 0;
-            this.tweens.add({
-                targets: this.centerObject.inner,
-                rotation: 0,
-                scale: 1.2,
-                duration: 600,
-            });
         })
+            // Rotate the center object to normal angle   
             .addTweenAction(this, {
             targets: this.centerObject.inner,
             rotation: 0,
-            scale: 1.2,
             duration: 600,
         })
-            .addAction(() => {
+            // Show Mode Select Buttons
+            .addAction((s, result, resolve, reject) => {
+            this.centerObject.btnMode0.setEnable(true, true);
             this.centerObject.btnMode1.setEnable(true, true);
-            this.centerObject.btnMode2.setEnable(true, true);
-        });
+            s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
+                this.setMode(GameMode.Normal);
+                resolve('clicked');
+            });
+            s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
+                this.setMode(GameMode.Zen);
+                resolve('clicked');
+            });
+        })
+            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100)
+            // Hide mode buttons
+            .addAction(() => {
+            this.centerObject.btnMode0.setEnable(false, true);
+            this.centerObject.btnMode1.setEnable(false, true);
+        })
+            // Show back the content of centerObject
+            .addTweenAllAction(this, [
+            {
+                targets: [this.centerObject.speakerBtn.inner, this.centerObject.playerInputText.title],
+                alpha: 1,
+                duration: 400
+            }
+        ]).finishImmediatly()
+            .addSubtitleAction(this.subtitle, (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!', true, null, null, 300)
+            .addFinishAction();
     }
     initFsmHomeToGameAnimation() {
         let dt = 1000;
-        this.fsm.getState("HomeToGameAnimation")
-            .addDelayAction(this, 1500)
-            .addTweenAllAction(this, [
+        let state = this.fsm.getState("HomeToGameAnimation");
+        state.addTweenAllAction(this, [
+            // Rotate center to normal angle
             {
                 targets: this.centerObject.inner,
                 rotation: 0,
-                scale: 1.2,
+                scale: this.centerObject.gameScale,
                 duration: dt,
             },
+            // Scale out the outter dwitter
             {
                 targets: this.dwitterCenter.inner,
                 alpha: 0,
                 scale: 2,
+                duration: dt,
+            },
+            {
+                targets: this.hp.inner,
+                y: this.hpInitPosi.y,
+                duration: dt,
+            },
+            {
+                targets: this.footer,
+                y: "+= 250",
                 duration: dt,
             }
         ])
@@ -193,20 +244,27 @@ class Scene1 extends BaseScene {
             .addFinishAction();
     }
     initFsmNormalGame() {
-        this.fsm.getState("NormalGame").setOnEnter(s => {
+        let state = this.fsm.getState("NormalGame");
+        state.setOnEnter(s => {
             this.centerObject.prepareToGame();
             this.enemyManager.startSpawn();
             s.autoOn($(document), 'keydown', e => {
                 if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
-                    s.event("BackToHome"); // <-------------
+                    s.event("BACK_TO_HOME"); // <-------------
                 }
+            });
+            s.autoOn(this.backBtn.clickedEvent, null, () => {
+                s.event("BACK_TO_HOME");
             });
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
         });
+        state.enterExitListners.on(isEnter => {
+            this.backBtn.setEnable(isEnter, true);
+        });
     }
     initFsmBackToHomeAnimation() {
-        let dt2 = 1000;
+        let dt = 1000;
         this.fsm.getState("BackToHomeAnimation")
             .addAction(() => {
             this.centerObject.prepareToHome();
@@ -217,26 +275,30 @@ class Scene1 extends BaseScene {
             {
                 targets: this.centerObject.inner,
                 rotation: this.centerObject.initRotation,
-                scale: this.centerObject.initScale,
-                duration: dt2,
-                completeDelay: 1000,
+                scale: this.centerObject.homeScale,
+                duration: dt,
             },
             {
                 targets: this.dwitterCenter.inner,
                 alpha: 1,
                 scale: this.initDwitterScale,
-                duration: dt2,
+                duration: dt,
+            },
+            {
+                targets: this.hp.inner,
+                y: "+= 250",
+                duration: dt,
+            },
+            {
+                targets: this.footer,
+                y: this.footerInitPosi.y,
+                duration: dt,
             }
         ])
             .addFinishAction();
     }
-    modeBtnClicked(mode) {
-        this.centerObject.speakerBtn.inner.alpha = 1;
-        this.centerObject.playerInputText.title.alpha = 1;
-        this.centerObject.btnMode1.setEnable(false, true);
-        this.centerObject.btnMode2.setEnable(false, true);
-        if (mode == 0) {
-        }
+    setMode(mode) {
+        this.mode = mode;
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -300,6 +362,10 @@ class PhImageClass extends Phaser.GameObjects.Image {
 }
 ;
 class Wrapper {
+    // copy the following lines to the inherited class
+    // constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
+    //     super(scene, parentContainer, x, y, null);
+    // } 
     /**
      * Target will be added into inner container
      * inner container will be added into parentContainer automatically
@@ -676,6 +742,9 @@ function getDefaultTextStyle() {
     };
     return ret;
 }
+function MakePoint(val) {
+    return new Phaser.Geom.Point(val.x, val.y);
+}
 function MakePoint2(x, y) {
     return new Phaser.Geom.Point(x, y);
 }
@@ -762,14 +831,14 @@ class Button {
      * @param parentContainer
      * @param target
      */
-    constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug) {
+    constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
         this.hoverState = 0; // 0:in 1:out
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
         this.needInOutAutoAnimation = true;
         this.neecClickAutoAnimation = true;
-        this.inOutTweenTargets = [];
         this.clickedEvent = new TypedEvent();
+        this.animationTargets = [];
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(x, y);
@@ -783,56 +852,66 @@ class Button {
         this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
         this.inner.add(this.text);
         if (width && height) {
-            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(0.5);
+            if (notSet(fakeOriginX))
+                fakeOriginX = 0.5;
+            if (notSet(fakeOriginY))
+                fakeOriginY = 0.5;
+            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
             this.fakeZone.setScale(width / 100, height / 100);
             this.inner.add(this.fakeZone);
-            this.eventTarget = this.fakeZone;
+            this.zoneTarget = this.fakeZone;
             if (debug) {
                 this.debugFrame = this.scene.add.graphics();
                 this.debugFrame.lineStyle(4, 0xFF0000, 1);
-                this.debugFrame.strokeRect(-width / 2, -height / 2, width, height);
+                this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
                 this.inner.add(this.debugFrame);
             }
         }
         else if (this.image) {
-            this.eventTarget = this.image;
+            this.zoneTarget = this.image;
         }
         else {
-            this.eventTarget = this.text;
+            this.zoneTarget = this.text;
         }
-        this.eventTarget.setInteractive();
-        this.text.update = () => {
-            console.log('haha');
-        };
-        this.scene.updateObjects.push(this);
-        if (this.text)
-            this.inOutTweenTargets.push(this.text);
         if (this.image)
-            this.inOutTweenTargets.push(this.image);
+            this.animationTargets.push(this.image);
+        if (this.text)
+            this.animationTargets.push(this.text);
+        this.zoneTarget.setInteractive();
+        this.scene.updateObjects.push(this);
     }
     update(time, dt) {
         if (!this.enable) {
             return;
         }
         this.checkMouseEventInUpdate();
-        if (this.text.text.toLocaleLowerCase() == 'zen')
-            console.log('hover: ' + this.hoverState);
     }
     setEnable(val, needFade) {
         // hide
-        if (val && this.enable) {
+        if (!val && this.enable) {
+            // console.log(this.text.text);
             this.hoverState = 0;
             if (needFade) {
-                FadePromise.create(this.scene, this.inner, 0, 500);
+                FadePromise.create(this.scene, this.inner, 0, 500)
+                    .then(s => {
+                    this.inner.setVisible(false);
+                }).catch(e => { });
+            }
+            else {
+                // console.log(this.text.text);
+                this.inner.setVisible(false);
             }
         }
         // show
         else if (val && !this.enable) {
+            this.animationTargets.forEach(e => {
+                e.setScale(1);
+            });
             if (needFade) {
                 FadePromise.create(this.scene, this.inner, 1, 500);
             }
+            this.inner.setVisible(true);
         }
-        this.inner.setVisible(val);
         this.enable = val;
         return this;
     }
@@ -858,16 +937,15 @@ class Button {
         this.prevDownState = pointer.isDown ? 1 : 0;
     }
     click() {
-        console.log('click');
         if (this.needInOutAutoAnimation) {
             let timeline = this.scene.tweens.createTimeline(null);
             timeline.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 0.9,
-                duration: 90,
+                duration: 40,
             });
             timeline.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 1.25,
                 duration: 90,
             });
@@ -876,22 +954,18 @@ class Button {
         this.clickedEvent.emit(this);
     }
     pointerin() {
-        if (this.text.text.toLocaleLowerCase() == 'zen')
-            console.log("in");
         if (this.needInOutAutoAnimation) {
             this.scene.tweens.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 1.25,
                 duration: 100,
             });
         }
     }
     pointerout() {
-        if (this.text.text.toLocaleLowerCase() == 'zen')
-            console.log("out");
         if (this.needInOutAutoAnimation) {
             this.scene.tweens.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 1,
                 duration: 100,
             });
@@ -922,7 +996,8 @@ class CenterObject {
     constructor(scene, parentContainer, designSize) {
         this.speakerRight = 56;
         this.speakerLeft = -56;
-        this.initScale = 1.3;
+        this.homeScale = 1.3;
+        this.gameScale = 1.2;
         this.initRotation = -Math.PI / 2;
         this.frame = 0;
         this.scene = scene;
@@ -936,17 +1011,15 @@ class CenterObject {
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
         this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl); });
-        this.inner.setScale(this.initScale);
+        this.inner.setScale(this.homeScale);
         this.inner.setRotation(this.initRotation);
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
         // Buttons
-        let btn = new Button(this.scene, this.inner, 0, -50, null, "Normal", 200, 100, false).setEnable(false, false);
-        btn.text.y += 20;
+        let btn = new Button(this.scene, this.inner, 0, -30, null, "Normal", 200, 98, false, 0.5, 0.7).setEnable(false, false);
+        this.btnMode0 = btn;
+        btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);
         this.btnMode1 = btn;
-        btn = new Button(this.scene, this.inner, 0, +50, null, "Zen", 200, 100, false).setEnable(false, false);
-        btn.text.y -= 20;
-        this.btnMode2 = btn;
     }
     playerInputChanged(inputControl) {
         let percent = inputControl.text.width / this.getTextMaxWidth();
@@ -1052,6 +1125,8 @@ class Dwitter extends Wrapper {
             return;
         let innerTime = this.frame / 60;
         this.frame++;
+        if (this.inner.alpha == 0)
+            return;
         this.u(innerTime, this.c, this.x);
     }
     setOrigin(xOri, yOri) {
@@ -1560,6 +1635,78 @@ class EnemyText extends Enemy {
         this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
     }
 }
+/**
+ * This class is created to solve the origin problem of PhGraphics
+ */
+class Figure extends Wrapper {
+    handleConfig(config) {
+        if (notSet(config))
+            config = {};
+        if (notSet(config.width))
+            config.width = 100;
+        if (notSet(config.height))
+            config.height = 100;
+        if (notSet(config.originX))
+            config.originX = 0;
+        if (notSet(config.originY))
+            config.originY = 0;
+        this.config = config;
+    }
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        this.designWidth = config.width;
+        this.designHeight = config.height;
+        this.originX = config.originX;
+        this.originY = config.originY;
+        let graphics = this.constructGraphics();
+        this.applyTarget(graphics);
+        this.calcGraphicsPosition();
+    }
+    constructGraphics() {
+        return null;
+    }
+    setOrigin(x, y) {
+        this.originX = x;
+        this.originY = y;
+        this.calcGraphicsPosition();
+    }
+    setSize(width, height) {
+        this.designWidth = width;
+        this.designHeight = height;
+        this.calcGraphicsPosition();
+    }
+    calcGraphicsPosition() {
+        if (this.wrappedObject) {
+            this.wrappedObject.x = -this.designWidth * this.originX;
+            this.wrappedObject.y = -this.designHeight * this.originY;
+        }
+    }
+}
+class Rect extends Figure {
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.lineWidth))
+            config.lineWidth = 4;
+        if (notSet(config.lineColor))
+            config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha))
+            config.lineAlpha = 1;
+        if (notSet(config.fillColor))
+            config.fillColor = 0xffffff;
+        if (notSet(config.fillColor))
+            config.fillAlpha = 1;
+    }
+    constructGraphics() {
+        let graphics = this.scene.add.graphics();
+        let config = this.config;
+        graphics.fillStyle(config.fillColor, config.fillAlpha);
+        graphics.fillRect(0, 0, config.width, config.height);
+        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+        graphics.strokeRect(0, 0, config.width, config.height);
+        return graphics;
+    }
+}
 class Fsm {
     // constructor(scene: PhScene, name: string = "DefaultFsm") {
     //     this.scene = scene;
@@ -1627,6 +1774,9 @@ class Fsm {
      * @param key
      */
     event(key) {
+        if (key.toUpperCase() !== key) {
+            console.warn("FSM event is not all capitalized: " + key + "\nDid you used the state's name as the event's name by mistake?");
+        }
         if (this.curState) {
             this.curState._exit(this.curState);
             if (this.curState.eventRoute.has(key)) {
@@ -1680,10 +1830,11 @@ class Fsm {
         return targetName;
     }
 }
-Fsm.FinishedEventName = "Finished";
+Fsm.FinishedEventName = "FINISHED";
 class FsmState {
     constructor(name, fsm) {
         this.actions = [];
+        this.enterExitListners = new TypedEvent();
         this.autoRemoveListners = [];
         this.safeInOutWatchers = [];
         this.eventRoute = new Map();
@@ -1700,7 +1851,12 @@ class FsmState {
         return !this.isActive();
     }
     autoOn(target, key, func) {
-        target.on(key, func);
+        if (target instanceof TypedEvent) {
+            target.on(func);
+        }
+        else {
+            target.on(key, func);
+        }
         this.autoRemoveListners.push({ target, key, func });
     }
     autoSafeInOutClick(target, inFunc, outFun, clickFun) {
@@ -1717,16 +1873,17 @@ class FsmState {
         }
     }
     addAction(action) {
-        this.actions.push(action);
+        this.actions.push({ action: action, actionConfig: null });
         return this;
     }
     getPromiseMiddleware(index) {
-        return this.convertActionToPromiseMiddleware(this.actions[index]);
-    }
-    convertActionToPromiseMiddleware(action) {
+        let action = this.actions[index].action;
+        let actionConfig = this.actions[index].actionConfig;
         if (action.length > 2) {
             return (state, result) => new Promise((resolve, reject) => {
                 action(state, result, resolve, reject);
+                if (actionConfig && actionConfig.finishImmediately)
+                    resolve('Finished Immediately');
             });
         }
         else {
@@ -1735,6 +1892,20 @@ class FsmState {
                 resolve(undefined);
             });
         }
+    }
+    /**
+     * Set the last added action's config
+     * @param config
+     */
+    setConfig(config) {
+        if (this.actions.length > 0) {
+            this.actions[this.actions.length - 1].actionConfig = config;
+        }
+        return this;
+    }
+    finishImmediatly() {
+        this.setConfig(ImFinishConfig(true));
+        return this;
     }
     /**
      * runActions is called internally by _onEnter
@@ -1795,6 +1966,7 @@ class FsmState {
      * @param handler
      */
     _onEnter(state) {
+        this.enterExitListners.emit(true);
         if (this.onEnter)
             this.onEnter(state);
         this.runActions();
@@ -1833,12 +2005,18 @@ class FsmState {
     removeAutoRemoveListners() {
         for (let i in this.autoRemoveListners) {
             let listener = this.autoRemoveListners[i];
-            listener.target.off(listener.key, listener.func);
+            if (listener.target instanceof TypedEvent) {
+                listener.target.off(listener.func);
+            }
+            else {
+                listener.target.off(listener.key, listener.func);
+            }
         }
         // remove all cached
         this.autoRemoveListners.length = 0;
     }
     _exit(state) {
+        this.enterExitListners.emit(false);
         if (this.onExit)
             this.onExit(this);
         this.removeAutoRemoveListners();
@@ -1865,6 +2043,9 @@ class FsmState {
     }
 }
 /// <reference path="fsm.ts" />
+function ImFinishConfig(val) {
+    return { finishImmediately: val };
+}
 var TweenPromise = {
     create: function (scene, config) {
         let tp = new Promise(res => {
@@ -1916,9 +2097,9 @@ FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, 
     if (notSet(timeout))
         timeout = 3000;
     if (notSet(minStay))
-        minStay = 3000;
+        minStay = 1000;
     if (notSet(finishedSpeechWait))
-        finishedSpeechWait = 1000;
+        finishedSpeechWait = 600;
     self.addAction((state, result, resolve, reject) => {
         subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s => { resolve('subtitle show end'); })
@@ -1976,12 +2157,13 @@ var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
     events: [
-        { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
-        { name: 'ToFirstMeet', from: 'Home', to: 'FirstMeet' },
-        { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
-        { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
-        { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },
-        { name: 'ToModeSelect', from: 'FirstMeet', to: 'ModeSelect' }
+        { name: 'FINISHED', from: 'Home', to: 'HomeToGameAnimation' },
+        { name: 'TO_FIRST_MEET', from: 'Home', to: 'FirstMeet' },
+        { name: 'FINISHED', from: 'HomeToGameAnimation', to: 'NormalGame' },
+        { name: 'BACK_TO_HOME', from: 'NormalGame', to: 'BackToHomeAnimation' },
+        { name: 'FINISHED', from: 'BackToHomeAnimation', to: 'Home' },
+        { name: 'TO_MODE_SELECT', from: 'FirstMeet', to: 'ModeSelect' },
+        { name: 'FINISHED', from: 'ModeSelect', to: 'HomeToGameAnimation' }
     ],
 };
 // var mainFsm = 
@@ -1990,7 +2172,7 @@ var mainFsm = {
 //   events: [
 //     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
 //     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
-//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+//     { name: 'BACK_TO_HOME', from: 'NormalGame', to: 'BACK_TO_HOMEAnimation' },
 //   ], 
 // };
 // var traverse = require('babel-traverse').default;
@@ -2082,6 +2264,40 @@ class HealthIndicator {
             ct = ct.parentContainer;
         }
         return ret;
+    }
+}
+class HP extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.progressColor = 0x888888;
+        this.progressGap = 4;
+        this.titleGap = 1;
+        this.barHeight = 40;
+        this.barWidth = 400;
+        this.frameWidth = 6;
+        this.mainBar = new Rect(this.scene, this.inner, 0, 0, {
+            lineColor: 0x222222,
+            width: this.barWidth,
+            height: this.barHeight,
+            lineWidth: this.frameWidth,
+            originX: 0,
+            originY: 1,
+        });
+        this.innerProgress = new Rect(this.scene, this.inner, this.frameWidth / 2 + this.progressGap, -this.frameWidth / 2 - this.progressGap, {
+            lineColor: this.progressColor,
+            fillColor: this.progressColor,
+            width: this.barWidth - this.frameWidth - this.progressGap * 2,
+            height: this.barHeight - this.frameWidth - this.progressGap * 2,
+            lineWidth: 0,
+            originX: 0,
+            originY: 1,
+        });
+        let style = getDefaultTextStyle();
+        let title = this.scene.add.text(-this.frameWidth / 2, -this.barHeight - this.titleGap, "HP", style).setOrigin(0, 1);
+        this.applyTarget(title);
+    }
+    setTitle(val) {
+        this.wrappedObject.text = val;
     }
 }
 class PlayerInputText {
@@ -2662,7 +2878,7 @@ let names = {
 //   events: [
 //     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
 //     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
-//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+//     { name: 'BACK_TO_HOME', from: 'NormalGame', to: 'BACK_TO_HOMEAnimation' },
 
 //   ], 
 // };

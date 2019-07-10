@@ -46,6 +46,12 @@ class Wrapper<T extends PhGO> {
     inner: PhContainer;
     wrappedObject: T;
 
+    // copy the following lines to the inherited class
+    
+    // constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
+    //     super(scene, parentContainer, x, y, null);
+    // } 
+
     /**
      * Target will be added into inner container
      * inner container will be added into parentContainer automatically

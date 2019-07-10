@@ -10,7 +10,7 @@ let names = {
 //   events: [
 //     { name: 'Finished', from: 'Home', to: 'HomeToGameAnimation' },
 //     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
-//     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
+//     { name: 'BACK_TO_HOME', from: 'NormalGame', to: 'BACK_TO_HOMEAnimation' },
 
 //   ], 
 // };

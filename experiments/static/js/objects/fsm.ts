@@ -11,7 +11,7 @@ interface IFsmData {
 
 class Fsm {
 
-    static FinishedEventName = "Finished";
+    static FinishedEventName = "FINISHED";
     scene: PhScene;
     name: string;
     states: Map<string, FsmState> = new Map();
@@ -101,6 +101,10 @@ class Fsm {
      * @param key 
      */
     event(key: string): void {
+        if(key.toUpperCase() !== key) {
+            console.warn("FSM event is not all capitalized: " + key + "\nDid you used the state's name as the event's name by mistake?");
+        }
+
         if (this.curState) {
             this.curState._exit(this.curState);
 
@@ -176,10 +180,11 @@ class FsmState {
     name: string;
     fsm: Fsm;
 
-    actions: FsmAction[] = [];
+    actions: {action: FsmAction, actionConfig: ActionConfig}[] = [];
     
+    enterExitListners: TypedEvent<boolean> = new TypedEvent();
 
-    autoRemoveListners: {target: OnOffable, key:string, func: any}[] = [];
+    autoRemoveListners: {target: OnOffable | TypedEvent<any>, key:string, func: any}[] = [];
     safeInOutWatchers: {target: PhImage, hoverState: number, prevDownState:number}[] = [];
 
 
@@ -203,8 +208,13 @@ class FsmState {
 
 
 
-    autoOn(target: OnOffable, key:string, func: any) {
-        target.on(key, func);
+    autoOn(target: OnOffable | TypedEvent<any>, key:string | undefined, func: any) {
+        if(target instanceof TypedEvent){
+            target.on(func);
+        }
+        else {
+            target.on(key, func);
+        }
         this.autoRemoveListners.push({target, key, func});
     }
 
@@ -226,18 +236,19 @@ class FsmState {
     }
 
     addAction(action :FsmAction): FsmState {
-        this.actions.push(action);
+        this.actions.push({action: action, actionConfig: null});
         return this;
     }
 
     getPromiseMiddleware(index: number): PromiseMiddleware {
-        return this.convertActionToPromiseMiddleware(this.actions[index]);
-    }
+        let action = this.actions[index].action;
+        let actionConfig = this.actions[index].actionConfig;
 
-    convertActionToPromiseMiddleware(action: FsmAction): PromiseMiddleware {
         if(action.length > 2) {            
             return (state, result) => new Promise((resolve, reject) =>{
                 action(state, result, resolve, reject);
+                if(actionConfig && actionConfig.finishImmediately)
+                    resolve('Finished Immediately');
             });                        
         } 
         else {
@@ -247,6 +258,23 @@ class FsmState {
             });
         }
     }
+
+    /**
+     * Set the last added action's config
+     * @param config 
+     */
+    setConfig(config: ActionConfig) : FsmState {
+        if(this.actions.length > 0) {
+            this.actions[this.actions.length - 1].actionConfig = config;
+        }
+        return this;
+    }
+
+    finishImmediatly() : FsmState {
+        this.setConfig(ImFinishConfig(true));
+        return this;
+    }
+
 
     /**
      * runActions is called internally by _onEnter
@@ -320,6 +348,8 @@ class FsmState {
      * @param handler 
      */
     _onEnter(state: FsmState): FsmState {
+        this.enterExitListners.emit(true);
+
         if(this.onEnter)
             this.onEnter(state);
 
@@ -373,7 +403,14 @@ class FsmState {
     private removeAutoRemoveListners() {
         for(let i in this.autoRemoveListners) {
             let listener = this.autoRemoveListners[i];
-            listener.target.off(listener.key, listener.func);
+
+            if(listener.target instanceof TypedEvent){
+                listener.target.off(listener.func);
+            }
+            else {
+                listener.target.off(listener.key, listener.func);
+            }
+            
         }
 
         // remove all cached
@@ -381,6 +418,8 @@ class FsmState {
     }
 
     _exit(state: FsmState): FsmState {
+        this.enterExitListners.emit(false);
+
         if (this.onExit)
             this.onExit(this);
 

@@ -1,5 +1,8 @@
 /// <reference path="scene-controller.ts" />
-
+enum GameMode {
+    Normal,
+    Zen,
+}
 
 class Scene1 extends BaseScene {
 
@@ -7,6 +10,7 @@ class Scene1 extends BaseScene {
     labels;
     lblStyl;
     container: Phaser.GameObjects.Container;
+    abContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;
     playerInput: PlayerInputText;
 
@@ -24,6 +28,14 @@ class Scene1 extends BaseScene {
     initDwitterScale: number = 0.52;
 
     subtitle: Subtitle;
+    backBtn: Button;
+
+    hp: HP;
+    
+    footerInitPosi: PhPoint;
+    hpInitPosi: PhPoint;
+
+    mode: number = GameMode.Normal;
 
     constructor() {
         super('Scene1');
@@ -49,16 +61,10 @@ class Scene1 extends BaseScene {
 
     create() {
         this.container = this.add.container(400, 299);
+        this.abContainer = this.add.container(0, 0);
 
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
-        this.centerObject.btnMode1.clickedEvent.on(()=>{
-            this.modeBtnClicked(0);
-        })
-        this.centerObject.btnMode2.clickedEvent.on(()=>{
-            this.modeBtnClicked(1);
-        })
-
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
 
@@ -66,9 +72,9 @@ class Scene1 extends BaseScene {
         this.centerObject.playerInputText.confirmedEvent.on(
             input => {
                 this.enemyManager.inputTextConfirmed(input)
-                this.time.delayedCall(300, ()=>{
+                this.time.delayedCall(300, () => {
                     this.dwitterBKG.next();
-                }, null, null);                
+                }, null, null);
             });
 
 
@@ -76,6 +82,7 @@ class Scene1 extends BaseScene {
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
+        this.footerInitPosi = MakePoint(this.footer);
         this.fitImageToSize(this.footer, 100);
 
         // Dwitters
@@ -85,8 +92,19 @@ class Scene1 extends BaseScene {
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
 
+
+        // Back button
+        this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
+        this.backBtn.text.setColor('#000000');
+        this.backBtn.text.setFontSize(44);
         
-        
+
+        // HP        
+        let hpBottom = 36;
+        let hpLeft = 36;
+        this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
+        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        this.hp.inner.y += 250;
 
         // Main FSM
         this.initFsm();
@@ -127,6 +145,7 @@ class Scene1 extends BaseScene {
 
         this.initFsmHome();
         this.initFsmFirstMeet();
+        this.initFsmModeSelect();
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
@@ -136,102 +155,154 @@ class Scene1 extends BaseScene {
     }
 
     initFsmHome() {
-        this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
+        let state = this.fsm.getState("Home");
+        state.setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
 
-            let mainImage = this.centerObject.mainImage;          
-            
+            let mainImage = this.centerObject.mainImage;
+            s.autoSafeInOutClick(mainImage, 
+                e => {
+                    this.centerObject.playerInputText.homePointerOver();
+                    this.dwitterBKG.toBlinkMode();
+                },
+                e => {
+                    this.centerObject.playerInputText.homePointerOut();
+                    this.dwitterBKG.toStaticMode();
+                },
+                e => {
+                    this.centerObject.playerInputText.homePointerDown();
 
-            s.autoSafeInOutClick(mainImage, e=>{                
-                this.centerObject.playerInputText.homePointerOver();
-                this.dwitterBKG.toBlinkMode();
-            }, 
-            e=>{                
-                this.centerObject.playerInputText.homePointerOut();
-                this.dwitterBKG.toStaticMode();
-            },
-            e=>{
-                this.centerObject.playerInputText.homePointerDown();
-                this.subtitle.stopMonologue();
-
-
-                this.dwitterBKG.toStaticMode();
-                s.event('ToFirstMeet');
-                    // s.finished();
-            });
+                    this.subtitle.stopMonologue();
+                    this.dwitterBKG.toStaticMode();
+                    s.event('TO_FIRST_MEET');
+                });
         });
     }
 
-    initFsmFirstMeet(){
+    initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
-        .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-        // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-        // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
-        .addAction(()=>{
+            .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            // .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addEventAction("TO_MODE_SELECT");
+    }
+
+    initFsmModeSelect() {
+        //* Enter Actions
+        let state = this.fsm.getState("ModeSelect");
+        // Hide content of centerObject
+        state.addAction(() => {
             this.centerObject.speakerBtn.inner.alpha = 0;
             this.centerObject.playerInputText.title.alpha = 0;
-            this.tweens.add({
+        })
+            // Rotate the center object to normal angle   
+            .addTweenAction(this, {
                 targets: this.centerObject.inner,
                 rotation: 0,
-                scale: 1.2,
                 duration: 600,
-            });
-        })
-        .addTweenAction(this, {
-            targets: this.centerObject.inner,
-            rotation: 0,
-            scale: 1.2,
-            duration: 600,
-        })
-        .addAction(()=>{
-            this.centerObject.btnMode1.setEnable(true, true);
-            this.centerObject.btnMode2.setEnable(true, true);
-        });
+            })
+            // Show Mode Select Buttons
+            .addAction((s: FsmState, result, resolve, reject) => {
+                this.centerObject.btnMode0.setEnable(true, true);
+                this.centerObject.btnMode1.setEnable(true, true);
+
+                s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
+                    this.setMode(GameMode.Normal);
+                    resolve('clicked');
+                });
+
+                s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
+                    this.setMode(GameMode.Zen);
+                    resolve('clicked');
+                });
+            })
+            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100)
+            // Hide mode buttons
+            .addAction(() => {
+                this.centerObject.btnMode0.setEnable(false, true);
+                this.centerObject.btnMode1.setEnable(false, true);
+            })
+            // Show back the content of centerObject
+            .addTweenAllAction(this, [
+                {
+                    targets: [this.centerObject.speakerBtn.inner, this.centerObject.playerInputText.title],
+                    alpha: 1,
+                    duration: 400
+                }
+            ]).finishImmediatly()
+            .addSubtitleAction(this.subtitle, (this.mode === GameMode.Normal? 'Normal' : 'Zen') + ' mode, start!', true, null, null, 300)
+            .addFinishAction();
     }
 
 
 
     initFsmHomeToGameAnimation() {
         let dt = 1000;
-        this.fsm.getState("HomeToGameAnimation")
-            .addDelayAction(this, 1500)
-            .addTweenAllAction(this, [
-                {
-                    targets: this.centerObject.inner,
-                    rotation: 0,
-                    scale: 1.2,
-                    duration: dt,
-                },
-                {
-                    targets: this.dwitterCenter.inner,
-                    alpha: 0,
-                    scale: 2,
-                    duration: dt,
-                }
-            ])
-            .addDelayAction(this, 1000)
-            .addFinishAction();
+        let state = this.fsm.getState("HomeToGameAnimation")
+        state.addTweenAllAction(this, [
+            // Rotate center to normal angle
+            {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: this.centerObject.gameScale,
+                duration: dt,
+            },
+            // Scale out the outter dwitter
+            {
+                targets: this.dwitterCenter.inner,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            },
+            {
+                targets: this.hp.inner,
+                y: this.hpInitPosi.y,
+                duration: dt,            
+            },
+            {
+                targets: this.footer,
+                y: "+= 250",
+                duration: dt,            
+            }
+        ])            
+        .addDelayAction(this, 1000)
+        .addFinishAction();
+
+        
     }
 
     initFsmNormalGame() {
-        this.fsm.getState("NormalGame").setOnEnter(s => {
+        let state = this.fsm.getState("NormalGame");
+        state.setOnEnter(s => {
             this.centerObject.prepareToGame();
             this.enemyManager.startSpawn();
 
             s.autoOn($(document), 'keydown', e => {
                 if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
-                    s.event("BackToHome");   // <-------------
+                    s.event("BACK_TO_HOME");   // <-------------
                 }
+            });
+
+            s.autoOn(this.backBtn.clickedEvent, null, () => {
+                s.event("BACK_TO_HOME")                
             });
 
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-
         });
+
+        state.enterExitListners.on(isEnter=>{
+            this.backBtn.setEnable(isEnter, true);
+        });
+
+        
     }
 
+    
+
     initFsmBackToHomeAnimation() {
-        let dt2 = 1000;
+        let dt = 1000;
         this.fsm.getState("BackToHomeAnimation")
             .addAction(() => {
                 this.centerObject.prepareToHome();
@@ -242,30 +313,31 @@ class Scene1 extends BaseScene {
                 {
                     targets: this.centerObject.inner,
                     rotation: this.centerObject.initRotation,
-                    scale: this.centerObject.initScale,
-                    duration: dt2,
-                    completeDelay: 1000,
+                    scale: this.centerObject.homeScale,
+                    duration: dt,
                 },
                 {
                     targets: this.dwitterCenter.inner,
                     alpha: 1,
                     scale: this.initDwitterScale,
-                    duration: dt2,
+                    duration: dt,
+                },
+                {
+                    targets: this.hp.inner,
+                    y: "+= 250",
+                    duration: dt,            
+                },
+                {
+                    targets: this.footer,
+                    y: this.footerInitPosi.y,
+                    duration: dt,            
                 }
             ])
             .addFinishAction();
     }
 
-    modeBtnClicked(mode: number) {
-        this.centerObject.speakerBtn.inner.alpha = 1;
-        this.centerObject.playerInputText.title.alpha = 1;
-
-        this.centerObject.btnMode1.setEnable(false, true);
-        this.centerObject.btnMode2.setEnable(false, true);
-
-        if( mode ==0 ) {
-
-        }
+    setMode(mode: number) {
+        this.mode = mode;
     }
 }
 

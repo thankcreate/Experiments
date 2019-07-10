@@ -185,6 +185,9 @@ function getDefaultTextStyle(): TextStyle {
     return ret;
 }
 
+function MakePoint(val: any): Phaser.Geom.Point {
+    return new Phaser.Geom.Point(val.x, val.y);
+}
 
 
 function MakePoint2(x: number, y: number): Phaser.Geom.Point {

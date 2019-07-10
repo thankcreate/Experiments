@@ -61,6 +61,10 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
             return;
         let innerTime = this.frame / 60;
         this.frame++;
+
+        if(this.inner.alpha == 0)
+            return;
+
         this.u(innerTime, this.c, this.x);
     }
 

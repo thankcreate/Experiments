@@ -14,7 +14,7 @@ class Button {
     fakeZone: PhImage;
     debugFrame: PhGraphics;
 
-    eventTarget: any;
+    zoneTarget: any;
 
     hoverState: number = 0; // 0:in 1:out
     prevDownState: number = 0; // 0: not down  1: down
@@ -26,10 +26,11 @@ class Button {
 
     needInOutAutoAnimation: boolean = true;
     neecClickAutoAnimation: boolean = true;
-    inOutTweenTargets: any[] = [];
+
 
     clickedEvent: TypedEvent<Button> = new TypedEvent();
 
+    animationTargets: any[] = [];
     /**
      * Target will be added into inner container
      * inner container will be added into parentContainer automatically
@@ -41,7 +42,8 @@ class Button {
     constructor(scene: BaseScene, parentContainer: PhContainer,
         x: number, y: number,
         imgKey: string, title: string,
-        width?: number, height?: number, debug?: boolean) {
+        width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
+
         this.scene = scene;
         this.parentContainer = parentContainer;
 
@@ -57,39 +59,40 @@ class Button {
         style.fill = '#FFFFFF';
         this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
         this.inner.add(this.text);
+        
 
         if (width && height) {
-            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(0.5);
+            if(notSet(fakeOriginX)) fakeOriginX = 0.5;
+            if(notSet(fakeOriginY)) fakeOriginY = 0.5;
+            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
             this.fakeZone.setScale(width / 100, height / 100);       
             this.inner.add(this.fakeZone);
-            this.eventTarget = this.fakeZone;
+            this.zoneTarget = this.fakeZone;
 
             if(debug) {
                 this.debugFrame = this.scene.add.graphics();
                 this.debugFrame.lineStyle(4, 0xFF0000, 1);
-                this.debugFrame.strokeRect(-width / 2, -height / 2, width, height);
+                this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
                 this.inner.add(this.debugFrame);
             }
         }
         else if (this.image) {
-            this.eventTarget = this.image;
+            this.zoneTarget = this.image;
         }
         else {
-            this.eventTarget = this.text;
+            this.zoneTarget = this.text;
         }         
         
-        this.eventTarget.setInteractive();        
 
-        this.text.update = ()=>{
-            console.log('haha');
-        }
+        if(this.image) this.animationTargets.push(this.image);
+        if(this.text) this.animationTargets.push(this.text);
 
-        this.scene.updateObjects.push(this);        
 
-        
+
+        this.zoneTarget.setInteractive();                
+
+        this.scene.updateObjects.push(this);              
        
-        if(this.text) this.inOutTweenTargets.push(this.text);
-        if(this.image) this.inOutTweenTargets.push(this.image);
     }
 
     
@@ -100,27 +103,38 @@ class Button {
         }
         
         this.checkMouseEventInUpdate();
-        if(this.text.text.toLocaleLowerCase() =='zen')
-            console.log('hover: ' + this.hoverState);
     }
 
     setEnable(val: boolean, needFade: boolean) : Button{         
         // hide
-        if(val! && this.enable) {
-  
+        if(!val && this.enable) {  
+            // console.log(this.text.text);
             this.hoverState = 0; 
             if(needFade) {
-                FadePromise.create(this.scene, this.inner, 0, 500);
+                FadePromise.create(this.scene, this.inner, 0, 500)
+                .then(s=>{
+                    this.inner.setVisible(false);
+                }).catch(e=>{});
+            }
+            else {
+                // console.log(this.text.text);
+                this.inner.setVisible(false);
             }
         }
         // show
         else if(val && !this.enable) {
+            
+            this.animationTargets.forEach(e=>{
+                e.setScale(1);
+            })
             if(needFade) {
                 FadePromise.create(this.scene, this.inner, 1, 500);
-            }
+            }           
+
+            this.inner.setVisible(true);
         }
 
-        this.inner.setVisible(val);
+        
         this.enable = val;
 
         return this;
@@ -151,16 +165,15 @@ class Button {
     }
 
     click() {
-        console.log('click');
         if(this.needInOutAutoAnimation) {          
             let timeline = this.scene.tweens.createTimeline(null);
             timeline.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 0.9,
-                duration: 90,
+                duration: 40,
             });
             timeline.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 1.25,
                 duration: 90,
             });
@@ -171,11 +184,9 @@ class Button {
     }
 
     pointerin() {        
-        if(this.text.text.toLocaleLowerCase() =='zen')
-        console.log("in");
         if(this.needInOutAutoAnimation) {            
             this.scene.tweens.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 1.25,
                 duration: 100,
             })
@@ -183,11 +194,9 @@ class Button {
     }
 
     pointerout() {
-        if(this.text.text.toLocaleLowerCase() =='zen')
-                console.log("out");
         if(this.needInOutAutoAnimation) {
             this.scene.tweens.add({
-                targets: this.inOutTweenTargets,
+                targets: this.animationTargets,
                 scale: 1,
                 duration: 100,
             })

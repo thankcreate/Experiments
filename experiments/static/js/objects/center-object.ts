@@ -47,11 +47,13 @@ class CenterObject {
 
     centerRotateTween: PhTween;
 
-    initScale = 1.3;
+    homeScale = 1.3;
+    gameScale = 1.2;
+
     initRotation = -Math.PI / 2;
 
+    btnMode0: Button;
     btnMode1: Button;
-    btnMode2: Button;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
@@ -73,20 +75,18 @@ class CenterObject {
         this.playerInputText.init("");
         this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl) });
 
-        this.inner.setScale(this.initScale);
+        this.inner.setScale(this.homeScale);
         this.inner.setRotation(this.initRotation);
 
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
 
         // Buttons
-        let btn = new Button(this.scene, this.inner, 0, -50, null, "Normal", 200, 100, false).setEnable(false, false);
-        btn.text.y += 20;
-        this.btnMode1 = btn;
+        let btn = new Button(this.scene, this.inner, 0, -30, null, "Normal", 200, 98, false, 0.5, 0.7).setEnable(false, false);        
+        this.btnMode0 = btn;
 
-        btn = new Button(this.scene, this.inner, 0, +50, null, "Zen", 200, 100, false).setEnable(false, false);
-        btn.text.y -= 20;        
-        this.btnMode2 = btn;
+        btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);        
+        this.btnMode1 = btn;
     }
 
     graph: PhGraphics;

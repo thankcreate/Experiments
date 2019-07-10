@@ -1,5 +1,13 @@
 /// <reference path="fsm.ts" />
 
+type ActionConfig = {
+    finishImmediately:boolean;
+}
+
+function ImFinishConfig(val: boolean): ActionConfig{
+    return {finishImmediately: val};
+}
+
 
 var TweenPromise = {
     create: function (scene: PhScene, config: Phaser.Types.Tweens.TweenBuilderConfig | any): Promise<any> {
@@ -50,10 +58,11 @@ var TimeOutAll = {
 }
 
 
+
 interface FsmState {
     addDelayAction(scene: PhScene, dt: number): FsmState
-    addTweenAction(scene: PhScene, config: Phaser.Types.Tweens.TweenBuilderConfig | any): FsmState
-    addTweenAllAction(scene: PhScene, configs: Phaser.Types.Tweens.TweenBuilderConfig | any[]): FsmState
+    addTweenAction(scene: PhScene, config: TweenConfig): FsmState
+    addTweenAllAction(scene: PhScene, configs: TweenConfig[]): FsmState
     addFinishAction(): FsmState
     addEventAction(name: string): FsmState
     addLogAction(message?: any, ...optionalParams: any[]): FsmState
@@ -65,19 +74,24 @@ function notSet(val: any) : boolean {
     return val === null || val === undefined;
 }
 
+
 FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string, autoHideAfter: boolean,
      timeout?, minStay?, finishedSpeechWait?) {    
     let self = this as FsmState;
     
+
     if(notSet(timeout)) timeout = 3000;
-    if(notSet(minStay)) minStay = 3000;
-    if(notSet(finishedSpeechWait)) finishedSpeechWait = 1000;
+    if(notSet(minStay)) minStay = 1000;
+    if(notSet(finishedSpeechWait)) finishedSpeechWait = 600;
 
     self.addAction((state, result, resolve, reject) => {
         subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s=>{ resolve('subtitle show end')  })      
             .catch(s=>{ resolve('subtitle show end with some err')});
+        
     });
+
+    
     return self;
 }
 

@@ -1,3 +1,8 @@
+/**
+ * When you want to deactive a button \
+ * Just call setEnable(false) \
+ * Don't set the visibility or activity of the inner objects directly
+ */
 class Button {
     scene: BaseScene
     parentContainer: PhContainer;
@@ -11,9 +16,19 @@ class Button {
 
     eventTarget: any;
 
-    hoverState: number = 0;
+    hoverState: number = 0; // 0:in 1:out
+    prevDownState: number = 0; // 0: not down  1: down
 
     enable: boolean = true;
+
+    inTween: PhTween;
+    outTween: PhTween;
+
+    needInOutAutoAnimation: boolean = true;
+    neecClickAutoAnimation: boolean = true;
+    inOutTweenTargets: any[] = [];
+
+    clickedEvent: TypedEvent<Button> = new TypedEvent();
 
     /**
      * Target will be added into inner container
@@ -70,6 +85,11 @@ class Button {
         }
 
         this.scene.updateObjects.push(this);        
+
+        
+       
+        if(this.text) this.inOutTweenTargets.push(this.text);
+        if(this.image) this.inOutTweenTargets.push(this.image);
     }
 
     
@@ -78,8 +98,10 @@ class Button {
         if(!this.enable) {
             return;
         }
-
+        
         this.checkMouseEventInUpdate();
+        if(this.text.text.toLocaleLowerCase() =='zen')
+            console.log('hover: ' + this.hoverState);
     }
 
     setEnable(val: boolean, needFade: boolean) : Button{         
@@ -98,8 +120,6 @@ class Button {
             }
         }
 
-        
-
         this.inner.setVisible(val);
         this.enable = val;
 
@@ -110,7 +130,7 @@ class Button {
     // 1: on   2: off
     setHoverState(st: number) {
         if(this.hoverState == 0 && st == 1) {
-            this.pointerover();
+            this.pointerin();
         }
         else if(this.hoverState == 1 && st == 0) {
             this.pointerout();
@@ -123,22 +143,55 @@ class Button {
         let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
         this.setHoverState(contains ? 1 : 0);
         if(contains) {
-            if(pointer.isDown) {
+            if(pointer.isDown && this.prevDownState === 0) {
                 this.click();
-            }
+            }       
         }
+        this.prevDownState = pointer.isDown ? 1 : 0;
     }
 
     click() {
         console.log('click');
+        if(this.needInOutAutoAnimation) {          
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: this.inOutTweenTargets,
+                scale: 0.9,
+                duration: 90,
+            });
+            timeline.add({
+                targets: this.inOutTweenTargets,
+                scale: 1.25,
+                duration: 90,
+            });
+            timeline.play();
+        }
+
+        this.clickedEvent.emit(this);
     }
 
-    pointerover() {
-        console.log('over');
+    pointerin() {        
+        if(this.text.text.toLocaleLowerCase() =='zen')
+        console.log("in");
+        if(this.needInOutAutoAnimation) {            
+            this.scene.tweens.add({
+                targets: this.inOutTweenTargets,
+                scale: 1.25,
+                duration: 100,
+            })
+        }
     }
 
     pointerout() {
-        console.log('out');
+        if(this.text.text.toLocaleLowerCase() =='zen')
+                console.log("out");
+        if(this.needInOutAutoAnimation) {
+            this.scene.tweens.add({
+                targets: this.inOutTweenTargets,
+                scale: 1,
+                duration: 100,
+            })
+        }
     }
 
 

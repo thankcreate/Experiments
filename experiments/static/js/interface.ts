@@ -26,6 +26,8 @@ type TweenConfig = Phaser.Types.Tweens.TweenBuilderConfig | any;
 type PromiseMiddleware = (state, result) => Promise<any>;
 type FsmAction = (state?: FsmState, result?, resolve?, reject?) => void;
 
+
+
 interface OnOffable{
     on(event: string | symbol, fn: Function)
     off(event: string | symbol, fn: Function)

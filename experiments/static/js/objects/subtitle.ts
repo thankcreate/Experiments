@@ -112,7 +112,7 @@ class Subtitle extends Wrapper<PhText> {
                 targets: this.wrappedObject,
                 alpha: 0,
                 duration: 250,
-                onComplete: resolve('hideComplete')
+                onComplete: () => {resolve('hideComplete')}
             });
         })
 

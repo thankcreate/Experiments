@@ -66,6 +66,12 @@ class Scene1 extends BaseScene {
         this.container = this.add.container(400, 299);
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+        this.centerObject.btnMode1.clickedEvent.on(() => {
+            this.modeBtnClicked(0);
+        });
+        this.centerObject.btnMode2.clickedEvent.on(() => {
+            this.modeBtnClicked(1);
+        });
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
         // Add confirmed listener for confirmedEvent to enemyManager
@@ -223,6 +229,14 @@ class Scene1 extends BaseScene {
             }
         ])
             .addFinishAction();
+    }
+    modeBtnClicked(mode) {
+        this.centerObject.speakerBtn.inner.alpha = 1;
+        this.centerObject.playerInputText.title.alpha = 1;
+        this.centerObject.btnMode1.setEnable(false, true);
+        this.centerObject.btnMode2.setEnable(false, true);
+        if (mode == 0) {
+        }
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -734,6 +748,11 @@ function conv(webgl, canvas2D) {
 function clamp(val, min, max) {
     return Math.max(Math.min(val, max), min);
 }
+/**
+ * When you want to deactive a button \
+ * Just call setEnable(false) \
+ * Don't set the visibility or activity of the inner objects directly
+ */
 class Button {
     /**
      * Target will be added into inner container
@@ -744,8 +763,13 @@ class Button {
      * @param target
      */
     constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug) {
-        this.hoverState = 0;
+        this.hoverState = 0; // 0:in 1:out
+        this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
+        this.needInOutAutoAnimation = true;
+        this.neecClickAutoAnimation = true;
+        this.inOutTweenTargets = [];
+        this.clickedEvent = new TypedEvent();
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(x, y);
@@ -781,12 +805,18 @@ class Button {
             console.log('haha');
         };
         this.scene.updateObjects.push(this);
+        if (this.text)
+            this.inOutTweenTargets.push(this.text);
+        if (this.image)
+            this.inOutTweenTargets.push(this.image);
     }
     update(time, dt) {
         if (!this.enable) {
             return;
         }
         this.checkMouseEventInUpdate();
+        if (this.text.text.toLocaleLowerCase() == 'zen')
+            console.log('hover: ' + this.hoverState);
     }
     setEnable(val, needFade) {
         // hide
@@ -809,7 +839,7 @@ class Button {
     // 1: on   2: off
     setHoverState(st) {
         if (this.hoverState == 0 && st == 1) {
-            this.pointerover();
+            this.pointerin();
         }
         else if (this.hoverState == 1 && st == 0) {
             this.pointerout();
@@ -821,19 +851,51 @@ class Button {
         let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
         this.setHoverState(contains ? 1 : 0);
         if (contains) {
-            if (pointer.isDown) {
+            if (pointer.isDown && this.prevDownState === 0) {
                 this.click();
             }
         }
+        this.prevDownState = pointer.isDown ? 1 : 0;
     }
     click() {
         console.log('click');
+        if (this.needInOutAutoAnimation) {
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: this.inOutTweenTargets,
+                scale: 0.9,
+                duration: 90,
+            });
+            timeline.add({
+                targets: this.inOutTweenTargets,
+                scale: 1.25,
+                duration: 90,
+            });
+            timeline.play();
+        }
+        this.clickedEvent.emit(this);
     }
-    pointerover() {
-        console.log('over');
+    pointerin() {
+        if (this.text.text.toLocaleLowerCase() == 'zen')
+            console.log("in");
+        if (this.needInOutAutoAnimation) {
+            this.scene.tweens.add({
+                targets: this.inOutTweenTargets,
+                scale: 1.25,
+                duration: 100,
+            });
+        }
     }
     pointerout() {
-        console.log('out');
+        if (this.text.text.toLocaleLowerCase() == 'zen')
+            console.log("out");
+        if (this.needInOutAutoAnimation) {
+            this.scene.tweens.add({
+                targets: this.inOutTweenTargets,
+                scale: 1,
+                duration: 100,
+            });
+        }
     }
 }
 class SpeakerButton extends ImageWrapperClass {
@@ -1642,7 +1704,7 @@ class FsmState {
         this.autoRemoveListners.push({ target, key, func });
     }
     autoSafeInOutClick(target, inFunc, outFun, clickFun) {
-        this.safeInOutWatchers.push({ target, state: 0 });
+        this.safeInOutWatchers.push({ target, hoverState: 0, prevDownState: 0 });
         target.on('safein', inFunc);
         this.autoRemoveListners.push({ target, key: 'safein', func: inFunc });
         if (outFun) {
@@ -1748,17 +1810,20 @@ class FsmState {
         let mp = getGame().input.activePointer;
         this.safeInOutWatchers.forEach(e => {
             let contains = e.target.getBounds().contains(mp.x, mp.y);
-            if (e.state == 0 && contains) {
-                e.state = 1;
+            if (e.hoverState == 0 && contains) {
+                e.hoverState = 1;
                 e.target.emit('safein');
             }
-            else if (e.state == 1 && !contains) {
-                e.state = 0;
+            else if (e.hoverState == 1 && !contains) {
+                e.hoverState = 0;
                 e.target.emit('safeout');
             }
-            if (contains && mp.isDown) {
-                e.target.emit('safeclick');
+            if (contains) {
+                if (mp.isDown && e.prevDownState === 0) {
+                    e.target.emit('safeclick');
+                }
             }
+            e.prevDownState = mp.isDown ? 1 : 0;
         });
     }
     setOnUpdate(handler) {
@@ -1916,6 +1981,7 @@ var mainFsm = {
         { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
         { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
         { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },
+        { name: 'ToModeSelect', from: 'FirstMeet', to: 'ModeSelect' }
     ],
 };
 // var mainFsm = 
@@ -2550,7 +2616,7 @@ class Subtitle extends Wrapper {
                 targets: this.wrappedObject,
                 alpha: 0,
                 duration: 250,
-                onComplete: resolve('hideComplete')
+                onComplete: () => { resolve('hideComplete'); }
             });
         });
         // in case anything extreme may happan

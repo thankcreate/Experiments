@@ -180,7 +180,7 @@ class FsmState {
     
 
     autoRemoveListners: {target: OnOffable, key:string, func: any}[] = [];
-    safeInOutWatchers: {target: PhImage, state: number}[] = [];
+    safeInOutWatchers: {target: PhImage, hoverState: number, prevDownState:number}[] = [];
 
 
     constructor(name: string, fsm: Fsm) {
@@ -209,7 +209,7 @@ class FsmState {
     }
 
     autoSafeInOutClick(target: PhImage, inFunc: any, outFun?: any, clickFun?: any) {
-        this.safeInOutWatchers.push({target, state: 0});
+        this.safeInOutWatchers.push({target, hoverState: 0, prevDownState: 0});
 
         target.on('safein', inFunc);
         this.autoRemoveListners.push({target, key:'safein', func: inFunc});
@@ -344,18 +344,21 @@ class FsmState {
         this.safeInOutWatchers.forEach( e=>{            
 
             let contains = e.target.getBounds().contains(mp.x, mp.y)
-            if( e.state == 0 && contains){
-                e.state = 1;
+            if( e.hoverState == 0 && contains){
+                e.hoverState = 1;
                 e.target.emit('safein');
             }
-            else if(e.state == 1 && !contains){
-                e.state = 0;
+            else if(e.hoverState == 1 && !contains){
+                e.hoverState = 0;
                 e.target.emit('safeout');
             }
 
-            if(contains && mp.isDown) {
-                e.target.emit('safeclick')
+            if(contains) {
+                if(mp.isDown && e.prevDownState === 0) {
+                    e.target.emit('safeclick');
+                }
             }
+            e.prevDownState = mp.isDown ? 1 : 0;
         })
     }
     /**

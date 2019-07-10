@@ -8,6 +8,7 @@ var mainFsm =
     { name: 'Finished', from: 'HomeToGameAnimation', to: 'NormalGame' },
     { name: 'BackToHome', from: 'NormalGame', to: 'BackToHomeAnimation' },
     { name: 'Finished', from: 'BackToHomeAnimation', to: 'Home' },
+    { name: 'ToModeSelect', from: 'FirstMeet', to: 'ModeSelect'}
   ],
   
 };

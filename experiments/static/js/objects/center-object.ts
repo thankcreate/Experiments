@@ -10,7 +10,7 @@ class SpeakerButton extends ImageWrapperClass {
         this.scene.tweens.add({
             targets: this.icon,
             alpha: 1,
-            duration: dt,            
+            duration: dt,
         });
     }
 
@@ -18,7 +18,7 @@ class SpeakerButton extends ImageWrapperClass {
         this.scene.tweens.add({
             targets: this.icon,
             alpha: 0,
-            duration: 250,            
+            duration: 250,
         });
     }
 }
@@ -34,7 +34,7 @@ class CenterObject {
 
     mainImage: PhImage;
     speakerBtn: SpeakerButton;
-    
+
 
     playerInputText: PlayerInputText;
 
@@ -44,7 +44,7 @@ class CenterObject {
     backToZeroTween: PhTween;
 
     text: PhText;
-        
+
     centerRotateTween: PhTween;
 
     initScale = 1.3;
@@ -67,7 +67,7 @@ class CenterObject {
 
         this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(
             0, 0, "speaker"
-        ));        
+        ));
 
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
@@ -85,7 +85,7 @@ class CenterObject {
         this.btnMode1 = btn;
 
         btn = new Button(this.scene, this.inner, 0, +50, null, "Zen", 200, 100, false).setEnable(false, false);
-        btn.text.y -= 20;   
+        btn.text.y -= 20;        
         this.btnMode2 = btn;
     }
 
@@ -140,7 +140,7 @@ class CenterObject {
     }
 
     frame: number = 0;
-    
+
 
 
     prepareToGame() {
@@ -150,13 +150,13 @@ class CenterObject {
     }
 
     prepareToHome() {
-        this.playerInputText.prepareToGoBack();        
+        this.playerInputText.prepareToGoBack();
         this.speakerBtn.toNothingMode(1000);
         // this.speakerBtn.inner.x = this.speakerRight;
 
         if (this.backToZeroTween)
             this.backToZeroTween.stop();
-            
+
         this.backToZeroTween = this.scene.tweens.add({
             targets: this.speakerBtn.inner,
             x: this.speakerRight,
@@ -168,7 +168,7 @@ class CenterObject {
     u3(t, c, x) {
         let Y = 0;
         let X = 0;
-        let r=140-16*(t<10?t:0);
-        for(let U=0;U<44;(r<8?"䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y-61)>>X-18&1:0)||x.fillRect(8*X,8*Y,8,8))X=120+r*C(U+=.11)|0,Y=67+r*S(U)|0
+        let r = 140 - 16 * (t < 10 ? t : 0);
+        for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0
     }
 }

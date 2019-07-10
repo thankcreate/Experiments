@@ -45,11 +45,19 @@ class Scene1 extends BaseScene {
         this.load.image('unit_white', 'assets/unit_white.png')
     }
 
+
+
     create() {
         this.container = this.add.container(400, 299);
 
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+        this.centerObject.btnMode1.clickedEvent.on(()=>{
+            this.modeBtnClicked(0);
+        })
+        this.centerObject.btnMode2.clickedEvent.on(()=>{
+            this.modeBtnClicked(1);
+        })
 
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
@@ -246,6 +254,18 @@ class Scene1 extends BaseScene {
                 }
             ])
             .addFinishAction();
+    }
+
+    modeBtnClicked(mode: number) {
+        this.centerObject.speakerBtn.inner.alpha = 1;
+        this.centerObject.playerInputText.title.alpha = 1;
+
+        this.centerObject.btnMode1.setEnable(false, true);
+        this.centerObject.btnMode2.setEnable(false, true);
+
+        if( mode ==0 ) {
+
+        }
     }
 }
 

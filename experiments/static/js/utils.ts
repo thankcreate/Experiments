@@ -101,28 +101,23 @@ function apiTextToSpeech(inputText: string, identifier: string) : Pany{
 }
 
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech2(inputText: string, identifier: string, suc?: (req: any) => any, err?: (arg0: any) => any) {
-    let dataOb = { input: inputText, id: identifier, api: 2 };
-    let dataStr = JSON.stringify(dataOb);
-
-
-    var oReq = new XMLHttpRequest();
-    oReq.open("POST", "/api_speech", true);
-    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    oReq.responseType = "arraybuffer";
-    oReq.onload = function (oEvent) {
-
-
-        suc(oReq);
-
-
-        // var audio = new Audio(url);
-        // audio.load();
-        // audio.play();
-        // console.log('haha ririr');
-    };
-
-    oReq.send(dataStr);
+function apiTextToSpeech2(inputText: string, identifier: string) : Pany {
+    return new Promise((resolve, reject) => {
+        let dataOb = { input: inputText, id: identifier, api: 2 };
+        let dataStr = JSON.stringify(dataOb);    
+    
+        var oReq = new XMLHttpRequest();
+        oReq.open("POST", "/api_speech", true);
+        oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        oReq.responseType = "arraybuffer";
+        oReq.onload = oEvent => {
+            resolve(oReq);
+        };
+        oReq.onerror = o =>{
+            reject(o);
+        }
+        oReq.send(dataStr);
+    });
 }
 
 enum BrowserType {

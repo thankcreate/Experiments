@@ -159,20 +159,10 @@ let p1 = new Promise((resolve, reject) => {
   
 })
 
-let p2 = new Promise((resolve, reject) => {
-  resolve('success')
-})
+let p2 = p1.then(e=>console.log(e));
+
+
 
 let p3 = Promise.reject('失败')
 
-// Promise.all([p1, p2]).then((result) => {
-//   console.log(result)               //['成功了', 'success']
-// }).catch((error) => {
-//   console.log(error)
-// })
-
-Promise.all([p1,p3,p2]).then((result) => {
-  console.log(result)
-}).catch((error) => {
-  console.log(error)      // 失败了，打出 '失败'
-})
+Promise.race([p2, p3]).then(e=>{console.log('1')}, r=>{console.log('2')});

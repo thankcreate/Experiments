@@ -8,7 +8,14 @@ class SpeechManager {
         this.scene = scene;
     }
 
-    quickLoadAndPlay(text: string, play = true) {
+    /**
+     * If after 'timeOut' the resource is still not ready to play\
+     * cancel the whole process
+     * @param text 
+     * @param play 
+     * @param timeOut 
+     */
+    quickLoadAndPlay(text: string, play = true, timeOut: number = 4000) : Pany {
         console.log("Begin quick load and play");
 
         // in quick mode the key is just the input text
@@ -20,24 +27,33 @@ class SpeechManager {
         if (cached) {
             if (play) {
                 // console.log("play cahced");
-                this.scene.sound.play(key);
+                return this.playSoundByKey(key);
             }
         }
         else {
-            apiTextToSpeech2(text, "no_id", (oReq) => {
-                console.log("suc in quickLoadAndPlay")
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id")
+                .then(oReq => {
+                    //console.log("suc in quickLoadAndPlay")
 
-                var arrayBuffer = oReq.response;
-                // this blob may leak memory
-                var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
-                var url = URL.createObjectURL(blob);
-                // console.log(url);    
-                // this.phaserLoadAndPlay(text, text, url, false, play);
-            },
-                err => {
-                    console.log("error in quickLoadAndPlay")
-                }
-            );
+                    var arrayBuffer = oReq.response;
+                    // this blob may leak memory
+                    var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+                    var url = URL.createObjectURL(blob);
+                    // console.log(url);    
+                    return this.phaserLoad(text, text, url, false);
+                });
+
+            let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+                .then(key => {
+                    if (play)
+                        return this.playSoundByKey(key);
+                })
+                // .catch(e => {
+                //     console.log("error in static load and play");
+                //     console.log(e);
+                // });
+
+            return ret;
         }
     }
 
@@ -48,22 +64,29 @@ class SpeechManager {
      * @param play 
      * @param timeOut 
      */
-    staticLoadAndPlay(text: string, play = true, timeOut: number = 4): Pany {
-        return apiTextToSpeech(text, "no_id")
+    staticLoadAndPlay(text: string, play = true, timeOut: number = 4000): Pany {
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id")
             .then(sucRet => {
                 let retID = sucRet.id;
                 let retText = sucRet.input;
                 let retPath = sucRet.outputPath;
                 let md5 = sucRet.md5;
                 return this.phaserLoad(retText, md5, retPath, true);
-            })
-            .then(key => {
-                return this.playSoundByKey(key);
-            })
-            .catch(e => {
-                console.log("staticLoadAndPlay catched error");
-                console.log(e)
             });
+
+        
+
+        let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+            .then(key => {
+                if(play)
+                    return this.playSoundByKey(key);                    
+            })
+            // .catch(e => {
+            //     console.log("error in static load and play");
+            //     console.log(e);
+            // });
+
+        return ret;
     }
 
     clearSpeechCacheStatic() {

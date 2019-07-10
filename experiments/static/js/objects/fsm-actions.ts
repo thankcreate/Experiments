@@ -14,11 +14,23 @@ var TimeOutPromise = {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 if(isResolve)
-                    resolve('timeout')
+                    resolve('timeout resolve by :' + dt)
                 else
-                    reject('timeout');
+                    reject('timeout reject by: ' + dt);
             }, dt)
         })
+    }
+}
+
+var TimeOutRace = {
+    create: function(base: Pany, dt: number, isResolve: boolean = true) : Pany {
+        return Promise.race([base, TimeOutPromise.create(dt, isResolve)]);
+    }
+}
+
+var TimeOutAll = {
+    create: function(base: Pany, dt: number, isResolve: boolean = true) : Pany {
+        return Promise.all([base, TimeOutPromise.create(dt, isResolve)]);
     }
 }
 
@@ -30,27 +42,19 @@ interface FsmState {
     addFinishAction(): FsmState
     addEventAction(name: string): FsmState
     addLogAction(message?: any, ...optionalParams: any[]): FsmState
-    addSubtitleAction(subtitle: Subtitle, text: string, timeout): FsmState
+    addSubtitleAction(subtitle: Subtitle, text: string, autoHideAfter: boolean, timeout?:number, minStay?, finishedSpeechWait?): FsmState
 
 }
 
-FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string, timeout = 4, minStay = 3, finishedSpeechWait = 1.5) {
+
+FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string, autoHideAfter: boolean,
+     timeout = 3000, minStay = 3000, finishedSpeechWait = 1000) {
+    console.log(timeout);
     let self = this as FsmState;
     self.addAction((state, result, resolve, reject) => {
-
-        let subtitleP = subtitle.loadAndSay(text).then(suc=>{
-            return TimeOutPromise.create(finishedSpeechWait);
-        });
-
-        let minStayP = TimeOutPromise.create(minStay);
-        
-        Promise.all([minStayP, subtitleP])
-        .then(s=>{
-            resolve('suc');
-        })
-        .catch(e=>{
-            resolve('load and Say fail');
-        });
+        subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
+            .then(s=>{ resolve('subtitle show end')  })      
+            .catch(s=>{ resolve('subtitle show end with some err')});
     });
     return self;
 }

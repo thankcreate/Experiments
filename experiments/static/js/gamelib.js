@@ -8,7 +8,7 @@ class BaseScene extends Phaser.Scene {
         let controller = this.scene.get("Controller");
         return controller;
     }
-    playSpeech(text, timeOut = 4) {
+    playSpeech(text, timeOut = 4000) {
         let controller = this.scene.get("Controller");
         return controller.playSpeechInController(text, timeOut);
     }
@@ -38,8 +38,8 @@ class Controller extends BaseScene {
         this.scene.launch('Scene1');
         myResize(this.game);
     }
-    playSpeechInController(text, timeOut = 4) {
-        // this.speechManager.quickLoadAndPlay(text);
+    playSpeechInController(text, timeOut = 4000) {
+        // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
         return this.speechManager.staticLoadAndPlay(text, true, timeOut);
     }
 }
@@ -141,13 +141,9 @@ class Scene1 extends BaseScene {
     }
     initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
-            .addAction((state, result, resolve, reject) => {
-            this.playSpeech("God, someone find me finally!").then(suc => {
-                resolve(suc);
-            }, err => {
-                reject(err);
-            });
-        });
+            .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explaine.\nWhich experiment do you like to take?", false);
     }
     initFsmHomeToGameAnimation() {
         let dt = 1000;
@@ -567,21 +563,22 @@ function apiTextToSpeech(inputText, identifier) {
     return apiPromise("api_speech", dataStr);
 }
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech2(inputText, identifier, suc, err) {
-    let dataOb = { input: inputText, id: identifier, api: 2 };
-    let dataStr = JSON.stringify(dataOb);
-    var oReq = new XMLHttpRequest();
-    oReq.open("POST", "/api_speech", true);
-    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    oReq.responseType = "arraybuffer";
-    oReq.onload = function (oEvent) {
-        suc(oReq);
-        // var audio = new Audio(url);
-        // audio.load();
-        // audio.play();
-        // console.log('haha ririr');
-    };
-    oReq.send(dataStr);
+function apiTextToSpeech2(inputText, identifier) {
+    return new Promise((resolve, reject) => {
+        let dataOb = { input: inputText, id: identifier, api: 2 };
+        let dataStr = JSON.stringify(dataOb);
+        var oReq = new XMLHttpRequest();
+        oReq.open("POST", "/api_speech", true);
+        oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        oReq.responseType = "arraybuffer";
+        oReq.onload = oEvent => {
+            resolve(oReq);
+        };
+        oReq.onerror = o => {
+            reject(o);
+        };
+        oReq.send(dataStr);
+    });
 }
 var BrowserType;
 (function (BrowserType) {
@@ -1678,27 +1675,30 @@ var TimeOutPromise = {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 if (isResolve)
-                    resolve('timeout');
+                    resolve('timeout resolve by :' + dt);
                 else
-                    reject('timeout');
+                    reject('timeout reject by: ' + dt);
             }, dt);
         });
     }
 };
-FsmState.prototype.addSubtitleAction = function (subtitle, text, timeout = 4, minStay = 3, finishedSpeechWait = 1.5) {
+var TimeOutRace = {
+    create: function (base, dt, isResolve = true) {
+        return Promise.race([base, TimeOutPromise.create(dt, isResolve)]);
+    }
+};
+var TimeOutAll = {
+    create: function (base, dt, isResolve = true) {
+        return Promise.all([base, TimeOutPromise.create(dt, isResolve)]);
+    }
+};
+FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, timeout = 3000, minStay = 3000, finishedSpeechWait = 1000) {
+    console.log(timeout);
     let self = this;
     self.addAction((state, result, resolve, reject) => {
-        let subtitleP = subtitle.loadAndSay(text).then(suc => {
-            return TimeOutPromise.create(finishedSpeechWait);
-        });
-        let minStayP = TimeOutPromise.create(minStay);
-        Promise.all([minStayP, subtitleP])
-            .then(s => {
-            resolve('suc');
-        })
-            .catch(e => {
-            resolve('load and Say fail');
-        });
+        subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
+            .then(s => { resolve('subtitle show end'); })
+            .catch(s => { resolve('subtitle show end with some err'); });
     });
     return self;
 };
@@ -2160,7 +2160,14 @@ class SpeechManager {
         this.loadedSpeechFilesQuick = {};
         this.scene = scene;
     }
-    quickLoadAndPlay(text, play = true) {
+    /**
+     * If after 'timeOut' the resource is still not ready to play\
+     * cancel the whole process
+     * @param text
+     * @param play
+     * @param timeOut
+     */
+    quickLoadAndPlay(text, play = true, timeOut = 4000) {
         console.log("Begin quick load and play");
         // in quick mode the key is just the input text
         // we can judge if we have the key stored directly
@@ -2171,21 +2178,30 @@ class SpeechManager {
         if (cached) {
             if (play) {
                 // console.log("play cahced");
-                this.scene.sound.play(key);
+                return this.playSoundByKey(key);
             }
         }
         else {
-            apiTextToSpeech2(text, "no_id", (oReq) => {
-                console.log("suc in quickLoadAndPlay");
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id")
+                .then(oReq => {
+                //console.log("suc in quickLoadAndPlay")
                 var arrayBuffer = oReq.response;
                 // this blob may leak memory
                 var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
                 var url = URL.createObjectURL(blob);
                 // console.log(url);    
-                // this.phaserLoadAndPlay(text, text, url, false, play);
-            }, err => {
-                console.log("error in quickLoadAndPlay");
+                return this.phaserLoad(text, text, url, false);
             });
+            let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+                .then(key => {
+                if (play)
+                    return this.playSoundByKey(key);
+            });
+            // .catch(e => {
+            //     console.log("error in static load and play");
+            //     console.log(e);
+            // });
+            return ret;
         }
     }
     /**
@@ -2195,22 +2211,25 @@ class SpeechManager {
      * @param play
      * @param timeOut
      */
-    staticLoadAndPlay(text, play = true, timeOut = 4) {
-        return apiTextToSpeech(text, "no_id")
+    staticLoadAndPlay(text, play = true, timeOut = 4000) {
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id")
             .then(sucRet => {
             let retID = sucRet.id;
             let retText = sucRet.input;
             let retPath = sucRet.outputPath;
             let md5 = sucRet.md5;
             return this.phaserLoad(retText, md5, retPath, true);
-        })
-            .then(key => {
-            return this.playSoundByKey(key);
-        })
-            .catch(e => {
-            console.log("staticLoadAndPlay catched error");
-            console.log(e);
         });
+        let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+            .then(key => {
+            if (play)
+                return this.playSoundByKey(key);
+        });
+        // .catch(e => {
+        //     console.log("error in static load and play");
+        //     console.log(e);
+        // });
+        return ret;
     }
     clearSpeechCacheStatic() {
         for (let key in this.loadedSpeechFilesStatic) {
@@ -2292,7 +2311,7 @@ var monologueList = [
     'I think no one would ever find me',
     'So sad, nobody likes AI',
     'Maybe I should just wait for 5 mins?',
-    'I think someone is watching me?\n There must be!',
+    'I think someone is watching me\n There must be someone!',
     'A cursor! I found a curor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',
     "Is it that I'm too tired?\nI thought I smelled a human being",
@@ -2309,7 +2328,7 @@ class Subtitle extends Wrapper {
         this.monologueIndex = 0;
         let style = this.getSubtitleStyle();
         let target = this.scene.add.text(0, 0, "", style).setOrigin(0.5);
-        target.setWordWrapWidth(800);
+        target.setWordWrapWidth(1000);
         target.setAlign('center');
         this.applyTarget(target);
         this.monologueIndex = ~~(Math.random() * monologueList.length);
@@ -2343,7 +2362,7 @@ class Subtitle extends Wrapper {
     showMonologue(index) {
         index = clamp(index, 0, monologueList.length - 1);
         this.monologueIndex = index;
-        this.wrappedObject.text = monologueList[index];
+        this.showText(monologueList[index]);
     }
     getSubtitleStyle() {
         let ret = {
@@ -2353,9 +2372,58 @@ class Subtitle extends Wrapper {
         };
         return ret;
     }
-    loadAndSay(val) {
+    showText(val) {
+        if (this.outTween)
+            this.outTween.stop();
+        this.wrappedObject.alpha = 0;
+        this.inTween = this.scene.tweens.add({
+            targets: this.wrappedObject,
+            alpha: 1,
+            duration: 250,
+        });
         this.wrappedObject.text = val;
-        return this.scene.playSpeech(val);
+    }
+    hideText() {
+        if (this.inTween)
+            this.inTween.stop();
+        let outPromise = new Promise((resolve, reject) => {
+            this.outTween = this.scene.tweens.add({
+                targets: this.wrappedObject,
+                alpha: 0,
+                duration: 250,
+                onComplete: resolve('hideComplete')
+            });
+        });
+        // in case anything extreme may happan
+        // return a raced timeout
+        return TimeOutRace.create(outPromise, 300, true);
+    }
+    /**
+     * Show a text on the subtitle zone with voiceover. \
+     * The whole process is: \
+     * 1. Use async api to load and play voiceover \
+     * 2. Wait for 'finishedSpeechWait' time after the voice over
+     * 3. Compare the above process with a minStay, if costed time < minStay, wait until minStay is used up
+     * 4. Hide the text using fade tween if needed
+     * @param subtitle
+     * @param text
+     * @param timeout
+     * @param minStay the min time the title is shown
+     * @param finishedSpeechWait the time after played apeech
+     */
+    loadAndSay(subtitle, text, autoHideAfter = false, timeout = 4000, minStay = 3000, finishedSpeechWait = 1500) {
+        this.showText(text);
+        let normalPlayProcess = this.scene.playSpeech(text, timeout)
+            .then(s => {
+            return TimeOutPromise.create(finishedSpeechWait, true);
+        })
+            .catch(e => { console.log("subtitle loadAndSay error: " + e); });
+        let fitToMinStay = TimeOutAll.create(normalPlayProcess, minStay, true)
+            .then(s => {
+            if (autoHideAfter)
+                return this.hideText();
+        });
+        return fitToMinStay;
     }
 }
 let code = `

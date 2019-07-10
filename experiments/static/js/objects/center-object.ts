@@ -50,6 +50,9 @@ class CenterObject {
     initScale = 1.3;
     initRotation = -Math.PI / 2;
 
+    btnMode1: Button;
+    btnMode2: Button;
+
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -75,6 +78,15 @@ class CenterObject {
 
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
+
+        // Buttons
+        let btn = new Button(this.scene, this.inner, 0, -50, null, "Normal", 200, 100, false).setEnable(false, false);
+        btn.text.y += 20;
+        this.btnMode1 = btn;
+
+        btn = new Button(this.scene, this.inner, 0, +50, null, "Zen", 200, 100, false).setEnable(false, false);
+        btn.text.y -= 20;   
+        this.btnMode2 = btn;
     }
 
     graph: PhGraphics;

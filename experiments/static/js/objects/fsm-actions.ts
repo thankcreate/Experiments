@@ -1,4 +1,6 @@
 /// <reference path="fsm.ts" />
+
+
 var TweenPromise = {
     create: function (scene: PhScene, config: Phaser.Types.Tweens.TweenBuilderConfig | any): Promise<any> {
         let tp = new Promise(res => {
@@ -18,6 +20,19 @@ var TimeOutPromise = {
                 else
                     reject('timeout reject by: ' + dt);
             }, dt)
+        })
+    }
+}
+
+var FadePromise = {
+    create: function(scene: PhScene, target: any, to: number, dt: number) {
+        return new Promise((resolve, reject)=>{
+            scene.tweens.add({
+                targets: target, 
+                alpha: to,
+                duration: dt,
+                onComplete: ()=>resolve('completed')
+            });
         })
     }
 }
@@ -46,11 +61,18 @@ interface FsmState {
 
 }
 
+function notSet(val: any) : boolean {
+    return val === null || val === undefined;
+}
 
 FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string, autoHideAfter: boolean,
-     timeout = 3000, minStay = 3000, finishedSpeechWait = 1000) {
-    console.log(timeout);
+     timeout?, minStay?, finishedSpeechWait?) {    
     let self = this as FsmState;
+    
+    if(notSet(timeout)) timeout = 3000;
+    if(notSet(minStay)) minStay = 3000;
+    if(notSet(finishedSpeechWait)) finishedSpeechWait = 1000;
+
     self.addAction((state, result, resolve, reject) => {
         subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s=>{ resolve('subtitle show end')  })      

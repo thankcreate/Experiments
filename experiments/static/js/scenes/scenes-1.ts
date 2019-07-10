@@ -42,6 +42,7 @@ class Scene1 extends BaseScene {
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('footer', 'assets/footer.png');
+        this.load.image('unit_white', 'assets/unit_white.png')
     }
 
     create() {
@@ -76,6 +77,8 @@ class Scene1 extends BaseScene {
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
 
+        
+        
 
         // Main FSM
         this.initFsm();
@@ -128,27 +131,25 @@ class Scene1 extends BaseScene {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
 
-            let mainImage = this.centerObject.mainImage;
+            let mainImage = this.centerObject.mainImage;          
+            
 
-            s.autoSafeInOut(mainImage, e=>{                
+            s.autoSafeInOutClick(mainImage, e=>{                
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toBlinkMode();
-            }, e=>{                
+            }, 
+            e=>{                
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toStaticMode();
-            });
-
-            s.autoOn(mainImage, 'pointerdown', e => {       
-
-                
-                
+            },
+            e=>{
                 this.centerObject.playerInputText.homePointerDown();
                 this.subtitle.stopMonologue();
 
 
                 this.dwitterBKG.toStaticMode();
                 s.event('ToFirstMeet');
-                // s.finished();
+                    // s.finished();
             });
         });
     }
@@ -156,8 +157,28 @@ class Scene1 extends BaseScene {
     initFsmFirstMeet(){
         this.fsm.getState("FirstMeet")
         .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-        .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-        .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explaine.\nWhich experiment do you like to take?", false)
+        // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+        // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+        .addAction(()=>{
+            this.centerObject.speakerBtn.inner.alpha = 0;
+            this.centerObject.playerInputText.title.alpha = 0;
+            this.tweens.add({
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: 1.2,
+                duration: 600,
+            });
+        })
+        .addTweenAction(this, {
+            targets: this.centerObject.inner,
+            rotation: 0,
+            scale: 1.2,
+            duration: 600,
+        })
+        .addAction(()=>{
+            this.centerObject.btnMode1.setEnable(true, true);
+            this.centerObject.btnMode2.setEnable(true, true);
+        });
     }
 
 

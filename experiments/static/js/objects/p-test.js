@@ -152,17 +152,42 @@
 // });
 
 
-let p1 = new Promise((resolve, reject) => {
-  setTimeout(()=>{
-    resolve('成功了')
-  }, 3000)
+// let p1 = new Promise((resolve, reject) => {
+//   setTimeout(()=>{
+//     resolve('成功了')
+//   }, 3000)
   
-})
+// })
 
-let p2 = p1.then(e=>console.log(e));
+// let p2 = p1.then(e=>console.log(e));
 
 
 
-let p3 = Promise.reject('失败')
+// let p3 = Promise.reject('失败')
 
-Promise.race([p2, p3]).then(e=>{console.log('1')}, r=>{console.log('2')});
+// Promise.race([p2, p3]).then(e=>{console.log('1')}, r=>{console.log('2')});
+
+let t = undefined;
+
+if(t == undefined) {
+  console.log('1')
+}
+else
+console.log('2')
+
+t = null;
+
+if(t == undefined) {
+  console.log('1')
+}
+else
+console.log('2')
+
+
+t = 0;
+
+if(t) {
+  console.log('1')
+}
+else
+console.log('2')

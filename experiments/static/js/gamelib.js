@@ -60,6 +60,7 @@ class Scene1 extends BaseScene {
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('footer', 'assets/footer.png');
+        this.load.image('unit_white', 'assets/unit_white.png');
     }
     create() {
         this.container = this.add.container(400, 299);
@@ -123,14 +124,13 @@ class Scene1 extends BaseScene {
         this.fsm.getState("Home").setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
             let mainImage = this.centerObject.mainImage;
-            s.autoSafeInOut(mainImage, e => {
+            s.autoSafeInOutClick(mainImage, e => {
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toBlinkMode();
             }, e => {
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toStaticMode();
-            });
-            s.autoOn(mainImage, 'pointerdown', e => {
+            }, e => {
                 this.centerObject.playerInputText.homePointerDown();
                 this.subtitle.stopMonologue();
                 this.dwitterBKG.toStaticMode();
@@ -142,8 +142,28 @@ class Scene1 extends BaseScene {
     initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
             .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explaine.\nWhich experiment do you like to take?", false);
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addAction(() => {
+            this.centerObject.speakerBtn.inner.alpha = 0;
+            this.centerObject.playerInputText.title.alpha = 0;
+            this.tweens.add({
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: 1.2,
+                duration: 600,
+            });
+        })
+            .addTweenAction(this, {
+            targets: this.centerObject.inner,
+            rotation: 0,
+            scale: 1.2,
+            duration: 600,
+        })
+            .addAction(() => {
+            this.centerObject.btnMode1.setEnable(true, true);
+            this.centerObject.btnMode2.setEnable(true, true);
+        });
     }
     initFsmHomeToGameAnimation() {
         let dt = 1000;
@@ -714,6 +734,108 @@ function conv(webgl, canvas2D) {
 function clamp(val, min, max) {
     return Math.max(Math.min(val, max), min);
 }
+class Button {
+    /**
+     * Target will be added into inner container
+     * inner container will be added into parentContainer automatically
+     * NO NEED to add this wrapper into the parent
+     * @param scene
+     * @param parentContainer
+     * @param target
+     */
+    constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug) {
+        this.hoverState = 0;
+        this.enable = true;
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+        this.inner = this.scene.add.container(x, y);
+        this.parentContainer.add(this.inner);
+        if (imgKey) {
+            this.image = this.scene.add.image(0, 0, imgKey);
+            this.inner.add(this.image);
+        }
+        let style = getDefaultTextStyle();
+        style.fill = '#FFFFFF';
+        this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
+        this.inner.add(this.text);
+        if (width && height) {
+            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(0.5);
+            this.fakeZone.setScale(width / 100, height / 100);
+            this.inner.add(this.fakeZone);
+            this.eventTarget = this.fakeZone;
+            if (debug) {
+                this.debugFrame = this.scene.add.graphics();
+                this.debugFrame.lineStyle(4, 0xFF0000, 1);
+                this.debugFrame.strokeRect(-width / 2, -height / 2, width, height);
+                this.inner.add(this.debugFrame);
+            }
+        }
+        else if (this.image) {
+            this.eventTarget = this.image;
+        }
+        else {
+            this.eventTarget = this.text;
+        }
+        this.eventTarget.setInteractive();
+        this.text.update = () => {
+            console.log('haha');
+        };
+        this.scene.updateObjects.push(this);
+    }
+    update(time, dt) {
+        if (!this.enable) {
+            return;
+        }
+        this.checkMouseEventInUpdate();
+    }
+    setEnable(val, needFade) {
+        // hide
+        if (val && this.enable) {
+            this.hoverState = 0;
+            if (needFade) {
+                FadePromise.create(this.scene, this.inner, 0, 500);
+            }
+        }
+        // show
+        else if (val && !this.enable) {
+            if (needFade) {
+                FadePromise.create(this.scene, this.inner, 1, 500);
+            }
+        }
+        this.inner.setVisible(val);
+        this.enable = val;
+        return this;
+    }
+    // 1: on   2: off
+    setHoverState(st) {
+        if (this.hoverState == 0 && st == 1) {
+            this.pointerover();
+        }
+        else if (this.hoverState == 1 && st == 0) {
+            this.pointerout();
+        }
+        this.hoverState = st;
+    }
+    checkMouseEventInUpdate() {
+        var pointer = this.scene.input.activePointer;
+        let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+        this.setHoverState(contains ? 1 : 0);
+        if (contains) {
+            if (pointer.isDown) {
+                this.click();
+            }
+        }
+    }
+    click() {
+        console.log('click');
+    }
+    pointerover() {
+        console.log('over');
+    }
+    pointerout() {
+        console.log('out');
+    }
+}
 class SpeakerButton extends ImageWrapperClass {
     init() {
         this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
@@ -756,6 +878,13 @@ class CenterObject {
         this.inner.setRotation(this.initRotation);
         this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
         this.inner.add(this.text);
+        // Buttons
+        let btn = new Button(this.scene, this.inner, 0, -50, null, "Normal", 200, 100, false).setEnable(false, false);
+        btn.text.y += 20;
+        this.btnMode1 = btn;
+        btn = new Button(this.scene, this.inner, 0, +50, null, "Zen", 200, 100, false).setEnable(false, false);
+        btn.text.y -= 20;
+        this.btnMode2 = btn;
     }
     playerInputChanged(inputControl) {
         let percent = inputControl.text.width / this.getTextMaxWidth();
@@ -1512,12 +1641,18 @@ class FsmState {
         target.on(key, func);
         this.autoRemoveListners.push({ target, key, func });
     }
-    autoSafeInOut(target, inFunc, outFun) {
+    autoSafeInOutClick(target, inFunc, outFun, clickFun) {
         this.safeInOutWatchers.push({ target, state: 0 });
         target.on('safein', inFunc);
-        target.on('safeout', outFun);
         this.autoRemoveListners.push({ target, key: 'safein', func: inFunc });
-        this.autoRemoveListners.push({ target, key: 'safeout', func: outFun });
+        if (outFun) {
+            target.on('safeout', outFun);
+            this.autoRemoveListners.push({ target, key: 'safeout', func: outFun });
+        }
+        if (clickFun) {
+            target.on('safeclick', clickFun);
+            this.autoRemoveListners.push({ target, key: 'safeclick', func: clickFun });
+        }
     }
     addAction(action) {
         this.actions.push(action);
@@ -1610,15 +1745,19 @@ class FsmState {
     _onUpdate(state, time, dt) {
         if (this.onUpdate)
             this.onUpdate(state, time, dt);
-        let mp = getGame().input.mousePointer;
+        let mp = getGame().input.activePointer;
         this.safeInOutWatchers.forEach(e => {
-            if (e.state == 0 && e.target.getBounds().contains(mp.x, mp.y)) {
+            let contains = e.target.getBounds().contains(mp.x, mp.y);
+            if (e.state == 0 && contains) {
                 e.state = 1;
                 e.target.emit('safein');
             }
-            else if (e.state == 1 && !e.target.getBounds().contains(mp.x, mp.y)) {
+            else if (e.state == 1 && !contains) {
                 e.state = 0;
                 e.target.emit('safeout');
+            }
+            if (contains && mp.isDown) {
+                e.target.emit('safeclick');
             }
         });
     }
@@ -1682,6 +1821,18 @@ var TimeOutPromise = {
         });
     }
 };
+var FadePromise = {
+    create: function (scene, target, to, dt) {
+        return new Promise((resolve, reject) => {
+            scene.tweens.add({
+                targets: target,
+                alpha: to,
+                duration: dt,
+                onComplete: () => resolve('completed')
+            });
+        });
+    }
+};
 var TimeOutRace = {
     create: function (base, dt, isResolve = true) {
         return Promise.race([base, TimeOutPromise.create(dt, isResolve)]);
@@ -1692,9 +1843,17 @@ var TimeOutAll = {
         return Promise.all([base, TimeOutPromise.create(dt, isResolve)]);
     }
 };
-FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, timeout = 3000, minStay = 3000, finishedSpeechWait = 1000) {
-    console.log(timeout);
+function notSet(val) {
+    return val === null || val === undefined;
+}
+FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait) {
     let self = this;
+    if (notSet(timeout))
+        timeout = 3000;
+    if (notSet(minStay))
+        minStay = 3000;
+    if (notSet(finishedSpeechWait))
+        finishedSpeechWait = 1000;
     self.addAction((state, result, resolve, reject) => {
         subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s => { resolve('subtitle show end'); })

@@ -208,13 +208,21 @@ class FsmState {
         this.autoRemoveListners.push({target, key, func});
     }
 
-    autoSafeInOut(target: PhImage, inFunc: any, outFun: any) {
+    autoSafeInOutClick(target: PhImage, inFunc: any, outFun?: any, clickFun?: any) {
         this.safeInOutWatchers.push({target, state: 0});
 
         target.on('safein', inFunc);
-        target.on('safeout', outFun);
         this.autoRemoveListners.push({target, key:'safein', func: inFunc});
-        this.autoRemoveListners.push({target, key:'safeout', func: outFun});
+
+        if(outFun) {
+            target.on('safeout', outFun);
+            this.autoRemoveListners.push({target, key:'safeout', func: outFun});
+        }
+            
+        if(clickFun) {
+            target.on('safeclick', clickFun);
+            this.autoRemoveListners.push({target, key:'safeclick', func: clickFun})
+        }
     }
 
     addAction(action :FsmAction): FsmState {
@@ -332,15 +340,21 @@ class FsmState {
         if(this.onUpdate)
             this.onUpdate(state, time, dt);
         
-        let mp = getGame().input.mousePointer;        
+        let mp = getGame().input.activePointer;        
         this.safeInOutWatchers.forEach( e=>{            
-            if( e.state == 0 && e.target.getBounds().contains(mp.x, mp.y)){
+
+            let contains = e.target.getBounds().contains(mp.x, mp.y)
+            if( e.state == 0 && contains){
                 e.state = 1;
                 e.target.emit('safein');
             }
-            else if(e.state == 1 && !e.target.getBounds().contains(mp.x, mp.y)){
+            else if(e.state == 1 && !contains){
                 e.state = 0;
                 e.target.emit('safeout');
+            }
+
+            if(contains && mp.isDown) {
+                e.target.emit('safeclick')
             }
         })
     }

@@ -5,6 +5,7 @@ class HP extends Wrapper<PhText> {
     innerProgress: Rect;    
     progressColor = 0x888888;
     progressGap = 4;
+    progressMaxWidth; // calc in custructor
 
     titleGap = 1;
 
@@ -13,6 +14,11 @@ class HP extends Wrapper<PhText> {
 
     frameWidth = 6;
 
+    maxHealth = 10;    
+    currHealth = this.maxHealth;
+
+    deadEvent: TypedEvent<any> = new TypedEvent();
+    
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
@@ -28,10 +34,11 @@ class HP extends Wrapper<PhText> {
             originY: 1,            
         });
 
+        this.progressMaxWidth = this.barWidth - this.frameWidth - this.progressGap * 2;
         this.innerProgress = new Rect(this.scene, this.inner, this.frameWidth / 2 + this.progressGap, - this.frameWidth / 2 - this.progressGap, {
             lineColor: this.progressColor,
             fillColor: this.progressColor,
-            width: this.barWidth - this.frameWidth - this.progressGap * 2,
+            width: this.progressMaxWidth,
             height: this.barHeight - this.frameWidth - this.progressGap * 2,
             lineWidth: 0,
             originX: 0,
@@ -45,5 +52,26 @@ class HP extends Wrapper<PhText> {
 
     setTitle(val: string) {
         this.wrappedObject.text = val;
+    }
+
+    damageBy(val: number) {
+        if(this.currHealth <= 0)
+            return;
+
+        this.currHealth -= val;
+        this.currHealth = Math.max(0, this.currHealth);
+
+        let perc = this.currHealth / this.maxHealth;
+        let newProgressWidth = perc * this.progressMaxWidth;        
+        this.innerProgress.setSize(newProgressWidth);
+
+        if(this.currHealth == 0) {
+            this.deadEvent.emit('Haha, you died');
+        }        
+    }
+
+    reset() {
+        this.currHealth = this.maxHealth;
+        this.innerProgress.setSize(this.progressMaxWidth);
     }
 }

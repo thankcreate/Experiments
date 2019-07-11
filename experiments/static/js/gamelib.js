@@ -53,7 +53,6 @@ var GameMode;
 class Scene1 extends BaseScene {
     constructor() {
         super('Scene1');
-        this.mm = 0;
         this.initDwitterScale = 0.52;
         this.mode = GameMode.Normal;
         this.circle;
@@ -83,15 +82,15 @@ class Scene1 extends BaseScene {
                 this.dwitterBKG.next();
             }, null, null);
         });
+        // Dwitters         
+        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
+        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
         // Bottom badge
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.footerInitPosi = MakePoint(this.footer);
         this.fitImageToSize(this.footer, 100);
-        // Dwitters
-        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
         // Back button
@@ -104,6 +103,9 @@ class Scene1 extends BaseScene {
         this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
         this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         this.hp.inner.y += 250;
+        // Died layer
+        this.died = new Died(this, this.container, 0, 0);
+        this.died.hide();
         // Main FSM
         this.initFsm();
     }
@@ -137,6 +139,8 @@ class Scene1 extends BaseScene {
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
+        this.initFsmDied();
+        this.initFsmRestart();
         this.updateObjects.push(this.fsm);
         this.fsm.start();
     }
@@ -244,23 +248,63 @@ class Scene1 extends BaseScene {
             .addFinishAction();
     }
     initFsmNormalGame() {
+        // this is a everlasting event
+        // whenever the backBtn is enabled
+        // it should be regarded as can accept click
+        this.backBtn.clickedEvent.on(e => {
+            this.fsm.event("BACK_TO_HOME");
+        });
         let state = this.fsm.getState("NormalGame");
         state.setOnEnter(s => {
+            // Hide title and show speaker dots
             this.centerObject.prepareToGame();
+            this.backBtn.setEnable(true, true);
             this.enemyManager.startSpawn();
+            // Back
             s.autoOn($(document), 'keydown', e => {
                 if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BACK_TO_HOME"); // <-------------
                 }
             });
-            s.autoOn(this.backBtn.clickedEvent, null, () => {
-                s.event("BACK_TO_HOME");
-            });
+            // Player input
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+            // Damage handling
+            s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
+                let enemy = e;
+                this.hp.damageBy(enemy.health);
+            });
+            // Dead event handling
+            s.autoOn(this.hp.deadEvent, null, e => {
+                s.event("DIED");
+            });
         });
-        state.enterExitListners.on(isEnter => {
-            this.backBtn.setEnable(isEnter, true);
+    }
+    /**
+     * Event: BACK_TO_HOME sent by backBtn (everlasting)
+     * Event: RESTART sent by restartBtn
+     */
+    initFsmDied() {
+        let state = this.fsm.getState("Died");
+        state.addAction((s, result, resolve, reject) => {
+            // Stop all enemies
+            this.enemyManager.freezeAllEnemies();
+            this.died.show();
+            s.autoOn(this.died.restartBtn.clickedEvent, null, () => {
+                s.event("RESTART");
+                resolve('restart clicked');
+            });
+        });
+        state.setOnExit(() => {
+            this.hp.reset();
+            this.enemyManager.stopSpawnAndClear();
+            this.died.hide();
+        });
+    }
+    initFsmRestart() {
+        let state = this.fsm.getState("Restart");
+        state.addAction(s => {
+            s.event("RESTART_TO_GAME");
         });
     }
     initFsmBackToHomeAnimation() {
@@ -269,6 +313,7 @@ class Scene1 extends BaseScene {
             .addAction(() => {
             this.centerObject.prepareToHome();
             this.enemyManager.stopSpawnAndClear();
+            this.backBtn.setEnable(false, true);
         })
             .addDelayAction(this, 300)
             .addTweenAllAction(this, [
@@ -304,8 +349,10 @@ class Scene1 extends BaseScene {
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
-    enemyDuratrion: 30000,
-    spawnInterval: 8000,
+    // enemyDuratrion: 30000,
+    // spawnInterval: 8000,
+    enemyDuratrion: 5000,
+    spawnInterval: 1000,
     onlyDamageMostMatch: false,
     allowDamageBySameWord: false,
     tryAvoidDuplicate: true,
@@ -1085,6 +1132,44 @@ class CenterObject {
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
+class Died extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        // Big banner
+        this.banner = new Rect(this.scene, this.inner, 0, 0, {
+            originX: 0.5,
+            originY: 0.5,
+            width: 3000,
+            height: 350,
+            fillColor: 0x000000,
+            lineColor: 0x000000,
+            lineAlpha: 0,
+        });
+        // Title
+        let style = getDefaultTextStyle();
+        style.fill = '#ffffff';
+        style.fontSize = '250px';
+        let title = this.scene.add.text(0, -10, "YOU DIED", style).setOrigin(0.5).setAlign('center');
+        this.applyTarget(title);
+        // Restart Btn
+        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, "Restart", 200, 100, false);
+        this.restartBtn.text.setFontSize(44);
+    }
+    hide() {
+        this.inner.setVisible(false);
+        this.restartBtn.setEnable(false, false);
+    }
+    show() {
+        this.inner.setVisible(true);
+        this.inner.alpha = 0;
+        this.restartBtn.setEnable(true, false);
+        return TweenPromise.create(this.scene, {
+            targets: this.inner,
+            alpha: 1,
+            duration: 200
+        });
+    }
+}
 var canvasIndex = 0;
 /**
  * The current Dwitter only uses Canvas context to draw things \
@@ -1162,6 +1247,7 @@ class Dwitter65537 extends Dwitter {
     dwitterInit() {
         super.dwitterInit();
         this.inner.alpha = 0.03;
+        // this.inner.alpha = 1;
         this.needModify = true;
         this.param1 = 25;
         this.needStopOnFirstShow = true;
@@ -1227,7 +1313,7 @@ class Enemy {
         this.inStop = false;
         this.scene = scene;
         this.enemyManager = enemyManager;
-        this.parentContainer = enemyManager.container;
+        this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
@@ -1251,8 +1337,10 @@ class Enemy {
         let stopDis = this.getStopDistance();
         // console.log(stopDis);
         // console.log("dis:" + dis +  "stopdis:" + stopDis );
-        if (dis < stopDis)
+        if (dis < stopDis) {
+            this.enemyManager.enemyReachedCore(this);
             this.stopRunAndDestroySelf();
+        }
     }
     getStopDistance() {
         return this.centerRadius;
@@ -1271,6 +1359,9 @@ class Enemy {
             duration: this.duration
         });
     }
+    freeze() {
+        this.mvTween.pause();
+    }
     stopRunAndDestroySelf() {
         let thisEnemy = this;
         thisEnemy.enemyManager.removeEnemy(thisEnemy);
@@ -1280,10 +1371,13 @@ class Enemy {
             targets: this.inner,
             alpha: 0,
             duration: 300,
-            onComplete: function () {
-                thisEnemy.inner.destroy();
+            onComplete: () => {
+                this.dispose();
             }
         });
+    }
+    dispose() {
+        this.inner.destroy();
     }
     getRealHealthDamage(val) {
         let ret = 0;
@@ -1384,12 +1478,19 @@ class EnemyImage extends Enemy {
     getStopDistance() {
         return this.centerRadius + gameplayConfig.drawDataDefaultSize / 2 + 10;
     }
+    dispose() {
+        super.dispose();
+        this.figure.dispose();
+        this.figure = null;
+    }
 }
 class EnemyManager {
-    constructor(scene, container) {
+    constructor(scene, parentContainer) {
         this.spawnHistory = [];
+        this.enemyReachedCoreEvent = new TypedEvent();
         this.scene = scene;
-        this.container = container;
+        this.inner = this.scene.add.container(0, 0);
+        parentContainer.add(this.inner);
         this.interval = gameplayConfig.spawnInterval;
         this.dummy = 1;
         this.enemies = [];
@@ -1506,21 +1607,31 @@ class EnemyManager {
         // console.log("Children count: " + this.container.getAll().length);
     }
     getSpawnPoint() {
-        var threshould = Math.PI / 2;
         var pt = new Phaser.Geom.Point(0, 0);
         var rdDegree = 0;
         while (true) {
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
             pt.x = Math.cos(rdDegree) * this.spawnRadius;
             pt.y = Math.sin(rdDegree) * this.spawnRadius;
-            if (this.spawnHistory.length == 0)
+            if (this.isValidDegree(rdDegree)) {
                 break;
-            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
-            if (this.getAngleDiff(lastOne.degree, rdDegree) > threshould)
-                break;
+            }
         }
         // console.log(rdDegree);
         return pt;
+    }
+    isValidDegree(rdDegree) {
+        var threshould = Math.PI / 2;
+        var subtitleRestrictedAngle = Math.PI / 3 * 2;
+        let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
+        let farEnoughFromLastOne = false;
+        if (this.spawnHistory.length == 0)
+            farEnoughFromLastOne = true;
+        else {
+            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
+            farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
+        }
+        return notInSubtitleZone && farEnoughFromLastOne;
     }
     getAngleDiff(angl1, angle2) {
         let diff1 = Math.abs(angl1 - angle2);
@@ -1615,6 +1726,18 @@ class EnemyManager {
     inputTextConfirmed(input) {
         this.sendInputToServer(input);
     }
+    enemyReachedCore(enemy) {
+        if (enemy.health <= 0)
+            return;
+        this.enemyReachedCoreEvent.emit(enemy);
+    }
+    // This is mostly used when died
+    freezeAllEnemies() {
+        this.spawnTween.pause();
+        this.enemies.forEach(element => {
+            element.freeze();
+        });
+    }
 }
 /// <reference path="enemy-base.ts" />
 class EnemyText extends Enemy {
@@ -1655,31 +1778,30 @@ class Figure extends Wrapper {
     constructor(scene, parentContainer, x, y, config) {
         super(scene, parentContainer, x, y, null);
         this.handleConfig(config);
-        this.designWidth = config.width;
-        this.designHeight = config.height;
-        this.originX = config.originX;
-        this.originY = config.originY;
-        let graphics = this.constructGraphics();
+        let graphics = this.scene.add.graphics();
         this.applyTarget(graphics);
+        this.drawGraphics();
         this.calcGraphicsPosition();
     }
-    constructGraphics() {
-        return null;
+    drawGraphics() {
+        // To be implemented in inheritance
     }
     setOrigin(x, y) {
-        this.originX = x;
-        this.originY = y;
+        this.config.originX = x;
+        this.config.originY = y;
         this.calcGraphicsPosition();
     }
     setSize(width, height) {
-        this.designWidth = width;
-        this.designHeight = height;
+        this.config.width = width;
+        if (!notSet(height))
+            this.config.height = height;
+        this.drawGraphics();
         this.calcGraphicsPosition();
     }
     calcGraphicsPosition() {
         if (this.wrappedObject) {
-            this.wrappedObject.x = -this.designWidth * this.originX;
-            this.wrappedObject.y = -this.designHeight * this.originY;
+            this.wrappedObject.x = -this.config.width * this.config.originX;
+            this.wrappedObject.y = -this.config.height * this.config.originY;
         }
     }
 }
@@ -1697,14 +1819,20 @@ class Rect extends Figure {
         if (notSet(config.fillColor))
             config.fillAlpha = 1;
     }
-    constructGraphics() {
-        let graphics = this.scene.add.graphics();
+    drawGraphics() {
+        let graphics = this.wrappedObject;
         let config = this.config;
+        graphics.clear();
+        // Some times even if lineWidth == 0 && width == 0
+        // There is still a tiny line
+        // So we need to double check that if the width == 0,
+        // we don't draw anything
+        if (config.width === 0)
+            return;
         graphics.fillStyle(config.fillColor, config.fillAlpha);
         graphics.fillRect(0, 0, config.width, config.height);
         graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
         graphics.strokeRect(0, 0, config.width, config.height);
-        return graphics;
     }
 }
 class Fsm {
@@ -2163,7 +2291,11 @@ var mainFsm = {
         { name: 'BACK_TO_HOME', from: 'NormalGame', to: 'BackToHomeAnimation' },
         { name: 'FINISHED', from: 'BackToHomeAnimation', to: 'Home' },
         { name: 'TO_MODE_SELECT', from: 'FirstMeet', to: 'ModeSelect' },
-        { name: 'FINISHED', from: 'ModeSelect', to: 'HomeToGameAnimation' }
+        { name: 'FINISHED', from: 'ModeSelect', to: 'HomeToGameAnimation' },
+        { name: 'DIED', from: 'NormalGame', to: 'Died' },
+        { name: 'RESTART', from: 'Died', to: 'Restart' },
+        { name: 'BACK_TO_HOME', from: 'Died', to: 'BackToHomeAnimation' },
+        { name: 'RESTART_TO_GAME', from: 'Restart', to: 'NormalGame' }
     ],
 };
 // var mainFsm = 
@@ -2275,6 +2407,9 @@ class HP extends Wrapper {
         this.barHeight = 40;
         this.barWidth = 400;
         this.frameWidth = 6;
+        this.maxHealth = 10;
+        this.currHealth = this.maxHealth;
+        this.deadEvent = new TypedEvent();
         this.mainBar = new Rect(this.scene, this.inner, 0, 0, {
             lineColor: 0x222222,
             width: this.barWidth,
@@ -2283,10 +2418,11 @@ class HP extends Wrapper {
             originX: 0,
             originY: 1,
         });
+        this.progressMaxWidth = this.barWidth - this.frameWidth - this.progressGap * 2;
         this.innerProgress = new Rect(this.scene, this.inner, this.frameWidth / 2 + this.progressGap, -this.frameWidth / 2 - this.progressGap, {
             lineColor: this.progressColor,
             fillColor: this.progressColor,
-            width: this.barWidth - this.frameWidth - this.progressGap * 2,
+            width: this.progressMaxWidth,
             height: this.barHeight - this.frameWidth - this.progressGap * 2,
             lineWidth: 0,
             originX: 0,
@@ -2298,6 +2434,22 @@ class HP extends Wrapper {
     }
     setTitle(val) {
         this.wrappedObject.text = val;
+    }
+    damageBy(val) {
+        if (this.currHealth <= 0)
+            return;
+        this.currHealth -= val;
+        this.currHealth = Math.max(0, this.currHealth);
+        let perc = this.currHealth / this.maxHealth;
+        let newProgressWidth = perc * this.progressMaxWidth;
+        this.innerProgress.setSize(newProgressWidth);
+        if (this.currHealth == 0) {
+            this.deadEvent.emit('Haha, you died');
+        }
+    }
+    reset() {
+        this.currHealth = this.maxHealth;
+        this.innerProgress.setSize(this.progressMaxWidth);
     }
 }
 class PlayerInputText {
@@ -2502,10 +2654,12 @@ class PlayerInputText {
     }
 }
 var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
+var gQuickIndex = 0;
 class QuickDrawFigure {
     constructor(scene, parentContainer, lbl) {
         this.curIndex = -1;
         this.interval = 200;
+        this.testIndex = 0;
         this.sampleRate = gameplayConfig.drawDataSample;
         this.originX = 0.5;
         this.originY = 0.5;
@@ -2525,7 +2679,16 @@ class QuickDrawFigure {
             // this.drawFigure(this.figures[3]);          
             this.startChange();
         });
+        this.testIndex = gQuickIndex;
+        gQuickIndex++;
         this.parentContainer.add(this.inner);
+    }
+    ;
+    dispose() {
+        if (this.changeTween) {
+            this.changeTween.stop();
+            this.changeTween = null;
+        }
     }
     // 
     drawFigure(figure) {
@@ -2573,6 +2736,7 @@ class QuickDrawFigure {
         });
     }
     change() {
+        console.log('figure change: ' + this.testIndex);
         if (!this.figures || this.figures.length == 0)
             return;
         this.curIndex = (this.curIndex + 1) % this.figures.length;

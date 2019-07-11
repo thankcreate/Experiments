@@ -47,7 +47,7 @@ class Enemy {
     constructor(scene, enemyManager: EnemyManager, posi : Phaser.Geom.Point, lblStyle, config : EnemyConfig) {        
         this.scene = scene;
         this.enemyManager = enemyManager;
-        this.parentContainer = enemyManager.container;
+        this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
@@ -58,6 +58,8 @@ class Enemy {
         this.dest = new Phaser.Geom.Point(0, 0); 
         
         this.initContent();
+
+        
     }
 
     initContent() {
@@ -77,9 +79,13 @@ class Enemy {
         let stopDis = this.getStopDistance();
         // console.log(stopDis);
         // console.log("dis:" + dis +  "stopdis:" + stopDis );
-        if (dis < stopDis)
-            this.stopRunAndDestroySelf();
+        if (dis < stopDis) {            
+            this.enemyManager.enemyReachedCore(this);
+            this.stopRunAndDestroySelf();            
+        }
+            
     }
+
 
     getStopDistance() : number{
         return this.centerRadius;
@@ -100,6 +106,11 @@ class Enemy {
         });
     }
 
+    freeze() {
+        this.mvTween.pause();
+    }
+    
+
     inStop: boolean = false;
     stopRunAndDestroySelf() {   
         let thisEnemy = this;
@@ -112,10 +123,14 @@ class Enemy {
             targets: this.inner,
             alpha: 0,
             duration: 300,
-            onComplete: function () {                
-                thisEnemy.inner.destroy();
+            onComplete:  () => {                
+                this.dispose();
             }
         });
+    }
+
+    dispose(){        
+        this.inner.destroy();
     }
 
 

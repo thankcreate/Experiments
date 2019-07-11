@@ -10,18 +10,12 @@ type FigureConfig = {
    
     fillColor?: number,
     fillAlpha?: number,
-} | any
+} 
 
 /**
  * This class is created to solve the origin problem of PhGraphics
  */
 class Figure extends Wrapper<PhGraphics> {
-
-    designWidth;
-    designHeight;
-
-    originX;
-    originY;
 
     config: FigureConfig;
 
@@ -42,37 +36,38 @@ class Figure extends Wrapper<PhGraphics> {
         
         this.handleConfig(config);
 
-        this.designWidth = config.width;
-        this.designHeight = config.height;
-        this.originX = config.originX;
-        this.originY = config.originY;
 
-        let graphics = this.constructGraphics();
+        let graphics = this.scene.add.graphics();
         this.applyTarget(graphics);
 
+        this.drawGraphics();
         this.calcGraphicsPosition();
     }
 
-    constructGraphics() : PhGraphics{
-        return null;
+    drawGraphics() {
+        // To be implemented in inheritance
     }
 
     setOrigin(x, y) {
-        this.originX = x;
-        this.originY = y;
+        this.config.originX = x;
+        this.config.originY = y;
         this.calcGraphicsPosition();
     }
 
-    setSize(width, height) {
-        this.designWidth = width;
-        this.designHeight = height;
+    setSize(width, height?) {
+        this.config.width = width;
+        
+        if(!notSet(height))
+            this.config.height = height;
+
+        this.drawGraphics();
         this.calcGraphicsPosition();
     }
 
     calcGraphicsPosition() {
         if(this.wrappedObject) {
-            this.wrappedObject.x = -this.designWidth * this.originX;
-            this.wrappedObject.y = -this.designHeight * this.originY;
+            this.wrappedObject.x = -this.config.width * this.config.originX;
+            this.wrappedObject.y = -this.config.height * this.config.originY;
         }
     }    
 }
@@ -90,18 +85,24 @@ class Rect extends Figure {
         if(notSet(config.fillColor)) config.fillAlpha = 1; 
     }
 
-    constructGraphics() : PhGraphics {     
-        let graphics = this.scene.add.graphics();
-
+    drawGraphics() {
+        let graphics = this.wrappedObject;
         let config = this.config;
+
+        graphics.clear();
+
+        // Some times even if lineWidth == 0 && width == 0
+        // There is still a tiny line
+        // So we need to double check that if the width == 0,
+        // we don't draw anything
+        if(config.width === 0)
+            return;
 
         graphics.fillStyle(config.fillColor, config.fillAlpha);
         graphics.fillRect(0, 0, config.width, config.height);
 
         graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha)
-        graphics.strokeRect(0, 0, config.width, config.height);
-
-        return graphics;
+        graphics.strokeRect(0, 0, config.width, config.height);       
     }
 }
 

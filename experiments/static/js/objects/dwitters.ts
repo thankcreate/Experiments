@@ -112,6 +112,7 @@ class Dwitter65537 extends Dwitter {
     dwitterInit() {
         super.dwitterInit();
         this.inner.alpha = 0.03;
+        // this.inner.alpha = 1;
 
         this.needModify = true;
         this.param1 = 25;       

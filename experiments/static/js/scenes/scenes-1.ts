@@ -13,14 +13,10 @@ class Scene1 extends BaseScene {
     abContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;
     playerInput: PlayerInputText;
-
     centerObject: CenterObject;
-
     footer: PhImage;
 
-    fsm: Fsm;
-    mm = 0;
-
+    fsm: Fsm;  
 
     dwitterCenter: Dwitter;
     dwitterBKG: Dwitter65537
@@ -31,6 +27,7 @@ class Scene1 extends BaseScene {
     backBtn: Button;
 
     hp: HP;
+    died: Died;
     
     footerInitPosi: PhPoint;
     hpInitPosi: PhPoint;
@@ -63,10 +60,12 @@ class Scene1 extends BaseScene {
         this.container = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
 
+              
+
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
         // Enemies
-        this.enemyManager = new EnemyManager(this, this.container);
+        this.enemyManager = new EnemyManager(this, this.container);        
 
         // Add confirmed listener for confirmedEvent to enemyManager
         this.centerObject.playerInputText.confirmedEvent.on(
@@ -76,6 +75,11 @@ class Scene1 extends BaseScene {
                     this.dwitterBKG.next();
                 }, null, null);
             });
+        
+
+        // Dwitters         
+        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
+        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
 
 
         // Bottom badge
@@ -83,11 +87,8 @@ class Scene1 extends BaseScene {
         let footerMarginLeft = 30;
         this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
         this.footerInitPosi = MakePoint(this.footer);
-        this.fitImageToSize(this.footer, 100);
+        this.fitImageToSize(this.footer, 100);                   
 
-        // Dwitters
-        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
 
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
@@ -105,6 +106,11 @@ class Scene1 extends BaseScene {
         this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
         this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         this.hp.inner.y += 250;
+
+        // Died layer
+        this.died = new Died(this, this.container, 0, 0);
+        this.died.hide();
+
 
         // Main FSM
         this.initFsm();
@@ -149,6 +155,8 @@ class Scene1 extends BaseScene {
         this.initFsmHomeToGameAnimation();
         this.initFsmNormalGame();
         this.initFsmBackToHomeAnimation();
+        this.initFsmDied();
+        this.initFsmRestart();
 
         this.updateObjects.push(this.fsm);
         this.fsm.start();
@@ -273,30 +281,73 @@ class Scene1 extends BaseScene {
     }
 
     initFsmNormalGame() {
+        // this is a everlasting event
+        // whenever the backBtn is enabled
+        // it should be regarded as can accept click
+        this.backBtn.clickedEvent.on(e=>{            
+            this.fsm.event("BACK_TO_HOME");
+        });
+
         let state = this.fsm.getState("NormalGame");
         state.setOnEnter(s => {
+            // Hide title and show speaker dots
             this.centerObject.prepareToGame();
+            this.backBtn.setEnable(true, true);
             this.enemyManager.startSpawn();
 
+            // Back
             s.autoOn($(document), 'keydown', e => {
                 if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BACK_TO_HOME");   // <-------------
                 }
-            });
+            });           
 
-            s.autoOn(this.backBtn.clickedEvent, null, () => {
-                s.event("BACK_TO_HOME")                
-            });
-
+            // Player input
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-        });
 
-        state.enterExitListners.on(isEnter=>{
-            this.backBtn.setEnable(isEnter, true);
-        });
+            // Damage handling
+            s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e =>{
+                let enemy = <Enemy>e;
+                this.hp.damageBy(enemy.health);
+            });
 
-        
+            // Dead event handling
+            s.autoOn(this.hp.deadEvent, null, e=>{
+                s.event("DIED");
+            })
+        });        
+    }
+
+    /**
+     * Event: BACK_TO_HOME sent by backBtn (everlasting)
+     * Event: RESTART sent by restartBtn
+     */
+    initFsmDied() {
+        let state = this.fsm.getState("Died");
+        state.addAction((s, result, resolve, reject)=>{
+            // Stop all enemies
+            this.enemyManager.freezeAllEnemies();
+            this.died.show();
+
+            s.autoOn(this.died.restartBtn.clickedEvent, null, ()=>{
+                s.event("RESTART");
+                resolve('restart clicked');
+            });
+        })
+
+        state.setOnExit(()=>{
+            this.hp.reset();
+            this.enemyManager.stopSpawnAndClear();
+            this.died.hide();
+        });
+    }
+
+    initFsmRestart() {
+        let state = this.fsm.getState("Restart");
+        state.addAction(s =>{
+            s.event("RESTART_TO_GAME");
+        })
     }
 
     
@@ -307,6 +358,7 @@ class Scene1 extends BaseScene {
             .addAction(() => {
                 this.centerObject.prepareToHome();
                 this.enemyManager.stopSpawnAndClear();
+                this.backBtn.setEnable(false, true);
             })
             .addDelayAction(this, 300)
             .addTweenAllAction(this, [

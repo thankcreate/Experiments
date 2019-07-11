@@ -1,7 +1,7 @@
 class EnemyManager {
 
     scene: BaseScene;
-    container: Phaser.GameObjects.Container; // main scene container
+    inner: Phaser.GameObjects.Container; // main scene container
 
     interval;
     dummy;
@@ -18,12 +18,15 @@ class EnemyManager {
     spawnRadius;
 
     spawnHistory: SpawnHistoryItem[] = [];
+   
 
-    fsm: Fsm;
+    enemyReachedCoreEvent: TypedEvent<Enemy> = new TypedEvent();
 
-    constructor(scene, container) {
+    constructor(scene, parentContainer) {
         this.scene = scene;
-        this.container = container;
+        this.inner = this.scene.add.container(0, 0);
+        parentContainer.add(this.inner);
+
 
         this.interval = gameplayConfig.spawnInterval;
         this.dummy = 1;
@@ -40,7 +43,7 @@ class EnemyManager {
 
     }
 
-    
+
 
     startSpawn() {
         this.spawnTween = this.scene.tweens.add({
@@ -60,7 +63,7 @@ class EnemyManager {
     }
 
     stopSpawn() {
-        if(this.spawnTween)
+        if (this.spawnTween)
             this.spawnTween.stop();
     }
 
@@ -69,7 +72,7 @@ class EnemyManager {
 
         // Must iterate from back
         // disolve will use slice to remove itself from the array
-        for(let i = this.enemies.length - 1; i >=0; i--) {
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
             this.enemies[i].disolve();
         }
 
@@ -171,7 +174,7 @@ class EnemyManager {
     }
 
     getSpawnPoint(): Phaser.Geom.Point {
-        var threshould = Math.PI / 2;
+
         var pt = new Phaser.Geom.Point(0, 0);
 
         var rdDegree = 0;
@@ -181,16 +184,30 @@ class EnemyManager {
             pt.x = Math.cos(rdDegree) * this.spawnRadius;
             pt.y = Math.sin(rdDegree) * this.spawnRadius;
 
-            if (this.spawnHistory.length == 0)
+            if (this.isValidDegree(rdDegree)) {
                 break;
-
-            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
-            if (this.getAngleDiff(lastOne.degree, rdDegree) > threshould)
-                break;
+            }
         }
 
         // console.log(rdDegree);
         return pt;
+    }
+
+    isValidDegree(rdDegree: number): boolean {      
+
+        var threshould = Math.PI / 2;
+        var subtitleRestrictedAngle = Math.PI / 3 * 2;     
+        let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
+
+        let farEnoughFromLastOne = false;        
+        if (this.spawnHistory.length == 0)
+            farEnoughFromLastOne = true;
+        else {
+            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
+            farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
+        }
+
+        return notInSubtitleZone && farEnoughFromLastOne; 
     }
 
     getAngleDiff(angl1: number, angle2: number): number {
@@ -306,4 +323,21 @@ class EnemyManager {
     inputTextConfirmed(input: string): void {
         this.sendInputToServer(input);
     }
+
+    enemyReachedCore(enemy: Enemy) {
+        if(enemy.health <= 0)
+            return;
+
+        this.enemyReachedCoreEvent.emit(enemy);
+    }
+
+    // This is mostly used when died
+    freezeAllEnemies() {
+        this.spawnTween.pause();
+        this.enemies.forEach(element => {
+            element.freeze();
+        });
+    }
+
+    
 }

@@ -492,6 +492,7 @@ class Scene1 extends BaseScene {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
         }, true, 2000, 3000, 600)
+        .addDelayAction(this, 2000)
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Hurt each other! Yeah! I like it.";

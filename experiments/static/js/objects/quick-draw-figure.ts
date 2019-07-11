@@ -109,8 +109,7 @@ class QuickDrawFigure{
         });
     }
 
-    change() {
-        console.log('figure change: ' + this.testIndex);
+    change() {    
         if(!this.figures || this.figures.length == 0)
             return;
 

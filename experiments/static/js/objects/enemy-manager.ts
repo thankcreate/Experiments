@@ -1,16 +1,11 @@
 
-enum SpawnStrategyType{
-    None,
-    SpawnOnEliminatedAndReachCore,
-    FlowTheory
-}
-
 interface SpawnStrategyConfig {
     interval?: number,
     healthMin?: number,
     healthMax?: number,
+    health?: number,
     enemyDuration?: number
-}
+} 
 
 class EnemyManager {
 
@@ -37,9 +32,9 @@ class EnemyManager {
     enemyReachedCoreEvent: TypedEvent<Enemy> = new TypedEvent();
     enemyEliminatedEvent: TypedEvent<Enemy> = new TypedEvent();
 
-    curStrategy: SpawnStrategyType = SpawnStrategyType.None;
-    curStrategyConfig: SpawnStrategyConfig = {};
+    curStrategy: SpawnStrategy;
 
+    strategies: Map<SpawnStrategyType, SpawnStrategy> = new Map();;
     
     constructor(scene, parentContainer) {
         this.scene = scene;
@@ -60,40 +55,23 @@ class EnemyManager {
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
 
+        this.strategies.set(SpawnStrategyType.SpawnOnEliminatedAndReachCore, new SpawnStrategyOnEliminatedAndReachCore(this));
+        this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
     }
 
     
 
-    startSpawnStrategy(strategy: SpawnStrategyType, config:SpawnStrategyConfig) {       
-        this.curStrategyConfig = config;
+    startSpawnStrategy(strategy: SpawnStrategyType, config?:SpawnStrategyConfig) {       
+        if(this.curStrategy)
+            this.curStrategy.onExit();
 
-        // Only start strategy when the strategy changed
-        // Or else, only update the config data
-        if(strategy === this.curStrategy)
-            return;
+        this.curStrategy = this.strategies.get(strategy);
+        this.curStrategy.updateConfig(config);
 
-        this.curStrategy = strategy;
-        if(strategy === SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
-            this.startSpawnStrategySpawnOnEliminatedAndReachCore();
-        }
-        if(strategy === SpawnStrategyType.FlowTheory) {
-
-        }
+        if(this.curStrategy)
+            this.curStrategy.onEnter();
     }
-
-    startSpawnStrategySpawnOnEliminatedAndReachCore() {
-
-    }
-
-    spawnOnEliminatedAndReachCore() {
-        if(!this.curStrategyConfig) this.curStrategyConfig = {};
-        let config = this.curStrategyConfig;
-        if(!config.healthMin) config.healthMin = 3;
-        if(!config.healthMax) config.healthMax = 3;
-
-        this.spawn({health:config.healthMin, duration: config.enemyDuration});
-    }
-
+   
 
     startAutoSpawn() {
         this.spawnTween = this.scene.tweens.add({
@@ -116,9 +94,17 @@ class EnemyManager {
             this.spawnTween.stop();
     }
 
+    resetAllStrateges() {
+        this.strategies.forEach((value, key, map) => {
+            value.reset();
+        })
+    }
+
     stopSpawnAndClear() {
         this.stopAutoSpawn();
-        this.curStrategy = SpawnStrategyType.None;
+
+        this.resetAllStrateges();
+        this.curStrategy = null;
 
         // Must iterate from back
         // disolve will use slice to remove itself from the array
@@ -228,6 +214,8 @@ class EnemyManager {
             this.enemies[i].update(time, dt);
         }
 
+        if(this.curStrategy)
+            this.curStrategy.onUpdate(time, dt);
 
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);
@@ -387,17 +375,17 @@ class EnemyManager {
     enemyReachedCore(enemy: Enemy) {
         if(enemy.health <= 0)
             return;
-
-        if(this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
-            this.spawnOnEliminatedAndReachCore();
-        }
+        
+        if(this.curStrategy)
+            this.curStrategy.enemyReachedCore(enemy);
+        
         this.enemyReachedCoreEvent.emit(enemy);
     }
 
     enemyEliminated(enemy: Enemy) {
-        if(this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
-            this.spawnOnEliminatedAndReachCore();
-        }
+        if(this.curStrategy)
+            this.curStrategy.enemyEliminated(enemy);
+        
         this.enemyEliminatedEvent.emit(enemy);
     }
 

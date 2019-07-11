@@ -424,6 +424,7 @@ class Scene1 extends BaseScene {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
         }, true, 2000, 3000, 600)
+            .addDelayAction(this, 2000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Hurt each other! Yeah! I like it.";
@@ -1585,19 +1586,12 @@ class EnemyImage extends Enemy {
         this.figure = null;
     }
 }
-var SpawnStrategyType;
-(function (SpawnStrategyType) {
-    SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";
-    SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
-    SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
-})(SpawnStrategyType || (SpawnStrategyType = {}));
 class EnemyManager {
     constructor(scene, parentContainer) {
         this.spawnHistory = [];
         this.enemyReachedCoreEvent = new TypedEvent();
         this.enemyEliminatedEvent = new TypedEvent();
-        this.curStrategy = SpawnStrategyType.None;
-        this.curStrategyConfig = {};
+        this.strategies = new Map();
         this.scene = scene;
         this.inner = this.scene.add.container(0, 0);
         parentContainer.add(this.inner);
@@ -1609,31 +1603,17 @@ class EnemyManager {
         this.lblStyl = getDefaultTextStyle();
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
+        this.strategies.set(SpawnStrategyType.SpawnOnEliminatedAndReachCore, new SpawnStrategyOnEliminatedAndReachCore(this));
+        this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
     }
+    ;
     startSpawnStrategy(strategy, config) {
-        this.curStrategyConfig = config;
-        // Only start strategy when the strategy changed
-        // Or else, only update the config data
-        if (strategy === this.curStrategy)
-            return;
-        this.curStrategy = strategy;
-        if (strategy === SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
-            this.startSpawnStrategySpawnOnEliminatedAndReachCore();
-        }
-        if (strategy === SpawnStrategyType.FlowTheory) {
-        }
-    }
-    startSpawnStrategySpawnOnEliminatedAndReachCore() {
-    }
-    spawnOnEliminatedAndReachCore() {
-        if (!this.curStrategyConfig)
-            this.curStrategyConfig = {};
-        let config = this.curStrategyConfig;
-        if (!config.healthMin)
-            config.healthMin = 3;
-        if (!config.healthMax)
-            config.healthMax = 3;
-        this.spawn({ health: config.healthMin, duration: config.enemyDuration });
+        if (this.curStrategy)
+            this.curStrategy.onExit();
+        this.curStrategy = this.strategies.get(strategy);
+        this.curStrategy.updateConfig(config);
+        if (this.curStrategy)
+            this.curStrategy.onEnter();
     }
     startAutoSpawn() {
         this.spawnTween = this.scene.tweens.add({
@@ -1654,9 +1634,15 @@ class EnemyManager {
         if (this.spawnTween)
             this.spawnTween.stop();
     }
+    resetAllStrateges() {
+        this.strategies.forEach((value, key, map) => {
+            value.reset();
+        });
+    }
     stopSpawnAndClear() {
         this.stopAutoSpawn();
-        this.curStrategy = SpawnStrategyType.None;
+        this.resetAllStrateges();
+        this.curStrategy = null;
         // Must iterate from back
         // disolve will use slice to remove itself from the array
         for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -1747,6 +1733,8 @@ class EnemyManager {
         for (let i in this.enemies) {
             this.enemies[i].update(time, dt);
         }
+        if (this.curStrategy)
+            this.curStrategy.onUpdate(time, dt);
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);
     }
@@ -1873,15 +1861,13 @@ class EnemyManager {
     enemyReachedCore(enemy) {
         if (enemy.health <= 0)
             return;
-        if (this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
-            this.spawnOnEliminatedAndReachCore();
-        }
+        if (this.curStrategy)
+            this.curStrategy.enemyReachedCore(enemy);
         this.enemyReachedCoreEvent.emit(enemy);
     }
     enemyEliminated(enemy) {
-        if (this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
-            this.spawnOnEliminatedAndReachCore();
-        }
+        if (this.curStrategy)
+            this.curStrategy.enemyEliminated(enemy);
         this.enemyEliminatedEvent.emit(enemy);
     }
     // This is mostly used when died
@@ -2959,7 +2945,6 @@ class QuickDrawFigure {
         });
     }
     change() {
-        console.log('figure change: ' + this.testIndex);
         if (!this.figures || this.figures.length == 0)
             return;
         this.curIndex = (this.curIndex + 1) % this.figures.length;
@@ -2980,6 +2965,78 @@ class QuickDrawFigure {
     getLeftBottom() {
         let mappedPosi = this.getMappedPosi(0, this.sampleRate);
         return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
+    }
+}
+var SpawnStrategyType;
+(function (SpawnStrategyType) {
+    SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";
+    SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
+    SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
+})(SpawnStrategyType || (SpawnStrategyType = {}));
+class SpawnStrategy {
+    constructor(manager, type, config) {
+        this.config = {};
+        this.config = this.getInitConfig();
+        this.enemyManager = manager;
+        this.type = type;
+        this.updateConfig(config);
+    }
+    getInitConfig() {
+        return {};
+    }
+    updateConfig(config) {
+        if (notSet(config))
+            return;
+        for (let key in config) {
+            this.config[key] = config[key];
+        }
+    }
+    onEnter() {
+    }
+    onExit() {
+    }
+    onUpdate(time, dt) {
+    }
+    enemyReachedCore(enemy) {
+    }
+    enemyEliminated(enemy) {
+    }
+    enemySpawned(enemy) {
+    }
+    reset() {
+    }
+}
+class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
+    constructor(manager, config) {
+        super(manager, SpawnStrategyType.SpawnOnEliminatedAndReachCore, config);
+    }
+    getInitConfig() {
+        return {
+            healthMin: 3,
+            healthMax: 3,
+            health: 3,
+            enemyDuration: 60,
+        };
+    }
+    spawn() {
+        let config = this.config;
+        this.enemyManager.spawn({ health: config.healthMin, duration: config.enemyDuration });
+    }
+    onEnter() {
+        if (this.enemyManager.enemies.length == 0) {
+            this.spawn();
+        }
+    }
+    enemyReachedCore(enemy) {
+        this.spawn();
+    }
+    enemyEliminated(enemy) {
+        this.spawn();
+    }
+}
+class SpawnStrategyFlowTheory extends SpawnStrategy {
+    constructor(manager, config) {
+        super(manager, SpawnStrategyType.FlowTheory, config);
     }
 }
 class SpeechManager {

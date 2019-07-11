@@ -107,7 +107,11 @@ class Scene1 extends BaseScene {
         this.died = new Died(this, this.container, 0, 0);
         this.died.hide();
         // Main FSM
-        this.initFsm();
+        this.mainFsm = new Fsm(this, this.getMainFsm());
+        this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
+        this.initMainFsm();
+        this.initNormalGameFsm();
+        // Sub FSM: normal game
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -131,21 +135,23 @@ class Scene1 extends BaseScene {
     getMainFsm() {
         return mainFsm;
     }
-    initFsm() {
-        this.fsm = new Fsm(this, this.getMainFsm());
-        this.initFsmHome();
-        this.initFsmFirstMeet();
-        this.initFsmModeSelect();
-        this.initFsmHomeToGameAnimation();
-        this.initFsmNormalGame();
-        this.initFsmBackToHomeAnimation();
-        this.initFsmDied();
-        this.initFsmRestart();
-        this.updateObjects.push(this.fsm);
-        this.fsm.start();
+    getNormalGameFsm() {
+        return normalGameFsm;
     }
-    initFsmHome() {
-        let state = this.fsm.getState("Home");
+    initMainFsm() {
+        this.initStHome();
+        this.initStFirstMeet();
+        this.initStModeSelect();
+        this.initStHomeToGameAnimation();
+        this.initStNormalGame();
+        this.initStBackToHomeAnimation();
+        this.initStDied();
+        this.initStRestart();
+        this.updateObjects.push(this.mainFsm);
+        this.mainFsm.start();
+    }
+    initStHome() {
+        let state = this.mainFsm.getState("Home");
         state.setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
             let mainImage = this.centerObject.mainImage;
@@ -163,19 +169,21 @@ class Scene1 extends BaseScene {
             });
         });
     }
-    initFsmFirstMeet() {
-        this.fsm.getState("FirstMeet")
+    initStFirstMeet() {
+        this.mainFsm.getState("FirstMeet")
             // .addSubtitleAction(this.subtitle, 'TronTron!', true)
             .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
     }
-    initFsmModeSelect() {
+    initStModeSelect() {
         //* Enter Actions
-        let state = this.fsm.getState("ModeSelect");
+        let state = this.mainFsm.getState("ModeSelect");
         // Hide content of centerObject
-        state.addAction(() => {
+        state
+            .addAction(() => {
             this.centerObject.speakerBtn.inner.alpha = 0;
             this.centerObject.playerInputText.title.alpha = 0;
         })
@@ -215,9 +223,9 @@ class Scene1 extends BaseScene {
             .addSubtitleAction(this.subtitle, (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!', true, null, null, 300)
             .addFinishAction();
     }
-    initFsmHomeToGameAnimation() {
+    initStHomeToGameAnimation() {
         let dt = 1000;
-        let state = this.fsm.getState("HomeToGameAnimation");
+        let state = this.mainFsm.getState("HomeToGameAnimation");
         state.addTweenAllAction(this, [
             // Rotate center to normal angle
             {
@@ -247,19 +255,18 @@ class Scene1 extends BaseScene {
             .addDelayAction(this, 1000)
             .addFinishAction();
     }
-    initFsmNormalGame() {
+    initStNormalGame() {
         // this is a everlasting event
         // whenever the backBtn is enabled
         // it should be regarded as can accept click
         this.backBtn.clickedEvent.on(e => {
-            this.fsm.event("BACK_TO_HOME");
+            this.mainFsm.event("BACK_TO_HOME");
         });
-        let state = this.fsm.getState("NormalGame");
+        let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
             this.backBtn.setEnable(true, true);
-            this.enemyManager.startSpawn();
             // Back
             s.autoOn($(document), 'keydown', e => {
                 if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
@@ -279,13 +286,15 @@ class Scene1 extends BaseScene {
                 s.event("DIED");
             });
         });
+        state.addDelayAction(this, 1500)
+            .addEventAction('TUTORIAL_START', this.normalGameFsm);
     }
     /**
      * Event: BACK_TO_HOME sent by backBtn (everlasting)
      * Event: RESTART sent by restartBtn
      */
-    initFsmDied() {
-        let state = this.fsm.getState("Died");
+    initStDied() {
+        let state = this.mainFsm.getState("Died");
         state.addAction((s, result, resolve, reject) => {
             // Stop all enemies
             this.enemyManager.freezeAllEnemies();
@@ -299,17 +308,18 @@ class Scene1 extends BaseScene {
             this.hp.reset();
             this.enemyManager.stopSpawnAndClear();
             this.died.hide();
+            this.normalGameFsm.restart();
         });
     }
-    initFsmRestart() {
-        let state = this.fsm.getState("Restart");
+    initStRestart() {
+        let state = this.mainFsm.getState("Restart");
         state.addAction(s => {
             s.event("RESTART_TO_GAME");
         });
     }
-    initFsmBackToHomeAnimation() {
+    initStBackToHomeAnimation() {
         let dt = 1000;
-        this.fsm.getState("BackToHomeAnimation")
+        this.mainFsm.getState("BackToHomeAnimation")
             .addAction(() => {
             this.centerObject.prepareToHome();
             this.enemyManager.stopSpawnAndClear();
@@ -345,14 +355,95 @@ class Scene1 extends BaseScene {
     setMode(mode) {
         this.mode = mode;
     }
+    // ----------------------------------------------------------------------    
+    initNormalGameFsm() {
+        this.initStNormalDefault();
+        this.initStTutorialStart();
+        this.initStExplainHp();
+        this.updateObjects.push(this.normalGameFsm);
+        this.normalGameFsm.start();
+    }
+    initStNormalDefault() {
+        let state = this.normalGameFsm.getState("Default");
+    }
+    initStTutorialStart() {
+        let state = this.normalGameFsm.getState("TutorialStart");
+        // Invoke EXPLAIN_HP need 2 requirements(&&):
+        // 1. One enemy is eliminated
+        // 2. Welcome subitle is finished
+        state.setUnionEvent('EXPLAIN_HP', 2);
+        state
+            .addAction(s => {
+            let health = 3;
+            let duration = 50000;
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore, { enemyDuration: duration, healthMin: 3 });
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+                s.unionEvent('EXPLAIN_HP', 'one_enemy_eliminated');
+            });
+        })
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "To help me complete the experiment,\njust type in what's in your mind when you see the " + lastEnemyName.toLocaleLowerCase();
+        }, true, 2000, 3000, 1500)
+            .addDelayAction(this, 2000)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "Type in anything.\nAnything you think that's related";
+        }, true, 2000, 3000, 1000)
+            .addAction(s => {
+            s.unionEvent('EXPLAIN_HP', 'subtitle_finished');
+        });
+    }
+    initStExplainHp() {
+        let state = this.normalGameFsm.getState('ExplainHp');
+        state
+            .addDelayAction(this, 500)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "Great, you just got your first blood.";
+        }, true, 2000, 3000, 1500)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "You may have noticed the number under every item.\n It represents the health of them";
+        }, true, 2000, 3000, 1000)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "The more semantically related your input is to the items,\nthe more damage they take";
+        }, true, 2000, 3000, 1000)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "If you don't eliminate them before they reach me,\nyou lose your HP by their remaining health";
+        }, true, 2000, 3000, 600)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "Pretty simple, huh?";
+        }, true, 2000, 3000, 600)
+            .addDelayAction(this, 8000)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
+        }, true, 2000, 3000, 600)
+            .addSubtitleAction(this.subtitle, s => {
+            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
+            return "Hurt each other! Yeah! I like it.";
+        }, true, 2000, 3000, 600)
+            .addEventAction("TO_FLOW_STRATEGY");
+    }
+    initStFlowStrategy() {
+        let state = this.normalGameFsm.getState('FlowStrategy');
+        state.addAction(s => {
+            // this.enemyManager.startSpawnStrategy()
+        });
+    }
 }
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
-    // enemyDuratrion: 30000,
-    // spawnInterval: 8000,
-    enemyDuratrion: 5000,
-    spawnInterval: 1000,
+    enemyDuratrion: 30000,
+    spawnInterval: 8000,
+    // enemyDuratrion: 5000,
+    // spawnInterval: 1000,
     onlyDamageMostMatch: false,
     allowDamageBySameWord: false,
     tryAvoidDuplicate: true,
@@ -1308,13 +1399,13 @@ var EnemyType;
 class Enemy {
     constructor(scene, enemyManager, posi, lblStyle, config) {
         this.centerRadius = 125;
-        this.health = gameplayConfig.defaultHealth;
         this.damagedHistory = []; //store only valid input history
         this.inStop = false;
         this.scene = scene;
         this.enemyManager = enemyManager;
         this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
+        this.health = config.health;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
         this.config = config;
@@ -1345,7 +1436,16 @@ class Enemy {
     getStopDistance() {
         return this.centerRadius;
     }
+    getTweenDurationFromEstimated(duration) {
+        let dis = distance(this.dest, this.inner);
+        let stopDis = this.getStopDistance();
+        return duration / (dis - stopDis) * dis;
+    }
     startRun() {
+        // the real tween time should be longer than the input duration
+        // this is because the tween's target x and y is the center of the circle
+        // the the enemy will stop in a distance from the circle core
+        let tweenDuration = this.getTweenDurationFromEstimated(this.config.duration);
         this.inner.alpha = 0; // muse init from here, or it will have a blink
         this.mvTween = this.scene.tweens.add({
             targets: this.inner,
@@ -1356,7 +1456,7 @@ class Enemy {
                 getEnd: () => 1,
                 duration: 500
             },
-            duration: this.duration
+            duration: tweenDuration
         });
     }
     freeze() {
@@ -1429,6 +1529,7 @@ class Enemy {
         return ret;
     }
     eliminated() {
+        this.enemyManager.enemyEliminated(this);
         this.stopRunAndDestroySelf();
     }
     checkIfInputLegalWithEnemy(inputLbl, enemyLbl) {
@@ -1484,10 +1585,19 @@ class EnemyImage extends Enemy {
         this.figure = null;
     }
 }
+var SpawnStrategyType;
+(function (SpawnStrategyType) {
+    SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";
+    SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
+    SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
+})(SpawnStrategyType || (SpawnStrategyType = {}));
 class EnemyManager {
     constructor(scene, parentContainer) {
         this.spawnHistory = [];
         this.enemyReachedCoreEvent = new TypedEvent();
+        this.enemyEliminatedEvent = new TypedEvent();
+        this.curStrategy = SpawnStrategyType.None;
+        this.curStrategyConfig = {};
         this.scene = scene;
         this.inner = this.scene.add.container(0, 0);
         parentContainer.add(this.inner);
@@ -1500,7 +1610,32 @@ class EnemyManager {
         this.enemyRunDuration = gameplayConfig.enemyDuratrion;
         this.spawnRadius = 500;
     }
-    startSpawn() {
+    startSpawnStrategy(strategy, config) {
+        this.curStrategyConfig = config;
+        // Only start strategy when the strategy changed
+        // Or else, only update the config data
+        if (strategy === this.curStrategy)
+            return;
+        this.curStrategy = strategy;
+        if (strategy === SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            this.startSpawnStrategySpawnOnEliminatedAndReachCore();
+        }
+        if (strategy === SpawnStrategyType.FlowTheory) {
+        }
+    }
+    startSpawnStrategySpawnOnEliminatedAndReachCore() {
+    }
+    spawnOnEliminatedAndReachCore() {
+        if (!this.curStrategyConfig)
+            this.curStrategyConfig = {};
+        let config = this.curStrategyConfig;
+        if (!config.healthMin)
+            config.healthMin = 3;
+        if (!config.healthMax)
+            config.healthMax = 3;
+        this.spawn({ health: config.healthMin, duration: config.enemyDuration });
+    }
+    startAutoSpawn() {
         this.spawnTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
@@ -1515,12 +1650,13 @@ class EnemyManager {
             repeat: -1
         });
     }
-    stopSpawn() {
+    stopAutoSpawn() {
         if (this.spawnTween)
             this.spawnTween.stop();
     }
     stopSpawnAndClear() {
-        this.stopSpawn();
+        this.stopAutoSpawn();
+        this.curStrategy = SpawnStrategyType.None;
         // Must iterate from back
         // disolve will use slice to remove itself from the array
         for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -1558,28 +1694,36 @@ class EnemyManager {
         }
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
-    spawn() {
-        var posi = this.getSpawnPoint();
-        var name = this.getNextName();
-        this.insertSpawnHistory(posi, name);
+    spawn(config) {
+        if (notSet(config))
+            config = {};
+        if (notSet(config.type))
+            config.type = EnemyType.Image;
+        if (notSet(config.label))
+            config.label = this.getNextName();
+        if (notSet(config.duration))
+            config.duration = gameplayConfig.enemyDuratrion;
+        if (notSet(config.health))
+            config.health = gameplayConfig.defaultHealth;
+        var name = config.label;
         var figureName = name.split(' ').join('-').toLowerCase();
+        if (notSet(config.image))
+            config.image = figureName;
+        var posi = this.getSpawnPoint();
+        this.insertSpawnHistory(posi, name);
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
         //     label: name
         // });
-        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, {
-            type: EnemyType.Image,
-            label: name,
-            image: figureName
-        });
+        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
         // console.log('-------------------------')
         this.enemies.forEach(item => {
             // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
         });
         // console.log(this.enemies.length + "  name:" + name);
         this.enemies.push(enemy);
-        enemy.duration = this.enemyRunDuration;
         enemy.startRun();
+        return enemy;
     }
     insertSpawnHistory(posi, name) {
         let rad = Math.atan2(posi.y, posi.x);
@@ -1729,7 +1873,16 @@ class EnemyManager {
     enemyReachedCore(enemy) {
         if (enemy.health <= 0)
             return;
+        if (this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            this.spawnOnEliminatedAndReachCore();
+        }
         this.enemyReachedCoreEvent.emit(enemy);
+    }
+    enemyEliminated(enemy) {
+        if (this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            this.spawnOnEliminatedAndReachCore();
+        }
+        this.enemyEliminatedEvent.emit(enemy);
     }
     // This is mostly used when died
     freezeAllEnemies() {
@@ -1737,6 +1890,12 @@ class EnemyManager {
         this.enemies.forEach(element => {
             element.freeze();
         });
+    }
+    getLastSpawnedEnemyName() {
+        if (this.spawnHistory.length == 0) {
+            return '';
+        }
+        return this.spawnHistory[this.spawnHistory.length - 1].name;
     }
 }
 /// <reference path="enemy-base.ts" />
@@ -1842,6 +2001,9 @@ class Fsm {
     // }
     constructor(scene, fsm) {
         this.states = new Map();
+        // Custorm-stored variables
+        // will call initVar() to reset it whenever the fsm is started or restarted
+        this.variables = new Map();
         this.isRunning = true;
         this.name = fsm.name;
         // Add all events
@@ -1897,6 +2059,18 @@ class Fsm {
         if (this.curState && this.curState._onUpdate)
             this.curState._onUpdate(this.curState, time, dt);
     }
+    setVar(key, val) {
+        this.variables.set(key, val);
+    }
+    hasVar(key) {
+        return this.variables.has(key);
+    }
+    getVar(key, def) {
+        if (this.variables.has(key))
+            return this.variables.get(key);
+        else
+            return def;
+    }
     /**
      * invoke a event
      * @param key
@@ -1906,17 +2080,16 @@ class Fsm {
             console.warn("FSM event is not all capitalized: " + key + "\nDid you used the state's name as the event's name by mistake?");
         }
         if (this.curState) {
-            this.curState._exit(this.curState);
             if (this.curState.eventRoute.has(key)) {
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
-                if (state) {
-                    this.runState(state);
-                }
+                this.runState(state);
             }
         }
     }
     runState(state) {
+        if (this.curState)
+            this.curState._exit(this.curState);
         this.curState = state;
         state._onEnter(state);
     }
@@ -1924,12 +2097,23 @@ class Fsm {
         this.startupState = state;
     }
     start() {
+        this.initVar();
         if (this.startupState) {
             this.runState(this.startupState);
         }
         else {
             console.warn("No startup state for FSM: " + this.name);
         }
+    }
+    initVar() {
+        this.variables.clear();
+    }
+    restart() {
+        this.start();
+    }
+    stop() {
+        this.isRunning = false;
+        this.curState = null;
     }
     addEvent(eventName, from, to) {
         from = this.getStateName(from);
@@ -1961,11 +2145,12 @@ class Fsm {
 Fsm.FinishedEventName = "FINISHED";
 class FsmState {
     constructor(name, fsm) {
+        this.eventRoute = new Map();
         this.actions = [];
         this.enterExitListners = new TypedEvent();
         this.autoRemoveListners = [];
         this.safeInOutWatchers = [];
-        this.eventRoute = new Map();
+        this._unionEvents = new Map();
         this.name = name;
         this.fsm = fsm;
         this.otherInit();
@@ -2016,8 +2201,8 @@ class FsmState {
         }
         else {
             return (state, result) => new Promise((resolve, reject) => {
-                action(state, result);
-                resolve(undefined);
+                let actionResult = action(state, result);
+                resolve(actionResult);
             });
         }
     }
@@ -2094,6 +2279,7 @@ class FsmState {
      * @param handler
      */
     _onEnter(state) {
+        this.resetUnionEvent();
         this.enterExitListners.emit(true);
         if (this.onEnter)
             this.onEnter(state);
@@ -2160,11 +2346,38 @@ class FsmState {
         this.fsm.event(Fsm.FinishedEventName);
     }
     /**
-     * Only call this if you know what you are doing
+     * Union event will only invoke the event when the \
+     * counter reached the set value \
+     * It's mostly used when you want to send a event
+     * after multiple conditions are reached
+     */
+    unionEvent(evName, id) {
+        let body = this._unionEvents.get(evName);
+        if (!body || !body.set)
+            return;
+        body.set.add(id);
+        if (body.set.size == body.require) {
+            this.event(evName);
+        }
+    }
+    resetUnionEvent() {
+        this._unionEvents.forEach((value, key, map) => {
+            value.set.clear();
+        });
+    }
+    setUnionEvent(evName, require) {
+        let set = new Set();
+        this._unionEvents.set(evName, { require: require, set: set });
+    }
+    /**
+     * Only call this if you know what you are doin
      * @param evName
      */
-    event(evName) {
-        this.fsm.event(evName);
+    event(evName, fsm) {
+        if (notSet(fsm))
+            this.fsm.event(evName);
+        else
+            fsm.event(evName);
     }
     isActive() {
         return this.fsm.curState == this;
@@ -2229,7 +2442,8 @@ FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, 
     if (notSet(finishedSpeechWait))
         finishedSpeechWait = 600;
     self.addAction((state, result, resolve, reject) => {
-        subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
+        let realText = typeof (text) == 'string' ? text : text(state);
+        subtitle.loadAndSay(subtitle, realText, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s => { resolve('subtitle show end'); })
             .catch(s => { resolve('subtitle show end with some err'); });
     });
@@ -2249,10 +2463,10 @@ FsmState.prototype.addFinishAction = function () {
     });
     return self;
 };
-FsmState.prototype.addEventAction = function (eventName) {
+FsmState.prototype.addEventAction = function (eventName, fsm) {
     let self = this;
     self.addAction((state, result) => {
-        state.event(eventName);
+        state.event(eventName, fsm);
     });
     return self;
 };
@@ -2317,6 +2531,15 @@ var mainFsm = {
 //     // do with the node
 //   }
 // });
+var normalGameFsm = {
+    name: 'NormalGameFsm',
+    initial: "Default",
+    events: [
+        { name: 'TUTORIAL_START', from: 'Default', to: 'TutorialStart' },
+        { name: 'EXPLAIN_HP', from: 'TutorialStart', to: 'ExplainHp' },
+        { name: 'TO_FLOW_STRATEGY', from: 'ExplainHp', to: 'FlowStrategy' }
+    ]
+};
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {

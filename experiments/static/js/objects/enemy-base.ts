@@ -6,9 +6,11 @@ enum EnemyType {
 }
 
 interface EnemyConfig {
-    type: EnemyType,
-    label?: string;
-    image?:string
+    type?: EnemyType,
+    label?: string,
+    image?: string,
+    health?: number,
+    duration?: number,
 }
 
 class Enemy {
@@ -19,6 +21,10 @@ class Enemy {
     enemyManager: EnemyManager;
 
     initPosi : Phaser.Geom.Point;
+
+    /**
+     * lbl is name shown
+     */
     lbl: string;
     lblStyle: TextStyle;
 
@@ -35,7 +41,7 @@ class Enemy {
 
 
     inputAngle: number;
-    health: number = gameplayConfig.defaultHealth;
+    health: number;
 
     config : EnemyConfig;
 
@@ -49,9 +55,12 @@ class Enemy {
         this.enemyManager = enemyManager;
         this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
+        this.health = config.health;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
         this.config = config;
+
+
 
         this.inner = this.scene.add.container(posi.x, posi.y);
         this.parentContainer.add(this.inner);        
@@ -82,8 +91,7 @@ class Enemy {
         if (dis < stopDis) {            
             this.enemyManager.enemyReachedCore(this);
             this.stopRunAndDestroySelf();            
-        }
-            
+        }            
     }
 
 
@@ -91,7 +99,21 @@ class Enemy {
         return this.centerRadius;
     }
 
-    startRun() {
+    getTweenDurationFromEstimated(duration: number) {
+        let dis = distance(this.dest, this.inner);   
+        let stopDis = this.getStopDistance();
+
+        return duration / (dis - stopDis) * dis;
+    }
+
+    startRun() {        
+
+
+        // the real tween time should be longer than the input duration
+        // this is because the tween's target x and y is the center of the circle
+        // the the enemy will stop in a distance from the circle core
+        let tweenDuration = this.getTweenDurationFromEstimated(this.config.duration);
+
         this.inner.alpha = 0; // muse init from here, or it will have a blink
         this.mvTween = this.scene.tweens.add({
             targets: this.inner,
@@ -102,7 +124,7 @@ class Enemy {
                 getEnd: () => 1,
                 duration: 500
             },
-            duration: this.duration
+            duration: tweenDuration
         });
     }
 
@@ -197,6 +219,7 @@ class Enemy {
     }
 
     eliminated() {
+        this.enemyManager.enemyEliminated(this);
         this.stopRunAndDestroySelf();
     }
 

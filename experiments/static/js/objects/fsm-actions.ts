@@ -64,9 +64,9 @@ interface FsmState {
     addTweenAction(scene: PhScene, config: TweenConfig): FsmState
     addTweenAllAction(scene: PhScene, configs: TweenConfig[]): FsmState
     addFinishAction(): FsmState
-    addEventAction(name: string): FsmState
+    addEventAction(name: string, fsm?: Fsm): FsmState
     addLogAction(message?: any, ...optionalParams: any[]): FsmState
-    addSubtitleAction(subtitle: Subtitle, text: string, autoHideAfter: boolean, timeout?:number, minStay?, finishedSpeechWait?): FsmState
+    addSubtitleAction(subtitle: Subtitle, text: string | FromStateToStringFunc, autoHideAfter: boolean, timeout?:number, minStay?, finishedSpeechWait?): FsmState
 
 }
 
@@ -75,7 +75,7 @@ function notSet(val: any) : boolean {
 }
 
 
-FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string, autoHideAfter: boolean,
+FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string | FromStateToStringFunc, autoHideAfter: boolean,
      timeout?, minStay?, finishedSpeechWait?) {    
     let self = this as FsmState;
     
@@ -85,10 +85,12 @@ FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: strin
     if(notSet(finishedSpeechWait)) finishedSpeechWait = 600;
 
     self.addAction((state, result, resolve, reject) => {
-        subtitle.loadAndSay(subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait)
+
+        let realText:string = typeof(text) == 'string' ? text : text(state);
+
+        subtitle.loadAndSay(subtitle, realText, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s=>{ resolve('subtitle show end')  })      
             .catch(s=>{ resolve('subtitle show end with some err')});
-        
     });
 
     
@@ -111,10 +113,10 @@ FsmState.prototype.addFinishAction = function () {
     return self;
 }
 
-FsmState.prototype.addEventAction = function (eventName) {
+FsmState.prototype.addEventAction = function (eventName:string, fsm?: Fsm) {
     let self = this as FsmState;
     self.addAction((state, result) => {
-        state.event(eventName);
+        state.event(eventName, fsm);
     });
     return self;
 }

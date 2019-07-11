@@ -18,6 +18,10 @@ class Fsm {
     curState: FsmState;
     startupState: FsmState;
 
+    // Custorm-stored variables
+    // will call initVar() to reset it whenever the fsm is started or restarted
+    variables: Map<string, any> = new Map(); 
+
     // constructor(scene: PhScene, name: string = "DefaultFsm") {
     //     this.scene = scene;
     //     this.name = name;
@@ -90,11 +94,26 @@ class Fsm {
     update(time, dt) {
         if (!this.isRunning)
             return;
+
         if (this.curState && this.curState._onUpdate)
             this.curState._onUpdate(this.curState, time, dt);
     }
 
 
+    setVar<T>(key: string, val: T){
+        this.variables.set(key, val);
+    }
+
+    hasVar(key: string): boolean{
+        return this.variables.has(key);
+    }
+
+    getVar<T>(key: string, def: any): T{        
+        if(this.variables.has(key))
+            return this.variables.get(key);
+        else 
+            return def;
+    }
 
     /**
      * invoke a event
@@ -106,23 +125,22 @@ class Fsm {
         }
 
         if (this.curState) {
-            this.curState._exit(this.curState);
-
-            if (this.curState.eventRoute.has(key)) {
+            if (this.curState.eventRoute.has(key)) {               
+                
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
-
-                if (state) {
-                    this.runState(state);
-                }
+                this.runState(state);
             }
         }
+
     }
 
     runState(state: FsmState) {
+        if(this.curState)
+            this.curState._exit(this.curState);        
+        
         this.curState = state;
         state._onEnter(state);
-
     }
 
 
@@ -132,12 +150,27 @@ class Fsm {
     }
 
     start() {
+        this.initVar();
+
         if (this.startupState) {
             this.runState(this.startupState);
         }
         else {
             console.warn("No startup state for FSM: " + this.name);
         }
+    }
+
+    initVar() {
+        this.variables.clear();
+    }
+
+    restart() {
+        this.start();        
+    }
+
+    stop() {
+        this.isRunning = false;
+        this.curState = null;
     }
 
     addEvent(eventName: string, from: string | FsmState, to: string | FsmState) {
@@ -180,6 +213,7 @@ class FsmState {
     name: string;
     fsm: Fsm;
 
+    eventRoute: Map<string, string> = new Map();
     actions: {action: FsmAction, actionConfig: ActionConfig}[] = [];
     
     enterExitListners: TypedEvent<boolean> = new TypedEvent();
@@ -253,8 +287,8 @@ class FsmState {
         } 
         else {
             return (state, result) => new Promise((resolve, reject) =>{
-                action(state, result);
-                resolve(undefined);
+                let actionResult = action(state, result);
+                resolve(actionResult);
             });
         }
     }
@@ -308,7 +342,7 @@ class FsmState {
         });
     }
 
-    eventRoute: Map<string, string> = new Map();
+    
 
     setAsStartup(): FsmState {
         this.fsm.setStartup(this);
@@ -348,6 +382,7 @@ class FsmState {
      * @param handler 
      */
     _onEnter(state: FsmState): FsmState {
+        this.resetUnionEvent();
         this.enterExitListners.emit(true);
 
         if(this.onEnter)
@@ -446,12 +481,47 @@ class FsmState {
         this.fsm.event(Fsm.FinishedEventName);
     }
 
+    
+    private _unionEvents: Map<string, {require: number, set: Set<string>}> = new Map();
+    
     /**
-     * Only call this if you know what you are doing
+     * Union event will only invoke the event when the \
+     * counter reached the set value \
+     * It's mostly used when you want to send a event
+     * after multiple conditions are reached
+     */
+    unionEvent(evName: string, id: string) {
+        let body = this._unionEvents.get(evName);
+        if(!body || !body.set)
+            return;
+        
+        body.set.add(id);
+        if(body.set.size == body.require) {
+            this.event(evName);
+        }
+    }
+
+    resetUnionEvent() {
+        this._unionEvents.forEach((value, key, map) =>{
+            value.set.clear();
+        });
+    }
+
+    setUnionEvent(evName: string, require: number) {
+        let set = new Set();
+        this._unionEvents.set(evName, {require: require, set: set});
+    }
+
+    /**
+     * Only call this if you know what you are doin
      * @param evName 
      */
-    event(evName: string) {
-        this.fsm.event(evName);
+    event(evName: string, fsm?: Fsm) {
+            
+        if(notSet(fsm))
+            this.fsm.event(evName);
+        else
+            fsm.event(evName);
     }
     
 

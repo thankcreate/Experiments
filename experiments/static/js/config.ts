@@ -2,10 +2,10 @@
 /// <reference path="scenes/scene-controller.ts" />
 
 var gameplayConfig = {
-    // enemyDuratrion: 30000,
-    // spawnInterval: 8000,
-    enemyDuratrion: 5000,
-    spawnInterval: 1000,
+    enemyDuratrion: 30000,
+    spawnInterval: 8000,
+    // enemyDuratrion: 5000,
+    // spawnInterval: 1000,
 
     onlyDamageMostMatch: false,
     allowDamageBySameWord: false, // wheather allow the same word to damage the same enemy multiple times

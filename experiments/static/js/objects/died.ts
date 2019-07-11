@@ -5,6 +5,7 @@ class Died extends Wrapper<PhText> {
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
+       
 
         // Big banner
         this.banner = new Rect(this.scene, this.inner, 0,0, {

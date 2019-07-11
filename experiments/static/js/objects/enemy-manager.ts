@@ -1,3 +1,17 @@
+
+enum SpawnStrategyType{
+    None,
+    SpawnOnEliminatedAndReachCore,
+    FlowTheory
+}
+
+interface SpawnStrategyConfig {
+    interval?: number,
+    healthMin?: number,
+    healthMax?: number,
+    enemyDuration?: number
+}
+
 class EnemyManager {
 
     scene: BaseScene;
@@ -21,7 +35,12 @@ class EnemyManager {
    
 
     enemyReachedCoreEvent: TypedEvent<Enemy> = new TypedEvent();
+    enemyEliminatedEvent: TypedEvent<Enemy> = new TypedEvent();
 
+    curStrategy: SpawnStrategyType = SpawnStrategyType.None;
+    curStrategyConfig: SpawnStrategyConfig = {};
+
+    
     constructor(scene, parentContainer) {
         this.scene = scene;
         this.inner = this.scene.add.container(0, 0);
@@ -43,9 +62,40 @@ class EnemyManager {
 
     }
 
+    
+
+    startSpawnStrategy(strategy: SpawnStrategyType, config:SpawnStrategyConfig) {       
+        this.curStrategyConfig = config;
+
+        // Only start strategy when the strategy changed
+        // Or else, only update the config data
+        if(strategy === this.curStrategy)
+            return;
+
+        this.curStrategy = strategy;
+        if(strategy === SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            this.startSpawnStrategySpawnOnEliminatedAndReachCore();
+        }
+        if(strategy === SpawnStrategyType.FlowTheory) {
+
+        }
+    }
+
+    startSpawnStrategySpawnOnEliminatedAndReachCore() {
+
+    }
+
+    spawnOnEliminatedAndReachCore() {
+        if(!this.curStrategyConfig) this.curStrategyConfig = {};
+        let config = this.curStrategyConfig;
+        if(!config.healthMin) config.healthMin = 3;
+        if(!config.healthMax) config.healthMax = 3;
+
+        this.spawn({health:config.healthMin, duration: config.enemyDuration});
+    }
 
 
-    startSpawn() {
+    startAutoSpawn() {
         this.spawnTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
@@ -55,20 +105,20 @@ class EnemyManager {
                 this.spawn();
             },
             onRepeat: () => {
-
                 this.spawn();
             },
             repeat: -1
         });
     }
 
-    stopSpawn() {
+    stopAutoSpawn() {
         if (this.spawnTween)
             this.spawnTween.stop();
     }
 
     stopSpawnAndClear() {
-        this.stopSpawn();
+        this.stopAutoSpawn();
+        this.curStrategy = SpawnStrategyType.None;
 
         // Must iterate from back
         // disolve will use slice to remove itself from the array
@@ -113,23 +163,32 @@ class EnemyManager {
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
 
-    spawn() {
-        var posi = this.getSpawnPoint();
-        var name = this.getNextName();
+    
+    spawn(config?: EnemyConfig) : Enemy {
 
-        this.insertSpawnHistory(posi, name);
+        if(notSet(config))
+            config = {};
+
+        if(notSet(config.type)) config.type = EnemyType.Image;
+        if(notSet(config.label)) config.label = this.getNextName();      
+        if(notSet(config.duration)) config.duration = gameplayConfig.enemyDuratrion;        
+        if(notSet(config.health)) config.health = gameplayConfig.defaultHealth;       
+
+
+        var name = config.label;
 
         var figureName = name.split(' ').join('-').toLowerCase();
+        if(notSet(config.image)) config.image = figureName;
+        
+        var posi = this.getSpawnPoint();
+        this.insertSpawnHistory(posi, name);
+
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
         //     label: name
         // });
 
-        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, {
-            type: EnemyType.Image,
-            label: name,
-            image: figureName
-        });
+        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
 
         // console.log('-------------------------')
         this.enemies.forEach(item => {
@@ -138,8 +197,9 @@ class EnemyManager {
         // console.log(this.enemies.length + "  name:" + name);
 
         this.enemies.push(enemy);
-        enemy.duration = this.enemyRunDuration;
         enemy.startRun();
+
+        return enemy;
     }
 
     insertSpawnHistory(posi: PhPoint, name: string) {
@@ -328,7 +388,17 @@ class EnemyManager {
         if(enemy.health <= 0)
             return;
 
+        if(this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            this.spawnOnEliminatedAndReachCore();
+        }
         this.enemyReachedCoreEvent.emit(enemy);
+    }
+
+    enemyEliminated(enemy: Enemy) {
+        if(this.curStrategy == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            this.spawnOnEliminatedAndReachCore();
+        }
+        this.enemyEliminatedEvent.emit(enemy);
     }
 
     // This is mostly used when died
@@ -339,5 +409,14 @@ class EnemyManager {
         });
     }
 
+    getLastSpawnedEnemyName() {
+        if(this.spawnHistory.length == 0) {
+            return '';
+        }
+
+        return this.spawnHistory[this.spawnHistory.length - 1].name;
+    }
     
+
+
 }

@@ -165,10 +165,10 @@ class Scene1 extends BaseScene {
     }
     initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            // .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
     }
     initFsmModeSelect() {
@@ -1152,7 +1152,7 @@ class Died extends Wrapper {
         let title = this.scene.add.text(0, -10, "YOU DIED", style).setOrigin(0.5).setAlign('center');
         this.applyTarget(title);
         // Restart Btn
-        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, "Restart", 200, 100, false);
+        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, ">reboot -n", 200, 100, false);
         this.restartBtn.text.setFontSize(44);
     }
     hide() {

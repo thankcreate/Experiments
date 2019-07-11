@@ -26,7 +26,7 @@ class Died extends Wrapper<PhText> {
         this.applyTarget(title);
 
         // Restart Btn
-        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, "Restart", 200, 100, false);
+        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, ">reboot -n", 200, 100, false);
         this.restartBtn.text.setFontSize(44);
     }
 

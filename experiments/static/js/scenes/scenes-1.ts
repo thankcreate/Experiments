@@ -189,10 +189,10 @@ class Scene1 extends BaseScene {
 
     initFsmFirstMeet() {
         this.fsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            // .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
     }
 

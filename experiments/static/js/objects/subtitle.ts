@@ -135,7 +135,7 @@ class Subtitle extends Wrapper<PhText> {
      * @param finishedSpeechWait the time after played apeech
      */
     loadAndSay(subtitle: Subtitle, text: string, autoHideAfter = false, 
-        timeout = 4000, minStay = 3000, finishedSpeechWait = 1500): Pany {
+        timeout = 2000, minStay = 3000, finishedSpeechWait = 1000): Pany {
         
         this.showText(text);
 

@@ -144,7 +144,7 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
         }
         
         let average = sumLife  / avaiCount;
-        let adjusted = average * 0.85;
+        let adjusted = average * 0.7;
 
         if(killedCount >= 4)
 
@@ -177,10 +177,14 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             lastSpawnTime =this.enemyManager.omniHistory[historyLength - 1].time;
         }
     
-        if(this.enemyManager.enemies.length == 0) {
-            this.spawn();
-            this.spawn();            
-        }
+        let currentEnemies = this.enemyManager.enemies.length;
+        let minEnemies = 2;
+        let enemiesNeedSpawn = Math.max(0, minEnemies - currentEnemies);
+        if(enemiesNeedSpawn > 0) {
+            for(let i = 0; i < enemiesNeedSpawn; i++) {
+                this.spawn();
+            }
+        }        
         else {
             let timeSinceLastSpawn = time - lastSpawnTime;
             let interval = this.getInterval();

@@ -47,17 +47,47 @@ class Controller extends BaseScene {
     }
 }
 /// <reference path="scene-controller.ts" />
+/**
+ * Game Mode is what you choose from home mode select
+ */
 var GameMode;
 /// <reference path="scene-controller.ts" />
+/**
+ * Game Mode is what you choose from home mode select
+ */
 (function (GameMode) {
     GameMode[GameMode["Normal"] = 0] = "Normal";
     GameMode[GameMode["Zen"] = 1] = "Zen";
 })(GameMode || (GameMode = {}));
+/**
+ * EntryPoint is like a status/mode you entered the game mode
+ * It's purpose is to differentiate whether it's from a die restart
+ * Or it's a game from home page
+ */
+var EntryPoint;
+/**
+ * EntryPoint is like a status/mode you entered the game mode
+ * It's purpose is to differentiate whether it's from a die restart
+ * Or it's a game from home page
+ */
+(function (EntryPoint) {
+    EntryPoint[EntryPoint["FromHome"] = 0] = "FromHome";
+    EntryPoint[EntryPoint["FromDie"] = 1] = "FromDie";
+})(EntryPoint || (EntryPoint = {}));
+var Counter;
+(function (Counter) {
+    Counter[Counter["None"] = 0] = "None";
+    Counter[Counter["IntoHome"] = 1] = "IntoHome";
+    Counter[Counter["IntoNormalMode"] = 2] = "IntoNormalMode";
+})(Counter || (Counter = {}));
 class Scene1 extends BaseScene {
     constructor() {
         super('Scene1');
         this.initDwitterScale = 0.52;
         this.mode = GameMode.Normal;
+        this.entryPoint = EntryPoint.FromHome;
+        this.homeCounter = 0;
+        this.counters = new Map();
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -150,17 +180,46 @@ class Scene1 extends BaseScene {
         this.initStBackToHomeAnimation();
         this.initStDied();
         this.initStRestart();
+        this.initStSecondMeet();
         this.updateObjects.push(this.mainFsm);
         this.mainFsm.start();
+    }
+    getCounter(key, def) {
+        if (notSet(def))
+            def = 0;
+        let res = this.counters.get(key);
+        if (notSet(res)) {
+            this.counters.set(key, def);
+            res = def;
+        }
+        return res;
+    }
+    addCounter(key, def) {
+        if (notSet(def))
+            def = 0;
+        let res = this.getCounter(key, def);
+        res++;
+        this.counters.set(key, res);
+    }
+    firstIntoHome() {
+        return this.getCounter(Counter.IntoHome) == 1;
+    }
+    firstIntoNormalMode() {
+        return this.getCounter(Counter.IntoNormalMode) == 1;
+    }
+    setEntryPointByIncomingEvent(evName) {
+        this.setEntryPoint(evName.toLowerCase().indexOf('restart') >= 0 ? EntryPoint.FromDie : EntryPoint.FromHome);
     }
     initStHome() {
         let state = this.mainFsm.getState("Home");
         state.setAsStartup().setOnEnter(s => {
+            this.addCounter(Counter.IntoHome);
             this.subtitle.startMonologue();
             this.dwitterBKG.toBlinkMode();
             this.dwitterBKG.toBlinkMode();
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage, e => {
+                console.log('hahao');
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toStaticMode();
             }, e => {
@@ -170,18 +229,28 @@ class Scene1 extends BaseScene {
                 this.centerObject.playerInputText.homePointerDown();
                 this.dwitterBKG.toStaticMode();
                 this.subtitle.stopMonologue();
-                s.event('TO_FIRST_MEET');
+                let firstIn = this.firstIntoHome();
+                if (firstIn)
+                    s.event('TO_FIRST_MEET');
+                else
+                    s.event('TO_SECOND_MEET');
             });
         });
     }
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
-            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
-            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
-            .addEventAction("TO_MODE_SELECT");
+            .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+            // // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addFinishAction();
+    }
+    initStSecondMeet() {
+        let state = this.mainFsm.getState("SecondMeet");
+        state
+            .addSubtitleAction(this.subtitle, 'Want to play again?', true).finishImmediatly()
+            .addFinishAction();
     }
     initStModeSelect() {
         //* Enter Actions
@@ -190,6 +259,7 @@ class Scene1 extends BaseScene {
         state
             .addAction(() => {
             this.centerObject.speakerBtn.inner.alpha = 0;
+            this.centerObject.playerInputText.stopTitleTween();
             this.centerObject.playerInputText.title.alpha = 0;
         })
             // Rotate the center object to normal angle   
@@ -211,8 +281,7 @@ class Scene1 extends BaseScene {
                 resolve('clicked');
             });
         })
-            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100)
-            // Hide mode buttons
+            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome())
             .addAction(() => {
             this.centerObject.btnMode0.setEnable(false, true);
             this.centerObject.btnMode1.setEnable(false, true);
@@ -225,7 +294,7 @@ class Scene1 extends BaseScene {
                 duration: 400
             }
         ]).finishImmediatly()
-            .addSubtitleAction(this.subtitle, (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!', true, null, null, 300)
+            .addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!'; }, true, null, null, 1)
             .addFinishAction();
     }
     initStHomeToGameAnimation() {
@@ -260,6 +329,14 @@ class Scene1 extends BaseScene {
             .addDelayAction(this, 1000)
             .addFinishAction();
     }
+    /**
+     * We have 2 paths to get to NormalGame: \
+     * Home -> ... -> NormalGame \
+     * NormalGame -> ... -> Died -> ... -> NormalGame
+     * Currently the way to judge if it's from the died way is from \
+     * the FsmState property 'fromEvent'
+     * TODO: Judging from 'fromEvent' is not a good way, will change later
+     */
     initStNormalGame() {
         // this is a everlasting event
         // whenever the backBtn is enabled
@@ -269,6 +346,7 @@ class Scene1 extends BaseScene {
         });
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
+            this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
@@ -297,8 +375,20 @@ class Scene1 extends BaseScene {
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
         });
+        // Check mode and dispatch
         state.addDelayAction(this, 1500)
-            .addEventAction('TUTORIAL_START', this.normalGameFsm);
+            .addAction(s => {
+            if (this.mode === GameMode.Normal) {
+                this.addCounter(Counter.IntoNormalMode);
+                if (this.firstIntoNormalMode())
+                    s.event('TUTORIAL_START', this.normalGameFsm);
+                else
+                    s.event('NORMAL_START', this.normalGameFsm);
+            }
+            else if (this.mode === GameMode.Zen) {
+                alert('Haha, not finished yet~');
+            }
+        });
     }
     /**
      * Event: BACK_TO_HOME sent by backBtn (everlasting)
@@ -320,7 +410,7 @@ class Scene1 extends BaseScene {
             this.hp.reset();
             this.enemyManager.stopSpawnAndClear();
             this.died.hide();
-            this.normalGameFsm.restart();
+            this.normalGameFsm.restart(true);
         });
     }
     initStRestart() {
@@ -367,12 +457,16 @@ class Scene1 extends BaseScene {
     setMode(mode) {
         this.mode = mode;
     }
+    setEntryPoint(ep) {
+        this.entryPoint = ep;
+    }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStTutorialStart();
         this.initStExplainHp();
         this.initStFlowStrategy();
+        this.initStNormalStart();
         this.updateObjects.push(this.normalGameFsm);
     }
     initStNormalDefault() {
@@ -386,15 +480,16 @@ class Scene1 extends BaseScene {
         state.setUnionEvent('EXPLAIN_HP', 2);
         state
             .addAction(s => {
-            let health = 3;
-            let duration = 50000;
-            // let health = 100;
-            // let duration = 1000;
+            // let health = 3;
+            // let duration = 50000;
+            let health = 100;
+            let duration = 1000;
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore, { enemyDuration: duration, health: health });
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 s.unionEvent('EXPLAIN_HP', 'one_enemy_eliminated');
             });
         })
+            .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "To help me complete the experiment,\njust type in what's in your mind when you see the " + lastEnemyName.toLocaleLowerCase();
@@ -460,6 +555,29 @@ class Scene1 extends BaseScene {
         state.addAction(s => {
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
         });
+    }
+    // Normal Start may come from a die or from home
+    // If it's from die, we need add a different subtitle
+    initStNormalStart() {
+        let state = this.normalGameFsm.getState('NormalStart');
+        state
+            .addAction(s => {
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
+        })
+            .addDelayAction(this, 1500)
+            .addSubtitleAction(this.subtitle, s => {
+            if (this.entryPoint === EntryPoint.FromDie)
+                return "Calm down. Don't give up.";
+            else
+                return "I just know it! You'll come back. Haha";
+        }, true, 2000, 3000, 1500)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, s => {
+            return "I can get that this experiment is a little bit boring indeed.\n";
+        }, true, 2000, 3000, 500)
+            .addSubtitleAction(this.subtitle, s => {
+            return "But I have my reasons";
+        }, true, 2000, 3000, 1500);
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -987,6 +1105,15 @@ function arrayRemove(ar, element) {
         if (ar[i] === element) {
             ar.splice(parseInt(i), 1);
         }
+    }
+}
+function updateObject(from, to) {
+    if (notSet(from) || notSet(to)) {
+        console.log('update object found null');
+        return;
+    }
+    for (let key in from) {
+        to[key] = from[key];
     }
 }
 /**
@@ -2067,6 +2194,15 @@ class Rect extends Figure {
         graphics.strokeRect(0, 0, config.width, config.height);
     }
 }
+function ImFinishConfig(val) {
+    return { finishImmediately: val };
+}
+var ConditionalRes;
+(function (ConditionalRes) {
+    ConditionalRes[ConditionalRes["Run"] = 0] = "Run";
+    ConditionalRes[ConditionalRes["PassResolve"] = 1] = "PassResolve";
+    ConditionalRes[ConditionalRes["PassReject"] = 2] = "PassReject";
+})(ConditionalRes || (ConditionalRes = {}));
 class Fsm {
     // constructor(scene: PhScene, name: string = "DefaultFsm") {
     //     this.scene = scene;
@@ -2156,6 +2292,7 @@ class Fsm {
             if (this.curState.eventRoute.has(key)) {
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
+                state.fromEvent = key;
                 this.runState(state);
             }
         }
@@ -2169,8 +2306,10 @@ class Fsm {
     setStartup(state) {
         this.startupState = state;
     }
-    start() {
-        this.initVar();
+    start(clearVar = true) {
+        if (clearVar) {
+            this.clearVar();
+        }
         if (this.startupState) {
             this.runState(this.startupState);
         }
@@ -2178,10 +2317,10 @@ class Fsm {
             console.warn("No startup state for FSM: " + this.name);
         }
     }
-    initVar() {
+    clearVar() {
         this.variables.clear();
     }
-    restart() {
+    restart(clearVar = true) {
         this.start();
     }
     stop() {
@@ -2265,6 +2404,19 @@ class FsmState {
     getPromiseMiddleware(index) {
         let action = this.actions[index].action;
         let actionConfig = this.actions[index].actionConfig;
+        // If this function don't need to run
+        if (actionConfig && actionConfig.conditionalRun) {
+            let res = actionConfig.conditionalRun(this);
+            let needRun = res === ConditionalRes.Run;
+            if (!needRun) {
+                return (state, result) => new Promise((resolve, reject) => {
+                    if (res === ConditionalRes.PassResolve)
+                        resolve('Passed and resolved by condition in action config');
+                    else if (res === ConditionalRes.PassReject)
+                        resolve('Passed and rejected by condition in action config');
+                });
+            }
+        }
         if (action.length > 2) {
             return (state, result) => new Promise((resolve, reject) => {
                 action(state, result, resolve, reject);
@@ -2278,20 +2430,6 @@ class FsmState {
                 resolve(actionResult);
             });
         }
-    }
-    /**
-     * Set the last added action's config
-     * @param config
-     */
-    setConfig(config) {
-        if (this.actions.length > 0) {
-            this.actions[this.actions.length - 1].actionConfig = config;
-        }
-        return this;
-    }
-    finishImmediatly() {
-        this.setConfig(ImFinishConfig(true));
-        return this;
     }
     /**
      * runActions is called internally by _onEnter
@@ -2320,6 +2458,36 @@ class FsmState {
         curPromise.catch(reason => {
             console.log('catched error in state: ' + reason);
         });
+    }
+    /**
+     * Set the last added action's config
+     * @param config
+     */
+    updateConfig(config) {
+        if (this.actions.length > 0) {
+            let action = this.actions[this.actions.length - 1];
+            if (notSet(action.actionConfig))
+                action.actionConfig = {};
+            updateObject(config, action.actionConfig);
+        }
+        return this;
+    }
+    finishImmediatly() {
+        this.updateConfig(ImFinishConfig(true));
+        return this;
+    }
+    setCondition(func) {
+        this.updateConfig({ conditionalRun: func });
+        return this;
+    }
+    setBoolCondition(func) {
+        this.updateConfig({ conditionalRun: s => {
+                if (func(s))
+                    return ConditionalRes.Run;
+                else
+                    return ConditionalRes.PassResolve;
+            } });
+        return this;
     }
     setAsStartup() {
         this.fsm.setStartup(this);
@@ -2457,9 +2625,6 @@ class FsmState {
     }
 }
 /// <reference path="fsm.ts" />
-function ImFinishConfig(val) {
-    return { finishImmediately: val };
-}
 var TweenPromise = {
     create: function (scene, config) {
         let tp = new Promise(res => {
@@ -2509,7 +2674,7 @@ function notSet(val) {
 FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait) {
     let self = this;
     if (notSet(timeout))
-        timeout = 3000;
+        timeout = 2000;
     if (notSet(minStay))
         minStay = 1000;
     if (notSet(finishedSpeechWait))
@@ -2572,12 +2737,13 @@ var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
     events: [
-        { name: 'FINISHED', from: 'Home', to: 'HomeToGameAnimation' },
         { name: 'TO_FIRST_MEET', from: 'Home', to: 'FirstMeet' },
+        { name: 'TO_SECOND_MEET', from: 'Home', to: 'SecondMeet' },
         { name: 'FINISHED', from: 'HomeToGameAnimation', to: 'NormalGame' },
         { name: 'BACK_TO_HOME', from: 'NormalGame', to: 'BackToHomeAnimation' },
         { name: 'FINISHED', from: 'BackToHomeAnimation', to: 'Home' },
-        { name: 'TO_MODE_SELECT', from: 'FirstMeet', to: 'ModeSelect' },
+        { name: 'FINISHED', from: 'FirstMeet', to: 'ModeSelect' },
+        { name: 'FINISHED', from: 'SecondMeet', to: 'ModeSelect' },
         { name: 'FINISHED', from: 'ModeSelect', to: 'HomeToGameAnimation' },
         { name: 'DIED', from: 'NormalGame', to: 'Died' },
         { name: 'RESTART', from: 'Died', to: 'Restart' },
@@ -2610,7 +2776,8 @@ var normalGameFsm = {
     events: [
         { name: 'TUTORIAL_START', from: 'Default', to: 'TutorialStart' },
         { name: 'EXPLAIN_HP', from: 'TutorialStart', to: 'ExplainHp' },
-        { name: 'TO_FLOW_STRATEGY', from: 'ExplainHp', to: 'FlowStrategy' }
+        { name: 'TO_FLOW_STRATEGY', from: 'ExplainHp', to: 'FlowStrategy' },
+        { name: 'NORMAL_START', from: 'Default', to: 'NormalStart' }
     ]
 };
 class HealthIndicator {
@@ -2922,6 +3089,16 @@ class PlayerInputText {
             duration: 250,
         });
     }
+    // If you want to force set a status of the title like set title.alpha = 0
+    // but there is still a tween on it, you will notice that the setting didin't work
+    // Cause the tween will override the settting
+    // You muse stop any related tween, and then set it
+    stopTitleTween() {
+        if (this.titleIn)
+            this.titleIn.stop();
+        if (this.titleOut)
+            this.titleOut.stop();
+    }
     /**
      * Current logic is that we get into scene1 once player clicked the center circle
      * Transfer to the scene 1 game play
@@ -3164,7 +3341,7 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             }
         }
         let average = sumLife / avaiCount;
-        let adjusted = average * 0.85;
+        let adjusted = average * 0.7;
         if (killedCount >= 4)
             adjusted *= 0.8;
         if (killedCount >= 8)
@@ -3186,9 +3363,13 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
         if (historyLength > 0) {
             lastSpawnTime = this.enemyManager.omniHistory[historyLength - 1].time;
         }
-        if (this.enemyManager.enemies.length == 0) {
-            this.spawn();
-            this.spawn();
+        let currentEnemies = this.enemyManager.enemies.length;
+        let minEnemies = 2;
+        let enemiesNeedSpawn = Math.max(0, minEnemies - currentEnemies);
+        if (enemiesNeedSpawn > 0) {
+            for (let i = 0; i < enemiesNeedSpawn; i++) {
+                this.spawn();
+            }
         }
         else {
             let timeSinceLastSpawn = time - lastSpawnTime;
@@ -3468,7 +3649,7 @@ class Subtitle extends Wrapper {
      * @param minStay the min time the title is shown
      * @param finishedSpeechWait the time after played apeech
      */
-    loadAndSay(subtitle, text, autoHideAfter = false, timeout = 4000, minStay = 3000, finishedSpeechWait = 1500) {
+    loadAndSay(subtitle, text, autoHideAfter = false, timeout = 2000, minStay = 3000, finishedSpeechWait = 1000) {
         this.showText(text);
         let normalPlayProcess = this.scene
             .playSpeech(text, timeout)

@@ -1,13 +1,5 @@
 /// <reference path="fsm.ts" />
 
-type ActionConfig = {
-    finishImmediately:boolean;
-}
-
-function ImFinishConfig(val: boolean): ActionConfig{
-    return {finishImmediately: val};
-}
-
 
 var TweenPromise = {
     create: function (scene: PhScene, config: Phaser.Types.Tweens.TweenBuilderConfig | any): Promise<any> {
@@ -80,7 +72,7 @@ FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: strin
     let self = this as FsmState;
     
 
-    if(notSet(timeout)) timeout = 3000;
+    if(notSet(timeout)) timeout = 2000;
     if(notSet(minStay)) minStay = 1000;
     if(notSet(finishedSpeechWait)) finishedSpeechWait = 600;
 

@@ -2,12 +2,28 @@ interface IFsmData {
     name: string,
     initial: string,
     events: {
-      name: string;
-      from: string;
-      to: string;
+        name: string;
+        from: string;
+        to: string;
     }[],
-  }
+}
 
+type AcionConditionFunc = (s:FsmState) => ConditionalRes
+type ActionConfig = {
+    finishImmediately? :boolean,
+    conditionalRun?: AcionConditionFunc
+}
+
+function ImFinishConfig(val: boolean): ActionConfig{
+    return {finishImmediately: val};
+}
+
+
+enum ConditionalRes {
+    Run,
+    PassResolve,
+    PassReject,
+}
 
 class Fsm {
 
@@ -129,6 +145,7 @@ class Fsm {
                 
                 let targetName = this.curState.eventRoute.get(key);
                 let state = this.states.get(targetName);
+                state.fromEvent = key;
                 this.runState(state);
             }
         }
@@ -149,8 +166,10 @@ class Fsm {
         this.startupState = state;
     }
 
-    start() {
-        this.initVar();
+    start(clearVar: boolean = true) {
+        if(clearVar) {
+            this.clearVar();
+        }
 
         if (this.startupState) {
             this.runState(this.startupState);
@@ -160,11 +179,11 @@ class Fsm {
         }
     }
 
-    initVar() {
+    clearVar() {
         this.variables.clear();
     }
 
-    restart() {
+    restart(clearVar: boolean = true) {        
         this.start();        
     }
 
@@ -221,7 +240,8 @@ class FsmState {
 
     autoRemoveListners: {target: OnOffable | TypedEvent<any>, key:string, func: any}[] = [];
     safeInOutWatchers: {target: PhImage, hoverState: number, prevDownState:number}[] = [];
-
+    
+    fromEvent: string;
 
     constructor(name: string, fsm: Fsm) {
         this.name = name;
@@ -279,6 +299,20 @@ class FsmState {
         let action = this.actions[index].action;
         let actionConfig = this.actions[index].actionConfig;
 
+        // If this function don't need to run
+        if(actionConfig && actionConfig.conditionalRun) {
+            let res = actionConfig.conditionalRun(this) ;
+            let needRun = res === ConditionalRes.Run;
+            if(!needRun) {
+                return (state, result) => new Promise((resolve, reject) =>{
+                    if(res === ConditionalRes.PassResolve) 
+                        resolve('Passed and resolved by condition in action config');
+                    else if(res === ConditionalRes.PassReject)
+                        resolve('Passed and rejected by condition in action config');
+                });
+            }
+        }
+
         if(action.length > 2) {            
             return (state, result) => new Promise((resolve, reject) =>{
                 action(state, result, resolve, reject);
@@ -293,23 +327,6 @@ class FsmState {
             });
         }
     }
-
-    /**
-     * Set the last added action's config
-     * @param config 
-     */
-    setConfig(config: ActionConfig) : FsmState {
-        if(this.actions.length > 0) {
-            this.actions[this.actions.length - 1].actionConfig = config;
-        }
-        return this;
-    }
-
-    finishImmediatly() : FsmState {
-        this.setConfig(ImFinishConfig(true));
-        return this;
-    }
-
 
     /**
      * runActions is called internally by _onEnter
@@ -341,6 +358,40 @@ class FsmState {
         curPromise.catch(reason => {
             console.log('catched error in state: ' + reason);
         });
+    }
+
+    /**
+     * Set the last added action's config
+     * @param config 
+     */
+    updateConfig(config: ActionConfig) : FsmState {
+        if(this.actions.length > 0) {
+            let action = this.actions[this.actions.length - 1];
+            if(notSet(action.actionConfig)) action.actionConfig = {};
+                updateObject(config, action.actionConfig);
+        }
+        return this;
+    }
+
+    finishImmediatly() : FsmState {        
+        this.updateConfig(ImFinishConfig(true));
+        return this;
+    }
+
+
+    setCondition(func: AcionConditionFunc) : FsmState {
+        this.updateConfig({conditionalRun: func})
+        return this;
+    }
+
+    setBoolCondition(func: (s?: FsmState) => boolean) : FsmState {
+        this.updateConfig({conditionalRun: s=>{
+            if(func(s))
+                return ConditionalRes.Run;
+            else
+                return ConditionalRes.PassResolve;
+        }})
+        return this;
     }
 
     

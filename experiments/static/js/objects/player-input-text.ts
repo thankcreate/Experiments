@@ -246,6 +246,17 @@ class PlayerInputText {
         });
     }
 
+    // If you want to force set a status of the title like set title.alpha = 0
+    // but there is still a tween on it, you will notice that the setting didin't work
+    // Cause the tween will override the settting
+    // You muse stop any related tween, and then set it
+    stopTitleTween() {
+        if(this.titleIn)
+            this.titleIn.stop();
+        if(this.titleOut)
+            this.titleOut.stop();
+    }
+
     /**
      * Current logic is that we get into scene1 once player clicked the center circle
      * Transfer to the scene 1 game play

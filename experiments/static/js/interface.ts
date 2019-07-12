@@ -117,10 +117,24 @@ type TextWrapper = Wrapper<PhText>;
 class TextWrapperClass extends Wrapper<PhText> {};
 
 
-interface SpawnHistoryItem {
-    degree: number; 
-    name: string;
-    time: number;
+interface OmniHistoryItem {
+    id: number
+    degree: number
+    name: string
+    time: number
+    
+    /**
+     * When spawned, killed time is still undefined. So, it should be optional
+     */
+    killedTime?: number  
+    /**
+     * true: eliminated by the player
+     * false: destroyed by reaching the core
+     * undefined: still running
+     * Optional reason as above
+     */
+    eliminated?: boolean    
+    damagedBy?: string[]
 }
 
 enum GameState {

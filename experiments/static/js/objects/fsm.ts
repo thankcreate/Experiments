@@ -213,7 +213,8 @@ class FsmState {
     name: string;
     fsm: Fsm;
 
-    eventRoute: Map<string, string> = new Map();
+    eventRoute: Map<string, string> = new Map();      
+    _unionEvents: Map<string, {require: number, set: Set<string>}> = new Map();
     actions: {action: FsmAction, actionConfig: ActionConfig}[] = [];
     
     enterExitListners: TypedEvent<boolean> = new TypedEvent();
@@ -482,8 +483,6 @@ class FsmState {
     }
 
     
-    private _unionEvents: Map<string, {require: number, set: Set<string>}> = new Map();
-    
     /**
      * Union event will only invoke the event when the \
      * counter reached the set value \
@@ -508,7 +507,7 @@ class FsmState {
     }
 
     setUnionEvent(evName: string, require: number) {
-        let set = new Set();
+        let set = new Set<string>();
         this._unionEvents.set(evName, {require: require, set: set});
     }
 

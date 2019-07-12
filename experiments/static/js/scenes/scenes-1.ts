@@ -178,34 +178,36 @@ class Scene1 extends BaseScene {
         state.setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
 
+            this.dwitterBKG.toBlinkMode();
+            this.dwitterBKG.toBlinkMode();
+
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage,
                 e => {
                     this.centerObject.playerInputText.homePointerOver();
+                    this.dwitterBKG.toStaticMode();
+                },
+                e => {
+                    this.centerObject.playerInputText.homePointerOut();                    
                     this.dwitterBKG.toBlinkMode();
                 },
                 e => {
-                    this.centerObject.playerInputText.homePointerOut();
-                    this.dwitterBKG.toStaticMode();
-                },
-                e => {
                     this.centerObject.playerInputText.homePointerDown();
-
-                    this.subtitle.stopMonologue();
                     this.dwitterBKG.toStaticMode();
+                    this.subtitle.stopMonologue();
                     s.event('TO_FIRST_MEET');
                 });
         });
     }
 
     initStFirstMeet() {
-        this.mainFsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+        this.mainFsm.getState("FirstMeet")        
+            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
             
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
     }
 
@@ -304,6 +306,8 @@ class Scene1 extends BaseScene {
 
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
+            this.normalGameFsm.start();
+
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
             this.backBtn.setEnable(true, true);
@@ -334,6 +338,9 @@ class Scene1 extends BaseScene {
 
         state.setOnExit(s=>{
             this.normalGameFsm.stop();
+
+            // Stop all subtitle and sounds
+            this.subtitle.forceStopAndHideSubtitles();
         })
 
         state.addDelayAction(this, 1500)
@@ -352,8 +359,7 @@ class Scene1 extends BaseScene {
             // Stop all enemies
             this.enemyManager.freezeAllEnemies();
 
-            // Stop all subtitle and sounds
-            this.subtitle.forceStopAndHideSubtitles();
+
 
             // Show the died overlay
             this.died.show();
@@ -431,7 +437,6 @@ class Scene1 extends BaseScene {
         this.initStFlowStrategy();
 
         this.updateObjects.push(this.normalGameFsm);
-        this.normalGameFsm.start();
     }
 
     initStNormalDefault() {
@@ -472,16 +477,27 @@ class Scene1 extends BaseScene {
             }, true, 2000, 3000, 1000)
             .addAction(s=>{              
                 s.unionEvent('EXPLAIN_HP', 'subtitle_finished');
-            })
+            })        
     }
 
     initStExplainHp() {
         let state = this.normalGameFsm.getState('ExplainHp');
         state
-        .addDelayAction(this, 500)
+        .addDelayAction(this, 300)
         .addSubtitleAction(this.subtitle, s => {
-            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "Great, you just got your first blood.";
+            let last = this.enemyManager.getLastEliminatedEnemyInfo();
+            let str = "Great, you've just got your first blood.";
+            // console.log(last);
+            // console.log(last.damagedBy);
+            if(last && last.damagedBy && last.damagedBy.length > 0) {
+                let enemyName = last.name.toLowerCase();
+                let length = last.damagedBy.length;
+                if(length == 1)
+                    str += ("\nOf course! " + last.damagedBy[0] + " can match " + enemyName);
+                else
+                    str += ("\nOf course! " + last.damagedBy[0] + ' and ' + last.damagedBy[1].toLowerCase() + " can match " + enemyName);
+            }
+            return str;
         }, true, 2000, 3000, 1500)
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
@@ -499,7 +515,7 @@ class Scene1 extends BaseScene {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Pretty simple, huh?";
         }, true, 2000, 3000, 600)
-        .addDelayAction(this, 12000)
+        .addDelayAction(this, 10000)
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";

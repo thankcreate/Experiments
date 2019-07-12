@@ -7,6 +7,7 @@ interface SpawnStrategyConfig {
     enemyDuration?: number
 } 
 
+var gEnemyID = 0
 class EnemyManager {
 
     scene: BaseScene;
@@ -26,7 +27,13 @@ class EnemyManager {
     enemyRunDuration;
     spawnRadius;
 
-    spawnHistory: SpawnHistoryItem[] = [];
+    /**
+     * At first, it's call spawn history,\
+     * but later on, I think I should also added the time info
+     * about when the enemy is killed for use in the strategy.
+     * So, I change the name to omni
+     */
+    omniHistory: OmniHistoryItem[] = [];
    
 
     enemyReachedCoreEvent: TypedEvent<Enemy> = new TypedEvent();
@@ -118,7 +125,7 @@ class EnemyManager {
         // });
 
         this.enemies.length = 0;
-        this.spawnHistory.length = 0;
+        this.omniHistory.length = 0;
     }
 
     getNextName(): string {
@@ -169,7 +176,8 @@ class EnemyManager {
         
         var posi = this.getSpawnPoint();
         var tm = getGame().getTime();
-        this.insertSpawnHistory(posi, name, tm);
+        var id = gEnemyID++;
+        this.insertSpawnHistory(id, posi, name, tm);
 
 
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
@@ -178,6 +186,7 @@ class EnemyManager {
         // });
 
         var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
+        enemy.id = id;
 
         // console.log('-------------------------')
         this.enemies.forEach(item => {
@@ -193,14 +202,15 @@ class EnemyManager {
         return enemy;
     }
 
-    insertSpawnHistory(posi: PhPoint, name: string, time: number) {
+    insertSpawnHistory(id: number, posi: PhPoint, name: string, time: number) {
         let rad = Math.atan2(posi.y, posi.x);
-        let item: SpawnHistoryItem = {
+        let item: OmniHistoryItem = {
+            id: id,
             degree: rad,
             name: name,
-            time: time,
+            time: time,            
         };
-        this.spawnHistory.push(item);
+        this.omniHistory.push(item);
     }
 
     removeEnemy(enemy: Enemy) {
@@ -213,7 +223,8 @@ class EnemyManager {
 
 
     update(time, dt) {
-        dt = dt / 1000;
+
+        // dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
 
@@ -255,10 +266,10 @@ class EnemyManager {
         let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
 
         let farEnoughFromLastOne = false;        
-        if (this.spawnHistory.length == 0)
+        if (this.omniHistory.length == 0)
             farEnoughFromLastOne = true;
         else {
-            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
+            var lastOne = this.omniHistory[this.omniHistory.length - 1];
             farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
         }
 
@@ -337,8 +348,9 @@ class EnemyManager {
                 e.damage(entryValue, input);
             });
         }
-
     }
+
+
 
     findBiggestDamage(ar: SimResultItem[]): SimResultItem[] {
         let ret = [];
@@ -379,9 +391,25 @@ class EnemyManager {
         this.sendInputToServer(input);
     }
 
+
+    updateTheKilledTimeHistoryForEnemy(enemy: Enemy, eliminated: boolean) {
+        this.omniHistory.forEach(v=>{
+            if(v.id === enemy.id) {
+                v.killedTime = getGame().getTime(); 
+                v.eliminated = eliminated;
+            }
+        })
+    }
+
     enemyReachedCore(enemy: Enemy) {
+        // Acturally, I don't think health could be <= 0
+        // this is just for safe in case it happens
         if(enemy.health <= 0)
             return;
+        
+        // killed time is undefined by default
+        // if player failed to kill it, set the value to negative
+        this.updateTheKilledTimeHistoryForEnemy(enemy, false);
         
         if(this.curStrategy)
             this.curStrategy.enemyReachedCore(enemy);
@@ -390,9 +418,11 @@ class EnemyManager {
     }
 
     enemyEliminated(enemy: Enemy) {
+        this.updateTheKilledTimeHistoryForEnemy(enemy, true);
+
         if(this.curStrategy)
             this.curStrategy.enemyEliminated(enemy);
-        
+
         this.enemyEliminatedEvent.emit(enemy);
     }
 
@@ -409,11 +439,26 @@ class EnemyManager {
     }
 
     getLastSpawnedEnemyName() {
-        if(this.spawnHistory.length == 0) {
+        if(this.omniHistory.length == 0) {
             return '';
         }
 
-        return this.spawnHistory[this.spawnHistory.length - 1].name;
+        return this.omniHistory[this.omniHistory.length - 1].name;
+    }
+
+    // acturally, this is not the 'last'
+    // it's more like the first created among the eliminated ones
+    getLastEliminatedEnemyInfo() : OmniHistoryItem {
+        console.log(this.omniHistory);
+
+        for(let i in this.omniHistory) {
+            let e = this.omniHistory[i];            
+            if(e.eliminated === true)
+                return e;
+        }
+
+
+        return null;
     }
     
 

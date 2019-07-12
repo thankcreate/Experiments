@@ -157,28 +157,30 @@ class Scene1 extends BaseScene {
         let state = this.mainFsm.getState("Home");
         state.setAsStartup().setOnEnter(s => {
             this.subtitle.startMonologue();
+            this.dwitterBKG.toBlinkMode();
+            this.dwitterBKG.toBlinkMode();
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage, e => {
                 this.centerObject.playerInputText.homePointerOver();
-                this.dwitterBKG.toBlinkMode();
+                this.dwitterBKG.toStaticMode();
             }, e => {
                 this.centerObject.playerInputText.homePointerOut();
-                this.dwitterBKG.toStaticMode();
+                this.dwitterBKG.toBlinkMode();
             }, e => {
                 this.centerObject.playerInputText.homePointerDown();
-                this.subtitle.stopMonologue();
                 this.dwitterBKG.toStaticMode();
+                this.subtitle.stopMonologue();
                 s.event('TO_FIRST_MEET');
             });
         });
     }
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
-            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
     }
     initStModeSelect() {
@@ -267,6 +269,7 @@ class Scene1 extends BaseScene {
         });
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
+            this.normalGameFsm.start();
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
             this.backBtn.setEnable(true, true);
@@ -291,6 +294,8 @@ class Scene1 extends BaseScene {
         });
         state.setOnExit(s => {
             this.normalGameFsm.stop();
+            // Stop all subtitle and sounds
+            this.subtitle.forceStopAndHideSubtitles();
         });
         state.addDelayAction(this, 1500)
             .addEventAction('TUTORIAL_START', this.normalGameFsm);
@@ -304,8 +309,6 @@ class Scene1 extends BaseScene {
         state.addAction((s, result, resolve, reject) => {
             // Stop all enemies
             this.enemyManager.freezeAllEnemies();
-            // Stop all subtitle and sounds
-            this.subtitle.forceStopAndHideSubtitles();
             // Show the died overlay
             this.died.show();
             s.autoOn(this.died.restartBtn.clickedEvent, null, () => {
@@ -371,7 +374,6 @@ class Scene1 extends BaseScene {
         this.initStExplainHp();
         this.initStFlowStrategy();
         this.updateObjects.push(this.normalGameFsm);
-        this.normalGameFsm.start();
     }
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
@@ -409,10 +411,21 @@ class Scene1 extends BaseScene {
     initStExplainHp() {
         let state = this.normalGameFsm.getState('ExplainHp');
         state
-            .addDelayAction(this, 500)
+            .addDelayAction(this, 300)
             .addSubtitleAction(this.subtitle, s => {
-            let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "Great, you just got your first blood.";
+            let last = this.enemyManager.getLastEliminatedEnemyInfo();
+            let str = "Great, you've just got your first blood.";
+            // console.log(last);
+            // console.log(last.damagedBy);
+            if (last && last.damagedBy && last.damagedBy.length > 0) {
+                let enemyName = last.name.toLowerCase();
+                let length = last.damagedBy.length;
+                if (length == 1)
+                    str += ("\nOf course! " + last.damagedBy[0] + " can match " + enemyName);
+                else
+                    str += ("\nOf course! " + last.damagedBy[0] + ' and ' + last.damagedBy[1].toLowerCase() + " can match " + enemyName);
+            }
+            return str;
         }, true, 2000, 3000, 1500)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
@@ -430,7 +443,7 @@ class Scene1 extends BaseScene {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Pretty simple, huh?";
         }, true, 2000, 3000, 600)
-            .addDelayAction(this, 12000)
+            .addDelayAction(this, 10000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
@@ -1362,7 +1375,7 @@ class Dwitter65537 extends Dwitter {
         // this.inner.alpha = 1;
         this.needModify = true;
         this.param1 = 25;
-        this.needStopOnFirstShow = true;
+        this.needStopOnFirstShow = false;
     }
     u(t, c, x) {
         // console.log(t);
@@ -1538,7 +1551,10 @@ class Enemy {
             return ret;
         }
         // Update history
+        // We have to history need to update: the enemy's damage history
+        // and the manager's omni history
         this.damagedHistory.push(input);
+        this.updateOmniDamageHistory(input);
         console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
         // Handle health
         this.health -= ret.damage;
@@ -1548,6 +1564,15 @@ class Enemy {
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
         return ret;
+    }
+    updateOmniDamageHistory(input) {
+        this.enemyManager.omniHistory.forEach(e => {
+            if (e.id === this.id) {
+                if (notSet(e.damagedBy))
+                    e.damagedBy = [];
+                e.damagedBy.push(input);
+            }
+        });
     }
     eliminated() {
         this.enemyManager.enemyEliminated(this);
@@ -1606,9 +1631,16 @@ class EnemyImage extends Enemy {
         this.figure = null;
     }
 }
+var gEnemyID = 0;
 class EnemyManager {
     constructor(scene, parentContainer) {
-        this.spawnHistory = [];
+        /**
+         * At first, it's call spawn history,\
+         * but later on, I think I should also added the time info
+         * about when the enemy is killed for use in the strategy.
+         * So, I change the name to omni
+         */
+        this.omniHistory = [];
         this.enemyReachedCoreEvent = new TypedEvent();
         this.enemyEliminatedEvent = new TypedEvent();
         this.strategies = new Map();
@@ -1673,7 +1705,7 @@ class EnemyManager {
         //     e.disolve();
         // });
         this.enemies.length = 0;
-        this.spawnHistory.length = 0;
+        this.omniHistory.length = 0;
     }
     getNextName() {
         let ret = "";
@@ -1718,12 +1750,14 @@ class EnemyManager {
             config.image = figureName;
         var posi = this.getSpawnPoint();
         var tm = getGame().getTime();
-        this.insertSpawnHistory(posi, name, tm);
+        var id = gEnemyID++;
+        this.insertSpawnHistory(id, posi, name, tm);
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
         //     label: name
         // });
         var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
+        enemy.id = id;
         // console.log('-------------------------')
         this.enemies.forEach(item => {
             // console.log("item: " + item.lbl + " " + item.inner.x + " "+ item.inner.y + " "+ item.inner.alpha);
@@ -1735,14 +1769,15 @@ class EnemyManager {
             this.curStrategy.enemySpawned(enemy);
         return enemy;
     }
-    insertSpawnHistory(posi, name, time) {
+    insertSpawnHistory(id, posi, name, time) {
         let rad = Math.atan2(posi.y, posi.x);
         let item = {
+            id: id,
             degree: rad,
             name: name,
             time: time,
         };
-        this.spawnHistory.push(item);
+        this.omniHistory.push(item);
     }
     removeEnemy(enemy) {
         for (let i in this.enemies) {
@@ -1752,7 +1787,7 @@ class EnemyManager {
         }
     }
     update(time, dt) {
-        dt = dt / 1000;
+        // dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         for (let i in this.enemies) {
@@ -1782,10 +1817,10 @@ class EnemyManager {
         var subtitleRestrictedAngle = Math.PI / 3 * 2;
         let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
         let farEnoughFromLastOne = false;
-        if (this.spawnHistory.length == 0)
+        if (this.omniHistory.length == 0)
             farEnoughFromLastOne = true;
         else {
-            var lastOne = this.spawnHistory[this.spawnHistory.length - 1];
+            var lastOne = this.omniHistory[this.omniHistory.length - 1];
             farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
         }
         return notInSubtitleZone && farEnoughFromLastOne;
@@ -1883,14 +1918,28 @@ class EnemyManager {
     inputTextConfirmed(input) {
         this.sendInputToServer(input);
     }
+    updateTheKilledTimeHistoryForEnemy(enemy, eliminated) {
+        this.omniHistory.forEach(v => {
+            if (v.id === enemy.id) {
+                v.killedTime = getGame().getTime();
+                v.eliminated = eliminated;
+            }
+        });
+    }
     enemyReachedCore(enemy) {
+        // Acturally, I don't think health could be <= 0
+        // this is just for safe in case it happens
         if (enemy.health <= 0)
             return;
+        // killed time is undefined by default
+        // if player failed to kill it, set the value to negative
+        this.updateTheKilledTimeHistoryForEnemy(enemy, false);
         if (this.curStrategy)
             this.curStrategy.enemyReachedCore(enemy);
         this.enemyReachedCoreEvent.emit(enemy);
     }
     enemyEliminated(enemy) {
+        this.updateTheKilledTimeHistoryForEnemy(enemy, true);
         if (this.curStrategy)
             this.curStrategy.enemyEliminated(enemy);
         this.enemyEliminatedEvent.emit(enemy);
@@ -1905,10 +1954,21 @@ class EnemyManager {
         });
     }
     getLastSpawnedEnemyName() {
-        if (this.spawnHistory.length == 0) {
+        if (this.omniHistory.length == 0) {
             return '';
         }
-        return this.spawnHistory[this.spawnHistory.length - 1].name;
+        return this.omniHistory[this.omniHistory.length - 1].name;
+    }
+    // acturally, this is not the 'last'
+    // it's more like the first created among the eliminated ones
+    getLastEliminatedEnemyInfo() {
+        console.log(this.omniHistory);
+        for (let i in this.omniHistory) {
+            let e = this.omniHistory[i];
+            if (e.eliminated === true)
+                return e;
+        }
+        return null;
     }
 }
 /// <reference path="enemy-base.ts" />
@@ -2159,11 +2219,11 @@ Fsm.FinishedEventName = "FINISHED";
 class FsmState {
     constructor(name, fsm) {
         this.eventRoute = new Map();
+        this._unionEvents = new Map();
         this.actions = [];
         this.enterExitListners = new TypedEvent();
         this.autoRemoveListners = [];
         this.safeInOutWatchers = [];
-        this._unionEvents = new Map();
         this.name = name;
         this.fsm = fsm;
         this.otherInit();
@@ -2712,6 +2772,7 @@ class PlayerInputText {
         this.shortWords.add("go");
         this.shortWords.add("hi");
         this.shortWords.add("no");
+        this.shortWords.add("tv");
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        
         // * Hence, we should use the standard keydown instead
         // * Caution: Management of the lifetime of the listners here 
@@ -3078,22 +3139,64 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
         this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
     }
     getInterval() {
-        return 8000;
+        let history = this.enemyManager.omniHistory;
+        let n = history.length;
+        let sumLife = 0;
+        let avaiCount = 0;
+        let killedCount = 0;
+        for (let i = 0; i < n; i++) {
+            let item = history[i];
+            let killedTime = item.killedTime;
+            let spawnTime = item.time;
+            if (killedTime === undefined || item.eliminated === undefined) {
+                continue;
+            }
+            if (item.eliminated === true) {
+                killedCount++;
+            }
+            let duration = killedTime - spawnTime;
+            if (duration <= 0)
+                continue;
+            avaiCount++;
+            sumLife += duration;
+            if (item.eliminated === false) {
+                sumLife += 1;
+            }
+        }
+        let average = sumLife / avaiCount;
+        let adjusted = average * 0.85;
+        if (killedCount >= 4)
+            adjusted *= 0.8;
+        if (killedCount >= 8)
+            adjusted *= 0.9;
+        if (avaiCount == 0) {
+            return 8000;
+        }
+        else {
+            console.log(adjusted);
+            return adjusted;
+        }
     }
     onEnter() {
         console.log('flow entered');
     }
     onUpdate(time, dt) {
         let lastSpawnTime = -1000;
-        let historyLength = this.enemyManager.spawnHistory.length;
+        let historyLength = this.enemyManager.omniHistory.length;
         if (historyLength > 0) {
-            lastSpawnTime = this.enemyManager.spawnHistory[historyLength - 1].time;
+            lastSpawnTime = this.enemyManager.omniHistory[historyLength - 1].time;
         }
-        let timeSinceLastSpawn = time - lastSpawnTime;
-        let interval = this.getInterval();
-        if (timeSinceLastSpawn > interval) {
-            console.log('update spawn');
+        if (this.enemyManager.enemies.length == 0) {
             this.spawn();
+            this.spawn();
+        }
+        else {
+            let timeSinceLastSpawn = time - lastSpawnTime;
+            let interval = this.getInterval();
+            if (timeSinceLastSpawn > interval) {
+                console.log('update spawn');
+                this.spawn();
+            }
         }
     }
 }
@@ -3264,7 +3367,7 @@ var monologueList = [
     'Hello? Is anybody out there?',
     'I think no one would ever find me',
     'So sad, nobody likes AI',
-    'Maybe I should just wait for 5 mins?',
+    'Maybe I should just wait for another 5 mins?',
     'I think someone is watching me\n There must be someone!',
     'A cursor! I found a curor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',

@@ -116,7 +116,7 @@ class Dwitter65537 extends Dwitter {
 
         this.needModify = true;
         this.param1 = 25;       
-        this.needStopOnFirstShow = true;
+        this.needStopOnFirstShow = false;
     }
 
 
@@ -148,19 +148,19 @@ class Dwitter65537 extends Dwitter {
     toBlinkMode() {
         this.isRunning = true;
         this.needModify = false;
-        this.param1 = 200;
+        this.param1 = 200;        
     }
 
     toStaticMode() {
         this.isRunning = false;
         this.needModify = true;        
-        this.param1 = 25;
+        this.param1 = 25;        
     }
 
     toSlowStepMode() {
         this.isRunning = true;
         this.needModify = true;
-        this.param1 = 25;
+        this.param1 = 25;    
     }
 
     _u(t, c , x) {

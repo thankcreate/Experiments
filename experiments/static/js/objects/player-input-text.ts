@@ -44,6 +44,7 @@ class PlayerInputText {
         this.shortWords.add("go");
         this.shortWords.add("hi");
         this.shortWords.add("no");
+        this.shortWords.add("tv");
 
 
         // * Phaser's keydown logic sometimes will invoke duplicate events if the input is fast        

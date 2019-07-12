@@ -2,7 +2,7 @@ var monologueList = [
     'Hello? Is anybody out there?',
     'I think no one would ever find me',
     'So sad, nobody likes AI',
-    'Maybe I should just wait for 5 mins?',
+    'Maybe I should just wait for another 5 mins?',
     'I think someone is watching me\n There must be someone!',
     'A cursor! I found a curor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',

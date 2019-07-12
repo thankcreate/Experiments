@@ -44,8 +44,6 @@ class SpawnStrategy {
 
     }
 
-    
-
     enemyReachedCore(enemy: Enemy) {        
     }
 
@@ -114,30 +112,85 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
         this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
     }
 
-    getInterval() : number{
-        return 8000;
+
+    getInterval() : number {
+        let history = this.enemyManager.omniHistory;
+        let n = history.length;
+
+        let sumLife = 0
+        let avaiCount = 0;
+        let killedCount = 0;
+        for(let i = 0; i < n ; i++) {
+            let item = history[i];
+            let killedTime = item.killedTime;
+            let spawnTime = item.time;
+            if(killedTime === undefined || item.eliminated === undefined) {
+                continue; 
+            }
+
+            if(item.eliminated === true) {
+                killedCount++;
+            }
+            
+            let duration = killedTime - spawnTime;
+            if(duration <= 0)
+                continue
+
+            avaiCount++;
+            sumLife += duration;
+            if(item.eliminated === false) {
+                sumLife += 1;
+            }
+        }
+        
+        let average = sumLife  / avaiCount;
+        let adjusted = average * 0.85;
+
+        if(killedCount >= 4)
+
+        adjusted *= 0.8;
+
+        if(killedCount >= 8)
+        adjusted *= 0.9;
+
+
+        if(avaiCount == 0) {
+            return 8000;
+        }
+        else {
+            console.log(adjusted);
+            return adjusted;
+        }
     }
 
     onEnter(){
         console.log('flow entered');
     }
 
+    
+
     onUpdate(time, dt) {
         
         let lastSpawnTime = -1000;
-        let historyLength = this.enemyManager.spawnHistory.length;
+        let historyLength = this.enemyManager.omniHistory.length;
         if(historyLength > 0) {
-            lastSpawnTime =this.enemyManager.spawnHistory[historyLength - 1].time;
+            lastSpawnTime =this.enemyManager.omniHistory[historyLength - 1].time;
+        }
+    
+        if(this.enemyManager.enemies.length == 0) {
+            this.spawn();
+            this.spawn();            
+        }
+        else {
+            let timeSinceLastSpawn = time - lastSpawnTime;
+            let interval = this.getInterval();
+            if(timeSinceLastSpawn > interval) {
+                console.log('update spawn');
+                this.spawn();
+            }     
         }
         
-        let timeSinceLastSpawn = time - lastSpawnTime;
-
-        let interval = this.getInterval();
-        if(timeSinceLastSpawn > interval) {
-            console.log('update spawn');
-            this.spawn();
-        }
-            
+              
         
     }
 }

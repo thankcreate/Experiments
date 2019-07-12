@@ -22,6 +22,8 @@ class Enemy {
 
     initPosi : Phaser.Geom.Point;
 
+    id: number;
+
     /**
      * lbl is name shown
      */
@@ -203,7 +205,10 @@ class Enemy {
         }
 
         // Update history
+        // We have to history need to update: the enemy's damage history
+        // and the manager's omni history
         this.damagedHistory.push(input);
+        this.updateOmniDamageHistory(input);
 
         console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
 
@@ -216,6 +221,15 @@ class Enemy {
         this.healthIndicator.damagedTo(this.health);
 
         return ret;
+    }
+
+    updateOmniDamageHistory(input: string){
+        this.enemyManager.omniHistory.forEach(e=>{
+            if(e.id === this.id) {
+                if(notSet(e.damagedBy)) e.damagedBy = [];
+                e.damagedBy.push(input);
+            }
+        })
     }
 
     eliminated() {

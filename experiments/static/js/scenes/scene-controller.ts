@@ -7,6 +7,10 @@ class BaseScene extends Phaser.Scene {
         return controller;
     }
 
+    getSpeechManager() : SpeechManager {
+        return this.getControllerScene().speechManager;
+    }
+
     playSpeech(text: string, timeOut: number = 4000) : Pany {
         let controller: Controller = <Controller> this.scene.get("Controller");
         return controller.playSpeechInController(text, timeOut);

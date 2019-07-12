@@ -139,11 +139,14 @@ class Subtitle extends Wrapper<PhText> {
         
         this.showText(text);
 
-        let normalPlayProcess = this.scene.playSpeech(text, timeout)
+        let normalPlayProcess = this.scene
+            .playSpeech(text, timeout)
             .then(s => {
                 return TimeOutPromise.create(finishedSpeechWait, true)
             })            
-            .catch(e => { console.log("subtitle loadAndSay error: " + e) });
+            .catch(e => { 
+                console.log("subtitle loadAndSay error: " + e) 
+            });
 
         let fitToMinStay = TimeOutAll.create(normalPlayProcess, minStay, true)
             .then(s=>{
@@ -152,6 +155,12 @@ class Subtitle extends Wrapper<PhText> {
             });
 
         return fitToMinStay;
+    }
+
+
+    forceStopAndHideSubtitles() {
+        this.scene.getSpeechManager().stopAndClearCurrentPlaying();
+        this.hideText();
     }
 
 }

@@ -17,6 +17,7 @@ type PhRenderTexture = Phaser.GameObjects.RenderTexture
 type PhGO = Phaser.GameObjects.GameObject;
 type PhTimeEvent = Phaser.Time.TimerEvent;
 type Pany = Promise<any>;
+type PhSound = Phaser.Sound.BaseSound;
 
 
 type StateHandler = (state: FsmState) => void;
@@ -118,7 +119,8 @@ class TextWrapperClass extends Wrapper<PhText> {};
 
 interface SpawnHistoryItem {
     degree: number; 
-    name: string
+    name: string;
+    time: number;
 }
 
 enum GameState {

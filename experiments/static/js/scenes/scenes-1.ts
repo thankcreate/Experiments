@@ -200,11 +200,10 @@ class Scene1 extends BaseScene {
 
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
-            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
-
-
-            .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
             // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
@@ -333,6 +332,10 @@ class Scene1 extends BaseScene {
             })
         });
 
+        state.setOnExit(s=>{
+            this.normalGameFsm.stop();
+        })
+
         state.addDelayAction(this, 1500)
             .addEventAction('TUTORIAL_START', this.normalGameFsm);
 
@@ -345,15 +348,22 @@ class Scene1 extends BaseScene {
      */
     initStDied() {
         let state = this.mainFsm.getState("Died");
-        state.addAction((s, result, resolve, reject) => {
+        state.addAction((s, result, resolve, reject) => {            
             // Stop all enemies
             this.enemyManager.freezeAllEnemies();
+
+            // Stop all subtitle and sounds
+            this.subtitle.forceStopAndHideSubtitles();
+
+            // Show the died overlay
             this.died.show();
 
             s.autoOn(this.died.restartBtn.clickedEvent, null, () => {
                 s.event("RESTART");
                 resolve('restart clicked');
             });
+
+            
         })
 
         state.setOnExit(() => {
@@ -418,6 +428,7 @@ class Scene1 extends BaseScene {
         this.initStNormalDefault();
         this.initStTutorialStart();
         this.initStExplainHp();
+        this.initStFlowStrategy();
 
         this.updateObjects.push(this.normalGameFsm);
         this.normalGameFsm.start();
@@ -439,10 +450,12 @@ class Scene1 extends BaseScene {
             .addAction(s => {
                 let health = 3;
                 let duration = 50000;
+                // let health = 100;
+                // let duration = 1000;
                 
                 this.enemyManager.startSpawnStrategy(
                     SpawnStrategyType.SpawnOnEliminatedAndReachCore,
-                    {enemyDuration: duration, healthMin: 3})
+                    {enemyDuration: duration, health: health})
 
                 s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e=>{
                     s.unionEvent('EXPLAIN_HP', 'one_enemy_eliminated');
@@ -481,18 +494,17 @@ class Scene1 extends BaseScene {
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "If you don't eliminate them before they reach me,\nyou lose your HP by their remaining health";
-        }, true, 2000, 3000, 600)
-        .addDelayAction(this, 1000)
+        }, true, 2000, 3000, 600)        
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Pretty simple, huh?";
         }, true, 2000, 3000, 600)
-        .addDelayAction(this, 8000)
+        .addDelayAction(this, 12000)
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
         }, true, 2000, 3000, 600)
-        .addDelayAction(this, 2000)
+        .addDelayAction(this, 500)
         .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Hurt each other! Yeah! I like it.";
@@ -503,7 +515,7 @@ class Scene1 extends BaseScene {
     initStFlowStrategy() {
         let state = this.normalGameFsm.getState('FlowStrategy');
         state.addAction(s=>{
-            // this.enemyManager.startSpawnStrategy()
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
         })
     }
 }

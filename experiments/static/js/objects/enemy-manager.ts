@@ -20,7 +20,7 @@ class EnemyManager {
 
     lblStyl: TextStyle;
 
-    spawnTween: Phaser.Tweens.Tween;
+    autoSpawnTween: Phaser.Tweens.Tween;
     fadeTween: Phaser.Tweens.Tween;
 
     enemyRunDuration;
@@ -57,6 +57,7 @@ class EnemyManager {
 
         this.strategies.set(SpawnStrategyType.SpawnOnEliminatedAndReachCore, new SpawnStrategyOnEliminatedAndReachCore(this));
         this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
+        this.strategies.set(SpawnStrategyType.None, new SpawnStrategy(this, SpawnStrategyType.None, {}));
     }
 
     
@@ -74,7 +75,7 @@ class EnemyManager {
    
 
     startAutoSpawn() {
-        this.spawnTween = this.scene.tweens.add({
+        this.autoSpawnTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
             duration: this.interval,
@@ -90,8 +91,8 @@ class EnemyManager {
     }
 
     stopAutoSpawn() {
-        if (this.spawnTween)
-            this.spawnTween.stop();
+        if (this.autoSpawnTween)
+            this.autoSpawnTween.stop();
     }
 
     resetAllStrateges() {
@@ -167,7 +168,9 @@ class EnemyManager {
         if(notSet(config.image)) config.image = figureName;
         
         var posi = this.getSpawnPoint();
-        this.insertSpawnHistory(posi, name);
+        var tm = getGame().getTime();
+        this.insertSpawnHistory(posi, name, tm);
+
 
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
@@ -185,14 +188,17 @@ class EnemyManager {
         this.enemies.push(enemy);
         enemy.startRun();
 
+        if(this.curStrategy)
+            this.curStrategy.enemySpawned(enemy);
         return enemy;
     }
 
-    insertSpawnHistory(posi: PhPoint, name: string) {
+    insertSpawnHistory(posi: PhPoint, name: string, time: number) {
         let rad = Math.atan2(posi.y, posi.x);
         let item: SpawnHistoryItem = {
             degree: rad,
-            name: name
+            name: name,
+            time: time,
         };
         this.spawnHistory.push(item);
     }
@@ -204,6 +210,7 @@ class EnemyManager {
             }
         }
     }
+
 
     update(time, dt) {
         dt = dt / 1000;
@@ -391,7 +398,11 @@ class EnemyManager {
 
     // This is mostly used when died
     freezeAllEnemies() {
-        this.spawnTween.pause();
+        if(this.autoSpawnTween)
+            this.autoSpawnTween.pause();
+        
+        this.startSpawnStrategy(SpawnStrategyType.None);
+
         this.enemies.forEach(element => {
             element.freeze();
         });

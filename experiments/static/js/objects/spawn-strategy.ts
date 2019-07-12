@@ -44,6 +44,8 @@ class SpawnStrategy {
 
     }
 
+    
+
     enemyReachedCore(enemy: Enemy) {        
     }
 
@@ -67,13 +69,13 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
             healthMin: 3,
             healthMax: 3,            
             health: 3,
-            enemyDuration: 60,
+            enemyDuration: 60000,
         }
     }
 
     spawn() {
         let config = this.config;
-        this.enemyManager.spawn({health:config.healthMin, duration: config.enemyDuration});
+        this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
     }
 
 
@@ -96,5 +98,46 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
 class SpawnStrategyFlowTheory extends SpawnStrategy {
     constructor(manager: EnemyManager, config?) {
         super(manager, SpawnStrategyType.FlowTheory, config);
+    }
+
+    getInitConfig() : SpawnStrategyConfig {
+        return {
+            healthMin: 3,
+            healthMax: 3,            
+            health: 3,
+            enemyDuration: 30000,
+        }
+    }
+
+    spawn() {
+        let config = this.config;
+        this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
+    }
+
+    getInterval() : number{
+        return 8000;
+    }
+
+    onEnter(){
+        console.log('flow entered');
+    }
+
+    onUpdate(time, dt) {
+        
+        let lastSpawnTime = -1000;
+        let historyLength = this.enemyManager.spawnHistory.length;
+        if(historyLength > 0) {
+            lastSpawnTime =this.enemyManager.spawnHistory[historyLength - 1].time;
+        }
+        
+        let timeSinceLastSpawn = time - lastSpawnTime;
+
+        let interval = this.getInterval();
+        if(timeSinceLastSpawn > interval) {
+            console.log('update spawn');
+            this.spawn();
+        }
+            
+        
     }
 }

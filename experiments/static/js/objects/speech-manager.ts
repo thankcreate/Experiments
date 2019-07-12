@@ -168,12 +168,28 @@ class SpeechManager {
             });
     }
 
+    stopAndClearCurrentPlaying(){
+        this.playingSounds.forEach(e=>{
+            e.stop();
+            e.emit('complete');
+        });
+
+        this.playingSounds.length = 0;
+    }
+
+    // contain all the currently playing && not completed sounds played by playSoundByKey()
+    playingSounds: PhSound[] = [];
+    
     playSoundByKey(key: string): Pany {
         return new Promise((resolve, reject) => {
-            var music = this.scene.sound.add(key);
-            music.on('complete', (param) => {
-                resolve(param);
-            });
+            var music = this.scene.sound.add(key);            
+            
+            music.on('complete', (param) => {                
+                arrayRemove(this.playingSounds, music);
+                resolve(music);                
+            });            
+            
+            this.playingSounds.push(music);
             music.play();
         });
     }

@@ -8,6 +8,9 @@ class BaseScene extends Phaser.Scene {
         let controller = this.scene.get("Controller");
         return controller;
     }
+    getSpeechManager() {
+        return this.getControllerScene().speechManager;
+    }
     playSpeech(text, timeOut = 4000) {
         let controller = this.scene.get("Controller");
         return controller.playSpeechInController(text, timeOut);
@@ -171,9 +174,9 @@ class Scene1 extends BaseScene {
     }
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
-            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            .addSubtitleAction(this.subtitle, 'God! Someone find me finally!', true)
-            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, subject", true)
             // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addEventAction("TO_MODE_SELECT");
@@ -286,6 +289,9 @@ class Scene1 extends BaseScene {
                 s.event("DIED");
             });
         });
+        state.setOnExit(s => {
+            this.normalGameFsm.stop();
+        });
         state.addDelayAction(this, 1500)
             .addEventAction('TUTORIAL_START', this.normalGameFsm);
     }
@@ -298,6 +304,9 @@ class Scene1 extends BaseScene {
         state.addAction((s, result, resolve, reject) => {
             // Stop all enemies
             this.enemyManager.freezeAllEnemies();
+            // Stop all subtitle and sounds
+            this.subtitle.forceStopAndHideSubtitles();
+            // Show the died overlay
             this.died.show();
             s.autoOn(this.died.restartBtn.clickedEvent, null, () => {
                 s.event("RESTART");
@@ -360,6 +369,7 @@ class Scene1 extends BaseScene {
         this.initStNormalDefault();
         this.initStTutorialStart();
         this.initStExplainHp();
+        this.initStFlowStrategy();
         this.updateObjects.push(this.normalGameFsm);
         this.normalGameFsm.start();
     }
@@ -376,7 +386,9 @@ class Scene1 extends BaseScene {
             .addAction(s => {
             let health = 3;
             let duration = 50000;
-            this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore, { enemyDuration: duration, healthMin: 3 });
+            // let health = 100;
+            // let duration = 1000;
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore, { enemyDuration: duration, health: health });
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 s.unionEvent('EXPLAIN_HP', 'one_enemy_eliminated');
             });
@@ -414,17 +426,16 @@ class Scene1 extends BaseScene {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "If you don't eliminate them before they reach me,\nyou lose your HP by their remaining health";
         }, true, 2000, 3000, 600)
-            .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Pretty simple, huh?";
         }, true, 2000, 3000, 600)
-            .addDelayAction(this, 8000)
+            .addDelayAction(this, 12000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
         }, true, 2000, 3000, 600)
-            .addDelayAction(this, 2000)
+            .addDelayAction(this, 500)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Hurt each other! Yeah! I like it.";
@@ -434,7 +445,7 @@ class Scene1 extends BaseScene {
     initStFlowStrategy() {
         let state = this.normalGameFsm.getState('FlowStrategy');
         state.addAction(s => {
-            // this.enemyManager.startSpawnStrategy()
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
         });
     }
 }
@@ -955,6 +966,15 @@ function conv(webgl, canvas2D) {
 ;
 function clamp(val, min, max) {
     return Math.max(Math.min(val, max), min);
+}
+function arrayRemove(ar, element) {
+    if (notSet(ar) || notSet(element))
+        return;
+    for (let i in ar) {
+        if (ar[i] === element) {
+            ar.splice(parseInt(i), 1);
+        }
+    }
 }
 /**
  * When you want to deactive a button \
@@ -1605,6 +1625,7 @@ class EnemyManager {
         this.spawnRadius = 500;
         this.strategies.set(SpawnStrategyType.SpawnOnEliminatedAndReachCore, new SpawnStrategyOnEliminatedAndReachCore(this));
         this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
+        this.strategies.set(SpawnStrategyType.None, new SpawnStrategy(this, SpawnStrategyType.None, {}));
     }
     ;
     startSpawnStrategy(strategy, config) {
@@ -1616,7 +1637,7 @@ class EnemyManager {
             this.curStrategy.onEnter();
     }
     startAutoSpawn() {
-        this.spawnTween = this.scene.tweens.add({
+        this.autoSpawnTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
             duration: this.interval,
@@ -1631,8 +1652,8 @@ class EnemyManager {
         });
     }
     stopAutoSpawn() {
-        if (this.spawnTween)
-            this.spawnTween.stop();
+        if (this.autoSpawnTween)
+            this.autoSpawnTween.stop();
     }
     resetAllStrateges() {
         this.strategies.forEach((value, key, map) => {
@@ -1696,7 +1717,8 @@ class EnemyManager {
         if (notSet(config.image))
             config.image = figureName;
         var posi = this.getSpawnPoint();
-        this.insertSpawnHistory(posi, name);
+        var tm = getGame().getTime();
+        this.insertSpawnHistory(posi, name, tm);
         // var enemy = new EnemyText(this.scene, this, posi, this.lblStyl, {
         //     type: EnemyType.Text,
         //     label: name
@@ -1709,13 +1731,16 @@ class EnemyManager {
         // console.log(this.enemies.length + "  name:" + name);
         this.enemies.push(enemy);
         enemy.startRun();
+        if (this.curStrategy)
+            this.curStrategy.enemySpawned(enemy);
         return enemy;
     }
-    insertSpawnHistory(posi, name) {
+    insertSpawnHistory(posi, name, time) {
         let rad = Math.atan2(posi.y, posi.x);
         let item = {
             degree: rad,
-            name: name
+            name: name,
+            time: time,
         };
         this.spawnHistory.push(item);
     }
@@ -1872,7 +1897,9 @@ class EnemyManager {
     }
     // This is mostly used when died
     freezeAllEnemies() {
-        this.spawnTween.pause();
+        if (this.autoSpawnTween)
+            this.autoSpawnTween.pause();
+        this.startSpawnStrategy(SpawnStrategyType.None);
         this.enemies.forEach(element => {
             element.freeze();
         });
@@ -3015,12 +3042,12 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
             healthMin: 3,
             healthMax: 3,
             health: 3,
-            enemyDuration: 60,
+            enemyDuration: 60000,
         };
     }
     spawn() {
         let config = this.config;
-        this.enemyManager.spawn({ health: config.healthMin, duration: config.enemyDuration });
+        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
     }
     onEnter() {
         if (this.enemyManager.enemies.length == 0) {
@@ -3038,11 +3065,44 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
     constructor(manager, config) {
         super(manager, SpawnStrategyType.FlowTheory, config);
     }
+    getInitConfig() {
+        return {
+            healthMin: 3,
+            healthMax: 3,
+            health: 3,
+            enemyDuration: 30000,
+        };
+    }
+    spawn() {
+        let config = this.config;
+        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
+    }
+    getInterval() {
+        return 8000;
+    }
+    onEnter() {
+        console.log('flow entered');
+    }
+    onUpdate(time, dt) {
+        let lastSpawnTime = -1000;
+        let historyLength = this.enemyManager.spawnHistory.length;
+        if (historyLength > 0) {
+            lastSpawnTime = this.enemyManager.spawnHistory[historyLength - 1].time;
+        }
+        let timeSinceLastSpawn = time - lastSpawnTime;
+        let interval = this.getInterval();
+        if (timeSinceLastSpawn > interval) {
+            console.log('update spawn');
+            this.spawn();
+        }
+    }
 }
 class SpeechManager {
     constructor(scene) {
         this.loadedSpeechFilesStatic = {};
         this.loadedSpeechFilesQuick = {};
+        // contain all the currently playing && not completed sounds played by playSoundByKey()
+        this.playingSounds = [];
         this.scene = scene;
     }
     /**
@@ -3181,12 +3241,21 @@ class SpeechManager {
                 return Promise.reject("suc != key");
         });
     }
+    stopAndClearCurrentPlaying() {
+        this.playingSounds.forEach(e => {
+            e.stop();
+            e.emit('complete');
+        });
+        this.playingSounds.length = 0;
+    }
     playSoundByKey(key) {
         return new Promise((resolve, reject) => {
             var music = this.scene.sound.add(key);
             music.on('complete', (param) => {
-                resolve(param);
+                arrayRemove(this.playingSounds, music);
+                resolve(music);
             });
+            this.playingSounds.push(music);
             music.play();
         });
     }
@@ -3298,17 +3367,24 @@ class Subtitle extends Wrapper {
      */
     loadAndSay(subtitle, text, autoHideAfter = false, timeout = 4000, minStay = 3000, finishedSpeechWait = 1500) {
         this.showText(text);
-        let normalPlayProcess = this.scene.playSpeech(text, timeout)
+        let normalPlayProcess = this.scene
+            .playSpeech(text, timeout)
             .then(s => {
             return TimeOutPromise.create(finishedSpeechWait, true);
         })
-            .catch(e => { console.log("subtitle loadAndSay error: " + e); });
+            .catch(e => {
+            console.log("subtitle loadAndSay error: " + e);
+        });
         let fitToMinStay = TimeOutAll.create(normalPlayProcess, minStay, true)
             .then(s => {
             if (autoHideAfter)
                 return this.hideText();
         });
         return fitToMinStay;
+    }
+    forceStopAndHideSubtitles() {
+        this.scene.getSpeechManager().stopAndClearCurrentPlaying();
+        this.hideText();
     }
 }
 let code = `

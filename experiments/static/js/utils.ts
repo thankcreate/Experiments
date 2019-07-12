@@ -296,3 +296,15 @@ function conv(webgl, canvas2D) {
 function clamp(val: number, min: number, max: number): number {
     return Math.max(Math.min(val, max), min);
 }
+
+
+function arrayRemove<T>(ar: T[], element: T) {
+    if(notSet(ar) || notSet(element))
+        return;
+
+    for (let i in ar) {
+        if (ar[i] === element) {
+            ar.splice(parseInt(i), 1);
+        }
+    }
+}

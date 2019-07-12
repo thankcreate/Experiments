@@ -29,12 +29,16 @@ class Scene1 extends BaseScene {
     circle: Phaser.GameObjects.Image;
     labels;
     lblStyl;
+
     container: Phaser.GameObjects.Container;
     abContainer: Phaser.GameObjects.Container;
+    overlayContainer: Phaser.GameObjects.Container;
+
     enemyManager: EnemyManager;
     playerInput: PlayerInputText;
     centerObject: CenterObject;
     footer: PhImage;
+    overlay: Overlay;
 
     mainFsm: Fsm;
     normalGameFsm: Fsm;
@@ -137,12 +141,18 @@ class Scene1 extends BaseScene {
         this.died = new Died(this, this.container, 0, 0);
         this.died.hide();
 
+        // Overlay
+        this.overlayContainer = this.add.container(400, 299);
+        this.overlay = new Overlay(this, this.overlayContainer, 0,0);
+
 
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
         this.initMainFsm();
         this.initNormalGameFsm();
+
+        
 
         // Sub FSM: normal game
     }
@@ -169,6 +179,8 @@ class Scene1 extends BaseScene {
         var h = phaserConfig.scale.height;
 
         this.container.setPosition(w / 2, h / 2);
+        this.overlayContainer.setPosition(w / 2, h / 2);
+
         this.enemyManager.update(time, dt);
         this.centerObject.update();
     }
@@ -246,15 +258,18 @@ class Scene1 extends BaseScene {
                     console.log('hahao');
                     this.centerObject.playerInputText.homePointerOver();
                     this.dwitterBKG.toStaticMode();
+                    // $("body").css('cursor','pointer');
                 },
                 e => {
                     this.centerObject.playerInputText.homePointerOut();
                     this.dwitterBKG.toBlinkMode();
+                    // $("body").css('cursor','default');
                 },
                 e => {
                     this.centerObject.playerInputText.homePointerDown();
                     this.dwitterBKG.toStaticMode();
                     this.subtitle.stopMonologue();
+                    
 
                     let firstIn = this.firstIntoHome();
                     if (firstIn)
@@ -442,6 +457,7 @@ class Scene1 extends BaseScene {
             })
 
 
+        
 
     }
 

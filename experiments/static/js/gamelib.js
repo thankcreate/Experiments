@@ -139,6 +139,9 @@ class Scene1 extends BaseScene {
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
         this.died.hide();
+        // Overlay
+        this.overlayContainer = this.add.container(400, 299);
+        this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
@@ -162,6 +165,7 @@ class Scene1 extends BaseScene {
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
+        this.overlayContainer.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
         this.centerObject.update();
     }
@@ -222,9 +226,11 @@ class Scene1 extends BaseScene {
                 console.log('hahao');
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toStaticMode();
+                // $("body").css('cursor','pointer');
             }, e => {
                 this.centerObject.playerInputText.homePointerOut();
                 this.dwitterBKG.toBlinkMode();
+                // $("body").css('cursor','default');
             }, e => {
                 this.centerObject.playerInputText.homePointerDown();
                 this.dwitterBKG.toStaticMode();
@@ -1150,33 +1156,27 @@ class Button {
         style.fill = '#FFFFFF';
         this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
         this.inner.add(this.text);
-        if (width && height) {
-            if (notSet(fakeOriginX))
-                fakeOriginX = 0.5;
-            if (notSet(fakeOriginY))
-                fakeOriginY = 0.5;
-            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
-            this.fakeZone.setScale(width / 100, height / 100);
-            this.inner.add(this.fakeZone);
-            this.zoneTarget = this.fakeZone;
-            if (debug) {
-                this.debugFrame = this.scene.add.graphics();
-                this.debugFrame.lineStyle(4, 0xFF0000, 1);
-                this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
-                this.inner.add(this.debugFrame);
-            }
-        }
-        else if (this.image) {
-            this.zoneTarget = this.image;
-        }
-        else {
-            this.zoneTarget = this.text;
+        if (notSet(width))
+            width = this.text.displayWidth;
+        if (notSet(height))
+            height = this.text.displayHeight;
+        if (notSet(fakeOriginX))
+            fakeOriginX = 0.5;
+        if (notSet(fakeOriginY))
+            fakeOriginY = 0.5;
+        this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
+        this.fakeZone.setScale(width / 100, height / 100);
+        this.inner.add(this.fakeZone);
+        if (debug) {
+            this.debugFrame = this.scene.add.graphics();
+            this.debugFrame.lineStyle(4, 0xFF0000, 1);
+            this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
+            this.inner.add(this.debugFrame);
         }
         if (this.image)
             this.animationTargets.push(this.image);
         if (this.text)
             this.animationTargets.push(this.text);
-        this.zoneTarget.setInteractive();
         this.scene.updateObjects.push(this);
     }
     update(time, dt) {
@@ -2158,9 +2158,15 @@ class Figure extends Wrapper {
         this.calcGraphicsPosition();
     }
     calcGraphicsPosition() {
-        if (this.wrappedObject) {
-            this.wrappedObject.x = -this.config.width * this.config.originX;
-            this.wrappedObject.y = -this.config.height * this.config.originY;
+        this.applyOrigin(this.wrappedObject);
+        if (this.othersContainer) {
+            this.applyOrigin(this.othersContainer);
+        }
+    }
+    applyOrigin(ob) {
+        if (ob) {
+            ob.x = -this.config.width * this.config.originX;
+            ob.y = -this.config.height * this.config.originY;
         }
     }
 }
@@ -2190,8 +2196,59 @@ class Rect extends Figure {
             return;
         graphics.fillStyle(config.fillColor, config.fillAlpha);
         graphics.fillRect(0, 0, config.width, config.height);
+        if (config.lineWidth != 0) {
+            graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+            graphics.strokeRect(0, 0, config.width, config.height);
+        }
+    }
+}
+var aboutContent = `This is a good game This is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good game
+`;
+class Dialog extends Figure {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, config);
+        this.othersContainer = this.scene.add.container(0, 0);
+        this.inner.add(this.othersContainer);
+        let width = config.width;
+        let height = config.height;
+        // title
+        let titleStyle = getDefaultTextStyle();
+        titleStyle.fontSize = "40px";
+        this.title = this.scene.add.text(width / 2, config.padding + 50, config.title, titleStyle).setOrigin(0.5).setAlign('center');
+        this.othersContainer.add(this.title);
+        // content
+        let contentStyle = getDefaultTextStyle();
+        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, aboutContent, contentStyle);
+        this.content.setOrigin(0, 0).setAlign('left');
+        this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
+        this.othersContainer.add(this.content);
+        // OK btn
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 100, 50, true);
+        this.okBtn.text.setColor('#000000');
+    }
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.lineWidth))
+            config.lineWidth = 4;
+        if (notSet(config.lineColor))
+            config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha))
+            config.lineAlpha = 1;
+        if (notSet(config.fillColor))
+            config.fillColor = 0xffffff;
+        if (notSet(config.fillColor))
+            config.fillAlpha = 1;
+        if (notSet(config.padding))
+            config.padding = 4;
+    }
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+        graphics.clear();
+        graphics.fillStyle(config.fillColor, config.fillAlpha);
+        graphics.fillRect(0, 0, config.width, config.height);
         graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
-        graphics.strokeRect(0, 0, config.width, config.height);
+        graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);
     }
 }
 function ImFinishConfig(val) {
@@ -2913,6 +2970,36 @@ class HP extends Wrapper {
     reset() {
         this.currHealth = this.maxHealth;
         this.innerProgress.setSize(this.progressMaxWidth);
+    }
+}
+// The wrapped PhText is only for the fact the Wrapper must have a T
+// We don't really use the wrapped object
+class Overlay extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        let width = getLogicWidth();
+        this.bkg = new Rect(this.scene, this.inner, 0, 0, {
+            fillColor: 0x000000,
+            fillAlpha: 0.8,
+            width: width,
+            height: phaserConfig.scale.height,
+            lineWidth: 0,
+            originX: 0.5,
+            originY: 0.5,
+        });
+        this.dialog = new Dialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 1000,
+            height: 700,
+            title: 'About',
+            titleContentGap: 40,
+            contentPadding: 60,
+            btnToBottom: 65,
+        });
+        this.dialog.setOrigin(0.5, 0.5);
     }
 }
 class PlayerInputText {

@@ -14,8 +14,6 @@ class Button {
     fakeZone: PhImage;
     debugFrame: PhGraphics;
 
-    zoneTarget: any;
-
     hoverState: number = 0; // 0:in 1:out
     prevDownState: number = 0; // 0: not down  1: down
 
@@ -42,7 +40,7 @@ class Button {
     constructor(scene: BaseScene, parentContainer: PhContainer,
         x: number, y: number,
         imgKey: string, title: string,
-        width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
+        width: number, height: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
 
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -60,36 +58,27 @@ class Button {
         this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
         this.inner.add(this.text);
         
+        if(notSet(width)) width = this.text.displayWidth;
+        if(notSet(height)) height = this.text.displayHeight;
+     
+        if(notSet(fakeOriginX)) fakeOriginX = 0.5;
+        if(notSet(fakeOriginY)) fakeOriginY = 0.5;
+        this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
+        this.fakeZone.setScale(width / 100, height / 100);       
+        this.inner.add(this.fakeZone);
 
-        if (width && height) {
-            if(notSet(fakeOriginX)) fakeOriginX = 0.5;
-            if(notSet(fakeOriginY)) fakeOriginY = 0.5;
-            this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
-            this.fakeZone.setScale(width / 100, height / 100);       
-            this.inner.add(this.fakeZone);
-            this.zoneTarget = this.fakeZone;
-
-            if(debug) {
-                this.debugFrame = this.scene.add.graphics();
-                this.debugFrame.lineStyle(4, 0xFF0000, 1);
-                this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
-                this.inner.add(this.debugFrame);
-            }
+        if(debug) {
+            this.debugFrame = this.scene.add.graphics();
+            this.debugFrame.lineStyle(4, 0xFF0000, 1);
+            this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
+            this.inner.add(this.debugFrame);
         }
-        else if (this.image) {
-            this.zoneTarget = this.image;
-        }
-        else {
-            this.zoneTarget = this.text;
-        }         
-        
+     
 
         if(this.image) this.animationTargets.push(this.image);
         if(this.text) this.animationTargets.push(this.text);
 
-
-
-        this.zoneTarget.setInteractive();                
+        
 
         this.scene.updateObjects.push(this);              
        

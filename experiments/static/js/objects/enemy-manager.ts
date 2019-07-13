@@ -296,7 +296,7 @@ class EnemyManager {
     // }
 
     sendInputToServer(inputWord: string) {
-        this.scene.playSpeech(inputWord);
+        // this.scene.playSpeech(inputWord);
 
         var enemyLabels = [];
         for (let i in this.enemies) {

@@ -66,6 +66,8 @@ class Scene1 extends BaseScene {
 
     counters: Map<Counter, number> = new Map();
 
+    playerName: string;
+
     constructor() {
         super('Scene1');
 
@@ -299,12 +301,47 @@ class Scene1 extends BaseScene {
 
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
             // // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+            .addSubtitleAction(this.subtitle, "May I know your name, please?", true).finishImmediatly()
+            // Rotate the center object to normal angle   
+            .addTweenAction(this, {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                duration: 600,
+            }).finishImmediatly()
+            // Hide title
+            .addAction((s, result, resolve, reject) => {
+                this.centerObject.playerInputText.stopTitleTween();
+                this.centerObject.playerInputText.title.alpha = 0;
 
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+                this.centerObject.prepareToGame();
+
+                // Player input
+                s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+                s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+                s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word)=>{
+                    this.playerName = word;
+                    resolve(word);
+                });
+            })
+            .addAction((s, result)=>{
+                // Disable input listener
+                s.removeAutoRemoveListners();
+
+                // reset speaker, hide input
+                this.centerObject.prepareToHome();
+
+                // show title
+                this.centerObject.playerInputText.homePointerDown();       
+                this.centerObject.playerInputText.title.alpha = 1;         
+            })
+            .addSubtitleAction(this.subtitle, s => {                
+                return this.playerName +  "? That sounds good."
+            }, true, 2000, 3000, 300)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addFinishAction();
     }
 
@@ -318,8 +355,9 @@ class Scene1 extends BaseScene {
     initStModeSelect() {
         //* Enter Actions
         let state = this.mainFsm.getState("ModeSelect");
-        // Hide content of centerObject
+        
         state
+            // Hide content of centerObject
             .addAction(() => {
 
                 this.centerObject.speakerBtn.inner.alpha = 0;
@@ -579,10 +617,10 @@ class Scene1 extends BaseScene {
 
         state
             .addAction(s => {
-                // let health = 3;
-                // let duration = 50000;
-                let health = 100;
-                let duration = 1000;
+                let health = 3;
+                let duration = 50000;
+                // let health = 100;
+                // let duration = 1000;
 
                 this.enemyManager.startSpawnStrategy(
                     SpawnStrategyType.SpawnOnEliminatedAndReachCore,
@@ -680,10 +718,10 @@ class Scene1 extends BaseScene {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, s => {                
                 return "I can get that this experiment is a little bit boring indeed.\n"
-            }, true, 2000, 3000, 500)
+            }, true, 2000, 3000, 200)
             .addSubtitleAction(this.subtitle, s => {                
-                return "But I have my reasons"
-            }, true, 2000, 3000, 1500)
+                return "But I have my reasons.\nIt's just I can't tell you right know"
+            }, true, 2000, 3000, 1500)            
     }
 }
 

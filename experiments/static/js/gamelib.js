@@ -259,11 +259,43 @@ class Scene1 extends BaseScene {
     }
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
-            .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            // .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
+            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
+            .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
             // // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-            // .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+            .addSubtitleAction(this.subtitle, "May I know your name, please?", true).finishImmediatly()
+            // Rotate the center object to normal angle   
+            .addTweenAction(this, {
+            targets: this.centerObject.inner,
+            rotation: 0,
+            duration: 600,
+        }).finishImmediatly()
+            // Hide title
+            .addAction((s, result, resolve, reject) => {
+            this.centerObject.playerInputText.stopTitleTween();
+            this.centerObject.playerInputText.title.alpha = 0;
+            this.centerObject.prepareToGame();
+            // Player input
+            s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+            s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+            s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
+                this.playerName = word;
+                resolve(word);
+            });
+        })
+            .addAction((s, result) => {
+            // Disable input listener
+            s.removeAutoRemoveListners();
+            // reset speaker, hide input
+            this.centerObject.prepareToHome();
+            // show title
+            this.centerObject.playerInputText.homePointerDown();
+            this.centerObject.playerInputText.title.alpha = 1;
+        })
+            .addSubtitleAction(this.subtitle, s => {
+            return this.playerName + "? That sounds good.";
+        }, true, 2000, 3000, 300)
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
             .addFinishAction();
     }
     initStSecondMeet() {
@@ -275,8 +307,8 @@ class Scene1 extends BaseScene {
     initStModeSelect() {
         //* Enter Actions
         let state = this.mainFsm.getState("ModeSelect");
-        // Hide content of centerObject
         state
+            // Hide content of centerObject
             .addAction(() => {
             this.centerObject.speakerBtn.inner.alpha = 0;
             this.centerObject.playerInputText.stopTitleTween();
@@ -500,10 +532,10 @@ class Scene1 extends BaseScene {
         state.setUnionEvent('EXPLAIN_HP', 2);
         state
             .addAction(s => {
-            // let health = 3;
-            // let duration = 50000;
-            let health = 100;
-            let duration = 1000;
+            let health = 3;
+            let duration = 50000;
+            // let health = 100;
+            // let duration = 1000;
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore, { enemyDuration: duration, health: health });
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 s.unionEvent('EXPLAIN_HP', 'one_enemy_eliminated');
@@ -594,9 +626,9 @@ class Scene1 extends BaseScene {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, s => {
             return "I can get that this experiment is a little bit boring indeed.\n";
-        }, true, 2000, 3000, 500)
+        }, true, 2000, 3000, 200)
             .addSubtitleAction(this.subtitle, s => {
-            return "But I have my reasons";
+            return "But I have my reasons.\nIt's just I can't tell you right know";
         }, true, 2000, 3000, 1500);
     }
 }
@@ -2021,7 +2053,7 @@ class EnemyManager {
     //     }
     // }
     sendInputToServer(inputWord) {
-        this.scene.playSpeech(inputWord);
+        // this.scene.playSpeech(inputWord);
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];

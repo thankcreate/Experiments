@@ -488,7 +488,7 @@ class FsmState {
         return this;
     }
 
-    private removeAutoRemoveListners() {
+    removeAutoRemoveListners() {
         for(let i in this.autoRemoveListners) {
             let listener = this.autoRemoveListners[i];
 

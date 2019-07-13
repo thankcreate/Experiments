@@ -274,17 +274,17 @@ class Scene1 extends BaseScene {
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage,
                 e => {
-                    this.centerObject.playerInputText.homePointerOver();
+                    this.centerObject.playerInputText.showTitle();
                     this.dwitterBKG.toStaticMode();
                     // $("body").css('cursor','pointer');
                 },
                 e => {
-                    this.centerObject.playerInputText.homePointerOut();
+                    this.centerObject.playerInputText.hideTitle();
                     this.dwitterBKG.toBlinkMode();
                     // $("body").css('cursor','default');
                 },
                 e => {
-                    this.centerObject.playerInputText.homePointerDown();
+                    this.centerObject.playerInputText.changeTitleToChanged();
                     this.dwitterBKG.toStaticMode();
                     this.subtitle.stopMonologue();
                     
@@ -314,9 +314,7 @@ class Scene1 extends BaseScene {
             }).finishImmediatly()
             // Hide title
             .addAction((s, result, resolve, reject) => {
-                this.centerObject.playerInputText.stopTitleTween();
-                this.centerObject.playerInputText.title.alpha = 0;
-
+                // this.centerObject.playerInputText.hideTitle();
                 this.centerObject.prepareToGame();
 
                 // Player input
@@ -334,9 +332,10 @@ class Scene1 extends BaseScene {
                 // reset speaker, hide input
                 this.centerObject.prepareToHome();
 
-                // show title
-                this.centerObject.playerInputText.homePointerDown();       
-                this.centerObject.playerInputText.title.alpha = 1;         
+                // prepareToHome don't show the title back
+                // need to show title manually
+                this.centerObject.playerInputText.showTitle(false);       
+                
             })
             .addSubtitleAction(this.subtitle, s => {                
                 return this.playerName +  "? That sounds good."

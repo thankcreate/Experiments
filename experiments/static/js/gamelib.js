@@ -237,15 +237,15 @@ class Scene1 extends BaseScene {
             this.dwitterBKG.toBlinkMode();
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage, e => {
-                this.centerObject.playerInputText.homePointerOver();
+                this.centerObject.playerInputText.showTitle();
                 this.dwitterBKG.toStaticMode();
                 // $("body").css('cursor','pointer');
             }, e => {
-                this.centerObject.playerInputText.homePointerOut();
+                this.centerObject.playerInputText.hideTitle();
                 this.dwitterBKG.toBlinkMode();
                 // $("body").css('cursor','default');
             }, e => {
-                this.centerObject.playerInputText.homePointerDown();
+                this.centerObject.playerInputText.changeTitleToChanged();
                 this.dwitterBKG.toStaticMode();
                 this.subtitle.stopMonologue();
                 let firstIn = this.firstIntoHome();
@@ -272,8 +272,7 @@ class Scene1 extends BaseScene {
         }).finishImmediatly()
             // Hide title
             .addAction((s, result, resolve, reject) => {
-            this.centerObject.playerInputText.stopTitleTween();
-            this.centerObject.playerInputText.title.alpha = 0;
+            // this.centerObject.playerInputText.hideTitle();
             this.centerObject.prepareToGame();
             // Player input
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
@@ -288,9 +287,9 @@ class Scene1 extends BaseScene {
             s.removeAutoRemoveListners();
             // reset speaker, hide input
             this.centerObject.prepareToHome();
-            // show title
-            this.centerObject.playerInputText.homePointerDown();
-            this.centerObject.playerInputText.title.alpha = 1;
+            // prepareToHome don't show the title back
+            // need to show title manually
+            this.centerObject.playerInputText.showTitle(false);
         })
             .addSubtitleAction(this.subtitle, s => {
             return this.playerName + "? That sounds good.";
@@ -1444,12 +1443,12 @@ class CenterObject {
         ]);
     }
     prepareToGame() {
-        this.playerInputText.prepareToNormalGame();
+        this.playerInputText.prepareToGame();
         this.speakerBtn.toSpeakerMode(1000);
         this.speakerBtn.inner.x = this.speakerRight;
     }
     prepareToHome() {
-        this.playerInputText.prepareToGoBack();
+        this.playerInputText.prepareToHome();
         this.speakerBtn.toNothingMode(1000);
         // this.speakerBtn.inner.x = this.speakerRight;
         if (this.backToZeroTween)
@@ -3372,8 +3371,10 @@ class PlayerInputText {
     }
     checkInput() {
     }
-    homePointerOver() {
-        this.title.setText("Project 65535");
+    showTitle(showOriginal = true) {
+        let toShowText = showOriginal ?
+            gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
+        this.title.setText(toShowText);
         if (this.titleOut)
             this.titleOut.stop();
         this.titleIn = this.scene.tweens.add({
@@ -3382,8 +3383,8 @@ class PlayerInputText {
             duration: 400,
         });
     }
-    homePointerOut() {
-        this.title.setText("Project 65535");
+    hideTitle() {
+        this.title.setText("gameplayConfig.titleOriginal");
         if (this.titleIn)
             this.titleIn.stop();
         this.titleOut = this.scene.tweens.add({
@@ -3406,16 +3407,16 @@ class PlayerInputText {
      * Current logic is that we get into scene1 once player clicked the center circle
      * Transfer to the scene 1 game play
      */
-    homePointerDown() {
+    changeTitleToChanged() {
         this.title.setText(gameplayConfig.titleChangedTo);
         if (this.titleOut)
             this.titleOut.stop();
     }
-    prepareToNormalGame() {
+    prepareToGame() {
         this.showConfirmEffect(this.title.text, this.title, 1000);
         this.setCanAcceptInput(true);
     }
-    prepareToGoBack() {
+    prepareToHome() {
         // this.title.setText(gameplayConfig.titleOriginal);
         this.showConfirmEffect(this.text.text, this.text, 1000);
         this.setCanAcceptInput(false);

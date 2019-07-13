@@ -220,8 +220,11 @@ class PlayerInputText {
 
     titleIn: PhTween;
 
-    homePointerOver() {
-        this.title.setText("Project 65535");
+    showTitle(showOriginal: boolean = true) {
+        let toShowText = showOriginal ? 
+            gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
+        
+        this.title.setText(toShowText);
 
         if (this.titleOut)
             this.titleOut.stop();
@@ -233,8 +236,8 @@ class PlayerInputText {
     }
 
     titleOut: PhTween;
-    homePointerOut() {
-        this.title.setText("Project 65535");
+    hideTitle() {
+        this.title.setText("gameplayConfig.titleOriginal");
 
         if (this.titleIn)
             this.titleIn.stop();
@@ -261,7 +264,7 @@ class PlayerInputText {
      * Current logic is that we get into scene1 once player clicked the center circle
      * Transfer to the scene 1 game play
      */
-    homePointerDown(): void {
+    changeTitleToChanged(): void {
         this.title.setText(gameplayConfig.titleChangedTo);
 
         if (this.titleOut)
@@ -269,12 +272,12 @@ class PlayerInputText {
 
     }
 
-    prepareToNormalGame(){
+    prepareToGame(){
         this.showConfirmEffect(this.title.text, this.title, 1000);
         this.setCanAcceptInput(true);
     }
 
-    prepareToGoBack() {
+    prepareToHome() {
         // this.title.setText(gameplayConfig.titleOriginal);
         this.showConfirmEffect(this.text.text, this.text, 1000);
         this.setCanAcceptInput(false);

@@ -144,13 +144,13 @@ class CenterObject {
 
 
     prepareToGame() {
-        this.playerInputText.prepareToNormalGame();
+        this.playerInputText.prepareToGame();
         this.speakerBtn.toSpeakerMode(1000);
         this.speakerBtn.inner.x = this.speakerRight;
     }
 
     prepareToHome() {
-        this.playerInputText.prepareToGoBack();
+        this.playerInputText.prepareToHome();
         this.speakerBtn.toNothingMode(1000);
         // this.speakerBtn.inner.x = this.speakerRight;
 

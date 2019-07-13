@@ -149,7 +149,11 @@ class Scene1 extends BaseScene {
         this.overlay = new Overlay(this, this.overlayContainer, 0,0);
         gOverlay = this.overlay;
 
-        // Footer click event bind
+        // Footer click event bind        
+        this.footer.badges[0].clickedEvent.on(()=>{
+            this.overlay.showAiDialog();
+        });
+
         this.footer.badges[1].clickedEvent.on(()=>{
             this.overlay.showGoogleDialog();
         });
@@ -157,6 +161,7 @@ class Scene1 extends BaseScene {
         this.footer.badges[2].clickedEvent.on(()=>{
             this.overlay.showAboutDialog();
         });
+
 
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());

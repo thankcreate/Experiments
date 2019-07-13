@@ -1,4 +1,4 @@
-var nyuAbout = `The NYU Game Center is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
+var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `
 
 var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:
@@ -8,6 +8,11 @@ TensorFlow TFHub universal-sentence-encoder: Encodes text into high-dimensional 
 Quick, Draw! The Data: A unique doodle data set that can help developers train new neural networks, help researchers see patterns in how people around the world draw, and help artists create things we haven’t begun to think of.
 
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
+`
+
+var aiAbout = `This AI experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. Rather than AI for games, this experiment is more focused on the concept of games for AI.
+
+The developer has been a full-time solo indie game developer since 2012, became an IGF finalst in 2013, and has published several games on PC/Steam and other mobile platforms.
 `
 
 // The wrapped PhText is only for the fact the Wrapper must have a T
@@ -59,6 +64,12 @@ class Overlay extends Wrapper<PhText> {
         this.dialog.inner.setVisible(false);
         this.hide();
     } 
+
+    showAiDialog() {
+        this.dialog.setContent(aiAbout, "AI Experiment");
+        this.show();
+        this.dialog.show();
+    }
 
     showAboutDialog() {
         this.dialog.setContent(nyuAbout, "NYU Game Center");

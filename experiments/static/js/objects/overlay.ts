@@ -10,9 +10,11 @@ Quick, Draw! The Data: A unique doodle data set that can help developers train n
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `
 
-var aiAbout = `This AI experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. Rather than AI for games, this experiment is more focused on the concept of games for AI.
+var aiAbout = `This AI experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
 
-The developer has been a full-time solo indie game developer since 2012, became an IGF finalst in 2013, and has published several games on PC/Steam and other mobile platforms.
+The developer has been a full-time solo indie game developer since 2012, became an IGF finalst in 2013, and has published several games on PC/Steam and other mobile platforms already.
+
+This current demo is only at progress 10% at most. 
 `
 
 // The wrapped PhText is only for the fact the Wrapper must have a T
@@ -66,7 +68,7 @@ class Overlay extends Wrapper<PhText> {
     } 
 
     showAiDialog() {
-        this.dialog.setContent(aiAbout, "AI Experiment");
+        this.dialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
         this.dialog.show();
     }

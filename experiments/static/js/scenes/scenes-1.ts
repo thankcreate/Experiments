@@ -81,8 +81,7 @@ class Scene1 extends BaseScene {
     preload() {
         this.load.image('circle', 'assets/circle.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
-        this.load.image('speaker', 'assets/speaker.png');
-        this.load.image('footer', 'assets/footer.png');
+        this.load.image('speaker', 'assets/speaker.png');        
         this.load.image('unit_white', 'assets/unit_white.png')
         this.load.image('footer_ai', 'assets/footer_ai.png')
         this.load.image('footer_google', 'assets/footer_google.png')

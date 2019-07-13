@@ -16,6 +16,7 @@ type FigureConfig = {
     contentPadding?: number,
     content?: string
     titleContentGap?: number,
+    contentBtnGap? : number
     btnToBottom?: number,
     
 } 
@@ -153,22 +154,27 @@ class Dialog extends Figure {
             config.padding + config.contentPadding, 
             this.title.getBottomCenter().y + config.titleContentGap, 
             config.content, contentStyle);
+        this.content.setFontSize(28);
         this.content.setOrigin(0, 0).setAlign('left');        
         this.content.setWordWrapWidth(width - (this.config.padding  + config.contentPadding) * 2)
         this.othersContainer.add(this.content);
 
 
         // OK btn
-
         this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 120, 50);
         this.okBtn.text.setColor('#000000');    
         this.okBtn.text.setFontSize(38);
         this.okBtn.setToHoverChangeTextMode("-< OK >-");
+        this.okBtn.needHandOnHover = true;
+        this.okBtn.ignoreOverlay = true;
     }
 
-    setContent(content: string) {
+    setContent(content: string, title: string) {
+        this.config.title = title;
         this.config.content = content;
+
         this.content.text = content;        
+        this.title.text = title;
     }
 
 
@@ -198,8 +204,6 @@ class Dialog extends Figure {
         graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha)
         graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);   
     }
-
-    
 
     show() {
         this.inner.setVisible(true);

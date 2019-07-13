@@ -103,7 +103,7 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             healthMin: 3,
             healthMax: 3,            
             health: 3,
-            enemyDuration: 30000,
+            enemyDuration: 40000,
         }
     }
 

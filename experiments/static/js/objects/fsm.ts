@@ -455,9 +455,12 @@ class FsmState {
             this.onUpdate(state, time, dt);
         
         let mp = getGame().input.activePointer;        
-        this.safeInOutWatchers.forEach( e=>{            
-
+        this.safeInOutWatchers.forEach( e=>{                                  
+            
             let contains = e.target.getBounds().contains(mp.x, mp.y)
+            if(gOverlay && gOverlay.isInShow()) 
+                contains = false;
+            
             if( e.hoverState == 0 && contains){
                 e.hoverState = 1;
                 e.target.emit('safein');

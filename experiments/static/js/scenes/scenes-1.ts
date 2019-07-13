@@ -24,6 +24,7 @@ enum Counter {
     IntoNormalMode,
 }
 
+let gOverlay: Overlay;
 class Scene1 extends BaseScene {
 
     circle: Phaser.GameObjects.Image;
@@ -38,7 +39,7 @@ class Scene1 extends BaseScene {
     playerInput: PlayerInputText;
     centerObject: CenterObject;
   
-    footer2: Footer;
+    footer: Footer;
     overlay: Overlay;
 
     mainFsm: Fsm;
@@ -117,16 +118,12 @@ class Scene1 extends BaseScene {
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
 
 
-        // Bottom badge
+        // Footer
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
-        this.footer2 = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
-        this.footerInitPosi = MakePoint(this.footer2.inner);        
-
+        this.footer = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
+        this.footerInitPosi = MakePoint(this.footer.inner);        
         
-        
-
-
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
 
@@ -151,7 +148,16 @@ class Scene1 extends BaseScene {
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
         this.overlay = new Overlay(this, this.overlayContainer, 0,0);
+        gOverlay = this.overlay;
 
+        // Footer click event bind
+        this.footer.badges[1].clickedEvent.on(()=>{
+            this.overlay.showGoogleDialog();
+        });
+
+        this.footer.badges[2].clickedEvent.on(()=>{
+            this.overlay.showAboutDialog();
+        });
 
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
@@ -382,7 +388,7 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.footer2.inner,
+                targets: this.footer.inner,
                 y: "+= 250",
                 duration: dt,
             }
@@ -536,7 +542,7 @@ class Scene1 extends BaseScene {
                     duration: dt,
                 },
                 {
-                    targets: this.footer2.inner,
+                    targets: this.footer.inner,
                     y: this.footerInitPosi.y,
                     duration: dt,
                 }

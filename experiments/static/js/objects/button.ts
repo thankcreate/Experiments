@@ -36,6 +36,8 @@ class Button {
 
     clickedEvent: TypedEvent<Button> = new TypedEvent();
 
+    ignoreOverlay = false;
+
     animationTargets: any[] = [];
     /**
      * Target will be added into inner container
@@ -95,11 +97,7 @@ class Button {
 
     
 
-    update(time, dt) {
-        if(!this.enable) {
-            return;
-        }
-        
+    update(time, dt) {               
         this.checkMouseEventInUpdate();
     }
 
@@ -152,7 +150,12 @@ class Button {
 
     checkMouseEventInUpdate() {
         var pointer = this.scene.input.activePointer;
-        let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+        let contains = false;
+        if(!this.canInteract())
+            contains = false;
+        else
+            contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+
         this.setHoverState(contains ? 1 : 0);
         if(contains) {
             if(pointer.isDown && this.prevDownState === 0) {
@@ -182,6 +185,8 @@ class Button {
     }
 
     pointerin() {     
+        
+
         if(this.needInOutAutoAnimation) {            
             this.scene.tweens.add({
                 targets: this.animationTargets,
@@ -223,5 +228,21 @@ class Button {
         this.needTextTransferAnimation = true;
     }
 
+    canInteract() : boolean {     
+        if(gOverlay && gOverlay.isInShow() && !this.ignoreOverlay) 
+            return false;
+
+        let container = this.inner;
+        while(container != null) {
+            if(!container.visible)
+                return false;
+            container = container.parentContainer;
+        }
+
+        if(!this.enable)
+            return false;
+
+        return true;
+    }
 
 }

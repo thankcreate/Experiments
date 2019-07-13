@@ -80,6 +80,7 @@ var Counter;
     Counter[Counter["IntoHome"] = 1] = "IntoHome";
     Counter[Counter["IntoNormalMode"] = 2] = "IntoNormalMode";
 })(Counter || (Counter = {}));
+let gOverlay;
 class Scene1 extends BaseScene {
     constructor() {
         super('Scene1');
@@ -122,11 +123,11 @@ class Scene1 extends BaseScene {
         // Dwitters         
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
-        // Bottom badge
+        // Footer
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
-        this.footer2 = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
-        this.footerInitPosi = MakePoint(this.footer2.inner);
+        this.footer = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
+        this.footerInitPosi = MakePoint(this.footer.inner);
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
         // Back button
@@ -145,6 +146,14 @@ class Scene1 extends BaseScene {
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
+        gOverlay = this.overlay;
+        // Footer click event bind
+        this.footer.badges[1].clickedEvent.on(() => {
+            this.overlay.showGoogleDialog();
+        });
+        this.footer.badges[2].clickedEvent.on(() => {
+            this.overlay.showAboutDialog();
+        });
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
@@ -330,7 +339,7 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.footer2.inner,
+                targets: this.footer.inner,
                 y: "+= 250",
                 duration: dt,
             }
@@ -456,7 +465,7 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.footer2.inner,
+                targets: this.footer.inner,
                 y: this.footerInitPosi.y,
                 duration: dt,
             }
@@ -1150,6 +1159,7 @@ class Button {
         // auto change the cursor to a hand when hovered
         this.needHandOnHover = false;
         this.clickedEvent = new TypedEvent();
+        this.ignoreOverlay = false;
         this.animationTargets = [];
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -1188,9 +1198,6 @@ class Button {
         this.scene.updateObjects.push(this);
     }
     update(time, dt) {
-        if (!this.enable) {
-            return;
-        }
         this.checkMouseEventInUpdate();
     }
     setEnable(val, needFade) {
@@ -1235,7 +1242,11 @@ class Button {
     }
     checkMouseEventInUpdate() {
         var pointer = this.scene.input.activePointer;
-        let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+        let contains = false;
+        if (!this.canInteract())
+            contains = false;
+        else
+            contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
         this.setHoverState(contains ? 1 : 0);
         if (contains) {
             if (pointer.isDown && this.prevDownState === 0) {
@@ -1295,6 +1306,19 @@ class Button {
         this.hoverTitle = hoverText;
         this.needInOutAutoAnimation = false;
         this.needTextTransferAnimation = true;
+    }
+    canInteract() {
+        if (gOverlay && gOverlay.isInShow() && !this.ignoreOverlay)
+            return false;
+        let container = this.inner;
+        while (container != null) {
+            if (!container.visible)
+                return false;
+            container = container.parentContainer;
+        }
+        if (!this.enable)
+            return false;
+        return true;
     }
 }
 class SpeakerButton extends ImageWrapperClass {
@@ -2243,6 +2267,7 @@ class Dialog extends Figure {
         // content
         let contentStyle = getDefaultTextStyle();
         this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
+        this.content.setFontSize(28);
         this.content.setOrigin(0, 0).setAlign('left');
         this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
         this.othersContainer.add(this.content);
@@ -2251,10 +2276,14 @@ class Dialog extends Figure {
         this.okBtn.text.setColor('#000000');
         this.okBtn.text.setFontSize(38);
         this.okBtn.setToHoverChangeTextMode("-< OK >-");
+        this.okBtn.needHandOnHover = true;
+        this.okBtn.ignoreOverlay = true;
     }
-    setContent(content) {
+    setContent(content, title) {
+        this.config.title = title;
         this.config.content = content;
         this.content.text = content;
+        this.title.text = title;
     }
     handleConfig(config) {
         super.handleConfig(config);
@@ -2662,6 +2691,8 @@ class FsmState {
         let mp = getGame().input.activePointer;
         this.safeInOutWatchers.forEach(e => {
             let contains = e.target.getBounds().contains(mp.x, mp.y);
+            if (gOverlay && gOverlay.isInShow())
+                contains = false;
             if (e.hoverState == 0 && contains) {
                 e.hoverState = 1;
                 e.target.emit('safein');
@@ -3040,13 +3071,22 @@ class HP extends Wrapper {
         this.innerProgress.setSize(this.progressMaxWidth);
     }
 }
-var aboutContent = `The NYU Game Center is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
+var nyuAbout = `The NYU Game Center is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
+`;
+var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:
+
+TensorFlow TFHub universal-sentence-encoder: Encodes text into high-dimensional vectors that can be used for text classification, semantic similarity, clustering and other natural language tasks
+
+Quick, Draw! The Data: These doodles are a unique data set that can help developers train new neural networks, help researchers see patterns in how people around the world draw, and help artists create things we haven’t begun to think of.
+
+Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `;
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
+        this.inShow = false;
         let width = getLogicWidth();
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0x000000,
@@ -3068,25 +3108,36 @@ class Overlay extends Wrapper {
             titleContentGap: 40,
             contentPadding: 60,
             btnToBottom: 65,
-            content: aboutContent
+            content: nyuAbout
         });
         this.dialog.setOrigin(0.5, 0.5);
         this.dialog.okBtn.clickedEvent.on(() => {
             this.hide();
         });
         this.dialog.inner.setVisible(false);
-        this.bkg.inner.setVisible(false);
+        this.hide();
     }
+    ;
     showAboutDialog() {
-        this.dialog.setContent(aboutContent);
+        this.dialog.setContent(nyuAbout, "NYU Game Center");
+        this.show();
+        this.dialog.show();
+    }
+    showGoogleDialog() {
+        this.dialog.setContent(googleAbout, "Solutions");
         this.show();
         this.dialog.show();
     }
     show() {
+        this.inShow = true;
         this.inner.setVisible(true);
     }
     hide() {
+        this.inShow = false;
         this.inner.setVisible(false);
+    }
+    isInShow() {
+        return this.inShow;
     }
 }
 class PlayerInputText {
@@ -3482,7 +3533,7 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             healthMin: 3,
             healthMax: 3,
             health: 3,
-            enemyDuration: 30000,
+            enemyDuration: 40000,
         };
     }
     spawn() {

@@ -401,9 +401,6 @@ class FsmState {
         return this;
     }
 
-
-
-
     /**
      * 
      * @param from 
@@ -464,6 +461,7 @@ class FsmState {
             if( e.hoverState == 0 && contains){
                 e.hoverState = 1;
                 e.target.emit('safein');
+                   
             }
             else if(e.hoverState == 1 && !contains){
                 e.hoverState = 0;

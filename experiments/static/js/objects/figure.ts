@@ -125,8 +125,6 @@ class Rect extends Figure {
     }
 }
 
-var aboutContent = `This is a good game This is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good game
-`
 
 class Dialog extends Figure {
     
@@ -154,7 +152,7 @@ class Dialog extends Figure {
         this.content = this.scene.add.text(
             config.padding + config.contentPadding, 
             this.title.getBottomCenter().y + config.titleContentGap, 
-            aboutContent, contentStyle);
+            config.content, contentStyle);
         this.content.setOrigin(0, 0).setAlign('left');        
         this.content.setWordWrapWidth(width - (this.config.padding  + config.contentPadding) * 2)
         this.othersContainer.add(this.content);
@@ -162,8 +160,15 @@ class Dialog extends Figure {
 
         // OK btn
 
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 100, 50, true);
-        this.okBtn.text.setColor('#000000');        
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 120, 50);
+        this.okBtn.text.setColor('#000000');    
+        this.okBtn.text.setFontSize(38);
+        this.okBtn.setToHoverChangeTextMode("-< OK >-");
+    }
+
+    setContent(content: string) {
+        this.config.content = content;
+        this.content.text = content;        
     }
 
 
@@ -192,8 +197,16 @@ class Dialog extends Figure {
 
         graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha)
         graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);   
+    }
 
+    
 
+    show() {
+        this.inner.setVisible(true);
+    }
+
+    hide() {
+        this.inner.setVisible(false);
     }
 }
 

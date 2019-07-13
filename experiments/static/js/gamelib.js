@@ -100,6 +100,10 @@ class Scene1 extends BaseScene {
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('footer', 'assets/footer.png');
         this.load.image('unit_white', 'assets/unit_white.png');
+        this.load.image('footer_ai', 'assets/footer_ai.png');
+        this.load.image('footer_google', 'assets/footer_google.png');
+        this.load.image('footer_nyu', 'assets/footer_nyu.png');
+        this.load.image('footer_sep', 'assets/footer_sep.png');
     }
     create() {
         this.container = this.add.container(400, 299);
@@ -121,9 +125,8 @@ class Scene1 extends BaseScene {
         // Bottom badge
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
-        this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
-        this.footerInitPosi = MakePoint(this.footer);
-        this.fitImageToSize(this.footer, 100);
+        this.footer2 = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
+        this.footerInitPosi = MakePoint(this.footer2.inner);
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
         // Back button
@@ -223,7 +226,6 @@ class Scene1 extends BaseScene {
             this.dwitterBKG.toBlinkMode();
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage, e => {
-                console.log('hahao');
                 this.centerObject.playerInputText.homePointerOver();
                 this.dwitterBKG.toStaticMode();
                 // $("body").css('cursor','pointer');
@@ -236,8 +238,9 @@ class Scene1 extends BaseScene {
                 this.dwitterBKG.toStaticMode();
                 this.subtitle.stopMonologue();
                 let firstIn = this.firstIntoHome();
-                if (firstIn)
+                if (firstIn) {
                     s.event('TO_FIRST_MEET');
+                }
                 else
                     s.event('TO_SECOND_MEET');
             });
@@ -327,12 +330,12 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.footer,
+                targets: this.footer2.inner,
                 y: "+= 250",
                 duration: dt,
             }
         ])
-            .addDelayAction(this, 1000)
+            .addDelayAction(this, 600)
             .addFinishAction();
     }
     /**
@@ -453,7 +456,7 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.footer,
+                targets: this.footer2.inner,
                 y: this.footerInitPosi.y,
                 duration: dt,
             }
@@ -1140,8 +1143,12 @@ class Button {
         this.hoverState = 0; // 0:in 1:out
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
+        // auto scale
         this.needInOutAutoAnimation = true;
-        this.neecClickAutoAnimation = true;
+        // auto change the text to another when hovered
+        this.needTextTransferAnimation = false;
+        // auto change the cursor to a hand when hovered
+        this.needHandOnHover = false;
         this.clickedEvent = new TypedEvent();
         this.animationTargets = [];
         this.scene = scene;
@@ -1154,12 +1161,13 @@ class Button {
         }
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
+        this.originalTitle = title;
         this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
         this.inner.add(this.text);
         if (notSet(width))
-            width = this.text.displayWidth;
+            width = this.image ? this.image.displayWidth : this.text.displayWidth;
         if (notSet(height))
-            height = this.text.displayHeight;
+            height = this.image ? this.image.displayHeight : this.text.displayHeight;
         if (notSet(fakeOriginX))
             fakeOriginX = 0.5;
         if (notSet(fakeOriginY))
@@ -1203,6 +1211,7 @@ class Button {
         }
         // show
         else if (val && !this.enable) {
+            this.text.text = this.originalTitle;
             this.animationTargets.forEach(e => {
                 e.setScale(1);
             });
@@ -1260,6 +1269,12 @@ class Button {
                 duration: 100,
             });
         }
+        if (this.needTextTransferAnimation) {
+            this.text.text = this.hoverTitle;
+        }
+        if (this.needHandOnHover) {
+            $("body").css('cursor', 'pointer');
+        }
     }
     pointerout() {
         if (this.needInOutAutoAnimation) {
@@ -1269,6 +1284,17 @@ class Button {
                 duration: 100,
             });
         }
+        if (this.needTextTransferAnimation) {
+            this.text.text = this.originalTitle;
+        }
+        if (this.needHandOnHover) {
+            $("body").css('cursor', 'default');
+        }
+    }
+    setToHoverChangeTextMode(hoverText) {
+        this.hoverTitle = hoverText;
+        this.needInOutAutoAnimation = false;
+        this.needTextTransferAnimation = true;
     }
 }
 class SpeakerButton extends ImageWrapperClass {
@@ -2202,8 +2228,6 @@ class Rect extends Figure {
         }
     }
 }
-var aboutContent = `This is a good game This is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good gameThis is a good game
-`;
 class Dialog extends Figure {
     constructor(scene, parentContainer, x, y, config) {
         super(scene, parentContainer, x, y, config);
@@ -2218,13 +2242,19 @@ class Dialog extends Figure {
         this.othersContainer.add(this.title);
         // content
         let contentStyle = getDefaultTextStyle();
-        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, aboutContent, contentStyle);
+        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
         this.content.setOrigin(0, 0).setAlign('left');
         this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
         this.othersContainer.add(this.content);
         // OK btn
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 100, 50, true);
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 120, 50);
         this.okBtn.text.setColor('#000000');
+        this.okBtn.text.setFontSize(38);
+        this.okBtn.setToHoverChangeTextMode("-< OK >-");
+    }
+    setContent(content) {
+        this.config.content = content;
+        this.content.text = content;
     }
     handleConfig(config) {
         super.handleConfig(config);
@@ -2249,6 +2279,44 @@ class Dialog extends Figure {
         graphics.fillRect(0, 0, config.width, config.height);
         graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
         graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);
+    }
+    show() {
+        this.inner.setVisible(true);
+    }
+    hide() {
+        this.inner.setVisible(false);
+    }
+}
+/**
+ * The anchor of footer is bottom-left
+ */
+class Footer extends Wrapper {
+    constructor(scene, parentContainer, x, y, overallHeight) {
+        super(scene, parentContainer, x, y, null);
+        this.badges = [];
+        let keys = ['footer_ai', 'footer_google', 'footer_nyu'];
+        let sepKey = 'footer_sep';
+        let curX = 0;
+        let gapLogoSep = 50;
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let button = new Button(this.scene, this.inner, curX, 0, key, '', undefined, undefined, false, 0, 1);
+            button.image.setOrigin(0, 1);
+            button.needInOutAutoAnimation = false;
+            button.needHandOnHover = true;
+            this.badges.push(button);
+            if (i === keys.length - 1)
+                continue;
+            curX += button.image.displayWidth;
+            console.log(button.image.displayWidth);
+            curX += gapLogoSep;
+            let sep = this.scene.add.image(curX, 0, sepKey);
+            sep.setOrigin(0, 1);
+            this.inner.add(sep);
+            curX += gapLogoSep;
+        }
+        let picH = this.badges[0].image.displayHeight;
+        this.inner.setScale(overallHeight / picH);
     }
 }
 function ImFinishConfig(val) {
@@ -2972,6 +3040,8 @@ class HP extends Wrapper {
         this.innerProgress.setSize(this.progressMaxWidth);
     }
 }
+var aboutContent = `The NYU Game Center is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
+`;
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper {
@@ -2998,8 +3068,25 @@ class Overlay extends Wrapper {
             titleContentGap: 40,
             contentPadding: 60,
             btnToBottom: 65,
+            content: aboutContent
         });
         this.dialog.setOrigin(0.5, 0.5);
+        this.dialog.okBtn.clickedEvent.on(() => {
+            this.hide();
+        });
+        this.dialog.inner.setVisible(false);
+        this.bkg.inner.setVisible(false);
+    }
+    showAboutDialog() {
+        this.dialog.setContent(aboutContent);
+        this.show();
+        this.dialog.show();
+    }
+    show() {
+        this.inner.setVisible(true);
+    }
+    hide() {
+        this.inner.setVisible(false);
     }
 }
 class PlayerInputText {

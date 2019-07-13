@@ -72,7 +72,7 @@ class Wrapper<T extends PhGO> {
         // because super constructor need call first
         if(target) {
             this.applyTarget(target);
-        }        
+        }      
         
         this.init();
     }

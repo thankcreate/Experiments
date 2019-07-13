@@ -10,6 +10,8 @@ class Button {
 
     image: PhImage;
     text: PhText;
+    originalTitle: string;
+    hoverTitle: string;
 
     fakeZone: PhImage;
     debugFrame: PhGraphics;
@@ -22,8 +24,14 @@ class Button {
     inTween: PhTween;
     outTween: PhTween;
 
-    needInOutAutoAnimation: boolean = true;
-    neecClickAutoAnimation: boolean = true;
+    // auto scale
+    needInOutAutoAnimation: boolean = true;    
+
+    // auto change the text to another when hovered
+    needTextTransferAnimation: boolean = false;
+
+    // auto change the cursor to a hand when hovered
+    needHandOnHover: boolean = false;
 
 
     clickedEvent: TypedEvent<Button> = new TypedEvent();
@@ -40,7 +48,7 @@ class Button {
     constructor(scene: BaseScene, parentContainer: PhContainer,
         x: number, y: number,
         imgKey: string, title: string,
-        width: number, height: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
+        width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
 
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -55,11 +63,12 @@ class Button {
 
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
+        this.originalTitle = title;
         this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
         this.inner.add(this.text);
         
-        if(notSet(width)) width = this.text.displayWidth;
-        if(notSet(height)) height = this.text.displayHeight;
+        if(notSet(width)) width = this.image ? this.image.displayWidth : this.text.displayWidth;
+        if(notSet(height)) height = this.image ? this.image.displayHeight : this.text.displayHeight;
      
         if(notSet(fakeOriginX)) fakeOriginX = 0.5;
         if(notSet(fakeOriginY)) fakeOriginY = 0.5;
@@ -112,7 +121,7 @@ class Button {
         }
         // show
         else if(val && !this.enable) {
-            
+            this.text.text = this.originalTitle;
             this.animationTargets.forEach(e=>{
                 e.setScale(1);
             })
@@ -172,13 +181,21 @@ class Button {
         this.clickedEvent.emit(this);
     }
 
-    pointerin() {        
+    pointerin() {     
         if(this.needInOutAutoAnimation) {            
             this.scene.tweens.add({
                 targets: this.animationTargets,
                 scale: 1.25,
                 duration: 100,
             })
+        }
+
+        if(this.needTextTransferAnimation) {
+            this.text.text = this.hoverTitle;
+        }
+
+        if(this.needHandOnHover) {
+            $("body").css('cursor','pointer');
         }
     }
 
@@ -190,6 +207,20 @@ class Button {
                 duration: 100,
             })
         }
+
+        if(this.needTextTransferAnimation) {
+            this.text.text = this.originalTitle;
+        }
+
+        if(this.needHandOnHover) {
+            $("body").css('cursor','default');
+        }
+    }
+
+    setToHoverChangeTextMode(hoverText: string) {
+        this.hoverTitle = hoverText;
+        this.needInOutAutoAnimation = false;
+        this.needTextTransferAnimation = true;
     }
 
 

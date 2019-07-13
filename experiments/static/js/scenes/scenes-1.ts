@@ -37,7 +37,8 @@ class Scene1 extends BaseScene {
     enemyManager: EnemyManager;
     playerInput: PlayerInputText;
     centerObject: CenterObject;
-    footer: PhImage;
+  
+    footer2: Footer;
     overlay: Overlay;
 
     mainFsm: Fsm;
@@ -82,6 +83,10 @@ class Scene1 extends BaseScene {
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('footer', 'assets/footer.png');
         this.load.image('unit_white', 'assets/unit_white.png')
+        this.load.image('footer_ai', 'assets/footer_ai.png')
+        this.load.image('footer_google', 'assets/footer_google.png')
+        this.load.image('footer_nyu', 'assets/footer_nyu.png')
+        this.load.image('footer_sep', 'assets/footer_sep.png')
     }
 
 
@@ -115,9 +120,11 @@ class Scene1 extends BaseScene {
         // Bottom badge
         let footerMarginBottom = 25;
         let footerMarginLeft = 30;
-        this.footer = this.add.image(footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, "footer").setOrigin(0, 1);
-        this.footerInitPosi = MakePoint(this.footer);
-        this.fitImageToSize(this.footer, 100);
+        this.footer2 = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
+        this.footerInitPosi = MakePoint(this.footer2.inner);        
+
+        
+        
 
 
         // Subtitle
@@ -255,7 +262,6 @@ class Scene1 extends BaseScene {
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage,
                 e => {
-                    console.log('hahao');
                     this.centerObject.playerInputText.homePointerOver();
                     this.dwitterBKG.toStaticMode();
                     // $("body").css('cursor','pointer');
@@ -272,8 +278,9 @@ class Scene1 extends BaseScene {
                     
 
                     let firstIn = this.firstIntoHome();
-                    if (firstIn)
+                    if (firstIn) {
                         s.event('TO_FIRST_MEET');
+                    }                      
                     else
                         s.event('TO_SECOND_MEET');
                 });
@@ -375,12 +382,12 @@ class Scene1 extends BaseScene {
                 duration: dt,
             },
             {
-                targets: this.footer,
+                targets: this.footer2.inner,
                 y: "+= 250",
                 duration: dt,
             }
         ])
-            .addDelayAction(this, 1000)
+            .addDelayAction(this, 600)
             .addFinishAction();
 
 
@@ -529,7 +536,7 @@ class Scene1 extends BaseScene {
                     duration: dt,
                 },
                 {
-                    targets: this.footer,
+                    targets: this.footer2.inner,
                     y: this.footerInitPosi.y,
                     duration: dt,
                 }

@@ -469,9 +469,6 @@ class Scene1 extends BaseScene {
                 }
             })
 
-
-        
-
     }
 
     /**
@@ -483,9 +480,6 @@ class Scene1 extends BaseScene {
         state.addAction((s, result, resolve, reject) => {
             // Stop all enemies
             this.enemyManager.freezeAllEnemies();
-
-
-
             // Show the died overlay
             this.died.show();
 
@@ -493,8 +487,6 @@ class Scene1 extends BaseScene {
                 s.event("RESTART");
                 resolve('restart clicked');
             });
-
-
         })
 
         state.setOnExit(() => {

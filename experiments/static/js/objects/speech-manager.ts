@@ -9,6 +9,14 @@ class SpeechManager {
     }
 
     /**
+     * loadRejecters is a cache for the current promise reject handler
+     * for those loading process.
+     * We expose the handler to the cache to stop the loading manually
+     */
+    loadRejecters: Map<number, ((err:any)=>void) > = new Map();
+    rejecterID: number = 0;
+
+    /**
      * If after 'timeOut' the resource is still not ready to play\
      * cancel the whole process
      * @param text 
@@ -42,8 +50,18 @@ class SpeechManager {
                     // console.log(url);    
                     return this.phaserLoad(text, text, url, false);
                 });
+            
+            let thisRejectID = this.rejecterID++;
+            let race = Promise.race([
+                apiAndLoadPromise, 
+                TimeOutPromise.create(timeOut, false),
+                new Promise((resolve, reject) =>{
+                    this.loadRejecters.set(thisRejectID, reject);
+                })
+            ]);
 
-            let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+            let ret = race
+                .finally(()=>{this.loadRejecters.delete(thisRejectID)})
                 .then(key => {
                     if (play)
                         return this.playSoundByKey(key);
@@ -74,17 +92,22 @@ class SpeechManager {
                 return this.phaserLoad(retText, md5, retPath, true);
             });
 
-        
+        let thisRejectID = this.rejecterID++;
+        let race = Promise.race([
+            apiAndLoadPromise, 
+            TimeOutPromise.create(timeOut, false),
+            new Promise((resolve, reject) =>{
+                this.loadRejecters.set(thisRejectID, reject);
+            })
+        ]);
 
-        let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+        let ret = race
+            .finally(()=>{this.loadRejecters.delete(thisRejectID)})
             .then(key => {
                 if(play)
                     return this.playSoundByKey(key);                    
             })
-            // .catch(e => {
-            //     console.log("error in static load and play");
-            //     console.log(e);
-            // });
+            // don't catch here, let the error pass
 
         return ret;
     }
@@ -169,6 +192,10 @@ class SpeechManager {
     }
 
     stopAndClearCurrentPlaying(){
+        this.loadRejecters.forEach((value, key, map) => {
+            value('rejected by stopAndClearCurrentPlaying');
+        })
+
         this.playingSounds.forEach(e=>{
             e.stop();
             e.emit('complete');

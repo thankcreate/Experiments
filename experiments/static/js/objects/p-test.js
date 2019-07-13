@@ -192,5 +192,18 @@
 // else
 
 
-ob = {}
-console.log(ob['j']);
+// ob = {}
+// console.log(ob['j']);
+
+
+let p = new Promise((res, rej) =>{
+    res('1');
+    rej('2');
+  
+
+   
+})
+.finally(()=>{
+    console.log('haha')
+})
+.then(s=>{console.log('ss' + s)}, e=>{console.log('ee' + e)})

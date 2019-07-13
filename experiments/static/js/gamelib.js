@@ -2272,18 +2272,39 @@ class Dialog extends Figure {
         this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
         this.othersContainer.add(this.content);
         // OK btn
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 120, 50);
+        // If fixed height, btn's position is anchored to the bottom
+        // If auto height, btn's position is anchored to the content
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< OK >', 120, 50);
         this.okBtn.text.setColor('#000000');
         this.okBtn.text.setFontSize(38);
         this.okBtn.setToHoverChangeTextMode("-< OK >-");
         this.okBtn.needHandOnHover = true;
         this.okBtn.ignoreOverlay = true;
+        this.calcUiPosi();
+    }
+    calcUiPosi() {
+        let btnY = 0;
+        let height = this.config.height;
+        let config = this.config;
+        if (config.autoHeight) {
+            btnY = this.content.getBottomCenter().y + config.contentBtnGap;
+            this.okBtn.inner.y = btnY;
+            let newHeight = btnY + config.btnToBottom;
+            this.setSize(config.width, newHeight);
+        }
+        else {
+            btnY = height - config.btnToBottom;
+            this.okBtn.inner.y = btnY;
+        }
     }
     setContent(content, title) {
         this.config.title = title;
         this.config.content = content;
         this.content.text = content;
         this.title.text = title;
+        if (this.config.autoHeight) {
+            this.calcUiPosi();
+        }
     }
     handleConfig(config) {
         super.handleConfig(config);
@@ -2297,6 +2318,8 @@ class Dialog extends Figure {
             config.fillColor = 0xffffff;
         if (notSet(config.fillColor))
             config.fillAlpha = 1;
+        if (notSet(config.padding))
+            config.padding = 4;
         if (notSet(config.padding))
             config.padding = 4;
     }
@@ -3077,7 +3100,7 @@ var googleAbout = `Experiment 65536 is made with the help of the following solut
 
 TensorFlow TFHub universal-sentence-encoder: Encodes text into high-dimensional vectors that can be used for text classification, semantic similarity, clustering and other natural language tasks
 
-Quick, Draw! The Data: These doodles are a unique data set that can help developers train new neural networks, help researchers see patterns in how people around the world draw, and help artists create things we haven’t begun to think of.
+Quick, Draw! The Data: A unique doodle data set that can help developers train new neural networks, help researchers see patterns in how people around the world draw, and help artists create things we haven’t begun to think of.
 
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `;
@@ -3107,8 +3130,10 @@ class Overlay extends Wrapper {
             title: 'About',
             titleContentGap: 40,
             contentPadding: 60,
+            contentBtnGap: 30,
             btnToBottom: 65,
-            content: nyuAbout
+            content: nyuAbout,
+            autoHeight: true
         });
         this.dialog.setOrigin(0.5, 0.5);
         this.dialog.okBtn.clickedEvent.on(() => {
@@ -3117,7 +3142,6 @@ class Overlay extends Wrapper {
         this.dialog.inner.setVisible(false);
         this.hide();
     }
-    ;
     showAboutDialog() {
         this.dialog.setContent(nyuAbout, "NYU Game Center");
         this.show();
@@ -3131,10 +3155,19 @@ class Overlay extends Wrapper {
     show() {
         this.inShow = true;
         this.inner.setVisible(true);
+        this.inner.alpha = 0;
+        this.inTween = this.scene.tweens.add({
+            targets: this.inner,
+            alpha: 1,
+            duration: 80,
+        });
     }
     hide() {
         this.inShow = false;
         this.inner.setVisible(false);
+        if (this.inTween) {
+            this.inTween.stop();
+        }
     }
     isInShow() {
         return this.inShow;
@@ -3610,6 +3643,13 @@ class SpeechManager {
     constructor(scene) {
         this.loadedSpeechFilesStatic = {};
         this.loadedSpeechFilesQuick = {};
+        /**
+         * loadRejecters is a cache for the current promise reject handler
+         * for those loading process.
+         * We expose the handler to the cache to stop the loading manually
+         */
+        this.loadRejecters = new Map();
+        this.rejecterID = 0;
         // contain all the currently playing && not completed sounds played by playSoundByKey()
         this.playingSounds = [];
         this.scene = scene;
@@ -3646,7 +3686,16 @@ class SpeechManager {
                 // console.log(url);    
                 return this.phaserLoad(text, text, url, false);
             });
-            let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+            let thisRejectID = this.rejecterID++;
+            let race = Promise.race([
+                apiAndLoadPromise,
+                TimeOutPromise.create(timeOut, false),
+                new Promise((resolve, reject) => {
+                    this.loadRejecters.set(thisRejectID, reject);
+                })
+            ]);
+            let ret = race
+                .finally(() => { this.loadRejecters.delete(thisRejectID); })
                 .then(key => {
                 if (play)
                     return this.playSoundByKey(key);
@@ -3674,15 +3723,21 @@ class SpeechManager {
             let md5 = sucRet.md5;
             return this.phaserLoad(retText, md5, retPath, true);
         });
-        let ret = TimeOutRace.create(apiAndLoadPromise, timeOut, false)
+        let thisRejectID = this.rejecterID++;
+        let race = Promise.race([
+            apiAndLoadPromise,
+            TimeOutPromise.create(timeOut, false),
+            new Promise((resolve, reject) => {
+                this.loadRejecters.set(thisRejectID, reject);
+            })
+        ]);
+        let ret = race
+            .finally(() => { this.loadRejecters.delete(thisRejectID); })
             .then(key => {
             if (play)
                 return this.playSoundByKey(key);
         });
-        // .catch(e => {
-        //     console.log("error in static load and play");
-        //     console.log(e);
-        // });
+        // don't catch here, let the error pass
         return ret;
     }
     clearSpeechCacheStatic() {
@@ -3751,6 +3806,9 @@ class SpeechManager {
         });
     }
     stopAndClearCurrentPlaying() {
+        this.loadRejecters.forEach((value, key, map) => {
+            value('rejected by stopAndClearCurrentPlaying');
+        });
         this.playingSounds.forEach(e => {
             e.stop();
             e.emit('complete');

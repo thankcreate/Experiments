@@ -18,6 +18,8 @@ type FigureConfig = {
     titleContentGap?: number,
     contentBtnGap? : number
     btnToBottom?: number,
+
+    autoHeight?: boolean
     
 } 
 
@@ -161,12 +163,35 @@ class Dialog extends Figure {
 
 
         // OK btn
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, height - config.btnToBottom, null, '< OK >', 120, 50);
+        // If fixed height, btn's position is anchored to the bottom
+        // If auto height, btn's position is anchored to the content
+
+
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< OK >', 120, 50);
         this.okBtn.text.setColor('#000000');    
         this.okBtn.text.setFontSize(38);
         this.okBtn.setToHoverChangeTextMode("-< OK >-");
         this.okBtn.needHandOnHover = true;
         this.okBtn.ignoreOverlay = true;
+
+        this.calcUiPosi();
+    }
+
+    calcUiPosi() {
+        let btnY = 0;
+        let height = this.config.height;
+        let config = this.config
+
+        if(config.autoHeight) {
+            btnY = this.content.getBottomCenter().y + config.contentBtnGap;
+            this.okBtn.inner.y = btnY;
+            let newHeight = btnY + config.btnToBottom;
+            this.setSize(config.width, newHeight);
+        }           
+        else {
+            btnY = height - config.btnToBottom;
+            this.okBtn.inner.y = btnY;
+        }
     }
 
     setContent(content: string, title: string) {
@@ -175,6 +200,10 @@ class Dialog extends Figure {
 
         this.content.text = content;        
         this.title.text = title;
+
+        if(this.config.autoHeight) {
+            this.calcUiPosi();
+        }
     }
 
 
@@ -188,6 +217,7 @@ class Dialog extends Figure {
         if(notSet(config.fillColor)) config.fillColor = 0xffffff; 
         if(notSet(config.fillColor)) config.fillAlpha = 1; 
 
+        if(notSet(config.padding)) config.padding = 4; 
         if(notSet(config.padding)) config.padding = 4; 
     }
 

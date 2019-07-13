@@ -5,7 +5,7 @@ var googleAbout = `Experiment 65536 is made with the help of the following solut
 
 TensorFlow TFHub universal-sentence-encoder: Encodes text into high-dimensional vectors that can be used for text classification, semantic similarity, clustering and other natural language tasks
 
-Quick, Draw! The Data: These doodles are a unique data set that can help developers train new neural networks, help researchers see patterns in how people around the world draw, and help artists create things we haven’t begun to think of.
+Quick, Draw! The Data: A unique doodle data set that can help developers train new neural networks, help researchers see patterns in how people around the world draw, and help artists create things we haven’t begun to think of.
 
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `
@@ -17,7 +17,9 @@ class Overlay extends Wrapper<PhText> {
     bkg: Rect;
 
     dialog: Dialog;
-    inShow: boolean = false;;
+    inShow: boolean = false;
+
+    inTween: PhTween;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
          super(scene, parentContainer, x, y, null);
@@ -43,9 +45,11 @@ class Overlay extends Wrapper<PhText> {
              height: 700,
              title: 'About',
              titleContentGap: 40, 
-             contentPadding: 60,  
-             btnToBottom: 65,      
-             content: nyuAbout
+             contentPadding: 60, 
+             contentBtnGap: 30, 
+             btnToBottom: 65,                   
+             content: nyuAbout,
+             autoHeight: true
          });
          this.dialog.setOrigin(0.5, 0.5);
          this.dialog.okBtn.clickedEvent.on(()=>{
@@ -71,11 +75,22 @@ class Overlay extends Wrapper<PhText> {
     show() {
         this.inShow = true;
         this.inner.setVisible(true);
+
+        this.inner.alpha = 0;
+        this.inTween = this.scene.tweens.add({
+            targets: this.inner,
+            alpha: 1,
+            duration: 80,
+        })
     }
 
     hide() {
         this.inShow = false;
         this.inner.setVisible(false);
+
+        if(this.inTween) {
+            this.inTween.stop();            
+        }
     }
 
     isInShow(): boolean {

@@ -123,8 +123,8 @@ class Subtitle extends Wrapper<PhText> {
 
     /**
      * Show a text on the subtitle zone with voiceover. \
-     * The whole process is: \
-     * 1. Use async api to load and play voiceover \
+     * The whole process is: 
+     * 1. Use async api to load and play voiceover 
      * 2. Wait for 'finishedSpeechWait' time after the voice over     
      * 3. Compare the above process with a minStay, if costed time < minStay, wait until minStay is used up
      * 4. Hide the text using fade tween if needed
@@ -150,8 +150,13 @@ class Subtitle extends Wrapper<PhText> {
 
         let fitToMinStay = TimeOutAll.create(normalPlayProcess, minStay, true)
             .then(s=>{
-                if(autoHideAfter)
-                    return this.hideText();
+                if(autoHideAfter) {
+                    // sometimes when we get here, the current showing text is a newer one
+                    // The 'hideText()' was intended to hide the subtitle from this loadAndSay
+                    // but maybe a new subtitle has covered this one
+                    if(this.wrappedObject.text === text)
+                        return this.hideText();
+                }                    
             });
 
         return fitToMinStay;

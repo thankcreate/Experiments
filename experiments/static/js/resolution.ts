@@ -14,6 +14,7 @@ function getLogicWidth() {
 
 
 function myResize(gm) {
+    // console.log('width: ' + window.innerWidth);
     let windowR = window.innerWidth / window.innerHeight;
     let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
 

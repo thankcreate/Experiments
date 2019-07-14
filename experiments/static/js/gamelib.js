@@ -654,7 +654,7 @@ class Scene1 extends BaseScene {
             return "Yes? No?\nAre you still there?";
         }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, s => {
-            return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.";
+            return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.\nYes, or no?";
         }, false, 2000, 3000, 1)
             .addAction((s, result, resolve, reject) => {
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {
@@ -668,11 +668,21 @@ class Scene1 extends BaseScene {
             //     this.subtitle.wrappedObject.setColor('#ffffff');
             // })
             .addSubtitleAction(this.subtitle, (s, wd) => {
-            if (wd === 'yes')
+            if (wd === 'yes') {
+                s.fsm.setVar('answer', true);
                 return "Good!";
-            else if (wd === 'no')
+            }
+            else if (wd === 'no') {
+                s.fsm.setVar('answer', false);
                 return "No? really? I hope you know what you are doing.\nAnyway, have fun!";
-        }, false, 2000, 3000, 300)
+            }
+        }, false, 2000, 3000, 1000)
+            .addAction(s => {
+            let an = s.fsm.getVar('answer', false);
+            if (!an) {
+                this.backBtn.clickedEvent.emit(this.backBtn);
+            }
+        })
             .addAction(o => { this.addCounter(Counter.Story0Finished); })
             .addFinishAction().setFinally();
     }
@@ -857,6 +867,7 @@ function getLogicWidth() {
     }
 }
 function myResize(gm) {
+    // console.log('width: ' + window.innerWidth);
     let windowR = window.innerWidth / window.innerHeight;
     let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
     gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);

@@ -275,6 +275,7 @@ class Scene1 extends BaseScene {
 
 
             let mainImage = this.centerObject.mainImage;
+
             s.autoSafeInOutClick(mainImage,
                 e => {
                     this.centerObject.playerInputText.showTitle();
@@ -306,6 +307,9 @@ class Scene1 extends BaseScene {
         this.mainFsm.getState("FirstMeet")
             // .addSubtitleAction(this.subtitle, 'TronTron!', true)
             .addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
+            
+            
+            
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
             .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
             .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
@@ -344,6 +348,8 @@ class Scene1 extends BaseScene {
                 return this.playerName +  "? That sounds good."
             }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
+            
+            
             .addFinishAction();
     }
 
@@ -748,7 +754,7 @@ class Scene1 extends BaseScene {
                 return "Yes? No?\nAre you still there?"
             }, true, 2000, 3000, 300)            
             .addSubtitleAction(this.subtitle, s => {                
-                return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in."
+                return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.\nYes, or no?"
             }, false, 2000, 3000, 1)
             .addAction((s, result, resolve, reject)=>{
                 s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o=>{
@@ -761,12 +767,22 @@ class Scene1 extends BaseScene {
             // .addAction(()=>{
             //     this.subtitle.wrappedObject.setColor('#ffffff');
             // })
-            .addSubtitleAction(this.subtitle, (s, wd) => {                
-                if(wd==='yes')
+            .addSubtitleAction(this.subtitle, (s, wd) => {                                
+                if(wd==='yes') {
+                    s.fsm.setVar('answer', true);
                     return "Good!"
-                else if(wd==='no') 
+                }                    
+                else if(wd==='no')  {
+                    s.fsm.setVar('answer', false);
                     return "No? really? I hope you know what you are doing.\nAnyway, have fun!"
-            }, false, 2000, 3000, 300)    
+                }                    
+            }, false, 2000, 3000, 1000)    
+            .addAction(s=>{
+                let an = s.fsm.getVar('answer', false);
+                if(!an) {
+                    this.backBtn.clickedEvent.emit(this.backBtn);
+                }
+            })
             .addAction(o=>{this.addCounter(Counter.Story0Finished)})            
             .addFinishAction().setFinally();
     }

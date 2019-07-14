@@ -237,7 +237,7 @@ class PlayerInputText {
 
     titleOut: PhTween;
     hideTitle() {
-        this.title.setText("gameplayConfig.titleOriginal");
+        this.title.setText(gameplayConfig.titleOriginal);
 
         if (this.titleIn)
             this.titleIn.stop();

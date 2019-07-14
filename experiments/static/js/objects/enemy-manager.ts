@@ -297,6 +297,8 @@ class EnemyManager {
 
     sendInputToServer(inputWord: string) {
         // this.scene.playSpeech(inputWord);
+        if(notSet(this.enemies) || this.enemies.length == 0)
+            return;
 
         var enemyLabels = [];
         for (let i in this.enemies) {
@@ -448,8 +450,7 @@ class EnemyManager {
 
     // acturally, this is not the 'last'
     // it's more like the first created among the eliminated ones
-    getLastEliminatedEnemyInfo() : OmniHistoryItem {
-        console.log(this.omniHistory);
+    getLastEliminatedEnemyInfo() : OmniHistoryItem {       
 
         for(let i in this.omniHistory) {
             let e = this.omniHistory[i];            

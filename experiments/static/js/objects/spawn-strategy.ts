@@ -158,13 +158,12 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             return 8000;
         }
         else {
-            console.log(adjusted);
             return adjusted;
         }
     }
 
     onEnter(){
-        console.log('flow entered');
+        // console.log('flow entered');
     }
 
     
@@ -188,8 +187,7 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
         else {
             let timeSinceLastSpawn = time - lastSpawnTime;
             let interval = this.getInterval();
-            if(timeSinceLastSpawn > interval) {
-                console.log('update spawn');
+            if(timeSinceLastSpawn > interval) {                
                 this.spawn();
             }     
         }

@@ -26,7 +26,7 @@ var TimeOutPromise = {
 
 var FadePromise = {
     create: function(scene: PhScene, target: any, to: number, dt: number) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject)=>{            
             scene.tweens.add({
                 targets: target, 
                 alpha: to,

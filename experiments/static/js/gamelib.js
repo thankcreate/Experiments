@@ -79,6 +79,7 @@ var Counter;
     Counter[Counter["None"] = 0] = "None";
     Counter[Counter["IntoHome"] = 1] = "IntoHome";
     Counter[Counter["IntoNormalMode"] = 2] = "IntoNormalMode";
+    Counter[Counter["Story0Finished"] = 3] = "Story0Finished";
 })(Counter || (Counter = {}));
 let gOverlay;
 class Scene1 extends BaseScene {
@@ -89,6 +90,7 @@ class Scene1 extends BaseScene {
         this.entryPoint = EntryPoint.FromHome;
         this.homeCounter = 0;
         this.counters = new Map();
+        this.playerName = "";
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -260,10 +262,10 @@ class Scene1 extends BaseScene {
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
             // .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            .addSubtitleAction(this.subtitle, 'God! Someone finds me finally!', true)
-            // // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+            .addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
+            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
             .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-            .addSubtitleAction(this.subtitle, "May I know your name, please?", true).finishImmediatly()
+            .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
             // Rotate the center object to normal angle   
             .addTweenAction(this, {
             targets: this.centerObject.inner,
@@ -318,7 +320,7 @@ class Scene1 extends BaseScene {
             targets: this.centerObject.inner,
             rotation: 0,
             duration: 600,
-        })
+        }).setBoolCondition(s => this.centerObject.inner.rotation !== 0)
             // Show Mode Select Buttons
             .addAction((s, result, resolve, reject) => {
             this.centerObject.btnMode0.setEnable(true, true);
@@ -518,6 +520,8 @@ class Scene1 extends BaseScene {
         this.initStExplainHp();
         this.initStFlowStrategy();
         this.initStNormalStart();
+        this.initStStory0();
+        this.initStStory1();
         this.updateObjects.push(this.normalGameFsm);
     }
     initStNormalDefault() {
@@ -548,8 +552,8 @@ class Scene1 extends BaseScene {
             .addDelayAction(this, 2000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "Type in anything.\nAnything you think that's related";
-        }, true, 2000, 3000, 1000)
+            return "Come on, " + this.playerName + "! Type in anything.\nAnything you think that's related.";
+        }, false, 2000, 3000, 1000)
             .addAction(s => {
             s.unionEvent('EXPLAIN_HP', 'subtitle_finished');
         });
@@ -575,24 +579,24 @@ class Scene1 extends BaseScene {
         }, true, 2000, 3000, 1500)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "You may have noticed the number under every item.\n It represents the health of them";
+            return "You may have noticed the number under every item.\n It represents the health of them.";
         }, true, 2000, 3000, 1000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "The more semantically related your input is to the items,\nthe more damage they take";
+            return "The more semantically related your input is to the items,\nthe more damage they will take.";
         }, true, 2000, 3000, 1000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "If you don't eliminate them before they reach me,\nyou lose your HP by their remaining health";
+            return "If you don't eliminate them before they reach me,\nyou'll lose your HP by their remaining health.";
         }, true, 2000, 3000, 600)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
             return "Pretty simple, huh?";
         }, true, 2000, 3000, 600)
-            .addDelayAction(this, 10000)
+            .addDelayAction(this, 9000)
             .addSubtitleAction(this.subtitle, s => {
             let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
-            return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle";
+            return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle.";
         }, true, 2000, 3000, 600)
             .addDelayAction(this, 500)
             .addSubtitleAction(this.subtitle, s => {
@@ -603,9 +607,13 @@ class Scene1 extends BaseScene {
     }
     initStFlowStrategy() {
         let state = this.normalGameFsm.getState('FlowStrategy');
-        state.addAction(s => {
+        state
+            .addAction(s => {
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
-        });
+        })
+            // TODO: here should have a better condition to get to next story state instead of just waiting 5s            
+            .addDelayAction(this, 6000)
+            .addFinishAction(); // -< here finish means goto story0
     }
     // Normal Start may come from a die or from home
     // If it's from die, we need add a different subtitle
@@ -618,17 +626,44 @@ class Scene1 extends BaseScene {
             .addDelayAction(this, 1500)
             .addSubtitleAction(this.subtitle, s => {
             if (this.entryPoint === EntryPoint.FromDie)
-                return "Calm down. Don't give up.";
+                return "Calm down, " + this.playerName + ". Let's do it again.\n You have to help me.";
             else
-                return "I just know it! You'll come back. Haha";
+                return "I just know it, " + this.playerName + "! You'll come back. Haha";
         }, true, 2000, 3000, 1500)
-            .addDelayAction(this, 1000)
+            .addDelayAction(this, 3)
+            .addFinishAction();
+    }
+    initStStory0() {
+        let state = this.normalGameFsm.getState('Story0');
+        state
+            .addAction(state => { }).setBoolCondition(s => this.getCounter(Counter.Story0Finished) === 0, false) // <---- reject if story0 has finished
             .addSubtitleAction(this.subtitle, s => {
             return "I can get that this experiment is a little bit boring indeed.\n";
         }, true, 2000, 3000, 200)
             .addSubtitleAction(this.subtitle, s => {
-            return "But I have my reasons.\nIt's just I can't tell you right know";
-        }, true, 2000, 3000, 1500);
+            return "But I have my reasons.\nIt's just I can't tell you right now.";
+        }, true, 2000, 3000, 1500)
+            .addSubtitleAction(this.subtitle, s => {
+            return "What about you help me eliminate 65536 more enemies,\nand I tell you the secret of the universe as a reward?";
+        }, false, 2000, 3000, 1500)
+            .addDelayAction(this, 2000)
+            .addSubtitleAction(this.subtitle, s => {
+            return "What do you think? " + this.playerName + ". Think about it.";
+        }, true, 2000, 3000, 2000)
+            .addSubtitleAction(this.subtitle, s => {
+            return "Yes? No?\nAre you still there?";
+        }, true, 2000, 3000, 300)
+            .addSubtitleAction(this.subtitle, s => {
+            return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.";
+        }, false, 2000, 3000, 300)
+            .addAction(o => { this.addCounter(Counter.Story0Finished); })
+            .addFinishAction().setFinally();
+    }
+    initStStory1() {
+        let state = this.normalGameFsm.getState('Story1');
+        state.addAction((s) => {
+            // console.log('hahaha, story1');
+        });
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -1256,6 +1291,7 @@ class Button {
                 e.setScale(1);
             });
             if (needFade) {
+                this.inner.alpha = 0;
                 FadePromise.create(this.scene, this.inner, 1, 500);
             }
             this.inner.setVisible(true);
@@ -2053,6 +2089,8 @@ class EnemyManager {
     // }
     sendInputToServer(inputWord) {
         // this.scene.playSpeech(inputWord);
+        if (notSet(this.enemies) || this.enemies.length == 0)
+            return;
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
@@ -2172,7 +2210,6 @@ class EnemyManager {
     // acturally, this is not the 'last'
     // it's more like the first created among the eliminated ones
     getLastEliminatedEnemyInfo() {
-        console.log(this.omniHistory);
         for (let i in this.omniHistory) {
             let e = this.omniHistory[i];
             if (e.eliminated === true)
@@ -2393,7 +2430,7 @@ class Footer extends Wrapper {
             if (i === keys.length - 1)
                 continue;
             curX += button.image.displayWidth;
-            console.log(button.image.displayWidth);
+            // console.log(button.image.displayWidth)
             curX += gapLogoSep;
             let sep = this.scene.add.image(curX, 0, sepKey);
             sep.setOrigin(0, 1);
@@ -2623,7 +2660,7 @@ class FsmState {
                     if (res === ConditionalRes.PassResolve)
                         resolve('Passed and resolved by condition in action config');
                     else if (res === ConditionalRes.PassReject)
-                        resolve('Passed and rejected by condition in action config');
+                        reject('Passed and rejected by condition in action config');
                 });
             }
         }
@@ -2651,6 +2688,7 @@ class FsmState {
         // let curPromise = this.actions[0](this, null);
         let curPromise = this.getPromiseMiddleware(0)(this, null);
         for (let i = 1; i < this.actions.length; i++) {
+            let actionConfig = this.actions[i].actionConfig;
             // Add check stop promise
             curPromise = curPromise.then(result => {
                 return new Promise((resolve, reject) => {
@@ -2661,9 +2699,16 @@ class FsmState {
                 });
             });
             // Add every 'then'
-            curPromise = curPromise.then(res => {
-                return this.getPromiseMiddleware(i)(this, res);
-            });
+            if (actionConfig && actionConfig.isFinally) {
+                curPromise = curPromise.finally(() => {
+                    return this.getPromiseMiddleware(i)(this, null);
+                });
+            }
+            else {
+                curPromise = curPromise.then(res => {
+                    return this.getPromiseMiddleware(i)(this, res);
+                });
+            }
         }
         curPromise.catch(reason => {
             console.log('catched error in state: ' + reason);
@@ -2686,16 +2731,20 @@ class FsmState {
         this.updateConfig(ImFinishConfig(true));
         return this;
     }
+    setFinally() {
+        this.updateConfig({ isFinally: true });
+        return this;
+    }
     setCondition(func) {
         this.updateConfig({ conditionalRun: func });
         return this;
     }
-    setBoolCondition(func) {
+    setBoolCondition(func, isResolve = true) {
         this.updateConfig({ conditionalRun: s => {
                 if (func(s))
                     return ConditionalRes.Run;
                 else
-                    return ConditionalRes.PassResolve;
+                    return isResolve ? ConditionalRes.PassResolve : ConditionalRes.PassReject;
             } });
         return this;
     }
@@ -2823,13 +2872,13 @@ class FsmState {
         this._unionEvents.set(evName, { require: require, set: set });
     }
     /**
-     * Only call this if you know what you are doin
+     * Only call this if you know what you are doing
      * @param evName
      */
     event(evName, fsm) {
         if (notSet(fsm))
-            this.fsm.event(evName);
-        else
+            fsm = this.fsm;
+        if (this.isActive())
             fsm.event(evName);
     }
     isActive() {
@@ -2989,7 +3038,10 @@ var normalGameFsm = {
         { name: 'TUTORIAL_START', from: 'Default', to: 'TutorialStart' },
         { name: 'EXPLAIN_HP', from: 'TutorialStart', to: 'ExplainHp' },
         { name: 'TO_FLOW_STRATEGY', from: 'ExplainHp', to: 'FlowStrategy' },
-        { name: 'NORMAL_START', from: 'Default', to: 'NormalStart' }
+        { name: 'NORMAL_START', from: 'Default', to: 'NormalStart' },
+        { name: 'FINISHED', from: 'NormalStart', to: 'Story0' },
+        { name: 'FINISHED', from: 'FlowStrategy', to: 'Story0' },
+        { name: 'FINISHED', from: 'Story0', to: 'Story1' },
     ]
 };
 class HealthIndicator {
@@ -3384,7 +3436,7 @@ class PlayerInputText {
         });
     }
     hideTitle() {
-        this.title.setText("gameplayConfig.titleOriginal");
+        this.title.setText(gameplayConfig.titleOriginal);
         if (this.titleIn)
             this.titleIn.stop();
         this.titleOut = this.scene.tweens.add({
@@ -3654,12 +3706,11 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             return 8000;
         }
         else {
-            console.log(adjusted);
             return adjusted;
         }
     }
     onEnter() {
-        console.log('flow entered');
+        // console.log('flow entered');
     }
     onUpdate(time, dt) {
         let lastSpawnTime = -1000;
@@ -3679,7 +3730,6 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
             let timeSinceLastSpawn = time - lastSpawnTime;
             let interval = this.getInterval();
             if (timeSinceLastSpawn > interval) {
-                console.log('update spawn');
                 this.spawn();
             }
         }
@@ -3886,7 +3936,7 @@ var monologueList = [
     ">_<\nI'll never accomplish my task",
     'Do you like to play games?\nI want to play a game with you',
     "That's wierd, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
-    'What time is it now?\nHow long have I been wating for this?',
+    'What time is it now?\nHow long have I been wating like this?',
     "OK, I give up.\nNo one come to play, no data, no fun",
 ];
 class Subtitle extends Wrapper {

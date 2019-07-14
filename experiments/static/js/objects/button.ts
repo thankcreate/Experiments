@@ -124,7 +124,8 @@ class Button {
                 e.setScale(1);
             })
             if(needFade) {
-                FadePromise.create(this.scene, this.inner, 1, 500);
+                this.inner.alpha = 0;
+                FadePromise.create(this.scene, this.inner, 1, 500);                       
             }           
 
             this.inner.setVisible(true);

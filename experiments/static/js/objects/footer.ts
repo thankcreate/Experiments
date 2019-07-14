@@ -24,7 +24,7 @@ class Footer extends Wrapper<PhText> {
                 continue
 
             curX += button.image.displayWidth;
-            console.log(button.image.displayWidth)
+            // console.log(button.image.displayWidth)
             curX += gapLogoSep;
             
             let sep = this.scene.add.image(curX, 0, sepKey);

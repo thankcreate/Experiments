@@ -137,6 +137,9 @@ class Subtitle extends Wrapper<PhText> {
     loadAndSay(subtitle: Subtitle, text: string, autoHideAfter = false, 
         timeout = 2000, minStay = 3000, finishedSpeechWait = 1000): Pany {
         
+        // ! Not sure if I can write like this to always force stop current subtitle
+        this.forceStopAndHideSubtitles();
+
         this.showText(text);
 
         let normalPlayProcess = this.scene

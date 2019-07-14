@@ -78,7 +78,7 @@ FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: strin
 
     self.addAction((state, result, resolve, reject) => {
 
-        let realText:string = typeof(text) == 'string' ? text : text(state);
+        let realText:string = typeof(text) == 'string' ? text : text(state, result);
 
         subtitle.loadAndSay(subtitle, realText, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s=>{ resolve('subtitle show end')  })      

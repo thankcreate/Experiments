@@ -126,6 +126,7 @@ class Scene1 extends BaseScene {
         this.footer = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
         this.footerInitPosi = MakePoint(this.footer.inner);        
         
+
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
 
@@ -151,6 +152,7 @@ class Scene1 extends BaseScene {
         this.overlayContainer = this.add.container(400, 299);
         this.overlay = new Overlay(this, this.overlayContainer, 0,0);
         gOverlay = this.overlay;
+
 
         // Footer click event bind        
         this.footer.badges[0].clickedEvent.on(()=>{
@@ -747,7 +749,24 @@ class Scene1 extends BaseScene {
             }, true, 2000, 3000, 300)            
             .addSubtitleAction(this.subtitle, s => {                
                 return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in."
-            }, false, 2000, 3000, 300)             
+            }, false, 2000, 3000, 1)
+            .addAction((s, result, resolve, reject)=>{
+                s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o=>{
+                    // this.overlay.showBlack();    
+                    let wd = o.toLowerCase();
+                    if(wd=="yes" || wd == 'no')
+                    resolve(wd);
+                })
+            })
+            // .addAction(()=>{
+            //     this.subtitle.wrappedObject.setColor('#ffffff');
+            // })
+            .addSubtitleAction(this.subtitle, (s, wd) => {                
+                if(wd==='yes')
+                    return "Good!"
+                else if(wd==='no') 
+                    return "No? really? I hope you know what you are doing.\nAnyway, have fun!"
+            }, false, 2000, 3000, 300)    
             .addAction(o=>{this.addCounter(Counter.Story0Finished)})            
             .addFinishAction().setFinally();
     }

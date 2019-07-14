@@ -26,7 +26,7 @@ type StateUpdateHandler = (state: FsmState, arg2?, arg3?) => void;
 type TweenConfig = Phaser.Types.Tweens.TweenBuilderConfig | any;
 type PromiseMiddleware = (state, result) => Promise<any>;
 type FsmAction = (state?: FsmState, result?, resolve?, reject?) => void;
-type FromStateToStringFunc = (state: FsmState) => string;
+type FromStateToStringFunc = (state: FsmState, result?: any) => string;
 
 
 interface OnOffable{

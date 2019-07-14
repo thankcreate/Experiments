@@ -655,6 +655,23 @@ class Scene1 extends BaseScene {
         }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, s => {
             return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.";
+        }, false, 2000, 3000, 1)
+            .addAction((s, result, resolve, reject) => {
+            s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {
+                // this.overlay.showBlack();    
+                let wd = o.toLowerCase();
+                if (wd == "yes" || wd == 'no')
+                    resolve(wd);
+            });
+        })
+            // .addAction(()=>{
+            //     this.subtitle.wrappedObject.setColor('#ffffff');
+            // })
+            .addSubtitleAction(this.subtitle, (s, wd) => {
+            if (wd === 'yes')
+                return "Good!";
+            else if (wd === 'no')
+                return "No? really? I hope you know what you are doing.\nAnyway, have fun!";
         }, false, 2000, 3000, 300)
             .addAction(o => { this.addCounter(Counter.Story0Finished); })
             .addFinishAction().setFinally();
@@ -2941,7 +2958,7 @@ FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, 
     if (notSet(finishedSpeechWait))
         finishedSpeechWait = 600;
     self.addAction((state, result, resolve, reject) => {
-        let realText = typeof (text) == 'string' ? text : text(state);
+        let realText = typeof (text) == 'string' ? text : text(state, result);
         subtitle.loadAndSay(subtitle, realText, autoHideAfter, timeout, minStay, finishedSpeechWait)
             .then(s => { resolve('subtitle show end'); })
             .catch(s => { resolve('subtitle show end with some err'); });
@@ -3189,7 +3206,7 @@ Quick, Draw! The Data: A unique doodle data set that can help developers train n
 
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `;
-var aiAbout = `This AI experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
+var aiAbout = `This AI experiment is a prospect study for a thesis project at the NYU Tisch School of the Arts Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
 
 The developer has been a full-time solo indie game developer since 2012, became an IGF finalst in 2013, and has published several games on PC/Steam and other mobile platforms already.
 
@@ -4029,6 +4046,8 @@ class Subtitle extends Wrapper {
      * @param finishedSpeechWait the time after played apeech
      */
     loadAndSay(subtitle, text, autoHideAfter = false, timeout = 2000, minStay = 3000, finishedSpeechWait = 1000) {
+        // ! Not sure if I can write like this to always force stop current subtitle
+        this.forceStopAndHideSubtitles();
         this.showText(text);
         let normalPlayProcess = this.scene
             .playSpeech(text, timeout)

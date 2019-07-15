@@ -37,7 +37,7 @@ class Subtitle extends Wrapper<PhText> {
 
 
         this.monologueIndex = ~~(Math.random() * monologueList.length);
-        // this.monologueIndex = -1;
+        // this.monologueIndex = 1;
 
         // this.showMonologue(this.monologueIndex);
         // this.startMonologue();

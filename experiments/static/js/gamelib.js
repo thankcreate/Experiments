@@ -655,7 +655,7 @@ class Scene1 extends BaseScene {
         }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, s => {
             return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.\nYes, or no?";
-        }, false, 2000, 3000, 1)
+        }, false, 2000, 3000, 1).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {
                 // this.overlay.showBlack();    
@@ -667,6 +667,7 @@ class Scene1 extends BaseScene {
             // .addAction(()=>{
             //     this.subtitle.wrappedObject.setColor('#ffffff');
             // })
+            // TODO here should move counter here, and change wd===yes to getVar() way
             .addSubtitleAction(this.subtitle, (s, wd) => {
             if (wd === 'yes') {
                 s.fsm.setVar('answer', true);
@@ -676,14 +677,14 @@ class Scene1 extends BaseScene {
                 s.fsm.setVar('answer', false);
                 return "No? really? I hope you know what you are doing.\nAnyway, have fun!";
             }
-        }, false, 2000, 3000, 1000)
+        }, true, 2000, 3000, 1000)
+            .addAction(o => { this.addCounter(Counter.Story0Finished); })
             .addAction(s => {
             let an = s.fsm.getVar('answer', false);
             if (!an) {
                 this.backBtn.clickedEvent.emit(this.backBtn);
             }
         })
-            .addAction(o => { this.addCounter(Counter.Story0Finished); })
             .addFinishAction().setFinally();
     }
     initStStory1() {
@@ -729,6 +730,7 @@ var gameplayConfig = {
 var phaserConfig = {
     // type: Phaser.WEBGL,
     type: Phaser.CANVAS,
+    // backgroundColor: '#FFFFFF',
     backgroundColor: '#EEEEEE',
     // backgroundColor: '#E4E4E4',
     scale: {
@@ -3655,6 +3657,7 @@ class SpawnStrategy {
     reset() {
     }
 }
+var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
 class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
     constructor(manager, config) {
         super(manager, SpawnStrategyType.SpawnOnEliminatedAndReachCore, config);
@@ -3668,7 +3671,15 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
         };
     }
     spawn() {
+        gSpawnStrategyOnEliminatedAndReachCoreIndex++;
         let config = this.config;
+        // if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 1)
+        // this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bush'});
+        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 2)
+        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bottlecap'});
+        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
+        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
+        // else
         this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
     }
     onEnter() {
@@ -3977,7 +3988,7 @@ class Subtitle extends Wrapper {
         target.setAlign('center');
         this.applyTarget(target);
         this.monologueIndex = ~~(Math.random() * monologueList.length);
-        // this.monologueIndex = -1;
+        // this.monologueIndex = 1;
         // this.showMonologue(this.monologueIndex);
         // this.startMonologue();
     }

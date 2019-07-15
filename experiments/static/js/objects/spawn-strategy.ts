@@ -57,6 +57,7 @@ class SpawnStrategy {
     }
 }
 
+var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
 class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
     constructor(manager: EnemyManager, config?) {
         super(manager, SpawnStrategyType.SpawnOnEliminatedAndReachCore, config);
@@ -72,8 +73,17 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
     }
 
     spawn() {
+        gSpawnStrategyOnEliminatedAndReachCoreIndex++;
         let config = this.config;
-        this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
+        // if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 1)
+        // this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bush'});
+        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 2)
+        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bottlecap'});
+        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
+        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
+        // else
+            this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
+        
     }
 
 

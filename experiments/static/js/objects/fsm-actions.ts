@@ -72,8 +72,8 @@ FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: strin
     let self = this as FsmState;
     
 
-    if(notSet(timeout)) timeout = 2000;
-    if(notSet(minStay)) minStay = 1000;
+    if(notSet(timeout)) timeout = 2500;
+    if(notSet(minStay)) minStay = 1500;
     if(notSet(finishedSpeechWait)) finishedSpeechWait = 600;
 
     self.addAction((state, result, resolve, reject) => {

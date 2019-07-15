@@ -644,12 +644,12 @@ class Scene1 extends BaseScene {
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "To help me complete the experiment,\njust type in what's in your mind when you see the " + lastEnemyName.toLocaleLowerCase();
-            }, true, 2000, 3000, 1500)
+            }, true, 2500, 3000, 1500)
             .addDelayAction(this, 2000)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "Come on, " + this.playerName + "! Type in anything.\nAnything you think that's related.";
-            }, false, 2000, 3000, 1000)
+            }, false, 2500, 3000, 1000)
             .addAction(s => {
                 s.unionEvent('EXPLAIN_HP', 'subtitle_finished');
             })
@@ -673,33 +673,33 @@ class Scene1 extends BaseScene {
                         str += ("\nOf course! " + last.damagedBy[0] + ' and ' + last.damagedBy[1].toLowerCase() + " can match " + enemyName);
                 }
                 return str;
-            }, true, 2000, 3000, 1500)
+            }, true, 2500, 3000, 1500)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "You may have noticed the number under every item.\n It represents the health of them.";
-            }, true, 2000, 3000, 1000)
+            }, true, 2500, 3000, 1000)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "The more semantically related your input is to the items,\nthe more damage they will take.";
-            }, true, 2000, 3000, 1000)
+            }, true, 2500, 3000, 1000)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "If you don't eliminate them before they reach me,\nyou'll lose your HP by their remaining health.";
-            }, true, 2000, 3000, 600)
+            }, true, 2500, 3000, 600)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "Pretty simple, huh?";
-            }, true, 2000, 3000, 600)
+            }, true, 2500, 3000, 600)
             .addDelayAction(this, 9000)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "It's either you hurt them, or they hurt you.\nThat's the law of the jungle.";
-            }, true, 2000, 3000, 600)
+            }, true, 2500, 3000, 600)
             .addDelayAction(this, 500)
             .addSubtitleAction(this.subtitle, s => {
                 let lastEnemyName = this.enemyManager.getLastSpawnedEnemyName();
                 return "Hurt each other! Yeah! I like it.";
-            }, true, 2000, 3000, 600)
+            }, true, 2500, 3000, 600)
             .addEventAction("TO_FLOW_STRATEGY");
     }
 

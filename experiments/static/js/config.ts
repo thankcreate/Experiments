@@ -57,7 +57,7 @@ var phaserConfig = {
     scale: {
         // mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
         // autoCenter: Phaser.Scale.CENTER_VERTICALLY,
-        parent: 'phaser-example',
+        parent: 'phaser-main',
         width: 8000,
         // width: 1200,
         height: 1200,

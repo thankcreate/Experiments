@@ -46,6 +46,7 @@ class Fsm {
 
     constructor(scene: PhScene, fsm: IFsmData) {
         this.name = fsm.name;
+        this.scene = scene;
 
         // Add all events
         for (let i in fsm.events) {
@@ -461,14 +462,15 @@ class FsmState {
         this.onEnter = handler;
         return this;
     }
-
-
-
+    
     _onUpdate(state: FsmState, time?, dt?) {
+        
         if(this.onUpdate)
             this.onUpdate(state, time, dt);
         
-        let mp = getGame().input.activePointer;        
+        let mp = getGame().input.mousePointer;        
+
+
         this.safeInOutWatchers.forEach( e=>{                                  
             
             let contains = e.target.getBounds().contains(mp.x, mp.y)
@@ -477,8 +479,7 @@ class FsmState {
             
             if( e.hoverState == 0 && contains){
                 e.hoverState = 1;
-                e.target.emit('safein');
-                   
+                e.target.emit('safein');   
             }
             else if(e.hoverState == 1 && !contains){
                 e.hoverState = 0;

@@ -18,8 +18,7 @@ function myResize(gm) {
     let windowR = window.innerWidth / window.innerHeight;
     let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
 
-    gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
-
+    
     var canvas = document.querySelector("canvas");
     if (windowR > scaleR) {        
         canvas.style.width = window.innerWidth + "px";
@@ -30,6 +29,7 @@ function myResize(gm) {
         canvas.style.height = window.innerWidth / scaleR + "px";                
     }
 
+    gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);  
     // canvas.style.verticalAlign= "middle";    
 }
 

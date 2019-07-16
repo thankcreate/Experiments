@@ -52,6 +52,9 @@ class Button {
         imgKey: string, title: string,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
 
+        // TODO    
+        // debug = true;
+
         this.scene = scene;
         this.parentContainer = parentContainer;
 
@@ -90,15 +93,28 @@ class Button {
         if(this.text) this.animationTargets.push(this.text);
 
         
+        this.fakeZone.setInteractive()
+        this.fakeZone.on('pointerover', ()=>{
+            this.pointerin();
+        });
+        this.fakeZone.on('pointerout', ()=>{
+            this.pointerout();
+        });
+        this.fakeZone.on('pointerdown', ()=>{
+            this.click();
+        });
+        
 
+        
+        // this.scene.input.setTopOnly(false);
         this.scene.updateObjects.push(this);              
        
     }
 
-    
+                                               
 
     update(time, dt) {               
-        this.checkMouseEventInUpdate();
+        // this.checkMouseEventInUpdate();
     }
 
     setEnable(val: boolean, needFade: boolean) : Button{         
@@ -123,48 +139,54 @@ class Button {
             this.animationTargets.forEach(e=>{
                 e.setScale(1);
             })
+
             if(needFade) {
                 this.inner.alpha = 0;
                 FadePromise.create(this.scene, this.inner, 1, 500);                       
             }           
 
             this.inner.setVisible(true);
+
+            let pointer = this.scene.input.activePointer;
+            let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+            if(contains) {
+                this.pointerin();  
+            }
         }
 
         
         this.enable = val;
-
         return this;
     }
 
 
-    // 1: on   2: off
-    setHoverState(st: number) {
-        if(this.hoverState == 0 && st == 1) {
-            this.pointerin();
-        }
-        else if(this.hoverState == 1 && st == 0) {
-            this.pointerout();
-        }
-        this.hoverState = st;        
-    }
+    // // 1: on   2: off
+    // setHoverState(st: number) {
+    //     if(this.hoverState == 0 && st == 1) {
+    //         this.pointerin();
+    //     }
+    //     else if(this.hoverState == 1 && st == 0) {
+    //         this.pointerout();
+    //     }
+    //     this.hoverState = st;        
+    // }
 
-    checkMouseEventInUpdate() {
-        var pointer = this.scene.input.activePointer;
-        let contains = false;
-        if(!this.canInteract())
-            contains = false;
-        else
-            contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+    // checkMouseEventInUpdate() {
+    //     var pointer = this.scene.input.activePointer;
+    //     let contains = false;
+    //     if(!this.canInteract())
+    //         contains = false;
+    //     else
+    //         contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
 
-        this.setHoverState(contains ? 1 : 0);
-        if(contains) {
-            if(pointer.isDown && this.prevDownState === 0) {
-                this.click();
-            }       
-        }
-        this.prevDownState = pointer.isDown ? 1 : 0;
-    }
+    //     this.setHoverState(contains ? 1 : 0);
+    //     if(contains) {
+    //         if(pointer.isDown && this.prevDownState === 0) {
+    //             this.click();
+    //         }       
+    //     }
+    //     this.prevDownState = pointer.isDown ? 1 : 0;
+    // }
 
     click() {
         if(this.needInOutAutoAnimation) {          
@@ -229,21 +251,21 @@ class Button {
         this.needTextTransferAnimation = true;
     }
 
-    canInteract() : boolean {     
-        if(gOverlay && gOverlay.isInShow() && !this.ignoreOverlay) 
-            return false;
+    // canInteract() : boolean {     
+    //     if(gOverlay && gOverlay.isInShow() && !this.ignoreOverlay) 
+    //         return false;
 
-        let container = this.inner;
-        while(container != null) {
-            if(!container.visible)
-                return false;
-            container = container.parentContainer;
-        }
+    //     let container = this.inner;
+    //     while(container != null) {
+    //         if(!container.visible)
+    //             return false;
+    //         container = container.parentContainer;
+    //     }
 
-        if(!this.enable)
-            return false;
+    //     if(!this.enable)
+    //         return false;
 
-        return true;
-    }
+    //     return true;
+    // }
 
 }

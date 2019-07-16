@@ -34,16 +34,18 @@ class Overlay extends Wrapper<PhText> {
          super(scene, parentContainer, x, y, null);
 
          let width = getLogicWidth();
-         
+         let height = phaserConfig.scale.height
          this.bkg = new Rect(this.scene, this.inner, 0, 0, {            
             fillColor: 0x000000,
             fillAlpha: 0.8,            
             width: width, 
-            height: phaserConfig.scale.height,
+            height: height,
             lineWidth: 0,
             originX: 0.5,
             originY: 0.5, 
          });
+
+         this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
 
          
 

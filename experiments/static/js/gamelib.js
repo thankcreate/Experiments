@@ -4,12 +4,12 @@ class BaseScene extends Phaser.Scene {
         super(...arguments);
         this.updateObjects = [];
     }
-    getControllerScene() {
+    getController() {
         let controller = this.scene.get("Controller");
         return controller;
     }
     getSpeechManager() {
-        return this.getControllerScene().speechManager;
+        return this.getController().speechManager;
     }
     playSpeech(text, timeOut = 4000) {
         let controller = this.scene.get("Controller");
@@ -26,6 +26,23 @@ class BaseScene extends Phaser.Scene {
         });
     }
 }
+class MyInput {
+    constructor(scene) {
+        this.lastPointerPosi = new PhPointClass(0, 0);
+        this.controller = scene;
+        this.canvas = this.controller.game.canvas;
+        console.log(this.canvas);
+        this.canvas.addEventListener('mousemove', evt => {
+            let rect = this.canvas.getBoundingClientRect();
+            let scaleX = this.canvas.width / rect.width;
+            let scaleY = this.canvas.height / rect.height;
+            let x = (evt.clientX - rect.left) * scaleX;
+            let y = (evt.clientY - rect.top) * scaleY;
+            this.lastPointerPosi.x = x;
+            this.lastPointerPosi.y = y;
+        }, false);
+    }
+}
 class Controller extends BaseScene {
     constructor() {
         super('Controller');
@@ -33,13 +50,14 @@ class Controller extends BaseScene {
     preload() {
     }
     create() {
+        myResize(this.game);
         this.speechManager = new SpeechManager(this);
         // create an invisible text to load some remote font
         let style = getDefaultTextStyle();
         style.fontFamily = gameplayConfig.preloadFontFamily;
         this.add.text(0, 0, 'haha', style).setAlpha(0);
         this.scene.launch('Scene1');
-        myResize(this.game);
+        // this.myInput = new MyInput(this);
     }
     playSpeechInController(text, timeOut = 4000) {
         // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
@@ -872,7 +890,6 @@ function myResize(gm) {
     // console.log('width: ' + window.innerWidth);
     let windowR = window.innerWidth / window.innerHeight;
     let scaleR = phaserConfig.scale.minWidth / phaserConfig.scale.height;
-    gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
     var canvas = document.querySelector("canvas");
     if (windowR > scaleR) {
         canvas.style.width = window.innerWidth + "px";
@@ -882,6 +899,7 @@ function myResize(gm) {
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerWidth / scaleR + "px";
     }
+    gm.scale.resize(getLogicWidth(), phaserConfig.scale.height);
     // canvas.style.verticalAlign= "middle";    
 }
 function getArrayInputData() {
@@ -1247,6 +1265,8 @@ class Button {
      * @param target
      */
     constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
+        // TODO    
+        // debug = true;
         this.hoverState = 0; // 0:in 1:out
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
@@ -1293,10 +1313,21 @@ class Button {
             this.animationTargets.push(this.image);
         if (this.text)
             this.animationTargets.push(this.text);
+        this.fakeZone.setInteractive();
+        this.fakeZone.on('pointerover', () => {
+            this.pointerin();
+        });
+        this.fakeZone.on('pointerout', () => {
+            this.pointerout();
+        });
+        this.fakeZone.on('pointerdown', () => {
+            this.click();
+        });
+        // this.scene.input.setTopOnly(false);
         this.scene.updateObjects.push(this);
     }
     update(time, dt) {
-        this.checkMouseEventInUpdate();
+        // this.checkMouseEventInUpdate();
     }
     setEnable(val, needFade) {
         // hide
@@ -1325,35 +1356,40 @@ class Button {
                 FadePromise.create(this.scene, this.inner, 1, 500);
             }
             this.inner.setVisible(true);
+            let pointer = this.scene.input.activePointer;
+            let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+            if (contains) {
+                this.pointerin();
+            }
         }
         this.enable = val;
         return this;
     }
-    // 1: on   2: off
-    setHoverState(st) {
-        if (this.hoverState == 0 && st == 1) {
-            this.pointerin();
-        }
-        else if (this.hoverState == 1 && st == 0) {
-            this.pointerout();
-        }
-        this.hoverState = st;
-    }
-    checkMouseEventInUpdate() {
-        var pointer = this.scene.input.activePointer;
-        let contains = false;
-        if (!this.canInteract())
-            contains = false;
-        else
-            contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
-        this.setHoverState(contains ? 1 : 0);
-        if (contains) {
-            if (pointer.isDown && this.prevDownState === 0) {
-                this.click();
-            }
-        }
-        this.prevDownState = pointer.isDown ? 1 : 0;
-    }
+    // // 1: on   2: off
+    // setHoverState(st: number) {
+    //     if(this.hoverState == 0 && st == 1) {
+    //         this.pointerin();
+    //     }
+    //     else if(this.hoverState == 1 && st == 0) {
+    //         this.pointerout();
+    //     }
+    //     this.hoverState = st;        
+    // }
+    // checkMouseEventInUpdate() {
+    //     var pointer = this.scene.input.activePointer;
+    //     let contains = false;
+    //     if(!this.canInteract())
+    //         contains = false;
+    //     else
+    //         contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+    //     this.setHoverState(contains ? 1 : 0);
+    //     if(contains) {
+    //         if(pointer.isDown && this.prevDownState === 0) {
+    //             this.click();
+    //         }       
+    //     }
+    //     this.prevDownState = pointer.isDown ? 1 : 0;
+    // }
     click() {
         if (this.needInOutAutoAnimation) {
             let timeline = this.scene.tweens.createTimeline(null);
@@ -1405,19 +1441,6 @@ class Button {
         this.hoverTitle = hoverText;
         this.needInOutAutoAnimation = false;
         this.needTextTransferAnimation = true;
-    }
-    canInteract() {
-        if (gOverlay && gOverlay.isInShow() && !this.ignoreOverlay)
-            return false;
-        let container = this.inner;
-        while (container != null) {
-            if (!container.visible)
-                return false;
-            container = container.parentContainer;
-        }
-        if (!this.enable)
-            return false;
-        return true;
     }
 }
 class SpeakerButton extends ImageWrapperClass {
@@ -2492,6 +2515,7 @@ class Fsm {
         this.variables = new Map();
         this.isRunning = true;
         this.name = fsm.name;
+        this.scene = scene;
         // Add all events
         for (let i in fsm.events) {
             let event = fsm.events[i];
@@ -2823,7 +2847,7 @@ class FsmState {
     _onUpdate(state, time, dt) {
         if (this.onUpdate)
             this.onUpdate(state, time, dt);
-        let mp = getGame().input.activePointer;
+        let mp = getGame().input.mousePointer;
         this.safeInOutWatchers.forEach(e => {
             let contains = e.target.getBounds().contains(mp.x, mp.y);
             if (gOverlay && gOverlay.isInShow())
@@ -3232,15 +3256,17 @@ class Overlay extends Wrapper {
         super(scene, parentContainer, x, y, null);
         this.inShow = false;
         let width = getLogicWidth();
+        let height = phaserConfig.scale.height;
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0x000000,
             fillAlpha: 0.8,
             width: width,
-            height: phaserConfig.scale.height,
+            height: height,
             lineWidth: 0,
             originX: 0.5,
             originY: 0.5,
         });
+        this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
         this.dialog = new Dialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,

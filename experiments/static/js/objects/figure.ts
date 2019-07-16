@@ -125,6 +125,8 @@ class Rect extends Figure {
             graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha)
             graphics.strokeRect(0, 0, config.width, config.height);       
         }        
+
+        
     }
 }
 

@@ -29,7 +29,7 @@ enum ConditionalRes {
 class Fsm {
 
     static FinishedEventName = "FINISHED";
-    scene: PhScene;
+    scene: BaseScene;
     name: string;
     states: Map<string, FsmState> = new Map();
     curState: FsmState;
@@ -44,7 +44,7 @@ class Fsm {
     //     this.name = name;
     // }
 
-    constructor(scene: PhScene, fsm: IFsmData) {
+    constructor(scene: BaseScene, fsm: IFsmData) {
         this.name = fsm.name;
         this.scene = scene;
 
@@ -279,19 +279,15 @@ class FsmState {
         let thisInfo = {target, hoverState: 0, prevDownState: 0}
         this.safeInOutWatchers.push(thisInfo);
 
+        // setInteractive here,  disableInteractive in _onExit()
         target.setInteractive(true);
 
         if(inFunc) {
-            // Two reasons to check contians() here:
-            // 1. the pointerover event has alrady sent
+            // Two reasons to check contians here:
+            // 1. the pointerover event has already sent
             // 2. the mouse didn't move
-            // note that pointerover is only updated when there is a mouse movement
-            //! This may have potential problem that:
-            //! contains() don't take the hierarchical overlapping into consideratoin
-            //! It's just that the current hierarchy is still flat
-            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
-            let pointer = this.fsm.scene.input.activePointer;
-            let contains = target.getBounds().contains(pointer.x, pointer.y);
+            // Note that the phaser pointerover is only updated when there is a mouse movement          
+            let contains = this.fsm.scene.isObjectHovered(target);
             if(contains) {
                 thisInfo.hoverState = 1;                
                 inFunc();

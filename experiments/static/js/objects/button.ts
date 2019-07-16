@@ -91,8 +91,8 @@ class Button {
 
         
         this.fakeZone.setInteractive()
-        this.fakeZone.on('pointerover', ()=>{  
-            this.pointerin();
+        this.fakeZone.on('pointerover', ()=>{            
+            this.pointerin();            
         });
         this.fakeZone.on('pointerout', ()=>{            
             this.pointerout();
@@ -103,14 +103,14 @@ class Button {
 
         
         // this.scene.input.setTopOnly(false);
-        // this.scene.updateObjects.push(this);                     
+        this.scene.updateObjects.push(this);                     
     }
 
                                                
 
-    // update(time, dt) {               
-    //     this.checkMouseEventInUpdate();
-    // }
+    update(time, dt) {                   
+       
+    }
 
     setEnable(val: boolean, needFade: boolean) : Button{         
         // hide
@@ -141,16 +141,11 @@ class Button {
             }           
 
             this.inner.setVisible(true);
-            
-            //! This may have potential problem that:
-            //! contains() don't take the hierarchical overlapping into consideratoin
-            //! It's just that the current hierarchy is still flat
-            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
-            let pointer = this.scene.input.activePointer;
-            let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+                        
+            let contains = this.scene.isObjectHovered(this.fakeZone);
             if(contains) {
                 this.pointerin();  
-            }
+            }            
         }
         
         this.enable = val;

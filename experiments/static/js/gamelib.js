@@ -16,6 +16,22 @@ class BaseScene extends Phaser.Scene {
         return controller.playSpeechInController(text, timeOut);
     }
     /**
+     * The hover state check here take overlapping into consideration
+     * Only return true if there is no other interactive object above it.
+     * @param target
+     */
+    isObjectHovered(target) {
+        if (notSet(target))
+            return false;
+        return this.getHoverTopMostObject() === target;
+    }
+    getHoverTopMostObject() {
+        let mp = this.input.mousePointer;
+        let obs = this.input.hitTestPointer(mp);
+        let sorted = this.input.sortGameObjects(obs);
+        return sorted[0];
+    }
+    /**
      * Muse sure called super first
      * @param time
      * @param dt
@@ -1325,11 +1341,10 @@ class Button {
             this.click();
         });
         // this.scene.input.setTopOnly(false);
-        // this.scene.updateObjects.push(this);                     
+        this.scene.updateObjects.push(this);
     }
-    // update(time, dt) {               
-    //     this.checkMouseEventInUpdate();
-    // }
+    update(time, dt) {
+    }
     setEnable(val, needFade) {
         // hide
         if (!val && this.enable) {
@@ -1357,12 +1372,7 @@ class Button {
                 FadePromise.create(this.scene, this.inner, 1, 500);
             }
             this.inner.setVisible(true);
-            //! This may have potential problem that:
-            //! contains() don't take the hierarchical overlapping into consideratoin
-            //! It's just that the current hierarchy is still flat
-            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
-            let pointer = this.scene.input.activePointer;
-            let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
+            let contains = this.scene.isObjectHovered(this.fakeZone);
             if (contains) {
                 this.pointerin();
             }
@@ -2679,18 +2689,14 @@ class FsmState {
     autoSafeInOutClick(target, inFunc, outFun, clickFun) {
         let thisInfo = { target, hoverState: 0, prevDownState: 0 };
         this.safeInOutWatchers.push(thisInfo);
+        // setInteractive here,  disableInteractive in _onExit()
         target.setInteractive(true);
         if (inFunc) {
-            // Two reasons to check contians() here:
-            // 1. the pointerover event has alrady sent
+            // Two reasons to check contians here:
+            // 1. the pointerover event has already sent
             // 2. the mouse didn't move
-            // note that pointerover is only updated when there is a mouse movement
-            //! This may have potential problem that:
-            //! contains() don't take the hierarchical overlapping into consideratoin
-            //! It's just that the current hierarchy is still flat
-            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
-            let pointer = this.fsm.scene.input.activePointer;
-            let contains = target.getBounds().contains(pointer.x, pointer.y);
+            // Note that the phaser pointerover is only updated when there is a mouse movement          
+            let contains = this.fsm.scene.isObjectHovered(target);
             if (contains) {
                 thisInfo.hoverState = 1;
                 inFunc();
@@ -4160,3 +4166,4 @@ let names = {
 // 		const { node, parent } = path;
 // 	}
 // });
+//# sourceMappingURL=gamelib.js.map

@@ -16,6 +16,24 @@ class BaseScene extends Phaser.Scene {
         return controller.playSpeechInController(text, timeOut);
     }
 
+    /**
+     * The hover state check here take overlapping into consideration
+     * Only return true if there is no other interactive object above it.
+     * @param target 
+     */
+    isObjectHovered(target: PhGO) {
+        if(notSet(target)) 
+            return false;
+
+        return this.getHoverTopMostObject() === target;
+    }
+
+    getHoverTopMostObject(): PhGO {
+        let mp = this.input.mousePointer;
+        let obs = this.input.hitTestPointer(mp);
+        let sorted = this.input.sortGameObjects(obs);
+        return sorted[0];
+    }
 
     /**
      * Muse sure called super first
@@ -68,6 +86,8 @@ class Controller extends BaseScene {
       
     }
 
+
+
     create() {       
         myResize(this.game);   
 
@@ -76,11 +96,8 @@ class Controller extends BaseScene {
         let style= getDefaultTextStyle();
         style.fontFamily = gameplayConfig.preloadFontFamily;
         this.add.text(0,0,'haha',style).setAlpha(0);
-
      
-        this.scene.launch('Scene1');        
-           
-
+        this.scene.launch('Scene1');
         // this.myInput = new MyInput(this);
     }
 

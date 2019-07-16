@@ -304,8 +304,6 @@ class Scene1 extends BaseScene {
             // .addSubtitleAction(this.subtitle, 'TronTron!', true)
             .addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
             
-            
-            
             // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
             .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
             .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
@@ -327,7 +325,7 @@ class Scene1 extends BaseScene {
                     this.playerName = word;
                     resolve(word);
                 });
-            })
+            })            
             .addAction((s, result)=>{
                 // Disable input listener
                 s.removeAutoRemoveListners();
@@ -337,9 +335,12 @@ class Scene1 extends BaseScene {
 
                 // prepareToHome don't show the title back
                 // need to show title manually
-                this.centerObject.playerInputText.showTitle(false);       
+                this.centerObject.playerInputText.showTitle(false);  
                 
+                // pretend the AI is thinking
+                this.subtitle.hideText();
             })
+            .addDelayAction(this, 800)
             .addSubtitleAction(this.subtitle, s => {                
                 return this.playerName +  "? That sounds good."
             }, true, 2000, 3000, 300)

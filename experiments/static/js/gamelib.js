@@ -308,7 +308,10 @@ class Scene1 extends BaseScene {
             // prepareToHome don't show the title back
             // need to show title manually
             this.centerObject.playerInputText.showTitle(false);
+            // pretend the AI is thinking
+            this.subtitle.hideText();
         })
+            .addDelayAction(this, 800)
             .addSubtitleAction(this.subtitle, s => {
             return this.playerName + "? That sounds good.";
         }, true, 2000, 3000, 300)
@@ -2703,6 +2706,12 @@ class FsmState {
             target.on('pointerover', pointeroverFunc);
             this.autoRemoveListners.push({ target, key: 'pointerover', func: pointeroverFunc });
         }
+        //! Theoretically speaking, even though the outFun logic here seems not have any problems now
+        //! But we should know that:
+        //! If we want to add some important feature here, such as css hover hand state changing,
+        //! the outFun will not get called if the state has finished and autoRemove invoked
+        //! To be short:
+        //! If the hoverState === 1 when state finished, outFun will not be called, even it should be.        
         if (outFun) {
             let pointeroutFunc = e => {
                 if (thisInfo.hoverState === 0) {
@@ -2883,7 +2892,7 @@ class FsmState {
                 listener.target.off(listener.key, listener.func);
             }
         }
-        // remove all cached
+        // remove all cached       
         this.autoRemoveListners.length = 0;
     }
     _exit(state) {
@@ -2891,6 +2900,9 @@ class FsmState {
         if (this.onExit)
             this.onExit(this);
         this.removeAutoRemoveListners();
+        this.safeInOutWatchers.forEach(e => {
+            e.target.disableInteractive();
+        });
         this.safeInOutWatchers.length = 0;
         return this;
     }

@@ -309,6 +309,12 @@ class FsmState {
             this.autoRemoveListners.push({target, key:'pointerover', func: pointeroverFunc});
         }        
 
+        //! Theoretically speaking, even though the outFun logic here seems not have any problems now
+        //! But we should know that:
+        //! If we want to add some important feature here, such as css hover hand state changing,
+        //! the outFun will not get called if the state has finished and autoRemove invoked
+        //! To be short:
+        //! If the hoverState === 1 when state finished, outFun will not be called, even it should be.        
         if(outFun) {
             let pointeroutFunc = e=>{
                 if(thisInfo.hoverState === 0) {

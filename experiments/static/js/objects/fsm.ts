@@ -275,20 +275,56 @@ class FsmState {
         this.autoRemoveListners.push({target, key, func});
     }
 
-    autoSafeInOutClick(target: PhImage, inFunc: any, outFun?: any, clickFun?: any) {
-        this.safeInOutWatchers.push({target, hoverState: 0, prevDownState: 0});
+    autoSafeInOutClick(target: PhImage, inFunc?: any, outFun?: any, clickFun?: any) {
+        let thisInfo = {target, hoverState: 0, prevDownState: 0}
+        this.safeInOutWatchers.push(thisInfo);
 
-        target.on('safein', inFunc);
-        this.autoRemoveListners.push({target, key:'safein', func: inFunc});
+        target.setInteractive(true);
+
+        if(inFunc) {
+            // Two reasons to check contians() here:
+            // 1. the pointerover event has alrady sent
+            // 2. the mouse didn't move
+            // note that pointerover is only updated when there is a mouse movement
+            //! This may have potential problem that:
+            //! contains() don't take the hierarchical overlapping into consideratoin
+            //! It's just that the current hierarchy is still flat
+            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
+            let pointer = this.fsm.scene.input.activePointer;
+            let contains = target.getBounds().contains(pointer.x, pointer.y);
+            if(contains) {
+                thisInfo.hoverState = 1;                
+                inFunc();
+            }
+
+            //
+            let pointeroverFunc = e=>{
+                if(thisInfo.hoverState === 1) {
+                    return;
+                }
+                thisInfo.hoverState = 1;
+                inFunc(e);
+            };
+            target.on('pointerover', pointeroverFunc);
+            this.autoRemoveListners.push({target, key:'pointerover', func: pointeroverFunc});
+        }        
 
         if(outFun) {
-            target.on('safeout', outFun);
-            this.autoRemoveListners.push({target, key:'safeout', func: outFun});
+            let pointeroutFunc = e=>{
+                if(thisInfo.hoverState === 0) {
+                    return;
+                }
+                thisInfo.hoverState = 0;
+                outFun(e);
+            };
+
+            target.on('pointerout', pointeroutFunc);
+            this.autoRemoveListners.push({target, key:'pointerout', func: pointeroutFunc});
         }
             
         if(clickFun) {
-            target.on('safeclick', clickFun);
-            this.autoRemoveListners.push({target, key:'safeclick', func: clickFun})
+            target.on('pointerdown', clickFun);
+            this.autoRemoveListners.push({target, key:'pointerdown', func: clickFun})
         }
     }
 
@@ -462,37 +498,12 @@ class FsmState {
         this.onEnter = handler;
         return this;
     }
+
     
     _onUpdate(state: FsmState, time?, dt?) {
         
         if(this.onUpdate)
             this.onUpdate(state, time, dt);
-        
-        let mp = getGame().input.mousePointer;        
-
-
-        this.safeInOutWatchers.forEach( e=>{                                  
-            
-            let contains = e.target.getBounds().contains(mp.x, mp.y)
-            if(gOverlay && gOverlay.isInShow()) 
-                contains = false;
-            
-            if( e.hoverState == 0 && contains){
-                e.hoverState = 1;
-                e.target.emit('safein');   
-            }
-            else if(e.hoverState == 1 && !contains){
-                e.hoverState = 0;
-                e.target.emit('safeout');
-            }
-
-            if(contains) {
-                if(mp.isDown && e.prevDownState === 0) {
-                    e.target.emit('safeclick');
-                }
-            }
-            e.prevDownState = mp.isDown ? 1 : 0;
-        })
     }
     /**
      * Don't call from outside
@@ -516,7 +527,7 @@ class FsmState {
             
         }
 
-        // remove all cached
+        // remove all cached       
         this.autoRemoveListners.length = 0;
     }
 
@@ -527,6 +538,10 @@ class FsmState {
             this.onExit(this);
 
         this.removeAutoRemoveListners();
+
+        this.safeInOutWatchers.forEach( e=>{                                  
+            e.target.disableInteractive();          
+        })
         this.safeInOutWatchers.length = 0;
 
         return this;

@@ -259,11 +259,9 @@ class Scene1 extends BaseScene {
             s.autoSafeInOutClick(mainImage, e => {
                 this.centerObject.playerInputText.showTitle();
                 this.dwitterBKG.toStaticMode();
-                // $("body").css('cursor','pointer');
             }, e => {
                 this.centerObject.playerInputText.hideTitle();
                 this.dwitterBKG.toBlinkMode();
-                // $("body").css('cursor','default');
             }, e => {
                 this.centerObject.playerInputText.changeTitleToChanged();
                 this.dwitterBKG.toStaticMode();
@@ -345,10 +343,12 @@ class Scene1 extends BaseScene {
             this.centerObject.btnMode1.setEnable(true, true);
             s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
                 this.setMode(GameMode.Normal);
+                s.removeAutoRemoveListners(); // in case the player clicked both buttons quickly
                 resolve('clicked');
             });
             s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
                 this.setMode(GameMode.Zen);
+                s.removeAutoRemoveListners();
                 resolve('clicked');
             });
         })
@@ -1265,8 +1265,6 @@ class Button {
      * @param target
      */
     constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
-        // TODO    
-        // debug = true;
         this.hoverState = 0; // 0:in 1:out
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
@@ -1324,11 +1322,11 @@ class Button {
             this.click();
         });
         // this.scene.input.setTopOnly(false);
-        this.scene.updateObjects.push(this);
+        // this.scene.updateObjects.push(this);                     
     }
-    update(time, dt) {
-        // this.checkMouseEventInUpdate();
-    }
+    // update(time, dt) {               
+    //     this.checkMouseEventInUpdate();
+    // }
     setEnable(val, needFade) {
         // hide
         if (!val && this.enable) {
@@ -1356,6 +1354,10 @@ class Button {
                 FadePromise.create(this.scene, this.inner, 1, 500);
             }
             this.inner.setVisible(true);
+            //! This may have potential problem that:
+            //! contains() don't take the hierarchical overlapping into consideratoin
+            //! It's just that the current hierarchy is still flat
+            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
             let pointer = this.scene.input.activePointer;
             let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
             if (contains) {
@@ -1365,31 +1367,6 @@ class Button {
         this.enable = val;
         return this;
     }
-    // // 1: on   2: off
-    // setHoverState(st: number) {
-    //     if(this.hoverState == 0 && st == 1) {
-    //         this.pointerin();
-    //     }
-    //     else if(this.hoverState == 1 && st == 0) {
-    //         this.pointerout();
-    //     }
-    //     this.hoverState = st;        
-    // }
-    // checkMouseEventInUpdate() {
-    //     var pointer = this.scene.input.activePointer;
-    //     let contains = false;
-    //     if(!this.canInteract())
-    //         contains = false;
-    //     else
-    //         contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
-    //     this.setHoverState(contains ? 1 : 0);
-    //     if(contains) {
-    //         if(pointer.isDown && this.prevDownState === 0) {
-    //             this.click();
-    //         }       
-    //     }
-    //     this.prevDownState = pointer.isDown ? 1 : 0;
-    // }
     click() {
         if (this.needInOutAutoAnimation) {
             let timeline = this.scene.tweens.createTimeline(null);
@@ -1408,6 +1385,12 @@ class Button {
         this.clickedEvent.emit(this);
     }
     pointerin() {
+        // We need to double check the hoverState here because in setEnable(true), 
+        // if the pointer is alreay in the zone, it will get to pointerin directly
+        // but if the pointer moved again, the mouseover event will also get us here
+        if (this.hoverState === 1)
+            return;
+        this.hoverState = 1;
         if (this.needInOutAutoAnimation) {
             this.scene.tweens.add({
                 targets: this.animationTargets,
@@ -1423,6 +1406,11 @@ class Button {
         }
     }
     pointerout() {
+        // Not like pointer in, I don't know if I need to double check like this
+        // This is only for safe
+        if (this.hoverState === 0)
+            return;
+        this.hoverState = 0;
         if (this.needInOutAutoAnimation) {
             this.scene.tweens.add({
                 targets: this.animationTargets,
@@ -2686,16 +2674,49 @@ class FsmState {
         this.autoRemoveListners.push({ target, key, func });
     }
     autoSafeInOutClick(target, inFunc, outFun, clickFun) {
-        this.safeInOutWatchers.push({ target, hoverState: 0, prevDownState: 0 });
-        target.on('safein', inFunc);
-        this.autoRemoveListners.push({ target, key: 'safein', func: inFunc });
+        let thisInfo = { target, hoverState: 0, prevDownState: 0 };
+        this.safeInOutWatchers.push(thisInfo);
+        target.setInteractive(true);
+        if (inFunc) {
+            // Two reasons to check contians() here:
+            // 1. the pointerover event has alrady sent
+            // 2. the mouse didn't move
+            // note that pointerover is only updated when there is a mouse movement
+            //! This may have potential problem that:
+            //! contains() don't take the hierarchical overlapping into consideratoin
+            //! It's just that the current hierarchy is still flat
+            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
+            let pointer = this.fsm.scene.input.activePointer;
+            let contains = target.getBounds().contains(pointer.x, pointer.y);
+            if (contains) {
+                thisInfo.hoverState = 1;
+                inFunc();
+            }
+            //
+            let pointeroverFunc = e => {
+                if (thisInfo.hoverState === 1) {
+                    return;
+                }
+                thisInfo.hoverState = 1;
+                inFunc(e);
+            };
+            target.on('pointerover', pointeroverFunc);
+            this.autoRemoveListners.push({ target, key: 'pointerover', func: pointeroverFunc });
+        }
         if (outFun) {
-            target.on('safeout', outFun);
-            this.autoRemoveListners.push({ target, key: 'safeout', func: outFun });
+            let pointeroutFunc = e => {
+                if (thisInfo.hoverState === 0) {
+                    return;
+                }
+                thisInfo.hoverState = 0;
+                outFun(e);
+            };
+            target.on('pointerout', pointeroutFunc);
+            this.autoRemoveListners.push({ target, key: 'pointerout', func: pointeroutFunc });
         }
         if (clickFun) {
-            target.on('safeclick', clickFun);
-            this.autoRemoveListners.push({ target, key: 'safeclick', func: clickFun });
+            target.on('pointerdown', clickFun);
+            this.autoRemoveListners.push({ target, key: 'pointerdown', func: clickFun });
         }
     }
     addAction(action) {
@@ -2847,26 +2868,6 @@ class FsmState {
     _onUpdate(state, time, dt) {
         if (this.onUpdate)
             this.onUpdate(state, time, dt);
-        let mp = getGame().input.mousePointer;
-        this.safeInOutWatchers.forEach(e => {
-            let contains = e.target.getBounds().contains(mp.x, mp.y);
-            if (gOverlay && gOverlay.isInShow())
-                contains = false;
-            if (e.hoverState == 0 && contains) {
-                e.hoverState = 1;
-                e.target.emit('safein');
-            }
-            else if (e.hoverState == 1 && !contains) {
-                e.hoverState = 0;
-                e.target.emit('safeout');
-            }
-            if (contains) {
-                if (mp.isDown && e.prevDownState === 0) {
-                    e.target.emit('safeclick');
-                }
-            }
-            e.prevDownState = mp.isDown ? 1 : 0;
-        });
     }
     setOnUpdate(handler) {
         this.onUpdate = handler;

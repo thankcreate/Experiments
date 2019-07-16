@@ -52,9 +52,6 @@ class Button {
         imgKey: string, title: string,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {
 
-        // TODO    
-        // debug = true;
-
         this.scene = scene;
         this.parentContainer = parentContainer;
 
@@ -94,28 +91,26 @@ class Button {
 
         
         this.fakeZone.setInteractive()
-        this.fakeZone.on('pointerover', ()=>{
+        this.fakeZone.on('pointerover', ()=>{  
             this.pointerin();
         });
-        this.fakeZone.on('pointerout', ()=>{
+        this.fakeZone.on('pointerout', ()=>{            
             this.pointerout();
         });
-        this.fakeZone.on('pointerdown', ()=>{
+        this.fakeZone.on('pointerdown', ()=>{       
             this.click();
-        });
-        
+        });       
 
         
         // this.scene.input.setTopOnly(false);
-        this.scene.updateObjects.push(this);              
-       
+        // this.scene.updateObjects.push(this);                     
     }
 
                                                
 
-    update(time, dt) {               
-        // this.checkMouseEventInUpdate();
-    }
+    // update(time, dt) {               
+    //     this.checkMouseEventInUpdate();
+    // }
 
     setEnable(val: boolean, needFade: boolean) : Button{         
         // hide
@@ -146,47 +141,23 @@ class Button {
             }           
 
             this.inner.setVisible(true);
-
+            
+            //! This may have potential problem that:
+            //! contains() don't take the hierarchical overlapping into consideratoin
+            //! It's just that the current hierarchy is still flat
+            //! So, this is not a big problem right now(07/16/2019), but we should fix this later
             let pointer = this.scene.input.activePointer;
             let contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
             if(contains) {
                 this.pointerin();  
             }
         }
-
         
         this.enable = val;
         return this;
     }
 
 
-    // // 1: on   2: off
-    // setHoverState(st: number) {
-    //     if(this.hoverState == 0 && st == 1) {
-    //         this.pointerin();
-    //     }
-    //     else if(this.hoverState == 1 && st == 0) {
-    //         this.pointerout();
-    //     }
-    //     this.hoverState = st;        
-    // }
-
-    // checkMouseEventInUpdate() {
-    //     var pointer = this.scene.input.activePointer;
-    //     let contains = false;
-    //     if(!this.canInteract())
-    //         contains = false;
-    //     else
-    //         contains = this.fakeZone.getBounds().contains(pointer.x, pointer.y);
-
-    //     this.setHoverState(contains ? 1 : 0);
-    //     if(contains) {
-    //         if(pointer.isDown && this.prevDownState === 0) {
-    //             this.click();
-    //         }       
-    //     }
-    //     this.prevDownState = pointer.isDown ? 1 : 0;
-    // }
 
     click() {
         if(this.needInOutAutoAnimation) {          
@@ -207,8 +178,14 @@ class Button {
         this.clickedEvent.emit(this);
     }
 
-    pointerin() {     
-        
+    pointerin() {
+        // We need to double check the hoverState here because in setEnable(true), 
+        // if the pointer is alreay in the zone, it will get to pointerin directly
+        // but if the pointer moved again, the mouseover event will also get us here
+        if(this.hoverState === 1)
+            return;
+            
+        this.hoverState = 1;
 
         if(this.needInOutAutoAnimation) {            
             this.scene.tweens.add({
@@ -228,6 +205,13 @@ class Button {
     }
 
     pointerout() {
+        // Not like pointer in, I don't know if I need to double check like this
+        // This is only for safe
+        if(this.hoverState === 0)
+            return;      
+
+        this.hoverState = 0;
+
         if(this.needInOutAutoAnimation) {
             this.scene.tweens.add({
                 targets: this.animationTargets,
@@ -251,21 +235,5 @@ class Button {
         this.needTextTransferAnimation = true;
     }
 
-    // canInteract() : boolean {     
-    //     if(gOverlay && gOverlay.isInShow() && !this.ignoreOverlay) 
-    //         return false;
-
-    //     let container = this.inner;
-    //     while(container != null) {
-    //         if(!container.visible)
-    //             return false;
-    //         container = container.parentContainer;
-    //     }
-
-    //     if(!this.enable)
-    //         return false;
-
-    //     return true;
-    // }
 
 }

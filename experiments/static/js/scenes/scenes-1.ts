@@ -173,9 +173,7 @@ class Scene1 extends BaseScene {
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
         this.initMainFsm();
         this.initNormalGameFsm();
-
-        
-
+ 
         // Sub FSM: normal game
     }
 
@@ -280,12 +278,10 @@ class Scene1 extends BaseScene {
                 e => {
                     this.centerObject.playerInputText.showTitle();
                     this.dwitterBKG.toStaticMode();
-                    // $("body").css('cursor','pointer');
                 },
                 e => {
                     this.centerObject.playerInputText.hideTitle();
                     this.dwitterBKG.toBlinkMode();
-                    // $("body").css('cursor','default');
                 },
                 e => {
                     this.centerObject.playerInputText.changeTitleToChanged();
@@ -386,12 +382,15 @@ class Scene1 extends BaseScene {
 
                 s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
                     this.setMode(GameMode.Normal);
-                    resolve('clicked');
+                    s.removeAutoRemoveListners();  // in case the player clicked both buttons quickly
+                    resolve('clicked');                   
                 });
 
                 s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
                     this.setMode(GameMode.Zen);
+                    s.removeAutoRemoveListners();
                     resolve('clicked');
+                    
                 });
             })
             .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome())

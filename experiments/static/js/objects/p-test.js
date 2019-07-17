@@ -209,8 +209,12 @@
 // .then(s=>{console.log('ss' + s)}, e=>{console.log('ee' + e)})
 
 
-let ccc = '123';
+// let ccc = '123';
 
-let name = 'ccc'
+// let name = 'ccc'
 
-console.log(window)
+// console.log(window)
+
+var cc
+if(cc)
+    console.log('haha')

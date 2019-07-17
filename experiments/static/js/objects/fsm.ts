@@ -1,3 +1,5 @@
+var farray:IFsmData[] = [];
+
 interface IFsmData {
     name: string,
     initial: string,

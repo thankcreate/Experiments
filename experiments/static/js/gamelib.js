@@ -2495,6 +2495,7 @@ class Footer extends Wrapper {
         this.inner.setScale(overallHeight / picH);
     }
 }
+var farray = [];
 function ImFinishConfig(val) {
     return { finishImmediately: val };
 }
@@ -3067,6 +3068,7 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     });
     return this;
 };
+/// <reference path="fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -3085,6 +3087,7 @@ var mainFsm = {
         { name: 'RESTART_TO_GAME', from: 'Restart', to: 'NormalGame' }
     ],
 };
+farray.push(mainFsm);
 // var mainFsm = 
 // {
 //   initial: "Home",  
@@ -3104,6 +3107,7 @@ var mainFsm = {
 //     // do with the node
 //   }
 // });
+/// <reference path="fsm.ts" />
 var normalGameFsm = {
     name: 'NormalGameFsm',
     initial: "Default",
@@ -3114,9 +3118,10 @@ var normalGameFsm = {
         { name: 'NORMAL_START', from: 'Default', to: 'NormalStart' },
         { name: 'FINISHED', from: 'NormalStart', to: 'Story0' },
         { name: 'FINISHED', from: 'FlowStrategy', to: 'Story0' },
-        { name: 'FINISHED', from: 'Story0', to: 'Story1' },
+        { name: 'FINISHED', from: 'Story0', to: 'Story1' }
     ]
 };
+farray.push(normalGameFsm);
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {

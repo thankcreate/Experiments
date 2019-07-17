@@ -1,3 +1,6 @@
+/// <reference path="fsm.ts" />
+
+
 var normalGameFsm = {
     name: 'NormalGameFsm',
     initial: "Default",
@@ -8,6 +11,8 @@ var normalGameFsm = {
         {name: 'NORMAL_START', from: 'Default', to:'NormalStart'},
         {name: 'FINISHED', from:'NormalStart', to:'Story0'},
         {name: 'FINISHED', from:'FlowStrategy', to:'Story0'},
-        {name: 'FINISHED', from:'Story0', to:'Story1'},
+        {name: 'FINISHED', from:'Story0', to:'Story1'}
     ]
 }
+
+farray.push(normalGameFsm);

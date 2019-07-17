@@ -1,3 +1,5 @@
+/// <reference path="fsm.ts" />
+
 var mainFsm =
 {
   name: 'MainFsm',
@@ -19,7 +21,7 @@ var mainFsm =
 };
 
 
-
+farray.push(mainFsm);
 
 // var mainFsm = 
 // {

@@ -196,14 +196,21 @@
 // console.log(ob['j']);
 
 
-let p = new Promise((res, rej) =>{
-    res('1');
-    rej('2');
+// let p = new Promise((res, rej) =>{
+//     res('1');
+//     rej('2');
   
 
    
-})
-.finally(()=>{
-    console.log('haha')
-})
-.then(s=>{console.log('ss' + s)}, e=>{console.log('ee' + e)})
+// })
+// .finally(()=>{
+//     console.log('haha')
+// })
+// .then(s=>{console.log('ss' + s)}, e=>{console.log('ee' + e)})
+
+
+let ccc = '123';
+
+let name = 'ccc'
+
+console.log(window)

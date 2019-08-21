@@ -72,7 +72,7 @@ class MyInput {
 
 
 }
-
+declare var WebFont: any;
 class Controller extends BaseScene {
 
     speechManager: SpeechManager;
@@ -83,7 +83,7 @@ class Controller extends BaseScene {
     }
 
     preload() {
-      
+        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
 
 
@@ -91,14 +91,24 @@ class Controller extends BaseScene {
     create() {       
         myResize(this.game);   
 
-        this.speechManager = new SpeechManager(this);
-        // create an invisible text to load some remote font
-        let style= getDefaultTextStyle();
-        style.fontFamily = gameplayConfig.preloadFontFamily;
-        this.add.text(0,0,'haha',style).setAlpha(0);
-     
-        this.scene.launch('Scene1');
+        this.speechManager = new SpeechManager(this);        
+        WebFont.load({
+            google: {
+                families: ['Averia Serif Libre']
+            },
+            active: ()=>{
+                this.gotoFirstScene();  
+            },
+            inactive: ()=>{
+                this.gotoFirstScene();
+            }
+        });   
+        
         // this.myInput = new MyInput(this);
+    }
+
+    gotoFirstScene() {
+        this.scene.launch('Scene1');      
     }
 
     playSpeechInController(text: string, timeOut:number = 4000) : Pany {

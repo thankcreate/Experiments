@@ -64,16 +64,26 @@ class Controller extends BaseScene {
         super('Controller');
     }
     preload() {
+        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
     create() {
         myResize(this.game);
         this.speechManager = new SpeechManager(this);
-        // create an invisible text to load some remote font
-        let style = getDefaultTextStyle();
-        style.fontFamily = gameplayConfig.preloadFontFamily;
-        this.add.text(0, 0, 'haha', style).setAlpha(0);
-        this.scene.launch('Scene1');
+        WebFont.load({
+            google: {
+                families: ['Averia Serif Libre']
+            },
+            active: () => {
+                this.gotoFirstScene();
+            },
+            inactive: () => {
+                this.gotoFirstScene();
+            }
+        });
         // this.myInput = new MyInput(this);
+    }
+    gotoFirstScene() {
+        this.scene.launch('Scene1');
     }
     playSpeechInController(text, timeOut = 4000) {
         // return this.speechManager.quickLoadAndPlay(text, true, timeOut);

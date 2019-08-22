@@ -1,4 +1,4 @@
-from . import app
+from . import bp
 from .semantic import test_similarity, test_similarity_with_array
 from flask import request, render_template, jsonify, send_file, Response, redirect, url_for, send_from_directory, send_from_directory
 from .speech import generateSpeechFile
@@ -6,17 +6,17 @@ import json
 import os
 
 
-@app.route('/')
+@bp.route('/')
 def root():
     # 'redirect' will change the url, while 'send_from_directory' will keep the input url
     # return redirect(url_for('static', filename='index.html'))
     return send_from_directory('static', 'index.html')
 
-@app.route('/hello')
+@bp.route('/hello')
 def index():    
     return "Hello world!"
 
-@app.route('/api_1')
+@bp.route('/api_1')
 def api_1():
     arg1 = request.args.get('arg1')
     arg2 = request.args.get('arg2')
@@ -24,7 +24,7 @@ def api_1():
     return res
 
 # two strings
-@app.route('/api_2', methods=['POST'])
+@bp.route('/api_2', methods=['POST'])
 def api_2():    
     data = json.loads(request.get_data(as_text=True))
     arg1 = data['arg1']
@@ -35,7 +35,7 @@ def api_2():
     return response
 
 # one string with one array
-@app.route('/api_3', methods=['POST'])
+@bp.route('/api_3', methods=['POST'])
 def api_3():    
     data = json.loads(request.get_data(as_text=True))
     inputString = data['input']
@@ -55,7 +55,7 @@ def api_3():
     response = jsonify(output_data)
     return response
 
-@app.route('/api_speech', methods=['POST'])
+@bp.route('/api_speech', methods=['POST'])
 def api_speech():
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/app/voice-098003611ef0.json'
 
@@ -75,6 +75,6 @@ def api_speech():
     
 
 
-@app.route('/game')
+@bp.route('/game')
 def game():
     return render_template('game.html')

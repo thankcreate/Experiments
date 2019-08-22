@@ -3,7 +3,7 @@
 <body>
     <h1>Leaderboard</h1>
 
-    <form action="{{ url_for('addLeaderboardItem') }}" method="post">
+    <form action="{{ url_for('leaderboard.addLeaderboardItem') }}" method="post">
         <div class="form-group">
             <label for="name">Name:</label>
             <input type="text" maxlength="100" name="name" placeholder="Name" autofocus >
@@ -11,7 +11,7 @@
             <label for="score">Score:</label>
             <input maxlength="100" name="score" placeholder="score">
             <button type="submit">Add</button>
-            <button type="button" onclick="location.href='{{ url_for('deleteLeaderboardItemAll') }}'" >Remove All</button>
+            <button type="button" onclick="location.href='{{ url_for('leaderboard.deleteLeaderboardItemAll') }}'" >Remove All</button>
         </div>
     </form>
 
@@ -19,7 +19,7 @@
         {% for item in leaderboard %}
         <li>Name: {{item.username}} Scroe:{{item.score}} </li>
 
-        <a href="{{url_for('deleteLeaderboardItem', item_id = item.id )}}" style="margin-left: 10px;">
+        <a href="{{url_for('leaderboard.deleteLeaderboardItem', item_id = item.id )}}" style="margin-left: 10px;">
             Delete
         </a>
         <br> <br>

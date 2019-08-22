@@ -9,3 +9,5 @@ __pycache__/
 media/speech/
 
 .ipynb_checkpoints/
+
+app.db

@@ -12,5 +12,6 @@ touch ./log/nginx.log
 touch ./log/nginx.err
 
 export TFHUB_DOWNLOAD_PROGRESS=1
+export FLASK_APP=experiments.py
 
 supervisord -c  supervisor.conf

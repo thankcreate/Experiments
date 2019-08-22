@@ -49,8 +49,34 @@ function test_api2() {
 }
 
 function magic() {
-    test_api3();
+    // test_api2();
     // test();
+    leaderboardAdd();
+}
+
+function leaderboardAdd() {
+    let name = $('#arg1').val().trim();
+    let score = $('#arg2').val().trim();    
+    let sendMsg = JSON.stringify({'name' : name, 'score': score});
+    console.log("hahahaha");
+
+    console.log("sendmsg:" + sendMsg);
+
+    $.ajax({
+        //几个参数需要注意一下
+        type: "POST",//方法类型
+        dataType: "json",//预期服务器返回的数据类型
+        contentType: 'application/json;charset=UTF-8',
+        url: "/api/leaderboard",//url
+        data: sendMsg,
+        success: function (result) {
+            console.log(result);//打印服务端返回的数据(调试用)               
+        },
+        error: function (result) {
+            console.log(result);//打印服务端返回的数据(调试用)                    
+        }
+    });
+
 }
 
 $('#form1').keydown(function (e) {
@@ -64,7 +90,7 @@ function yabali() {
     // $.getJSON("assets/treeone.ndjson", function (json) {
     //     console.log(json); // this will show the info it in firebug console
     // });
-    testSpeechAPI2();
+    test_api2();
 }
 
 // function testSpeechAPI() {

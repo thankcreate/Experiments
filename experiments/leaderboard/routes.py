@@ -45,7 +45,7 @@ def addLeaderboardItemInner(name, score):
 @bp.route('/leaderboard') 
 def showLeaderboard():
     leaderboard = Leaderboard.query.order_by(Leaderboard.score.desc()).all()
-    return render_template("leaderboard/leaderboard.html", leaderboard=leaderboard)
+    return render_template("leaderboard/leaderboard.html", leaderboard=leaderboard, title='Leaderboard')
 
 @bp.route('/leaderboard/<int:item_id>/delete/', methods = ['GET','POST'])
 def deleteLeaderboardItem(item_id):

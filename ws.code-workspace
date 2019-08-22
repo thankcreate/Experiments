@@ -8,6 +8,10 @@
 		"files.exclude": {
 			"**/*.js": {"when": "$(basename).ts"},
 			"**/*.map": {"when": "$(basename).map"}
+		},
+		"files.associations": {
+			"*.html": "jinja-html"
 		}
-	}
+	},
+	
 }

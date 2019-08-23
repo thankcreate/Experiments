@@ -40,7 +40,6 @@ class Scene1 extends BaseScene {
     playerInput: PlayerInputText;
     centerObject: CenterObject;
   
-    footer: Footer;
     overlay: Overlay;
 
     mainFsm: Fsm;
@@ -54,11 +53,12 @@ class Scene1 extends BaseScene {
     subtitle: Subtitle;
     backBtn: Button;
 
-    uiLayerInGame: UILayerInGame;
+    ui: UI;
+
+    hud: Hud;
     private _hp: HP;
     died: Died;
 
-    footerInitPosi: PhPoint;
     hpInitPosi: PhPoint;
 
     mode: GameMode = GameMode.Normal;
@@ -69,6 +69,9 @@ class Scene1 extends BaseScene {
     counters: Map<Counter, number> = new Map();
 
     playerName: string = "";
+    leaderboardManager: LeaderboardManager;
+
+    
 
     constructor() {
         super('Scene1');
@@ -83,7 +86,7 @@ class Scene1 extends BaseScene {
     }
 
     get hp(): HP {
-        return this.uiLayerInGame.hp;
+        return this.hud.hp;
     }
 
     preload() {
@@ -95,6 +98,7 @@ class Scene1 extends BaseScene {
         this.load.image('footer_google', 'assets/footer_google.png')
         this.load.image('footer_nyu', 'assets/footer_nyu.png')
         this.load.image('footer_sep', 'assets/footer_sep.png')
+        this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png')
     }
 
 
@@ -109,6 +113,8 @@ class Scene1 extends BaseScene {
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
+        // Leaderboard
+        this.leaderboardManager = LeaderboardManager.getInstance();
 
         // Add confirmed listener for confirmedEvent to enemyManager
         this.centerObject.playerInputText.confirmedEvent.on(
@@ -124,13 +130,6 @@ class Scene1 extends BaseScene {
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
 
-
-        // Footer
-        let footerMarginBottom = 25;
-        let footerMarginLeft = 30;
-        this.footer = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
-        this.footerInitPosi = MakePoint(this.footer.inner);        
-        
 
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
@@ -149,7 +148,11 @@ class Scene1 extends BaseScene {
         // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         // this.hp.inner.y += 250;
 
-        this.uiLayerInGame = new UILayerInGame(this, this.abContainer, 0, 0)
+        this.hud = new Hud(this, this.abContainer, 0, 0);
+
+        this.ui = new UI(this, this.abContainer, 0, 0);
+        this.ui.hud = this.hud;
+
 
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
@@ -162,17 +165,22 @@ class Scene1 extends BaseScene {
 
 
         // Footer click event bind        
-        this.footer.badges[0].clickedEvent.on(()=>{
+        this.ui.footer.badges[0].clickedEvent.on(()=>{
             this.overlay.showAiDialog();
         });
 
-        this.footer.badges[1].clickedEvent.on(()=>{
+        this.ui.footer.badges[1].clickedEvent.on(()=>{
             this.overlay.showGoogleDialog();
         });
 
-        this.footer.badges[2].clickedEvent.on(()=>{
+        this.ui.footer.badges[2].clickedEvent.on(()=>{
             this.overlay.showAboutDialog();
         });
+
+        this.ui.leaderboardBtn.clickedEvent.on(()=>{
+            this.overlay.showLeaderBoardDialog();
+        });
+
 
 
         // Main FSM
@@ -277,6 +285,8 @@ class Scene1 extends BaseScene {
             this.subtitle.startMonologue();
             this.dwitterBKG.toBlinkMode();
             this.dwitterBKG.toBlinkMode();
+
+            LeaderboardManager.getInstance().updateInfo();
 
 
             let mainImage = this.centerObject.mainImage;
@@ -426,7 +436,7 @@ class Scene1 extends BaseScene {
         let state = this.mainFsm.getState("HomeToGameAnimation")
         state
             .addAction(s =>{
-                this.uiLayerInGame.show();
+                this.ui.gotoGame();
             })
             .addTweenAllAction(this, [
             // Rotate center to normal angle
@@ -443,17 +453,6 @@ class Scene1 extends BaseScene {
                 scale: 2,
                 duration: dt,
             },
-            // TODO
-            // {
-            //     targets: this.hp.inner,
-            //     y: this.hpInitPosi.y,
-            //     duration: dt,
-            // },
-            {
-                targets: this.footer.inner,
-                y: "+= 250",
-                duration: dt,
-            }
         ])
             .addDelayAction(this, 600)
             .addFinishAction();
@@ -479,7 +478,7 @@ class Scene1 extends BaseScene {
 
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
-            this.uiLayerInGame.reset();
+            this.hud.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             // Hide title and show speaker dots
@@ -506,7 +505,7 @@ class Scene1 extends BaseScene {
 
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let enemy = <Enemy>e;
-                this.uiLayerInGame.addScore(1000);
+                this.hud.addScore(1000);
             });
 
 
@@ -518,7 +517,7 @@ class Scene1 extends BaseScene {
 
         state.setOnExit(s => {
             this.normalGameFsm.stop();
-
+            LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);            
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
         })
@@ -585,7 +584,7 @@ class Scene1 extends BaseScene {
             })
             .addDelayAction(this, 300)
             .addAction(s =>{
-                this.uiLayerInGame.hide();
+                this.ui.gotoHome();
             })
             .addTweenAllAction(this, [
                 {
@@ -600,17 +599,7 @@ class Scene1 extends BaseScene {
                     scale: this.initDwitterScale,
                     duration: dt,
                 },
-                // TODO
-                // {
-                //     targets: this.hp.inner,
-                //     y: "+= 250",
-                //     duration: dt,
-                // },
-                {
-                    targets: this.footer.inner,
-                    y: this.footerInitPosi.y,
-                    duration: dt,
-                }
+               
             ])
             .addFinishAction();
     }

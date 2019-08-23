@@ -142,7 +142,7 @@ class Scene1 extends BaseScene {
         this.enemyManager;
     }
     get hp() {
-        return this.uiLayerInGame.hp;
+        return this.hud.hp;
     }
     preload() {
         this.load.image('circle', 'assets/circle.png');
@@ -153,6 +153,7 @@ class Scene1 extends BaseScene {
         this.load.image('footer_google', 'assets/footer_google.png');
         this.load.image('footer_nyu', 'assets/footer_nyu.png');
         this.load.image('footer_sep', 'assets/footer_sep.png');
+        this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png');
     }
     create() {
         this.container = this.add.container(400, 299);
@@ -161,6 +162,8 @@ class Scene1 extends BaseScene {
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
+        // Leaderboard
+        this.leaderboardManager = LeaderboardManager.getInstance();
         // Add confirmed listener for confirmedEvent to enemyManager
         this.centerObject.playerInputText.confirmedEvent.on(input => {
             this.enemyManager.inputTextConfirmed(input);
@@ -171,11 +174,6 @@ class Scene1 extends BaseScene {
         // Dwitters         
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
-        // Footer
-        let footerMarginBottom = 25;
-        let footerMarginLeft = 30;
-        this.footer = new Footer(this, this.abContainer, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
-        this.footerInitPosi = MakePoint(this.footer.inner);
         // Subtitle
         this.subtitle = new Subtitle(this, this.container, 0, 370);
         // Back button
@@ -188,7 +186,9 @@ class Scene1 extends BaseScene {
         // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
         // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         // this.hp.inner.y += 250;
-        this.uiLayerInGame = new UILayerInGame(this, this.abContainer, 0, 0);
+        this.hud = new Hud(this, this.abContainer, 0, 0);
+        this.ui = new UI(this, this.abContainer, 0, 0);
+        this.ui.hud = this.hud;
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
         this.died.hide();
@@ -197,14 +197,17 @@ class Scene1 extends BaseScene {
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
         gOverlay = this.overlay;
         // Footer click event bind        
-        this.footer.badges[0].clickedEvent.on(() => {
+        this.ui.footer.badges[0].clickedEvent.on(() => {
             this.overlay.showAiDialog();
         });
-        this.footer.badges[1].clickedEvent.on(() => {
+        this.ui.footer.badges[1].clickedEvent.on(() => {
             this.overlay.showGoogleDialog();
         });
-        this.footer.badges[2].clickedEvent.on(() => {
+        this.ui.footer.badges[2].clickedEvent.on(() => {
             this.overlay.showAboutDialog();
+        });
+        this.ui.leaderboardBtn.clickedEvent.on(() => {
+            this.overlay.showLeaderBoardDialog();
         });
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
@@ -285,6 +288,7 @@ class Scene1 extends BaseScene {
             this.subtitle.startMonologue();
             this.dwitterBKG.toBlinkMode();
             this.dwitterBKG.toBlinkMode();
+            LeaderboardManager.getInstance().updateInfo();
             let mainImage = this.centerObject.mainImage;
             s.autoSafeInOutClick(mainImage, e => {
                 this.centerObject.playerInputText.showTitle();
@@ -406,7 +410,7 @@ class Scene1 extends BaseScene {
         let state = this.mainFsm.getState("HomeToGameAnimation");
         state
             .addAction(s => {
-            this.uiLayerInGame.show();
+            this.ui.gotoGame();
         })
             .addTweenAllAction(this, [
             // Rotate center to normal angle
@@ -423,17 +427,6 @@ class Scene1 extends BaseScene {
                 scale: 2,
                 duration: dt,
             },
-            // TODO
-            // {
-            //     targets: this.hp.inner,
-            //     y: this.hpInitPosi.y,
-            //     duration: dt,
-            // },
-            {
-                targets: this.footer.inner,
-                y: "+= 250",
-                duration: dt,
-            }
         ])
             .addDelayAction(this, 600)
             .addFinishAction();
@@ -455,7 +448,7 @@ class Scene1 extends BaseScene {
         });
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
-            this.uiLayerInGame.reset();
+            this.hud.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             // Hide title and show speaker dots
@@ -477,7 +470,7 @@ class Scene1 extends BaseScene {
             });
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let enemy = e;
-                this.uiLayerInGame.addScore(1000);
+                this.hud.addScore(1000);
             });
             // Dead event handling
             s.autoOn(this.hp.deadEvent, null, e => {
@@ -486,6 +479,7 @@ class Scene1 extends BaseScene {
         });
         state.setOnExit(s => {
             this.normalGameFsm.stop();
+            LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
         });
@@ -542,7 +536,7 @@ class Scene1 extends BaseScene {
         })
             .addDelayAction(this, 300)
             .addAction(s => {
-            this.uiLayerInGame.hide();
+            this.ui.gotoHome();
         })
             .addTweenAllAction(this, [
             {
@@ -557,17 +551,6 @@ class Scene1 extends BaseScene {
                 scale: this.initDwitterScale,
                 duration: dt,
             },
-            // TODO
-            // {
-            //     targets: this.hp.inner,
-            //     y: "+= 250",
-            //     duration: dt,
-            // },
-            {
-                targets: this.footer.inner,
-                y: this.footerInitPosi.y,
-                duration: dt,
-            }
         ])
             .addFinishAction();
     }
@@ -1098,11 +1081,17 @@ function api(api, inputData, suc, err, dtType) {
         }
     });
 }
-function apiPromise(api, inputData, dtType) {
-    return new Promise((resolve, reject) => {
+function apiPromise(api, inputData, dtType, type) {
+    if (notSet(dtType)) {
+        dtType = "json";
+    }
+    if (notSet(type)) {
+        type = "Post";
+    }
+    let pm = new Promise((resolve, reject) => {
         $.ajax({
-            type: "POST",
-            dataType: 'json',
+            type: type,
+            dataType: dtType,
             contentType: 'application/json;charset=UTF-8',
             url: "/" + api,
             data: inputData,
@@ -1114,6 +1103,7 @@ function apiPromise(api, inputData, dtType) {
             }
         });
     });
+    return pm;
 }
 // API2 is to get the similarity between two strings
 function api2(input, suc, err) {
@@ -2433,17 +2423,9 @@ class Dialog extends Figure {
         let width = config.width;
         let height = config.height;
         // title
-        let titleStyle = getDefaultTextStyle();
-        titleStyle.fontSize = "40px";
-        this.title = this.scene.add.text(width / 2, config.padding + 50, config.title, titleStyle).setOrigin(0.5).setAlign('center');
-        this.othersContainer.add(this.title);
+        this.fillTitle();
         // content
-        let contentStyle = getDefaultTextStyle();
-        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
-        this.content.setFontSize(28);
-        this.content.setOrigin(0, 0).setAlign('left');
-        this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
-        this.othersContainer.add(this.content);
+        this.fillContent();
         // OK btn
         // If fixed height, btn's position is anchored to the bottom
         // If auto height, btn's position is anchored to the content
@@ -2455,12 +2437,35 @@ class Dialog extends Figure {
         this.okBtn.ignoreOverlay = true;
         this.calcUiPosi();
     }
+    fillTitle() {
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let titleStyle = getDefaultTextStyle();
+        titleStyle.fontSize = "40px";
+        this.title = this.scene.add.text(width / 2, config.padding + 50, config.title, titleStyle).setOrigin(0.5).setAlign('center');
+        this.othersContainer.add(this.title);
+    }
+    fillContent() {
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let contentStyle = getDefaultTextStyle();
+        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
+        this.content.setFontSize(28);
+        this.content.setOrigin(0, 0).setAlign('left');
+        this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
+        this.othersContainer.add(this.content);
+    }
+    getContentBottomCenterY() {
+        return this.content.getBottomCenter().y;
+    }
     calcUiPosi() {
         let btnY = 0;
         let height = this.config.height;
         let config = this.config;
         if (config.autoHeight) {
-            btnY = this.content.getBottomCenter().y + config.contentBtnGap;
+            btnY = this.getContentBottomCenterY() + config.contentBtnGap;
             this.okBtn.inner.y = btnY;
             let newHeight = btnY + config.btnToBottom;
             this.setSize(config.width, newHeight);
@@ -2512,6 +2517,68 @@ class Dialog extends Figure {
         this.inner.setVisible(false);
     }
 }
+class LeaderboardDialog extends Dialog {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, config);
+    }
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.itemCount))
+            config.itemCount = 10;
+    }
+    getContentBottomCenterY() {
+        return this.col2[this.col2.length - 1].getBottomCenter().y;
+    }
+    fillContent() {
+        this.col1 = [];
+        this.col2 = [];
+        if (!this.items)
+            this.items = [];
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let contentStyle = getDefaultTextStyle();
+        let lastY = this.title.getBottomCenter().y + config.titleContentGap;
+        for (let i = 0; i < config.itemCount; i++) {
+            let item = this.items[i];
+            let name = item ? item.name : "";
+            let scroe = item ? item.score + "" : "";
+            if (name.length > 15) {
+                name = name.substr(0, 15);
+            }
+            let td1 = this.scene.add.text(width / 2 - 180, lastY, name, contentStyle);
+            td1.setFontSize(28);
+            td1.setOrigin(0, 0).setAlign('left');
+            this.col1.push(td1);
+            this.othersContainer.add(td1);
+            let td2 = this.scene.add.text(width / 2 + 90, lastY, scroe, contentStyle);
+            td2.setFontSize(28);
+            td2.setOrigin(0, 0).setAlign('left');
+            this.col2.push(td2);
+            this.othersContainer.add(td2);
+            lastY = td1.getBottomCenter().y + 4;
+        }
+    }
+    setContentItems(items, title) {
+        this.items = items;
+        let config = this.config;
+        for (let i = 0; i < config.itemCount; i++) {
+            let item = this.items[i];
+            let name = item ? item.name : "";
+            let scroe = item ? item.score + "" : "";
+            if (name.length > 15) {
+                name = name.substr(0, 15);
+            }
+            this.col1[i].text = name;
+            this.col2[i].text = scroe;
+        }
+        this.config.title = title;
+        this.title.text = title;
+        if (this.config.autoHeight) {
+            this.calcUiPosi();
+        }
+    }
+}
 /**
  * The anchor of footer is bottom-left
  */
@@ -2542,6 +2609,20 @@ class Footer extends Wrapper {
         }
         let picH = this.badges[0].image.displayHeight;
         this.inner.setScale(overallHeight / picH);
+    }
+    show() {
+        this.scene.tweens.add({
+            targets: this.inner,
+            y: "-= 250",
+            duration: 1000,
+        });
+    }
+    hide() {
+        this.scene.tweens.add({
+            targets: this.inner,
+            y: "+= 250",
+            duration: 1000,
+        });
     }
 }
 var farray = [];
@@ -3306,6 +3387,90 @@ class HP extends Wrapper {
         this.innerProgress.setSize(this.progressMaxWidth);
     }
 }
+class Hud extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.score = 0;
+        this.inShow = false;
+        let hpBottom = 36;
+        let hpLeft = 36;
+        this.hp = new HP(scene, this.inner, hpLeft, phaserConfig.scale.height - hpBottom);
+        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        this.hp.inner.y += 250; // hide it at beginning
+        let style = getDefaultTextStyle();
+        style.fontSize = '44px';
+        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
+        this.scoreText.y += 250;
+        this.inner.add(this.scoreText);
+    }
+    addScore(inc) {
+        this.score += inc;
+        this.refreshScore();
+    }
+    refreshScore() {
+        this.scoreText.text = "Score: " + this.score;
+    }
+    reset() {
+        this.score = 0;
+        this.refreshScore();
+        this.hp.reset();
+    }
+    show() {
+        this.inShow = true;
+        this.inTwenn = this.scene.tweens.add({
+            targets: [this.hp.inner, this.scoreText],
+            y: "-= 250",
+            duration: 1000,
+        });
+    }
+    hide() {
+        this.inShow = false;
+        this.outTween = this.scene.tweens.add({
+            targets: [this.hp.inner, this.scoreText],
+            y: "+= 250",
+            duration: 1000,
+        });
+    }
+}
+class LeaderboardManager {
+    static getInstance() {
+        if (!LeaderboardManager.instance) {
+            LeaderboardManager.instance = new LeaderboardManager();
+        }
+        return LeaderboardManager.instance;
+    }
+    constructor() {
+        this.updateInfo();
+    }
+    updateInfo() {
+        let request = { count: 10 };
+        let pm = apiPromise('api/leaderboard', request, 'json', 'GET')
+            .then(val => {
+            this.items = val;
+            console.log(val);
+        }, err => {
+            console.log('Failed to fetch leaderboard info');
+        });
+        return pm;
+    }
+    serializedContent(showCount = 10) {
+        if (!this.items)
+            return "";
+        for (let i = 0; i < showCount; i++) {
+        }
+    }
+    reportScore(name, score) {
+        let request = { name: name, score: score };
+        let pm = apiPromise('api/leaderboard', JSON.stringify(request), 'json', 'POST')
+            .then(val => {
+            this.updateInfo();
+            // console.log('Suc to report leaderboard info');                    
+        }, err => {
+            // console.log('Failed to report leaderboard score');                    
+        });
+        return pm;
+    }
+}
 var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `;
 var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:
@@ -3340,7 +3505,8 @@ class Overlay extends Wrapper {
             originY: 0.5,
         });
         this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
-        this.dialog = new Dialog(this.scene, this.inner, 0, 0, {
+        // uni
+        this.uniDialog = new Dialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
             lineWidth: 6,
@@ -3355,27 +3521,57 @@ class Overlay extends Wrapper {
             content: nyuAbout,
             autoHeight: true
         });
-        this.dialog.setOrigin(0.5, 0.5);
-        this.dialog.okBtn.clickedEvent.on(() => {
+        this.uniDialog.setOrigin(0.5, 0.5);
+        this.uniDialog.okBtn.clickedEvent.on(() => {
             this.hide();
+            this.uniDialog.hide();
         });
-        this.dialog.inner.setVisible(false);
+        this.uniDialog.inner.setVisible(false);
+        // leaderboard
+        this.leaderboardDialog = new LeaderboardDialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 600,
+            height: 1000,
+            title: 'About',
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
+            content: nyuAbout,
+            autoHeight: true,
+            itemCount: 18,
+        });
+        this.leaderboardDialog.setOrigin(0.5, 0.5);
+        this.leaderboardDialog.okBtn.clickedEvent.on(() => {
+            this.hide();
+            this.leaderboardDialog.hide();
+        });
+        this.uniDialog.hide();
+        this.leaderboardDialog.hide();
         this.hide();
     }
     showAiDialog() {
-        this.dialog.setContent(aiAbout, "A.I. Experiment");
+        this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
-        this.dialog.show();
+        this.uniDialog.show();
     }
     showAboutDialog() {
-        this.dialog.setContent(nyuAbout, "NYU Game Center");
+        this.uniDialog.setContent(nyuAbout, "NYU Game Center");
         this.show();
-        this.dialog.show();
+        this.uniDialog.show();
     }
     showGoogleDialog() {
-        this.dialog.setContent(googleAbout, "Solutions");
+        this.uniDialog.setContent(googleAbout, "Solutions");
         this.show();
-        this.dialog.show();
+        this.uniDialog.show();
+    }
+    showLeaderBoardDialog() {
+        this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
+        this.show();
+        this.leaderboardDialog.show();
     }
     show() {
         this.inShow = true;
@@ -4211,47 +4407,40 @@ class Subtitle extends Wrapper {
         this.hideText();
     }
 }
-class UILayerInGame extends Wrapper {
+class UI extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
-        this.score = 0;
-        this.inShow = false;
-        let hpBottom = 36;
-        let hpLeft = 36;
-        this.hp = new HP(scene, this.inner, hpLeft, phaserConfig.scale.height - hpBottom);
-        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
-        this.hp.inner.y += 250; // hide it at beginning
-        let style = getDefaultTextStyle();
-        style.fontSize = '44px';
-        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
-        this.scoreText.y += 250;
-        this.inner.add(this.scoreText);
+        let footerMarginBottom = 25;
+        let footerMarginLeft = 30;
+        this.footer = new Footer(this.scene, this.inner, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
+        this.footerInitPosi = MakePoint(this.footer.inner);
+        this.leaderboardBtn = new Button(this.scene, this.inner, getLogicWidth() - 30, phaserConfig.scale.height - 25, 'leaderboard_icon', '', undefined, undefined, false, 1, 1);
+        this.leaderboardBtn.image.setOrigin(1, 1);
+        this.leaderboardBtn.inner.scale = 0.6;
+        this.leaderboardBtn.needInOutAutoAnimation = false;
+        this.leaderboardBtn.needHandOnHover = true;
     }
-    addScore(inc) {
-        this.score += inc;
-        this.refreshScore();
+    gotoGame() {
+        this.hud.show();
+        this.footer.hide();
+        this.down(this.leaderboardBtn.inner);
     }
-    refreshScore() {
-        this.scoreText.text = "Score: " + this.score;
+    gotoHome() {
+        this.hud.hide();
+        this.footer.show();
+        this.up(this.leaderboardBtn.inner);
     }
-    reset() {
-        this.score = 0;
-        this.refreshScore();
-        this.hp.reset();
-    }
-    show() {
-        this.inShow = true;
-        this.inTwenn = this.scene.tweens.add({
-            targets: [this.hp.inner, this.scoreText],
-            y: "-= 250",
+    down(target) {
+        this.scene.tweens.add({
+            targets: target,
+            y: "+= 250",
             duration: 1000,
         });
     }
-    hide() {
-        this.inShow = false;
-        this.outTween = this.scene.tweens.add({
-            targets: [this.hp.inner, this.scoreText],
-            y: "+= 250",
+    up(target) {
+        this.scene.tweens.add({
+            targets: target,
+            y: "-= 250",
             duration: 1000,
         });
     }

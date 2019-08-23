@@ -1,4 +1,4 @@
-class UILayerInGame extends Wrapper<PhText> {
+class Hud extends Wrapper<PhText> {
 
 
     hp: HP;

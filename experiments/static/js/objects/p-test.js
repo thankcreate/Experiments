@@ -215,6 +215,15 @@
 
 // console.log(window)
 
-var cc
-if(cc)
-    console.log('haha')
+// var cc
+// if(cc)
+//     console.log('haha')
+
+cc = "haha"
+
+dic = {
+    cc: cc,
+    a: 1
+}
+
+console.log(JSON.stringify(dic))

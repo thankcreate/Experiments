@@ -4,15 +4,23 @@ from experiments.models import Leaderboard
 from flask import request, render_template, jsonify, send_file, Response, redirect, url_for, send_from_directory, send_from_directory
 
 import json
-
+import sys
 @bp.route('/api/leaderboard', methods=['GET'])
-def get_leaderboard():    
-    items = Leaderboard.query.order_by(Leaderboard.score.desc()).all()
+def get_leaderboard():       
+    
+    ct = request.args.get('count')
+    if not ct:
+        ct = 50  
+    
+    items = Leaderboard.query.order_by(Leaderboard.score.desc()).limit(ct).all()
+    
     response = jsonify([i.serialize for i in items])
     return response
 
 @bp.route('/api/leaderboard', methods=['POST'])
 def post_leaderboard(): 
+    print('TronTron2' + request.get_data(as_text=True) , file=sys.stderr)
+
     data = json.loads(request.get_data(as_text=True))    
     name = data['name']
     score = data['score']

@@ -44,15 +44,23 @@ function api(api: string, inputData: string, suc?: (arg0: any) => any, err?: (ar
     });
 }
 
-function apiPromise(api: string, inputData: string, dtType?: string) : Pany{
-    return new Promise((resolve, reject) => {
+function apiPromise(api: string, inputData: string | object, dtType?: string, type?: string) : Pany{
+    if(notSet(dtType)) {
+        dtType = "json";
+    }
+
+    if(notSet(type)) {
+        type = "Post";
+    }
+
+    let pm = new Promise((resolve, reject) => {
         $.ajax({
-            type: "POST",
-            dataType: 'json',
+            type: type,
+            dataType: dtType,
             contentType: 'application/json;charset=UTF-8',
             url: "/" + api,
-            data: inputData,
-            success: function (result) {
+            data: inputData,            
+            success: function (result) { 
                 resolve(result);
             },
             error: function (result) {
@@ -60,6 +68,7 @@ function apiPromise(api: string, inputData: string, dtType?: string) : Pany{
             }
         });
     });
+    return pm;
 }
 
 // API2 is to get the similarity between two strings

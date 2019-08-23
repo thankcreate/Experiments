@@ -2,8 +2,8 @@
  * The anchor of footer is bottom-left
  */
 class Footer extends Wrapper<PhText> {
-    badges: Button[] = [];
-
+    badges: Button[] = [];    
+    
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, overallHeight: number) {
         super(scene, parentContainer, x, y, null);
 
@@ -36,5 +36,22 @@ class Footer extends Wrapper<PhText> {
 
         let picH = this.badges[0].image.displayHeight;
         this.inner.setScale(overallHeight / picH);
+    }
+
+    show() {
+         this.scene.tweens.add({
+            targets: this.inner,
+            y: "-= 250",
+            duration: 1000,
+        })
+
+    }
+
+    hide() {
+        this.scene.tweens.add({
+            targets: this.inner,
+            y: "+= 250",
+            duration: 1000,
+        })
     }
 }

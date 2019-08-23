@@ -23,7 +23,8 @@ class Overlay extends Wrapper<PhText> {
     
     bkg: Rect;
 
-    dialog: Dialog;
+    uniDialog: Dialog;
+    leaderboardDialog: LeaderboardDialog;
     inShow: boolean = false;
 
     inTween: PhTween;
@@ -48,8 +49,8 @@ class Overlay extends Wrapper<PhText> {
          this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
 
          
-
-         this.dialog =  new Dialog(this.scene, this.inner, 0, 0, {
+         // uni
+         this.uniDialog =  new Dialog(this.scene, this.inner, 0, 0, {
              fillColor: 0xbbbbbb,
              lineColor: 0x000000,
              lineWidth: 6,
@@ -64,31 +65,64 @@ class Overlay extends Wrapper<PhText> {
              content: nyuAbout,
              autoHeight: true
          });
-         this.dialog.setOrigin(0.5, 0.5);
-         this.dialog.okBtn.clickedEvent.on(()=>{
+         this.uniDialog.setOrigin(0.5, 0.5);
+         this.uniDialog.okBtn.clickedEvent.on(()=>{
             this.hide();
+            this.uniDialog.hide();
          });
 
-        this.dialog.inner.setVisible(false);
+        this.uniDialog.inner.setVisible(false);
+
+        // leaderboard
+        this.leaderboardDialog =  new LeaderboardDialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 600,
+            height: 1000,
+            title: 'About',
+            titleContentGap: 40, 
+            contentPadding: 60, 
+            contentBtnGap: 30, 
+            btnToBottom: 65,                   
+            content: nyuAbout,
+            autoHeight: true,
+            itemCount: 18,
+        });
+        this.leaderboardDialog.setOrigin(0.5, 0.5);
+        this.leaderboardDialog.okBtn.clickedEvent.on(()=>{
+            this.hide();
+            this.leaderboardDialog.hide();
+        });
+
+        this.uniDialog.hide();
+        this.leaderboardDialog.hide();
         this.hide();
     } 
 
     showAiDialog() {
-        this.dialog.setContent(aiAbout, "A.I. Experiment");
+        this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
-        this.dialog.show();
+        this.uniDialog.show();
     }
 
-    showAboutDialog() {
-        this.dialog.setContent(nyuAbout, "NYU Game Center");
+    showAboutDialog() {        
+        this.uniDialog.setContent(nyuAbout, "NYU Game Center");
         this.show();
-        this.dialog.show();
+        this.uniDialog.show();
     }
 
     showGoogleDialog() {
-        this.dialog.setContent(googleAbout, "Solutions");
+        this.uniDialog.setContent(googleAbout, "Solutions");
         this.show();
-        this.dialog.show();
+        this.uniDialog.show();
+    }
+
+    showLeaderBoardDialog() {        
+        this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
+        this.show();
+        this.leaderboardDialog.show();
     }
 
 

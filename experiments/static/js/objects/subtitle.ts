@@ -24,6 +24,8 @@ class Subtitle extends Wrapper<PhText> {
     inTween: PhTween;
     outTween: PhTween;
 
+    forceNextRejectHandler: (err:any)=>void ;
+
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
 
@@ -41,6 +43,8 @@ class Subtitle extends Wrapper<PhText> {
 
         // this.showMonologue(this.monologueIndex);
         // this.startMonologue();
+
+        $(document).keydown(this.keydown.bind(this));
     }
 
     startMonologue() {
@@ -151,6 +155,7 @@ class Subtitle extends Wrapper<PhText> {
                 console.log("subtitle loadAndSay error: " + e) 
             });
 
+    
         let fitToMinStay = TimeOutAll.create(normalPlayProcess, minStay, true)
             .then(s=>{
                 if(autoHideAfter) {
@@ -162,9 +167,26 @@ class Subtitle extends Wrapper<PhText> {
                 }                    
             });
 
-        return fitToMinStay;
+        let rejectorPromise = new Promise((resolve, reject) =>{
+            this.forceNextRejectHandler = reject;
+        });
+            
+        let considerForceNext = Promise.race([fitToMinStay, rejectorPromise]);
+        return considerForceNext;
     }
 
+    keydown(event) {
+        var code = event.keyCode;
+        if (code == Phaser.Input.Keyboard.KeyCodes.CTRL ) {
+            this.forceNext();
+        }
+    }
+    
+    forceNext() {
+        this.forceStopAndHideSubtitles();
+        if(this.forceNextRejectHandler)
+            this.forceNextRejectHandler('forceNext invoked');
+    }
 
     forceStopAndHideSubtitles() {
         this.scene.getSpeechManager().stopAndClearCurrentPlaying();

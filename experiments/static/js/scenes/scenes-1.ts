@@ -54,7 +54,8 @@ class Scene1 extends BaseScene {
     subtitle: Subtitle;
     backBtn: Button;
 
-    hp: HP;
+    uiLayerInGame: UILayerInGame;
+    private _hp: HP;
     died: Died;
 
     footerInitPosi: PhPoint;
@@ -79,6 +80,10 @@ class Scene1 extends BaseScene {
         this.container;
 
         this.enemyManager;
+    }
+
+    get hp(): HP {
+        return this.uiLayerInGame.hp;
     }
 
     preload() {
@@ -138,11 +143,13 @@ class Scene1 extends BaseScene {
 
 
         // HP        
-        let hpBottom = 36;
-        let hpLeft = 36;
-        this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
-        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
-        this.hp.inner.y += 250;
+        // let hpBottom = 36;
+        // let hpLeft = 36;
+        // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
+        // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        // this.hp.inner.y += 250;
+
+        this.uiLayerInGame = new UILayerInGame(this, this.abContainer, 0, 0)
 
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
@@ -417,7 +424,11 @@ class Scene1 extends BaseScene {
     initStHomeToGameAnimation() {
         let dt = 1000;
         let state = this.mainFsm.getState("HomeToGameAnimation")
-        state.addTweenAllAction(this, [
+        state
+            .addAction(s =>{
+                this.uiLayerInGame.show();
+            })
+            .addTweenAllAction(this, [
             // Rotate center to normal angle
             {
                 targets: this.centerObject.inner,
@@ -432,11 +443,12 @@ class Scene1 extends BaseScene {
                 scale: 2,
                 duration: dt,
             },
-            {
-                targets: this.hp.inner,
-                y: this.hpInitPosi.y,
-                duration: dt,
-            },
+            // TODO
+            // {
+            //     targets: this.hp.inner,
+            //     y: this.hpInitPosi.y,
+            //     duration: dt,
+            // },
             {
                 targets: this.footer.inner,
                 y: "+= 250",
@@ -467,6 +479,7 @@ class Scene1 extends BaseScene {
 
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
+            this.uiLayerInGame.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             // Hide title and show speaker dots
@@ -490,6 +503,12 @@ class Scene1 extends BaseScene {
                 let enemy = <Enemy>e;
                 this.hp.damageBy(enemy.health);
             });
+
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+                let enemy = <Enemy>e;
+                this.uiLayerInGame.addScore(1000);
+            });
+
 
             // Dead event handling
             s.autoOn(this.hp.deadEvent, null, e => {
@@ -540,7 +559,7 @@ class Scene1 extends BaseScene {
         })
 
         state.setOnExit(() => {
-            this.hp.reset();
+            
             this.enemyManager.stopSpawnAndClear();
             this.died.hide();
             this.normalGameFsm.restart(true);
@@ -565,6 +584,9 @@ class Scene1 extends BaseScene {
                 this.backBtn.setEnable(false, true);
             })
             .addDelayAction(this, 300)
+            .addAction(s =>{
+                this.uiLayerInGame.hide();
+            })
             .addTweenAllAction(this, [
                 {
                     targets: this.centerObject.inner,
@@ -578,11 +600,12 @@ class Scene1 extends BaseScene {
                     scale: this.initDwitterScale,
                     duration: dt,
                 },
-                {
-                    targets: this.hp.inner,
-                    y: "+= 250",
-                    duration: dt,
-                },
+                // TODO
+                // {
+                //     targets: this.hp.inner,
+                //     y: "+= 250",
+                //     duration: dt,
+                // },
                 {
                     targets: this.footer.inner,
                     y: this.footerInitPosi.y,

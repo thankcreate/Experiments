@@ -141,6 +141,9 @@ class Scene1 extends BaseScene {
         this.container;
         this.enemyManager;
     }
+    get hp() {
+        return this.uiLayerInGame.hp;
+    }
     preload() {
         this.load.image('circle', 'assets/circle.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
@@ -180,11 +183,12 @@ class Scene1 extends BaseScene {
         this.backBtn.text.setColor('#000000');
         this.backBtn.text.setFontSize(44);
         // HP        
-        let hpBottom = 36;
-        let hpLeft = 36;
-        this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
-        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
-        this.hp.inner.y += 250;
+        // let hpBottom = 36;
+        // let hpLeft = 36;
+        // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
+        // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        // this.hp.inner.y += 250;
+        this.uiLayerInGame = new UILayerInGame(this, this.abContainer, 0, 0);
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
         this.died.hide();
@@ -400,7 +404,11 @@ class Scene1 extends BaseScene {
     initStHomeToGameAnimation() {
         let dt = 1000;
         let state = this.mainFsm.getState("HomeToGameAnimation");
-        state.addTweenAllAction(this, [
+        state
+            .addAction(s => {
+            this.uiLayerInGame.show();
+        })
+            .addTweenAllAction(this, [
             // Rotate center to normal angle
             {
                 targets: this.centerObject.inner,
@@ -415,11 +423,12 @@ class Scene1 extends BaseScene {
                 scale: 2,
                 duration: dt,
             },
-            {
-                targets: this.hp.inner,
-                y: this.hpInitPosi.y,
-                duration: dt,
-            },
+            // TODO
+            // {
+            //     targets: this.hp.inner,
+            //     y: this.hpInitPosi.y,
+            //     duration: dt,
+            // },
             {
                 targets: this.footer.inner,
                 y: "+= 250",
@@ -446,6 +455,7 @@ class Scene1 extends BaseScene {
         });
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
+            this.uiLayerInGame.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             // Hide title and show speaker dots
@@ -464,6 +474,10 @@ class Scene1 extends BaseScene {
             s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
                 let enemy = e;
                 this.hp.damageBy(enemy.health);
+            });
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+                let enemy = e;
+                this.uiLayerInGame.addScore(1000);
             });
             // Dead event handling
             s.autoOn(this.hp.deadEvent, null, e => {
@@ -507,7 +521,6 @@ class Scene1 extends BaseScene {
             });
         });
         state.setOnExit(() => {
-            this.hp.reset();
             this.enemyManager.stopSpawnAndClear();
             this.died.hide();
             this.normalGameFsm.restart(true);
@@ -528,6 +541,9 @@ class Scene1 extends BaseScene {
             this.backBtn.setEnable(false, true);
         })
             .addDelayAction(this, 300)
+            .addAction(s => {
+            this.uiLayerInGame.hide();
+        })
             .addTweenAllAction(this, [
             {
                 targets: this.centerObject.inner,
@@ -541,11 +557,12 @@ class Scene1 extends BaseScene {
                 scale: this.initDwitterScale,
                 duration: dt,
             },
-            {
-                targets: this.hp.inner,
-                y: "+= 250",
-                duration: dt,
-            },
+            // TODO
+            // {
+            //     targets: this.hp.inner,
+            //     y: "+= 250",
+            //     duration: dt,
+            // },
             {
                 targets: this.footer.inner,
                 y: this.footerInitPosi.y,
@@ -4073,6 +4090,7 @@ class Subtitle extends Wrapper {
         // this.monologueIndex = 1;
         // this.showMonologue(this.monologueIndex);
         // this.startMonologue();
+        $(document).keydown(this.keydown.bind(this));
     }
     startMonologue() {
         this.changeMonologue();
@@ -4171,11 +4189,71 @@ class Subtitle extends Wrapper {
                     return this.hideText();
             }
         });
-        return fitToMinStay;
+        let rejectorPromise = new Promise((resolve, reject) => {
+            this.forceNextRejectHandler = reject;
+        });
+        let considerForceNext = Promise.race([fitToMinStay, rejectorPromise]);
+        return considerForceNext;
+    }
+    keydown(event) {
+        var code = event.keyCode;
+        if (code == Phaser.Input.Keyboard.KeyCodes.CTRL) {
+            this.forceNext();
+        }
+    }
+    forceNext() {
+        this.forceStopAndHideSubtitles();
+        if (this.forceNextRejectHandler)
+            this.forceNextRejectHandler('forceNext invoked');
     }
     forceStopAndHideSubtitles() {
         this.scene.getSpeechManager().stopAndClearCurrentPlaying();
         this.hideText();
+    }
+}
+class UILayerInGame extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.score = 0;
+        this.inShow = false;
+        let hpBottom = 36;
+        let hpLeft = 36;
+        this.hp = new HP(scene, this.inner, hpLeft, phaserConfig.scale.height - hpBottom);
+        this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        this.hp.inner.y += 250; // hide it at beginning
+        let style = getDefaultTextStyle();
+        style.fontSize = '44px';
+        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
+        this.scoreText.y += 250;
+        this.inner.add(this.scoreText);
+    }
+    addScore(inc) {
+        this.score += inc;
+        this.refreshScore();
+    }
+    refreshScore() {
+        this.scoreText.text = "Score: " + this.score;
+    }
+    reset() {
+        this.score = 0;
+        this.refreshScore();
+        this.hp.reset();
+    }
+    show() {
+        this.inShow = true;
+        this.inTwenn = this.scene.tweens.add({
+            targets: [this.hp.inner, this.scoreText],
+            y: "-= 250",
+            duration: 1000,
+        });
+    }
+    hide() {
+        this.inShow = false;
+        this.outTween = this.scene.tweens.add({
+            targets: [this.hp.inner, this.scoreText],
+            y: "+= 250",
+            duration: 1000,
+        });
     }
 }
 let code = `

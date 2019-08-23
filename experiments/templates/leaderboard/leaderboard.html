@@ -1,20 +1,43 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
 
-<form action="{{ url_for('leaderboard.addLeaderboardItem') }}" method="post">
-    <div class="form-group">
-        <label for="name">Name:</label>
-        <input type="text" maxlength="100" name="name" placeholder="Name" autofocus>
 
-        <label for="score">Score:</label>
-        <input maxlength="100" name="score" placeholder="score">
-        <button type="submit">Add</button>
-        <button type="button" onclick="location.href='{{ url_for('leaderboard.deleteLeaderboardItemAll') }}'">Remove
-            All</button>
-    </div>
+<form action="{{ url_for('leaderboard.addLeaderboardItem') }}" method="post">
+  <div class="form-inline">
+    <input class="form-control" type="text" maxlength="100" name="name" placeholder="Name" autofocus>
+    <input class="form-control" maxlength="100" name="score" placeholder="Score">
+    <button class="btn btn-primary mb-2" type="submit">Add</button>
+    <button class="btn btn-primary mb-2" type="button"
+      onclick="location.href='{{ url_for('leaderboard.deleteLeaderboardItemAll') }}'">Remove
+      All</button>
+  </div>
 </form>
 
+<br>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Score</th>
+      <th scope="col">Operation</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in leaderboard %}
+    <tr>
+      <td>{{item.username}}</td>
+      <td>{{item.score}}</td>
+      <td>
+        <a href="{{url_for('leaderboard.deleteLeaderboardItem', item_id = item.id )}}">Delete
+        </a> 
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{# 
 <ol>
     {% for item in leaderboard %}
     <li>Name: {{item.username}} Scroe:{{item.score}} </li>
@@ -24,5 +47,5 @@
     </a>
     <br> <br>
     {% endfor %}
-</ol>
+</ol> #}
 {% endblock %}

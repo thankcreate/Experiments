@@ -2,6 +2,7 @@ from . import bp
 from experiments import db
 from experiments.models import Leaderboard
 from flask import request, render_template, jsonify, send_file, Response, redirect, url_for, send_from_directory, send_from_directory
+
 import json
 
 @bp.route('/api/leaderboard', methods=['GET'])
@@ -45,7 +46,11 @@ def addLeaderboardItemInner(name, score):
 @bp.route('/leaderboard') 
 def showLeaderboard():
     leaderboard = Leaderboard.query.order_by(Leaderboard.score.desc()).all()
-    return render_template("leaderboard/leaderboard.html", leaderboard=leaderboard, title='Leaderboard')
+
+    return render_template("leaderboard/leaderboard.html", 
+        leaderboard=leaderboard, 
+        title='Leaderboard'
+        )
 
 @bp.route('/leaderboard/<int:item_id>/delete/', methods = ['GET','POST'])
 def deleteLeaderboardItem(item_id):

@@ -21,7 +21,7 @@ class LeaderboardManager {
     }
 
     updateInfo(): Pany {
-        let request = {count: 10};
+        let request = {count: 30};
         let pm = apiPromise('api/leaderboard', request, 'json', 'GET')
             .then(
                 val => {
@@ -34,14 +34,6 @@ class LeaderboardManager {
         return pm;
     }
 
-    serializedContent(showCount: integer = 10) {
-        if(!this.items)
-            return "";
-        
-        for(let i = 0; i < showCount; i++) {
-            
-        }
-    }
 
     reportScore(name: string, score: number) {
         let request = {name: name, score: score};

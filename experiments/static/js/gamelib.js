@@ -3510,7 +3510,7 @@ class LeaderboardManager {
         this.updateInfo();
     }
     updateInfo() {
-        let request = { count: 10 };
+        let request = { count: 30 };
         let pm = apiPromise('api/leaderboard', request, 'json', 'GET')
             .then(val => {
             this.items = val;
@@ -3519,12 +3519,6 @@ class LeaderboardManager {
             console.log('Failed to fetch leaderboard info');
         });
         return pm;
-    }
-    serializedContent(showCount = 10) {
-        if (!this.items)
-            return "";
-        for (let i = 0; i < showCount; i++) {
-        }
     }
     reportScore(name, score) {
         let request = { name: name, score: score };

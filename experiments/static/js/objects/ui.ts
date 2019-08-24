@@ -25,6 +25,7 @@ class UI extends Wrapper<PhText>{
     mode: GameMode;
     gotoGame(mode: GameMode){
         this.mode = mode;
+        this.hud.reset();
         this.hud.show(mode);
         this.footer.hide();
         this.down(this.leaderboardBtn.inner);

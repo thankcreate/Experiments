@@ -484,6 +484,7 @@ class Scene1 extends BaseScene {
         let state = this.mainFsm.getState("HomeToGameAnimation")
         state
             .addAction(s => {
+               
                 this.ui.gotoGame(this.mode);
             })
             .addTweenAllAction(this, [

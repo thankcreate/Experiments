@@ -4483,6 +4483,7 @@ class UI extends Wrapper {
     }
     gotoGame(mode) {
         this.mode = mode;
+        this.hud.reset();
         this.hud.show(mode);
         this.footer.hide();
         this.down(this.leaderboardBtn.inner);

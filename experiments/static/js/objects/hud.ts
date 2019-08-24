@@ -43,20 +43,33 @@ class Hud extends Wrapper<PhText> {
         this.hp.reset();
     }
 
-    show() {
+    show(mode: GameMode) {
         this.inShow = true;
+        let tg = [];
+        if(mode === GameMode.Normal)
+            tg = [this.hp.inner, this.scoreText]
+        else
+            tg = [this.scoreText]
+
         this.inTwenn = this.scene.tweens.add({
-            targets: [this.hp.inner, this.scoreText],
+            targets: tg,
             y: "-= 250",
             duration: 1000,
         })
 
     }
 
-    hide() {
+    hide(mode: GameMode) {
         this.inShow = false;
+
+        let tg = [];
+        if(mode === GameMode.Normal)
+            tg = [this.hp.inner, this.scoreText]
+        else
+            tg = [this.scoreText]
+
         this.outTween = this.scene.tweens.add({
-            targets: [this.hp.inner, this.scoreText],
+            targets: tg,
             y: "+= 250",
             duration: 1000,
         })

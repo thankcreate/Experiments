@@ -123,7 +123,8 @@ var Counter;
     Counter[Counter["None"] = 0] = "None";
     Counter[Counter["IntoHome"] = 1] = "IntoHome";
     Counter[Counter["IntoNormalMode"] = 2] = "IntoNormalMode";
-    Counter[Counter["Story0Finished"] = 3] = "Story0Finished";
+    Counter[Counter["IntoZenMode"] = 3] = "IntoZenMode";
+    Counter[Counter["Story0Finished"] = 4] = "Story0Finished";
 })(Counter || (Counter = {}));
 let gOverlay;
 class Scene1 extends BaseScene {
@@ -212,9 +213,45 @@ class Scene1 extends BaseScene {
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
+        this.zenFsm = new Fsm(this, this.getZenFsm());
         this.initMainFsm();
         this.initNormalGameFsm();
+        this.initZenFsm();
         // Sub FSM: normal game
+    }
+    initZenFsm() {
+        this.initStZenStart();
+        this.initStZenIntro();
+        this.updateObjects.push(this.zenFsm);
+    }
+    initStZenStart() {
+        let state = this.zenFsm.getState("ZenStart");
+        state
+            .addAction(s => {
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
+        })
+            .addDelayAction(this, 1500)
+            .addAction(s => {
+            if (this.firstIntoZenMode()) {
+                s.event('TO_FIRST_INTRODUCTION');
+            }
+        });
+    }
+    initStZenIntro() {
+        let state = this.zenFsm.getState("ZenIntro");
+        state
+            .addSubtitleAction(this.subtitle, s => {
+            return "Interesting!";
+        }, true, 2000, 3000, 500)
+            .addSubtitleAction(this.subtitle, s => {
+            return "I never expect that someone would really choose the Zen mode.";
+        }, true, 2000, 3000, 1000)
+            .addSubtitleAction(this.subtitle, s => {
+            return "No wonder they call you " + this.playerName + ".\nI begin to wonder who you really are.";
+        }, true, 2000, 3000, 1500)
+            .addSubtitleAction(this.subtitle, s => {
+            return "We have plenty of time. Just enjoy yourself, please.";
+        }, true, 2000, 3000, 1500);
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -241,6 +278,9 @@ class Scene1 extends BaseScene {
     }
     getNormalGameFsm() {
         return normalGameFsm;
+    }
+    getZenFsm() {
+        return zenFsm;
     }
     initMainFsm() {
         this.initStHome();
@@ -277,6 +317,9 @@ class Scene1 extends BaseScene {
     }
     firstIntoNormalMode() {
         return this.getCounter(Counter.IntoNormalMode) == 1;
+    }
+    firstIntoZenMode() {
+        return this.getCounter(Counter.IntoZenMode) == 1;
     }
     setEntryPointByIncomingEvent(evName) {
         this.setEntryPoint(evName.toLowerCase().indexOf('restart') >= 0 ? EntryPoint.FromDie : EntryPoint.FromHome);
@@ -410,7 +453,7 @@ class Scene1 extends BaseScene {
         let state = this.mainFsm.getState("HomeToGameAnimation");
         state
             .addAction(s => {
-            this.ui.gotoGame();
+            this.ui.gotoGame(this.mode);
         })
             .addTweenAllAction(this, [
             // Rotate center to normal angle
@@ -451,6 +494,7 @@ class Scene1 extends BaseScene {
             this.hud.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
+            this.zenFsm.start();
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
             this.backBtn.setEnable(true, true);
@@ -463,11 +507,13 @@ class Scene1 extends BaseScene {
             // Player input
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-            // Damage handling
-            s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
-                let enemy = e;
-                this.hp.damageBy(enemy.health);
-            });
+            // Damage handling, only in normal mode
+            if (this.mode == GameMode.Normal) {
+                s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
+                    let enemy = e;
+                    this.hp.damageBy(enemy.health);
+                });
+            }
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let enemy = e;
                 this.hud.addScore(1000);
@@ -493,8 +539,9 @@ class Scene1 extends BaseScene {
                 else
                     s.event('NORMAL_START', this.normalGameFsm);
             }
-            else if (this.mode === GameMode.Zen) {
-                alert('Haha, not finished yet~');
+            else {
+                this.addCounter(Counter.IntoZenMode);
+                s.event('START', this.zenFsm);
             }
         });
     }
@@ -3252,6 +3299,16 @@ var normalGameFsm = {
     ]
 };
 farray.push(normalGameFsm);
+/// <reference path="fsm.ts" />
+var zenFsm = {
+    name: 'NormalGameFsm',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'ZenStart' },
+        { name: 'TO_FIRST_INTRODUCTION', from: 'ZenStart', to: 'ZenIntro' }
+    ]
+};
+farray.push(zenFsm);
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {
@@ -3415,18 +3472,28 @@ class Hud extends Wrapper {
         this.refreshScore();
         this.hp.reset();
     }
-    show() {
+    show(mode) {
         this.inShow = true;
+        let tg = [];
+        if (mode === GameMode.Normal)
+            tg = [this.hp.inner, this.scoreText];
+        else
+            tg = [this.scoreText];
         this.inTwenn = this.scene.tweens.add({
-            targets: [this.hp.inner, this.scoreText],
+            targets: tg,
             y: "-= 250",
             duration: 1000,
         });
     }
-    hide() {
+    hide(mode) {
         this.inShow = false;
+        let tg = [];
+        if (mode === GameMode.Normal)
+            tg = [this.hp.inner, this.scoreText];
+        else
+            tg = [this.scoreText];
         this.outTween = this.scene.tweens.add({
-            targets: [this.hp.inner, this.scoreText],
+            targets: tg,
             y: "+= 250",
             duration: 1000,
         });
@@ -4420,13 +4487,14 @@ class UI extends Wrapper {
         this.leaderboardBtn.needInOutAutoAnimation = false;
         this.leaderboardBtn.needHandOnHover = true;
     }
-    gotoGame() {
-        this.hud.show();
+    gotoGame(mode) {
+        this.mode = mode;
+        this.hud.show(mode);
         this.footer.hide();
         this.down(this.leaderboardBtn.inner);
     }
     gotoHome() {
-        this.hud.hide();
+        this.hud.hide(this.mode);
         this.footer.show();
         this.up(this.leaderboardBtn.inner);
     }

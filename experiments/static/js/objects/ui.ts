@@ -22,14 +22,16 @@ class UI extends Wrapper<PhText>{
         this.leaderboardBtn.needHandOnHover = true;
     }
 
-    gotoGame(){
-        this.hud.show();
+    mode: GameMode;
+    gotoGame(mode: GameMode){
+        this.mode = mode;
+        this.hud.show(mode);
         this.footer.hide();
         this.down(this.leaderboardBtn.inner);
     }
 
     gotoHome() {
-        this.hud.hide();
+        this.hud.hide(this.mode);
         this.footer.show();
         this.up(this.leaderboardBtn.inner);
     }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <title>Experiment 65536</title>
+
+    <link rel="stylesheet" href="css/app.css" type="text/css" />
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+        integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://download.affectiva.com/js/3.2.1/affdex.js"></script>
+
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+    <script src="js/face.js"></script>
+    <style type="text/css">
+        #center {
+            margin: 0 auto;
+            width: 640px;
+            height: 480px;
+        }
+
+        #emoji {
+            font-size: 100px;
+            text-align: center;
+        }
+
+        #lower{
+            margin-top: 10px;
+        }
+
+        .aligncenter {
+            text-align: center;
+        }
+
+        #question {
+            color:green;
+            font-size: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="center">
+        <div id="affdex_elements"></div>
+        <div id='lower'>
+            <div class="aligncenter">
+                <button id="start" onclick="onStart()">Start</button>
+                <!-- <button id="questBtn" onclick="onQuestStart()">Start Quest</button>                 -->
+                <div id='question'></div>
+                <div id="emoji"></div>
+                <div id="results" style="word-wrap:break-word;" >Result Zone</div>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

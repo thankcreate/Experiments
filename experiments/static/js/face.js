@@ -59,9 +59,9 @@ $(function () {
         if (faces.length > 0) {
             // log('#results', "Appearance: " + JSON.stringify(faces[0].appearance));
 
-            // log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, function (key, val) {
-            //     return val.toFixed ? Number(val.toFixed(0)) : val;
-            // }));
+            log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, function (key, val) {
+                return val.toFixed ? Number(val.toFixed(0)) : val;
+            }));
             let exp = faces[0].expressions;
             let emo = faces[0].emotions
 
@@ -69,9 +69,9 @@ $(function () {
             handle(exp, emo, timestamp);
 
 
-            // log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, function (key, val) {
-            //     return val.toFixed ? Number(val.toFixed(0)) : val;
-            // }));
+            log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, function (key, val) {
+                return val.toFixed ? Number(val.toFixed(0)) : val;
+            }));
 
             // $('#emoji').html(faces[0].emojis.dominantEmoji);
             // log('#results', "Emoji: " + faces[0].emojis.dominantEmoji);
@@ -114,7 +114,7 @@ function handle(exp, emo, ts) {
         }
     }
     else if (stage == 1) {
-        if (!fixed && emo.anger > 10) {
+        if (!fixed && emo.disgust > 10) {
             spanDt2 += (ts - lastDt);
 
             $('#emoji').html("😡");
@@ -131,7 +131,7 @@ function handle(exp, emo, ts) {
         if (!fixed) {
             
 
-            if (emo.anger > 10) {
+            if (emo.disgust > 10) {
                 spanDt2 += (ts - lastDt);
                 $('#emoji').html("😡");
                 if (spanDt2 > need) {
@@ -175,7 +175,7 @@ function gotoState(st) {
     }
     else if (stage == 2) {
         fixed = false;
-        $('#question').html("3. The oil price has been rised by 50%<br/>(How do you feel? Happy? Angry)");
+        $('#question').html("3. Our oil price has rised by 50%<br/>(How do you feel? Happy? Angry)");
     }
     else if (stage == 3) {
         $('#question').html("You are dissatisfied with our great nation, huh?<br/>You are arrested!");

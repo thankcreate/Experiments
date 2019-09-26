@@ -26,7 +26,6 @@ enum Counter {
     Story0Finished
 }
 
-let gOverlay: Overlay;
 class Scene1 extends BaseScene {
 
     circle: Phaser.GameObjects.Image;
@@ -163,7 +162,7 @@ class Scene1 extends BaseScene {
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
-        gOverlay = this.overlay;
+        
 
 
         // Footer click event bind        

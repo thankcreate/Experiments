@@ -26,10 +26,10 @@ class LeaderboardManager {
             .then(
                 val => {
                     this.items = val;
-                    console.log(val);    
+                    // console.log(val);    
                 },
                 err => {                    
-                    console.log('Failed to fetch leaderboard info');                    
+                    // console.log('Failed to fetch leaderboard info');                    
                 });
         return pm;
     }

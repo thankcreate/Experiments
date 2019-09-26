@@ -2,7 +2,7 @@
 
 
 var zenFsm = {
-    name: 'NormalGameFsm',
+    name: 'ZenFsm',
     initial: "Default",
     events: [
         {name: 'START', from:'Default', to: 'ZenStart'},

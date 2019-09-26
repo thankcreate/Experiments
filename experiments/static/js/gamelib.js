@@ -1355,6 +1355,14 @@ function updateObject(from, to) {
         to[key] = from[key];
     }
 }
+var help = `
+Available Commands:
+setInterval();
+set
+`;
+function sayHi() {
+    console.log("Hi, I'm tron");
+}
 /**
  * When you want to deactive a button \
  * Just call setEnable(false) \
@@ -2381,6 +2389,14 @@ class EnemyText extends Enemy {
  * This class is created to solve the origin problem of PhGraphics
  */
 class Figure extends Wrapper {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        let graphics = this.scene.add.graphics();
+        this.applyTarget(graphics);
+        this.drawGraphics();
+        this.calcGraphicsPosition();
+    }
     handleConfig(config) {
         if (notSet(config))
             config = {};
@@ -2393,14 +2409,6 @@ class Figure extends Wrapper {
         if (notSet(config.originY))
             config.originY = 0;
         this.config = config;
-    }
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, null);
-        this.handleConfig(config);
-        let graphics = this.scene.add.graphics();
-        this.applyTarget(graphics);
-        this.drawGraphics();
-        this.calcGraphicsPosition();
     }
     drawGraphics() {
         // To be implemented in inheritance
@@ -3301,7 +3309,7 @@ var normalGameFsm = {
 farray.push(normalGameFsm);
 /// <reference path="fsm.ts" />
 var zenFsm = {
-    name: 'NormalGameFsm',
+    name: 'ZenFsm',
     initial: "Default",
     events: [
         { name: 'START', from: 'Default', to: 'ZenStart' },
@@ -3309,6 +3317,11 @@ var zenFsm = {
     ]
 };
 farray.push(zenFsm);
+window.onerror = function (msg, url, line, col, error) {
+    // Note that col & error are new to the HTML 5 spec and may not be 
+    // supported in every browser.  It worked for me in Chrome.
+    console.log("haha");
+};
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {
@@ -3500,23 +3513,23 @@ class Hud extends Wrapper {
     }
 }
 class LeaderboardManager {
+    constructor() {
+        this.updateInfo();
+    }
     static getInstance() {
         if (!LeaderboardManager.instance) {
             LeaderboardManager.instance = new LeaderboardManager();
         }
         return LeaderboardManager.instance;
     }
-    constructor() {
-        this.updateInfo();
-    }
     updateInfo() {
         let request = { count: 30 };
         let pm = apiPromise('api/leaderboard', request, 'json', 'GET')
             .then(val => {
             this.items = val;
-            console.log(val);
+            // console.log(val);    
         }, err => {
-            console.log('Failed to fetch leaderboard info');
+            // console.log('Failed to fetch leaderboard info');                    
         });
         return pm;
     }

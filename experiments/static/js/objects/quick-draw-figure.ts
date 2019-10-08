@@ -28,6 +28,8 @@ class QuickDrawFigure{
         alpha: 1
     }
 
+    forceStop: boolean = false;
+
     constructor(scene, parentContainer, lbl) {
         this.scene = scene;        
         this.parentContainer = parentContainer;
@@ -91,7 +93,7 @@ class QuickDrawFigure{
     }
 
 
-    startChange() {
+    startChange() {        
         this.changeTween = this.scene.tweens.add({
             targets: this,
             dummy: 1,
@@ -102,11 +104,20 @@ class QuickDrawFigure{
             },
 
             onRepeat: () => {
-                this.change();
+                if(!this.forceStop)  {
+                    this.change();
+                }                
             },
 
             repeat: -1
         });
+    }
+
+    stopChange() {
+        this.forceStop = true;
+        if(this.changeTween) {
+            this.changeTween.stop();
+        }
     }
 
     change() {    
@@ -134,6 +145,11 @@ class QuickDrawFigure{
 
     getLeftBottom() : Phaser.Geom.Point {
         let mappedPosi = this.getMappedPosi(0, this.sampleRate);
+        return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
+    }
+
+    getCenter() : Phaser.Geom.Point {
+        let mappedPosi = this.getMappedPosi(this.sampleRate / 2, this.sampleRate / 2);
         return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
     }
 }

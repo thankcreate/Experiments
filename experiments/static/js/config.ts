@@ -1,4 +1,6 @@
 /// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scenes/scene-1-1.ts" />
+/// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 
 var gameplayConfig = {
@@ -64,5 +66,5 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1]
+    scene: [Controller, Scene1, Scene1L2, Scene1L1]
 };

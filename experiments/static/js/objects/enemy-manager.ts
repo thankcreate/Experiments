@@ -27,15 +27,15 @@ class EnemyManager {
     enemyRunDuration;
     spawnRadius;
 
+
     /**
      * At first, it's call spawn history,\
-     * but later on, I think I should also added the time info
+     * but later on, I think I should also add the time info
      * about when the enemy is killed for use in the strategy.
      * So, I change the name to omni
      */
     omniHistory: OmniHistoryItem[] = [];
-   
-
+       
     enemyReachedCoreEvent: TypedEvent<Enemy> = new TypedEvent();
     enemyEliminatedEvent: TypedEvent<Enemy> = new TypedEvent();
 
@@ -64,6 +64,7 @@ class EnemyManager {
 
         this.strategies.set(SpawnStrategyType.SpawnOnEliminatedAndReachCore, new SpawnStrategyOnEliminatedAndReachCore(this));
         this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
+        this.strategies.set(SpawnStrategyType.RandomFlow, new RandomFlow(this));
         this.strategies.set(SpawnStrategyType.None, new SpawnStrategy(this, SpawnStrategyType.None, {}));
     }
 
@@ -156,14 +157,14 @@ class EnemyManager {
         }
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
-
+    
     
     spawn(config?: EnemyConfig) : Enemy {
 
         if(notSet(config))
             config = {};
 
-        if(notSet(config.type)) config.type = EnemyType.Image;
+        if(notSet(config.type)) config.type = EnemyType.TextWithImage;
         if(notSet(config.label)) config.label = this.getNextName();      
         if(notSet(config.duration)) config.duration = gameplayConfig.enemyDuratrion;        
         if(notSet(config.health)) config.health = gameplayConfig.defaultHealth;       
@@ -185,7 +186,15 @@ class EnemyManager {
         //     label: name
         // });
 
-        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
+
+        let enemy : Enemy;
+        // by deafult is TextWithImage
+        //if(config.type == EnemyType.TextWithImage) {
+            enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);            
+            var ei = enemy as EnemyImage;     
+        // }
+        
+
         enemy.id = id;
 
         // console.log('-------------------------')
@@ -244,26 +253,41 @@ class EnemyManager {
         var pt = new Phaser.Geom.Point(0, 0);
 
         var rdDegree = 0;
-        while (true) {
 
+        let tryTime = 50;
+        while (true) {
+            tryTime++;
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
             pt.x = Math.cos(rdDegree) * this.spawnRadius;
             pt.y = Math.sin(rdDegree) * this.spawnRadius;
 
-            if (this.isValidDegree(rdDegree)) {
+            let notBottom = this.notInBottomZone(rdDegree);
+            let valid = this.isValidDegree(rdDegree);
+
+            if(!notBottom)
+                continue;
+
+            if(valid)
                 break;
-            }
+            
+            if(tryTime > 50)
+                break;
         }
 
         // console.log(rdDegree);
         return pt;
     }
 
+    notInBottomZone(rdDegree: number) : boolean {
+        var subtitleRestrictedAngle = Math.PI / 3 * 2;     
+        let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
+        return notInSubtitleZone;
+    }
+
     isValidDegree(rdDegree: number): boolean {      
 
         var threshould = Math.PI / 2;
-        var subtitleRestrictedAngle = Math.PI / 3 * 2;     
-        let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
+        
 
         let farEnoughFromLastOne = false;        
         if (this.omniHistory.length == 0)
@@ -273,7 +297,19 @@ class EnemyManager {
             farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
         }
 
-        return notInSubtitleZone && farEnoughFromLastOne; 
+        let min = 1000;
+        for(let i in this.omniHistory) {
+            let iter = this.omniHistory[i];
+            let clamp = this.getAngleDiff(iter.degree, rdDegree);
+            if(clamp < min) {
+                min = clamp;
+            }
+        }
+        // console.log("min " + min);
+        let farEnoughFromEvery = min > (Math.PI / 3);
+
+
+        return farEnoughFromLastOne && farEnoughFromEvery; 
     }
 
     getAngleDiff(angl1: number, angle2: number): number {

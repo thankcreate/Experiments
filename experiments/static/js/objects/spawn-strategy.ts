@@ -1,14 +1,22 @@
 enum SpawnStrategyType{
     None,
     SpawnOnEliminatedAndReachCore,
-    FlowTheory
+    FlowTheory,
+    RandomFlow,
 }
 
 
+/**
+ * We have two level of configs
+ * 1. SpawnStrategyConfig
+ * 2. EnemyConfig
+ * During the spawn, we are blending based on both 1. and 2.
+ */
 class SpawnStrategy {
     enemyManager: EnemyManager;
     type: SpawnStrategyType;
     config: SpawnStrategyConfig = {};
+    
 
     constructor(manager: EnemyManager, type: SpawnStrategyType, config: SpawnStrategyConfig) {        
         
@@ -17,7 +25,7 @@ class SpawnStrategy {
         this.type = type;
         this.updateConfig(config);
     }
-
+    
     getInitConfig() : SpawnStrategyConfig {
         return {}
     }
@@ -55,6 +63,16 @@ class SpawnStrategy {
 
     reset() {        
     }
+
+    // blendSpawn(c: {}) {
+    //     let empty:any = {};        
+    //     updateObject(c, empty);
+    //     updateObject(this.enemyManager.enemyConfig, empty);
+
+        
+    //     console.log("tyoeP  " + empty.type );
+    //     this.enemyManager.spawn(empty);
+    // }
 }
 
 var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
@@ -82,10 +100,10 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
         // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
         //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
         // else
-            this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
-        
+        this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
     }
 
+  
 
     onEnter(){
         if(this.enemyManager.enemies.length == 0) {
@@ -101,6 +119,8 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
         this.spawn();
     }
 }
+
+
 
 
 class SpawnStrategyFlowTheory extends SpawnStrategy {
@@ -205,4 +225,45 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
               
         
     }
+}
+
+
+class RandomFlow extends SpawnStrategyFlowTheory {
+    constructor(manager: EnemyManager, config?) {
+        super(manager, config);
+        this.type = SpawnStrategyType.RandomFlow;
+    }
+
+    count: number = 0;
+
+    spawn() {
+        let config = this.config;
+        
+        let tempConfig:any | EnemyConfig = {type: EnemyType.Image, health:config.health, duration: config.enemyDuration};
+        
+        // default
+        if(this.count % 5 == 0)  {            
+            tempConfig.rotation =  0
+            tempConfig.needChange = true;
+        }
+        // rotation
+        if(this.count % 5 == 1 || this.count % 5 == 3)  {            
+            tempConfig.rotation =  1000;
+            tempConfig.needChange = false;
+        }        
+        // shake
+        if(this.count % 5 == 2)  {            
+            tempConfig.rotation =  0;
+            tempConfig.needShake = true;
+        }
+        // flicker
+        if(this.count % 5 == 4)  {            
+            tempConfig.rotation =  0;
+            tempConfig.needFlicker = true;
+        }
+        this.enemyManager.spawn(tempConfig);
+        this.count++;        
+    }
+
+
 }

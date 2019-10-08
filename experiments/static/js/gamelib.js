@@ -83,7 +83,8 @@ class Controller extends BaseScene {
         // this.myInput = new MyInput(this);
     }
     gotoFirstScene() {
-        this.scene.launch('Scene1');
+        // this.scene.launch('Scene1L2');      
+        this.scene.launch('Scene1L1');
     }
     playSpeechInController(text, timeOut = 4000) {
         // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
@@ -126,10 +127,9 @@ var Counter;
     Counter[Counter["IntoZenMode"] = 3] = "IntoZenMode";
     Counter[Counter["Story0Finished"] = 4] = "Story0Finished";
 })(Counter || (Counter = {}));
-let gOverlay;
 class Scene1 extends BaseScene {
-    constructor() {
-        super('Scene1');
+    constructor(config) {
+        super(config);
         this.initDwitterScale = 0.52;
         this.mode = GameMode.Normal;
         this.entryPoint = EntryPoint.FromHome;
@@ -196,7 +196,6 @@ class Scene1 extends BaseScene {
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
-        gOverlay = this.overlay;
         // Footer click event bind        
         this.ui.footer.badges[0].clickedEvent.on(() => {
             this.overlay.showAiDialog();
@@ -215,43 +214,7 @@ class Scene1 extends BaseScene {
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
         this.zenFsm = new Fsm(this, this.getZenFsm());
         this.initMainFsm();
-        this.initNormalGameFsm();
-        this.initZenFsm();
         // Sub FSM: normal game
-    }
-    initZenFsm() {
-        this.initStZenStart();
-        this.initStZenIntro();
-        this.updateObjects.push(this.zenFsm);
-    }
-    initStZenStart() {
-        let state = this.zenFsm.getState("ZenStart");
-        state
-            .addAction(s => {
-            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
-        })
-            .addDelayAction(this, 1500)
-            .addAction(s => {
-            if (this.firstIntoZenMode()) {
-                s.event('TO_FIRST_INTRODUCTION');
-            }
-        });
-    }
-    initStZenIntro() {
-        let state = this.zenFsm.getState("ZenIntro");
-        state
-            .addSubtitleAction(this.subtitle, s => {
-            return "Interesting!";
-        }, true, 2000, 3000, 500)
-            .addSubtitleAction(this.subtitle, s => {
-            return "I never expect that someone would really choose the Zen mode.";
-        }, true, 2000, 3000, 1000)
-            .addSubtitleAction(this.subtitle, s => {
-            return "No wonder they call you " + this.playerName + ".\nI begin to wonder who you really are.";
-        }, true, 2000, 3000, 1500)
-            .addSubtitleAction(this.subtitle, s => {
-            return "We have plenty of time. Just enjoy yourself, please.";
-        }, true, 2000, 3000, 1500);
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -607,6 +570,16 @@ class Scene1 extends BaseScene {
     setEntryPoint(ep) {
         this.entryPoint = ep;
     }
+}
+class Scene1L1 extends Scene1 {
+    constructor() {
+        super('Scene1L1');
+    }
+    create() {
+        super.create();
+        this.initNormalGameFsm();
+        this.initZenFsm();
+    }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
         this.initStNormalDefault();
@@ -787,8 +760,95 @@ class Scene1 extends BaseScene {
             // console.log('hahaha, story1');
         });
     }
+    initZenFsm() {
+        this.initStZenStart();
+        this.initStZenIntro();
+        this.updateObjects.push(this.zenFsm);
+    }
+    initStZenStart() {
+        let state = this.zenFsm.getState("ZenStart");
+        state
+            .addAction(s => {
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
+        })
+            .addDelayAction(this, 1500)
+            .addAction(s => {
+            if (this.firstIntoZenMode()) {
+                s.event('TO_FIRST_INTRODUCTION');
+            }
+        });
+    }
+    initStZenIntro() {
+        let state = this.zenFsm.getState("ZenIntro");
+        state
+            .addSubtitleAction(this.subtitle, s => {
+            return "Interesting!";
+        }, true, 2000, 3000, 500)
+            .addSubtitleAction(this.subtitle, s => {
+            return "I never expect that someone would really choose the Zen mode.";
+        }, true, 2000, 3000, 1000)
+            .addSubtitleAction(this.subtitle, s => {
+            return "No wonder they call you " + this.playerName + ".\nI begin to wonder who you really are.";
+        }, true, 2000, 3000, 1500)
+            .addSubtitleAction(this.subtitle, s => {
+            return "We have plenty of time. Just enjoy yourself, please.";
+        }, true, 2000, 3000, 1500);
+    }
+}
+class Scene1L2 extends Scene1 {
+    constructor() {
+        super('Scene1L2');
+    }
+    getNormalGameFsm() {
+        return normal_1_2;
+    }
+    create() {
+        super.create();
+        this.addCounter(Counter.IntoHome, 1);
+        this.initNormalGameFsm();
+    }
+    // ----------------------------------------------------------------------    
+    initNormalGameFsm() {
+        this.initStNormalDefault();
+        this.initStStart();
+        this.updateObjects.push(this.normalGameFsm);
+    }
+    initStNormalDefault() {
+        let state = this.normalGameFsm.getState("Default");
+        state.addDelayAction(this, 500)
+            .addEventAction("START");
+    }
+    initStStart() {
+        let state = this.normalGameFsm.getState("Start");
+        state.setOnEnter(s => {
+            let health = 4;
+            let duration = 50000;
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.RandomFlow, { enemyDuration: duration, health: health });
+        });
+        state
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "Hahahahaha", true)
+            .addSubtitleAction(this.subtitle, "Sorry, I lied", true)
+            .addSubtitleAction(this.subtitle, "Actually, 65536 is not 65536", true)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "It's just 0, if you have taken the algorithm class.\nIt's a joke. Haha", true)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "I guess you don't think it's fun. But, whatever", true)
+            .addSubtitleAction(this.subtitle, "Let's continue our experiment", true)
+            .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels now", true)
+            .addSubtitleAction(this.subtitle, "But I don't really think you need them", true)
+            .addSubtitleAction(this.subtitle, "It might be a little bit harder, but we also got some fun, right?", true)
+            .addSubtitleAction(this.subtitle, "If you have a master's degree on game design like me,\nyou will know that ambiguity is what makes fun happen!", true)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "OK, this time, I won't say 65536 again\n", true)
+            .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe?", true)
+            .addDelayAction(this, 2000);
+    }
 }
 /// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scenes/scene-1-1.ts" />
+/// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
@@ -837,7 +897,7 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1]
+    scene: [Controller, Scene1, Scene1L2, Scene1L1]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -1926,6 +1986,7 @@ class Enemy {
         return false;
     }
     damage(val, input) {
+        console.log("hahaha");
         let ret = {
             damage: 0,
             code: this.checkIfInputLegalWithEnemy(input, this.lbl)
@@ -1975,18 +2036,20 @@ class Enemy {
     checkIfInputLegalWithEnemy(inputLbl, enemyLbl) {
         inputLbl = inputLbl.trim().toLowerCase();
         enemyLbl = enemyLbl.trim().toLowerCase();
-        if (inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
+        if (this.config.type == EnemyType.TextWithImage && inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
-        if (enemyLbl.indexOf(inputLbl) != -1) {
+        if (this.config.type == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
             return ErrorInputCode.Contain;
         }
-        if (inputLbl.indexOf(enemyLbl) != -1) {
+        if (this.config.type == EnemyType.TextWithImage && inputLbl.indexOf(enemyLbl) != -1) {
             return ErrorInputCode.Wrap;
         }
         return ErrorInputCode.NoError;
     }
     disolve() {
         this.stopRunAndDestroySelf();
+    }
+    startRotate() {
     }
 }
 class EnemyImage extends Enemy {
@@ -2006,6 +2069,8 @@ class EnemyImage extends Enemy {
         this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
         this.text.setOrigin(0.5, 0);
         this.inner.add(this.text);
+        // let center = this.figure.getCenter();
+        // this.text.setPosition(center.x, center.y);
         let lc = this.text.getLeftCenter();
         lc.x -= gameplayConfig.healthIndicatorWidth / 2;
         lc.x -= 4;
@@ -2015,6 +2080,44 @@ class EnemyImage extends Enemy {
         // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
+        if (!this.config.needChange) {
+            this.figure.stopChange();
+        }
+        this.checkIfDontNeedLabel();
+        this.checkIfNeedRotate();
+        this.checkIfNeedShake();
+        this.checkIfNeedFlicker();
+    }
+    checkIfNeedFlicker() {
+        if (!this.config.needFlicker) {
+            return;
+        }
+        this.shakeTween = this.scene.tweens.add({
+            targets: this.figure.inner,
+            alpha: 0,
+            yoyo: true,
+            duration: 400,
+            repeat: -1
+        });
+    }
+    checkIfNeedShake() {
+        if (!this.config.needShake) {
+            return;
+        }
+        this.shakeTween = this.scene.tweens.add({
+            targets: this.figure.inner,
+            scale: '+1.2',
+            yoyo: true,
+            duration: 500,
+            repeat: -1
+        });
+    }
+    checkIfDontNeedLabel() {
+        if (this.config.type == EnemyType.TextWithImage || this.config.showLabel == true) {
+            return;
+        }
+        this.text.setVisible(false);
+        this.healthIndicator.inner.x = this.text.getBottomCenter().x;
     }
     getStopDistance() {
         return this.centerRadius + gameplayConfig.drawDataDefaultSize / 2 + 10;
@@ -2024,13 +2127,28 @@ class EnemyImage extends Enemy {
         this.figure.dispose();
         this.figure = null;
     }
+    checkIfNeedRotate() {
+        if (this.config.rotation > 0) {
+            this.startRotate();
+        }
+    }
+    startRotate() {
+        this.rotateTween = this.scene.tweens.add({
+            targets: this.figure.inner,
+            angle: '-=360',
+            duration: this.config.rotation,
+            repeat: -1
+        });
+        this.text.y += 20;
+        this.healthIndicator.inner.y += 20;
+    }
 }
 var gEnemyID = 0;
 class EnemyManager {
     constructor(scene, parentContainer) {
         /**
          * At first, it's call spawn history,\
-         * but later on, I think I should also added the time info
+         * but later on, I think I should also add the time info
          * about when the enemy is killed for use in the strategy.
          * So, I change the name to omni
          */
@@ -2051,6 +2169,7 @@ class EnemyManager {
         this.spawnRadius = 500;
         this.strategies.set(SpawnStrategyType.SpawnOnEliminatedAndReachCore, new SpawnStrategyOnEliminatedAndReachCore(this));
         this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
+        this.strategies.set(SpawnStrategyType.RandomFlow, new RandomFlow(this));
         this.strategies.set(SpawnStrategyType.None, new SpawnStrategy(this, SpawnStrategyType.None, {}));
     }
     ;
@@ -2131,7 +2250,7 @@ class EnemyManager {
         if (notSet(config))
             config = {};
         if (notSet(config.type))
-            config.type = EnemyType.Image;
+            config.type = EnemyType.TextWithImage;
         if (notSet(config.label))
             config.label = this.getNextName();
         if (notSet(config.duration))
@@ -2150,7 +2269,12 @@ class EnemyManager {
         //     type: EnemyType.Text,
         //     label: name
         // });
-        var enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
+        let enemy;
+        // by deafult is TextWithImage
+        //if(config.type == EnemyType.TextWithImage) {
+        enemy = new EnemyImage(this.scene, this, posi, this.lblStyl, config);
+        var ei = enemy;
+        // }
         enemy.id = id;
         // console.log('-------------------------')
         this.enemies.forEach(item => {
@@ -2195,21 +2319,31 @@ class EnemyManager {
     getSpawnPoint() {
         var pt = new Phaser.Geom.Point(0, 0);
         var rdDegree = 0;
+        let tryTime = 50;
         while (true) {
+            tryTime++;
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
             pt.x = Math.cos(rdDegree) * this.spawnRadius;
             pt.y = Math.sin(rdDegree) * this.spawnRadius;
-            if (this.isValidDegree(rdDegree)) {
+            let notBottom = this.notInBottomZone(rdDegree);
+            let valid = this.isValidDegree(rdDegree);
+            if (!notBottom)
+                continue;
+            if (valid)
                 break;
-            }
+            if (tryTime > 50)
+                break;
         }
         // console.log(rdDegree);
         return pt;
     }
-    isValidDegree(rdDegree) {
-        var threshould = Math.PI / 2;
+    notInBottomZone(rdDegree) {
         var subtitleRestrictedAngle = Math.PI / 3 * 2;
         let notInSubtitleZone = !(rdDegree > Math.PI / 2 - subtitleRestrictedAngle / 2 && rdDegree < Math.PI / 2 + subtitleRestrictedAngle / 2);
+        return notInSubtitleZone;
+    }
+    isValidDegree(rdDegree) {
+        var threshould = Math.PI / 2;
         let farEnoughFromLastOne = false;
         if (this.omniHistory.length == 0)
             farEnoughFromLastOne = true;
@@ -2217,7 +2351,17 @@ class EnemyManager {
             var lastOne = this.omniHistory[this.omniHistory.length - 1];
             farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
         }
-        return notInSubtitleZone && farEnoughFromLastOne;
+        let min = 1000;
+        for (let i in this.omniHistory) {
+            let iter = this.omniHistory[i];
+            let clamp = this.getAngleDiff(iter.degree, rdDegree);
+            if (clamp < min) {
+                min = clamp;
+            }
+        }
+        // console.log("min " + min);
+        let farEnoughFromEvery = min > (Math.PI / 3);
+        return farEnoughFromLastOne && farEnoughFromEvery;
     }
     getAngleDiff(angl1, angle2) {
         let diff1 = Math.abs(angl1 - angle2);
@@ -2389,14 +2533,6 @@ class EnemyText extends Enemy {
  * This class is created to solve the origin problem of PhGraphics
  */
 class Figure extends Wrapper {
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, null);
-        this.handleConfig(config);
-        let graphics = this.scene.add.graphics();
-        this.applyTarget(graphics);
-        this.drawGraphics();
-        this.calcGraphicsPosition();
-    }
     handleConfig(config) {
         if (notSet(config))
             config = {};
@@ -2409,6 +2545,14 @@ class Figure extends Wrapper {
         if (notSet(config.originY))
             config.originY = 0;
         this.config = config;
+    }
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        let graphics = this.scene.add.graphics();
+        this.applyTarget(graphics);
+        this.drawGraphics();
+        this.calcGraphicsPosition();
     }
     drawGraphics() {
         // To be implemented in inheritance
@@ -3254,6 +3398,15 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     return this;
 };
 /// <reference path="fsm.ts" />
+var normal_1_2 = {
+    name: 'Normal_1_2',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+    ]
+};
+farray.push(normal_1_2);
+/// <reference path="fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -3317,11 +3470,6 @@ var zenFsm = {
     ]
 };
 farray.push(zenFsm);
-window.onerror = function (msg, url, line, col, error) {
-    // Note that col & error are new to the HTML 5 spec and may not be 
-    // supported in every browser.  It worked for me in Chrome.
-    console.log("haha");
-};
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {
@@ -3513,14 +3661,14 @@ class Hud extends Wrapper {
     }
 }
 class LeaderboardManager {
-    constructor() {
-        this.updateInfo();
-    }
     static getInstance() {
         if (!LeaderboardManager.instance) {
             LeaderboardManager.instance = new LeaderboardManager();
         }
         return LeaderboardManager.instance;
+    }
+    constructor() {
+        this.updateInfo();
     }
     updateInfo() {
         let request = { count: 30 };
@@ -3898,6 +4046,7 @@ class QuickDrawFigure {
             color: 0x000000,
             alpha: 1
         };
+        this.forceStop = false;
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.lbl = lbl;
@@ -3959,10 +4108,18 @@ class QuickDrawFigure {
                 this.change();
             },
             onRepeat: () => {
-                this.change();
+                if (!this.forceStop) {
+                    this.change();
+                }
             },
             repeat: -1
         });
+    }
+    stopChange() {
+        this.forceStop = true;
+        if (this.changeTween) {
+            this.changeTween.stop();
+        }
     }
     change() {
         if (!this.figures || this.figures.length == 0)
@@ -3986,13 +4143,24 @@ class QuickDrawFigure {
         let mappedPosi = this.getMappedPosi(0, this.sampleRate);
         return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
     }
+    getCenter() {
+        let mappedPosi = this.getMappedPosi(this.sampleRate / 2, this.sampleRate / 2);
+        return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
+    }
 }
 var SpawnStrategyType;
 (function (SpawnStrategyType) {
     SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";
     SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
     SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
+    SpawnStrategyType[SpawnStrategyType["RandomFlow"] = 3] = "RandomFlow";
 })(SpawnStrategyType || (SpawnStrategyType = {}));
+/**
+ * We have two level of configs
+ * 1. SpawnStrategyConfig
+ * 2. EnemyConfig
+ * During the spawn, we are blending based on both 1. and 2.
+ */
 class SpawnStrategy {
     constructor(manager, type, config) {
         this.config = {};
@@ -4025,6 +4193,13 @@ class SpawnStrategy {
     }
     reset() {
     }
+    blendSpawn(c) {
+        let empty = {};
+        updateObject(c, empty);
+        updateObject(this.enemyManager.enemyConfig, empty);
+        console.log("tyoeP  " + empty.type);
+        this.enemyManager.spawn(empty);
+    }
 }
 var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
 class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
@@ -4049,7 +4224,7 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
         // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
         //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
         // else
-        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
+        this.blendSpawn({ health: config.health, duration: config.enemyDuration });
     }
     onEnter() {
         if (this.enemyManager.enemies.length == 0) {
@@ -4077,7 +4252,7 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
     }
     spawn() {
         let config = this.config;
-        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
+        this.blendSpawn({ health: config.health, duration: config.enemyDuration });
     }
     getInterval() {
         let history = this.enemyManager.omniHistory;
@@ -4141,6 +4316,39 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
                 this.spawn();
             }
         }
+    }
+}
+class RandomFlow extends SpawnStrategyFlowTheory {
+    constructor(manager, config) {
+        super(manager, config);
+        this.count = 0;
+        this.type = SpawnStrategyType.RandomFlow;
+    }
+    spawn() {
+        let config = this.config;
+        let tempConfig = { type: EnemyType.Image, health: config.health, duration: config.enemyDuration };
+        // default
+        if (this.count % 5 == 0) {
+            tempConfig.rotation = 0;
+            tempConfig.needChange = true;
+        }
+        // rotation
+        if (this.count % 5 == 1 || this.count % 5 == 3) {
+            tempConfig.rotation = 1000;
+            tempConfig.needChange = false;
+        }
+        // shake
+        if (this.count % 5 == 2) {
+            tempConfig.rotation = 0;
+            tempConfig.needShake = true;
+        }
+        // flicker
+        if (this.count % 5 == 4) {
+            tempConfig.rotation = 0;
+            tempConfig.needFlicker = true;
+        }
+        this.blendSpawn(tempConfig);
+        this.count++;
     }
 }
 class SpeechManager {

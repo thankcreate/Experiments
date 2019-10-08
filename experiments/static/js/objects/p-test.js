@@ -219,11 +219,24 @@
 // if(cc)
 //     console.log('haha')
 
-cc = "haha"
+// cc = "haha"
 
 dic = {
-    cc: cc,
-    a: 1
+    cc: "123",
+    a: 1,
 }
+ds = [];
+// // console.log(JSON.stringify(dic))
 
-console.log(JSON.stringify(dic))
+// let dd = dic;
+// dd.a = 1;
+// console.log(dic.a);
+console.log(typeof(ds));
+
+
+// if(dic.k) {
+//     console.log('in');
+// }
+// else {
+//     console.log('no');
+// }

@@ -2,7 +2,7 @@
 enum EnemyType {
     Text,
     TextWithImage,
-    Image,
+    Image,        
 }
 
 interface EnemyConfig {
@@ -10,7 +10,12 @@ interface EnemyConfig {
     label?: string,
     image?: string,
     health?: number,
-    duration?: number,
+    duration?: number,    
+    rotation?: number,
+    showLabel?: boolean,   
+    needChange?: boolean,
+    needShake? : boolean,
+    needFlicker? : boolean,
 }
 
 class Enemy {
@@ -38,8 +43,11 @@ class Enemy {
 
     centerRadius: number = 125;
 
-    mvTween: Phaser.Tweens.Tween;
+    mvTween: Phaser.Tweens.Tween;    
     fadeTween: Phaser.Tweens.Tween;
+    rotateTween: Phaser.Tweens.Tween;
+    shakeTween: Phaser.Tweens.Tween;
+    flickerTween: Phaser.Tweens.Tween;
 
 
     inputAngle: number;
@@ -181,7 +189,8 @@ class Enemy {
     }
     
 
-    damage(val: number, input:string) : DamageResult {         
+    damage(val: number, input:string) : DamageResult {       
+        console.log("hahaha")  ;
         let ret: DamageResult = {
             damage: 0, 
             code:this.checkIfInputLegalWithEnemy(input, this.lbl)
@@ -244,14 +253,14 @@ class Enemy {
         inputLbl = inputLbl.trim().toLowerCase();
         enemyLbl = enemyLbl.trim().toLowerCase();
 
-        if (inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
+        if (this.config.type == EnemyType.TextWithImage &&  inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
 
-        if (enemyLbl.indexOf(inputLbl) != -1) {
+        if (this.config.type == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
             return ErrorInputCode.Contain;
         }
 
-        if (inputLbl.indexOf(enemyLbl) != -1) {
+        if (this.config.type == EnemyType.TextWithImage && inputLbl.indexOf(enemyLbl) != -1) {
             return ErrorInputCode.Wrap;
         }
 
@@ -261,6 +270,12 @@ class Enemy {
     disolve() {
         this.stopRunAndDestroySelf();
     }
+
+    startRotate() {
+
+    }
+
+    
 }
 
 

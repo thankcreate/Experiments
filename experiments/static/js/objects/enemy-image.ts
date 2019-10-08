@@ -28,6 +28,9 @@ class EnemyImage extends Enemy {
         this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;        
         this.text.setOrigin(0.5, 0);
         this.inner.add(this.text); 
+
+        // let center = this.figure.getCenter();
+        // this.text.setPosition(center.x, center.y);
         
         
         let lc = this.text.getLeftCenter();
@@ -41,8 +44,51 @@ class EnemyImage extends Enemy {
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
 
+        if(!this.config.needChange) {
+            this.figure.stopChange();
+        }
+        this.checkIfDontNeedLabel();
+        this.checkIfNeedRotate();
+        this.checkIfNeedShake();
+        this.checkIfNeedFlicker();
+    }
+    checkIfNeedFlicker() {
+        if(!this.config.needFlicker) {
+            return;
+        }
+        
+        this.shakeTween = this.scene.tweens.add({
+            targets: this.figure.inner,            
+            alpha: 0,    
+            yoyo: true,
+            duration: 400,
+            repeat: -1
+        });
+    }
+
+    checkIfNeedShake() {
+        if(!this.config.needShake) {
+            return;
+        }
 
         
+        this.shakeTween = this.scene.tweens.add({
+            targets: this.figure.inner,
+            scale: '+1.2',
+            yoyo: true,
+            duration: 500,
+            repeat: -1
+        });
+    }
+
+    checkIfDontNeedLabel() {
+        if(this.config.type == EnemyType.TextWithImage || this.config.showLabel == true) {
+            return;
+        }
+
+        this.text.setVisible(false);
+        this.healthIndicator.inner.x = this.text.getBottomCenter().x;
+
     }
 
     getStopDistance() : number{
@@ -56,4 +102,23 @@ class EnemyImage extends Enemy {
         this.figure.dispose();        
         this.figure = null;
     }
+
+    checkIfNeedRotate() {
+        if(this.config.rotation > 0) {
+            this.startRotate();
+        }
+    }
+    
+    startRotate() {     
+
+        this.rotateTween = this.scene.tweens.add({
+            targets: this.figure.inner,
+            angle: '-=360',
+            duration: this.config.rotation,
+            repeat: -1
+        });
+        this.text.y += 20;
+        this.healthIndicator.inner.y += 20;
+    }
+
 }

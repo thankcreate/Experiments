@@ -145,6 +145,16 @@ class Dwitter65537 extends Dwitter {
         this._u(this.lastT, this.c, this.x);
     }
 
+    nextWithColorChange() {
+        let typeCount = 4;
+        let colorIndex  = Math.floor(this.lastT) % typeCount;
+        let colorAr = [0.03, 0.10, 0.08, 0.12];
+
+        // onsole.log(this.lastT + "  " + colorIndex);
+        this.inner.alpha = colorAr[colorIndex];
+        this.next();
+    }
+
     toBlinkMode() {
         this.isRunning = true;
         this.needModify = false;

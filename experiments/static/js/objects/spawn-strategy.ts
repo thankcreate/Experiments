@@ -139,7 +139,10 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
 
     spawn() {
         let config = this.config;
-        this.enemyManager.spawn({health:config.health, duration: config.enemyDuration});
+        this.enemyManager.spawn({
+            health:config.health, 
+            duration: config.enemyDuration,
+        });
     }
 
 

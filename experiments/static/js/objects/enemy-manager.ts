@@ -499,5 +499,10 @@ class EnemyManager {
     }
     
 
+    changeAllEnemies() {
+        for(let i in this.enemies) {
+            (this.enemies[i] as EnemyImage).figure.change();
+        }
+    }
 
 }

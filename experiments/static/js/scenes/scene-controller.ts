@@ -109,7 +109,7 @@ class Controller extends BaseScene {
 
     gotoFirstScene() {
         // this.scene.launch('Scene1L2');      
-        this.scene.launch('Scene1L1');      
+        this.scene.launch('Scene1L3');      
     }
 
     playSpeechInController(text: string, timeOut:number = 4000) : Pany {

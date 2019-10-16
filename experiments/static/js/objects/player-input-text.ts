@@ -78,7 +78,9 @@ class PlayerInputText {
 
     // keypress to handle all the valid characters
     keypress(event) {
-
+        if(!this.isInBeat())  
+            return;
+        
         if (!this.getCanAcceptInput())
             return;
 
@@ -113,6 +115,9 @@ class PlayerInputText {
 
     // keydown to handle the commands
     keydown(event) {
+        if(!this.isInBeat())  
+            return;
+
         if (!this.getCanAcceptInput())
             return;
 
@@ -295,5 +300,9 @@ class PlayerInputText {
         return this.canAcceptInput;
     }
 
-
+    
+    inBeat : boolean = true;
+    isInBeat() : boolean {
+        return this.inBeat;        
+    }
 }

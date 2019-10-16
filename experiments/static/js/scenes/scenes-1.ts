@@ -207,10 +207,11 @@ class Scene1 extends BaseScene {
         }
     }
 
-
+    curTime;
     update(time, dt) {
+        
         super.update(time, dt);
-
+        this.curTime =  time;
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;

@@ -329,3 +329,13 @@ function updateObject(from: any, to: any) {
         to[key] = from[key];            
     }
 }
+
+
+
+function setCookie(key: string, value: any) {
+    ($ as any).cookie(key, value);
+}
+
+function getCookie(key: string) : any {
+    return ($ as any).cookie(key);
+}

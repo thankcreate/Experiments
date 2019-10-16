@@ -84,7 +84,7 @@ class Controller extends BaseScene {
     }
     gotoFirstScene() {
         // this.scene.launch('Scene1L2');      
-        this.scene.launch('Scene1L1');
+        this.scene.launch('Scene1L3');
     }
     playSpeechInController(text, timeOut = 4000) {
         // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
@@ -228,6 +228,7 @@ class Scene1 extends BaseScene {
     }
     update(time, dt) {
         super.update(time, dt);
+        this.curTime = time;
         dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
@@ -577,6 +578,9 @@ class Scene1L1 extends Scene1 {
     }
     create() {
         super.create();
+        console.log('print');
+        console.log(getCookie('name'));
+        setCookie("name", "TronTron");
         this.initNormalGameFsm();
         this.initZenFsm();
     }
@@ -842,13 +846,110 @@ class Scene1L2 extends Scene1 {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "OK, this time, I won't say 65536 again\n", true)
             .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
-            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe?", true)
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe.", true)
             .addDelayAction(this, 2000);
+    }
+}
+class Scene1L3 extends Scene1 {
+    constructor() {
+        super('Scene1L3');
+    }
+    getNormalGameFsm() {
+        return normal_1_3;
+    }
+    preload() {
+        super.preload();
+        this.load.audio("bgm_1", "assets/audio/SeperateWays.mp3");
+    }
+    create() {
+        super.create();
+        this.addCounter(Counter.IntoHome, 1);
+        this.initShake();
+        this.initNormalGameFsm();
+        this.bgm = this.sound.add('bgm_1');
+    }
+    // ----------------------------------------------------------------------    
+    initNormalGameFsm() {
+        this.initStNormalDefault();
+        this.initStStart();
+        this.updateObjects.push(this.normalGameFsm);
+    }
+    initStNormalDefault() {
+        let state = this.normalGameFsm.getState("Default");
+        state.addDelayAction(this, 500)
+            .addEventAction("START");
+    }
+    initShake() {
+        this.shakeTween = this.tweens.add({
+            targets: this.centerObject.mainImage,
+            scale: 1.1,
+            yoyo: true,
+            duration: 100,
+            repeat: -1,
+            repeatDelay: 235,
+            onYoyo: () => {
+                this.dwitterBKG.nextWithColorChange();
+                this.enemyManager.changeAllEnemies();
+            },
+            onRepeat: () => {
+                // console.log('onRepeat');
+                this.lastRepeatTime = this.curTime;
+                // console.log(this.lastRepeatTime);
+                this.needBeatInput = true;
+            }
+        });
+        this.shakeTween.pause();
+    }
+    update(time, dt) {
+        super.update(time, dt);
+        // if(this.needBeatInput) {
+        //     let dif = this.curTime - this.lastRepeatTime;
+        //     if(dif > 200 && dif < 400) {
+        //         this.centerObject.playerInputText.inBeat = true;
+        //     }
+        //     else {
+        //         this.centerObject.playerInputText.inBeat = false;
+        //     }
+        // }
+    }
+    initStStart() {
+        let state = this.normalGameFsm.getState("Start");
+        state.setOnEnter(s => {
+            let health = 4;
+            let duration = 50000;
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.RandomFlow, { enemyDuration: duration, health: health });
+        });
+        state
+            .addDelayAction(this, 1000)
+            .addAction(s => {
+            // this.shakeTween.play();
+            // this.bgm.play();
+            // this.enemyManager.stopSpawnAndClear();
+            // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
+        })
+            .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "He told me that the experiment should be fun at first", true)
+            .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
+            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
+            .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
+            .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
+            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
+            .addSubtitleAction(this.subtitle, "And this is what my game becomes now.", true)
+            .addSubtitleAction(this.subtitle, "Hope you enjoy it", true)
+            .addAction(s => {
+            this.shakeTween.play();
+            this.bgm.play();
+            this.enemyManager.stopSpawnAndClear();
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
+        });
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
+/// <reference path="scenes/scene-1-3.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
@@ -897,7 +998,7 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1, Scene1L2, Scene1L1]
+    scene: [Controller, Scene1, Scene1L3, Scene1L2, Scene1L1]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -1415,6 +1516,12 @@ function updateObject(from, to) {
         to[key] = from[key];
     }
 }
+function setCookie(key, value) {
+    $.cookie(key, value);
+}
+function getCookie(key) {
+    return $.cookie(key);
+}
 var help = `
 Available Commands:
 setInterval();
@@ -1848,6 +1955,14 @@ class Dwitter65537 extends Dwitter {
     next() {
         this.lastT++;
         this._u(this.lastT, this.c, this.x);
+    }
+    nextWithColorChange() {
+        let typeCount = 4;
+        let colorIndex = Math.floor(this.lastT) % typeCount;
+        let colorAr = [0.03, 0.10, 0.08, 0.12];
+        // onsole.log(this.lastT + "  " + colorIndex);
+        this.inner.alpha = colorAr[colorIndex];
+        this.next();
     }
     toBlinkMode() {
         this.isRunning = true;
@@ -2508,6 +2623,11 @@ class EnemyManager {
                 return e;
         }
         return null;
+    }
+    changeAllEnemies() {
+        for (let i in this.enemies) {
+            this.enemies[i].figure.change();
+        }
     }
 }
 /// <reference path="enemy-base.ts" />
@@ -3407,6 +3527,15 @@ var normal_1_2 = {
 };
 farray.push(normal_1_2);
 /// <reference path="fsm.ts" />
+var normal_1_3 = {
+    name: 'Normal_1_3',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+    ]
+};
+farray.push(normal_1_3);
+/// <reference path="fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -3826,6 +3955,7 @@ class PlayerInputText {
         this.gap = 4;
         this.gapTitle = 6;
         this.canAcceptInput = false;
+        this.inBeat = true;
         this.scene = scene;
         this.parentContainer = container;
         this.centerObject = centerObject;
@@ -3862,6 +3992,8 @@ class PlayerInputText {
     }
     // keypress to handle all the valid characters
     keypress(event) {
+        if (!this.isInBeat())
+            return;
         if (!this.getCanAcceptInput())
             return;
         // console.log('keydown');
@@ -3887,6 +4019,8 @@ class PlayerInputText {
     }
     // keydown to handle the commands
     keydown(event) {
+        if (!this.isInBeat())
+            return;
         if (!this.getCanAcceptInput())
             return;
         // console.log('keydown');
@@ -4028,6 +4162,9 @@ class PlayerInputText {
     }
     getCanAcceptInput() {
         return this.canAcceptInput;
+    }
+    isInBeat() {
+        return this.inBeat;
     }
 }
 var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
@@ -4193,13 +4330,6 @@ class SpawnStrategy {
     }
     reset() {
     }
-    blendSpawn(c) {
-        let empty = {};
-        updateObject(c, empty);
-        updateObject(this.enemyManager.enemyConfig, empty);
-        console.log("tyoeP  " + empty.type);
-        this.enemyManager.spawn(empty);
-    }
 }
 var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
 class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
@@ -4224,7 +4354,7 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
         // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
         //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
         // else
-        this.blendSpawn({ health: config.health, duration: config.enemyDuration });
+        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
     }
     onEnter() {
         if (this.enemyManager.enemies.length == 0) {
@@ -4252,7 +4382,10 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
     }
     spawn() {
         let config = this.config;
-        this.blendSpawn({ health: config.health, duration: config.enemyDuration });
+        this.enemyManager.spawn({
+            health: config.health,
+            duration: config.enemyDuration,
+        });
     }
     getInterval() {
         let history = this.enemyManager.omniHistory;
@@ -4347,7 +4480,7 @@ class RandomFlow extends SpawnStrategyFlowTheory {
             tempConfig.rotation = 0;
             tempConfig.needFlicker = true;
         }
-        this.blendSpawn(tempConfig);
+        this.enemyManager.spawn(tempConfig);
         this.count++;
     }
 }

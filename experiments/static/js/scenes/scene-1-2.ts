@@ -11,8 +11,7 @@ class Scene1L2 extends Scene1 {
     create() {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
-        this.initNormalGameFsm();
-        
+        this.initNormalGameFsm();       
 
     }
     
@@ -61,7 +60,7 @@ class Scene1L2 extends Scene1 {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "OK, this time, I won't say 65536 again\n", true)
             .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
-            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe?", true)
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe.", true)
             .addDelayAction(this, 2000)
 
     }

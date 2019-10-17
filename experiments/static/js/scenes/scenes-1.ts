@@ -208,6 +208,7 @@ class Scene1 extends BaseScene {
     }
 
     curTime;
+    dif;
     update(time, dt) {
         
         super.update(time, dt);

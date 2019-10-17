@@ -1,5 +1,6 @@
 class PlayerInputText {
 
+    keyPressEvent: TypedEvent<object> = new TypedEvent();
     confirmedEvent: TypedEvent<string> = new TypedEvent();
     changedEvent: TypedEvent<PlayerInputText> = new TypedEvent();
 
@@ -23,6 +24,8 @@ class PlayerInputText {
     gapTitle: number = 6;
 
     canAcceptInput: boolean = false;
+    autoText: string;
+    inAutoMode: boolean = false;
 
     constructor(scene: PhScene, container: PhContainer, centerObject: CenterObject, dummyTitle: string) {
         this.scene = scene;
@@ -72,17 +75,49 @@ class PlayerInputText {
         this.text = this.scene.add.text(- this.getAvailableWidth() / 2, -this.gap,
             defaultStr, this.lblStyl).setOrigin(0, 1);
         
-
+        this.text.setWordWrapWidth(this.getAvailableWidth(), true);
+        
         this.parentContainer.add(this.text);
     }
 
+
+    setAutoContent(autoText) {
+        this.text.setText("");
+        this.inAutoMode = true;
+        this.autoText = autoText;
+    }
+
+    /**
+     * @returns true if need to forward the operation to auto mode
+     */
+    handleAutoContentKeyPress(): boolean {
+        if(!this.inAutoMode)
+            return false;
+
+        let curLen = this.text.text.length;
+        let allLen = this.autoText.length;
+
+        if(curLen < allLen) {
+            this.text.setText(this.autoText.substr(0, curLen + 1));
+        }
+
+        return true;
+    }
+
+
     // keypress to handle all the valid characters
     keypress(event) {
+
+        let oriText = this.text.text;
+        this.keyPressEvent.emit(event);
+
         if(!this.isInBeat())  
             return;
         
         if (!this.getCanAcceptInput())
             return;
+
+        
 
         // console.log('keydown');
         var t = this.text.text;
@@ -93,8 +128,13 @@ class PlayerInputText {
             return;
         }
 
+        if(this.handleAutoContentKeyPress()) 
+            return;
 
-        if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
+        //console.log(this.text.displayHeight);
+        if (t.length < this.maxCount ) {
+        // if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
+        // if (t.length < this.maxCount ) {
             var codeS = String.fromCharCode(code);
             if (t.length == 0)
                 codeS = codeS.toUpperCase();
@@ -103,6 +143,14 @@ class PlayerInputText {
 
 
         this.text.setText(t);
+
+        // if height exceeded 2 rows,set the content back to before
+        let height = this.text.displayHeight;
+        if(height > 80) {
+            this.text.setText(oriText);
+        }
+
+
         this.changedEvent.emit(this);
 
         // console.log("dis width: " + this.text.displayWidth);
@@ -121,9 +169,23 @@ class PlayerInputText {
         if (!this.getCanAcceptInput())
             return;
 
+
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
+
+        // if in autoMode, only continue when length matches and input is ENTER
+        if(this.inAutoMode) {
+            let curLen = this.text.text.length;
+            let allLen = this.autoText.length;
+
+            if(curLen != allLen || code != Phaser.Input.Keyboard.KeyCodes.ENTER) { 
+                return;
+            }
+            else {
+                this.inAutoMode = false;
+            }
+        }
 
         if (code == Phaser.Input.Keyboard.KeyCodes.BACKSPACE /* backspace */
             || code == Phaser.Input.Keyboard.KeyCodes.DELETE /* delete*/) {

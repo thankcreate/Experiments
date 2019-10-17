@@ -3,6 +3,15 @@ class Scene1L3 extends Scene1 {
     shakeTween: PhTween;
     inputTween: PhTween;
     bgm: Phaser.Sound.BaseSound;
+
+
+    beatStartTime: number;
+    loopTime: number = 454.5;
+    lastYoyoTime;
+    lastYoyoIndex = 0;
+
+    lastUsedYoyo = -1;
+
     constructor() {
         super('Scene1L3');
     }
@@ -23,15 +32,17 @@ class Scene1L3 extends Scene1 {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
 
-        this.initShake();
+        // this.initShake();
         this.initNormalGameFsm();       
         this.bgm = this.sound.add('bgm_1');
+        
     }
     
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
+        this.initStBGM();
 
         this.updateObjects.push(this.normalGameFsm);
     }
@@ -48,6 +59,8 @@ class Scene1L3 extends Scene1 {
 
     lastRepeatTime: number;
     needBeatInput: boolean;
+
+    needGrow: boolean;
     initShake() {        
         this.shakeTween = this.tweens.add({
             targets: this.centerObject.mainImage,            
@@ -55,10 +68,9 @@ class Scene1L3 extends Scene1 {
             yoyo: true,
             duration: 100,            
             repeat: -1,
-            repeatDelay: 235,
+            repeatDelay: 254,
             onYoyo: ()=>{
-                this.dwitterBKG.nextWithColorChange();
-                this.enemyManager.changeAllEnemies();
+                this.beat();
             },
             onRepeat: () =>{
                 // console.log('onRepeat');
@@ -67,15 +79,62 @@ class Scene1L3 extends Scene1 {
                 this.needBeatInput = true;
             }
         });
-        this.shakeTween.pause();
+        // this.shakeTween.pause();
+        
+        this.needBeatInput = true;
+        this.beatStartTime = this.curTime;
+
+        this.centerObject.playerInputText.keyPressEvent.on(()=>{
+            // let mod = this.curTime - this.lastYoyoTime;
+            // let needComplement = false;
+            // if(mod > this.loopTime / 2) {
+            //     mod = this.loopTime - mod;
+            //     needComplement = true;
+            // }
+            // console.log(mod);
+
+            // let can = false;
+            // if(mod < 125) {
+            //     let thisYoyo = needComplement ? this.lastYoyoIndex  + 1: this.lastYoyoIndex;
+            //     if(thisYoyo != this.lastUsedYoyo) {
+            //         can = true;
+            //         this.lastUsedYoyo = thisYoyo;
+            //     }                
+            // }
+            
+
+            // this.centerObject.playerInputText.inBeat = can;
+        });
+    }
+    
+
+    beat() {        
+        this.lastYoyoTime = this.curTime;
+        this.lastYoyoIndex++;
+
+        if(this.needChangeDwitter)
+            this.dwitterBKG.nextWithColorChange();
+
+        if(this.needChangeEnemy)            
+            this.enemyManager.changeAllEnemies();
+
+        // if(this.needGrow) {
+        //     this.centerObject.mainImage.scale = 1.1;
+        // }
+        // else {
+        //     this.centerObject.mainImage.scale = 1;
+        // }
+        this.needGrow = !this.needGrow;
     }
 
     update(time, dt) {
         super.update(time, dt);
 
+
         // if(this.needBeatInput) {
-        //     let dif = this.curTime - this.lastRepeatTime;
-        //     if(dif > 200 && dif < 400) {
+        //     this.dif = this.curTime - this.lastRepeatTime;
+        //     // console.log(dif);
+        //     if(this.dif > 100 && this.dif < 400) {
         //         this.centerObject.playerInputText.inBeat = true;
         //     }
         //     else {
@@ -97,12 +156,14 @@ class Scene1L3 extends Scene1 {
 
         state
             .addDelayAction(this, 1000)
-            .addAction(s=>{
-                // this.shakeTween.play();
-                // this.bgm.play();
-                // this.enemyManager.stopSpawnAndClear();
-                // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
-            })
+            // .addAction(s=>{
+            //     // this.centerObject.playerInputText.setAutoContent("Hello TronTron!");
+            //     this.initShake();
+            //     this.shakeTween.play();
+            //     this.bgm.play();
+            //     this.enemyManager.stopSpawnAndClear();
+            //     this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
+            // })
             .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "He told me that the experiment should be fun at first", true)
@@ -112,13 +173,54 @@ class Scene1L3 extends Scene1 {
             .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
             .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
             .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
-            .addSubtitleAction(this.subtitle, "And this is what my game becomes now.", true)
-            .addSubtitleAction(this.subtitle, "Hope you enjoy it", true)            
-            .addAction(s=>{
-                this.shakeTween.play();
-                this.bgm.play();
-                this.enemyManager.stopSpawnAndClear();
-                this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
-            });
+            .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType something!", false).finishImmediatly()
+            .addAction((s, result, resolve, reject) => {
+                this.centerObject.playerInputText.setAutoContent("Separate Ways");
+                s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {                   
+                    this.subtitle.forceStopAndHideSubtitles() ;
+                    resolve();
+                })
+            })
+            .addEventAction("TO_BGM")
+            
+    }
+
+    needChangeDwitter: boolean = false;
+    needChangeCenter: boolean = false;
+    needChangeEnemy: boolean = false;
+
+    initStBGM() {
+        let state = this.normalGameFsm.getState("BGM");
+        state.addAction(s=>{
+            
+            this.enemyManager.stopSpawnAndClear();
+            this.bgm.play();
+            
+            // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
+        })
+        // .addDelayAction(this, 2000)
+        .addAction(s=>{           
+            
+        })
+        .addDelayAction(this, 3500)
+        .addAction(s=>{         
+               
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                           
+        })
+        .addDelayAction(this, 3900)
+        .addAction(s=>{     
+            this.initShake();
+            this.shakeTween.play();    
+            // this.needChangeDwitter = true;                   
+        })
+        .addDelayAction(this, 3700)
+        .addAction(s=>{     
+            this.needChangeDwitter = true;                   
+        })
+        .addDelayAction(this, 3300)
+        .addAction(s=>{        
+            this.needChangeEnemy = true;
+        })
     }
 }

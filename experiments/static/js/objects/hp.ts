@@ -14,7 +14,7 @@ class HP extends Wrapper<PhText> {
 
     frameWidth = 6;
 
-    maxHealth = 10;    
+    maxHealth = 100;    
     currHealth = this.maxHealth;
 
     deadEvent: TypedEvent<any> = new TypedEvent();

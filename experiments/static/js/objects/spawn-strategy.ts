@@ -244,26 +244,32 @@ class RandomFlow extends SpawnStrategyFlowTheory {
         
         let tempConfig:any | EnemyConfig = {type: EnemyType.Image, health:config.health, duration: config.enemyDuration};
         
-        // default
-        if(this.count % 5 == 0)  {            
-            tempConfig.rotation =  0
-            tempConfig.needChange = true;
-        }
-        // rotation
-        if(this.count % 5 == 1 || this.count % 5 == 3)  {            
-            tempConfig.rotation =  1000;
-            tempConfig.needChange = false;
-        }        
-        // shake
-        if(this.count % 5 == 2)  {            
-            tempConfig.rotation =  0;
-            tempConfig.needShake = true;
-        }
-        // flicker
-        if(this.count % 5 == 4)  {            
-            tempConfig.rotation =  0;
-            tempConfig.needFlicker = true;
-        }
+        tempConfig.rotation =  0
+        tempConfig.needChange = true;
+
+
+        // // default
+        // if(this.count % 5 == 0)  {            
+        //     tempConfig.rotation =  0
+        //     tempConfig.needChange = true;
+        // }
+        // // rotation
+        // if(this.count % 5 == 1 || this.count % 5 == 3)  {            
+        //     tempConfig.rotation =  1000;
+        //     tempConfig.needChange = true;
+        // }        
+        // // shake
+        // if(this.count % 5 == 2)  {            
+        //     tempConfig.rotation =  0;
+        //     tempConfig.needShake = true;
+        //     tempConfig.needChange = true;
+        // }
+        // // flicker
+        // if(this.count % 5 == 4)  {            
+        //     tempConfig.rotation =  0;
+        //     tempConfig.needFlicker = true;
+        //     tempConfig.needChange = true;
+        // }
         this.enemyManager.spawn(tempConfig);
         this.count++;        
     }

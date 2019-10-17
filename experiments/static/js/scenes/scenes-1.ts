@@ -72,6 +72,9 @@ class Scene1 extends BaseScene {
     playerName: string = "";
     leaderboardManager: LeaderboardManager;
 
+    sfxLaser : Phaser.Sound.BaseSound;
+    sfxMatches: Phaser.Sound.BaseSound[];
+    sfxFail : Phaser.Sound.BaseSound;
     
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {        
@@ -100,15 +103,28 @@ class Scene1 extends BaseScene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png')
         this.load.image('footer_sep', 'assets/footer_sep.png')
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png')
+
+        this.load.audio("sfx_laser", "assets/audio/Hit_Hurt131.wav");
+        this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
+        this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
+        this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");        
+        this.load.audio("sfx_fail",  "assets/audio/Fail.wav");        
     }
 
-
+    
 
     create() {
+        this.sfxLaser = this.sound.add("sfx_laser");
+        this.sfxMatches = [];
+        this.sfxMatches.push(this.sound.add("sfx_match_1"));
+        this.sfxMatches.push(this.sound.add("sfx_match_2"));
+        this.sfxMatches.push(this.sound.add("sfx_match_3"));
+        this.sfxFail = this.sound.add("sfx_fail");
+
         this.container = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
 
-
+        
 
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
@@ -222,6 +238,7 @@ class Scene1 extends BaseScene {
 
         this.enemyManager.update(time, dt);
         this.centerObject.update();
+        this.hud.update(time, dt);
     }
 
     getMainFsm(): IFsmData {

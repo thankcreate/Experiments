@@ -2,6 +2,8 @@ class BaseScene extends Phaser.Scene {
 
     updateObjects: Updatable[] = [];
 
+    needFeedback: boolean = false;
+
     getController(): Controller {
         let controller: Controller = <Controller> this.scene.get("Controller");
         return controller;
@@ -44,7 +46,7 @@ class BaseScene extends Phaser.Scene {
         this.updateObjects.forEach(e=>{
             e.update(time, dt);
         });        
-    }
+    }    
 }
 
 class MyInput {

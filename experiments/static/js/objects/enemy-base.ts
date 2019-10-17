@@ -226,10 +226,18 @@ class Enemy {
         if (this.health <= 0) {
             this.eliminated();            
         }
+        else {
+            let sc = this.scene as Scene1;
+            if(sc.needFeedback)
+                this.playHurtAnimation();
+        }
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
 
         return ret;
+    }
+    playHurtAnimation() {
+
     }
 
     updateOmniDamageHistory(input: string){

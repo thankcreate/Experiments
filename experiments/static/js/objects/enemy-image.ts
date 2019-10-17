@@ -81,6 +81,26 @@ class EnemyImage extends Enemy {
         });
     }
 
+
+    hurAnimation;
+    playHurtAnimation() {
+        console.log("hoa2");
+        this.hurAnimation = this.scene.tweens.add({
+            targets: this.figure.inner,
+            x: '+=100',
+            yoyo: true,
+            duration: 150,            
+        });
+
+        this.scene.tweens.add({
+            targets: this.figure.inner,
+            alpha: 0,
+            yoyo: true,
+            duration: 300,            
+        });
+    }
+
+
     checkIfDontNeedLabel() {
         if(this.config.type == EnemyType.TextWithImage || this.config.showLabel == true) {
             return;
@@ -106,6 +126,7 @@ class EnemyImage extends Enemy {
     checkIfNeedRotate() {
         if(this.config.rotation > 0) {
             this.startRotate();
+
         }
     }
     

@@ -3,6 +3,7 @@ class BaseScene extends Phaser.Scene {
     constructor() {
         super(...arguments);
         this.updateObjects = [];
+        this.needFeedback = false;
     }
     getController() {
         let controller = this.scene.get("Controller");
@@ -155,8 +156,19 @@ class Scene1 extends BaseScene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png');
         this.load.image('footer_sep', 'assets/footer_sep.png');
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png');
+        this.load.audio("sfx_laser", "assets/audio/Hit_Hurt131.wav");
+        this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
+        this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
+        this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
+        this.load.audio("sfx_fail", "assets/audio/Fail.wav");
     }
     create() {
+        this.sfxLaser = this.sound.add("sfx_laser");
+        this.sfxMatches = [];
+        this.sfxMatches.push(this.sound.add("sfx_match_1"));
+        this.sfxMatches.push(this.sound.add("sfx_match_2"));
+        this.sfxMatches.push(this.sound.add("sfx_match_3"));
+        this.sfxFail = this.sound.add("sfx_fail");
         this.container = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         // Center cicle-like object
@@ -236,6 +248,7 @@ class Scene1 extends BaseScene {
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
         this.centerObject.update();
+        this.hud.update(time, dt);
     }
     getMainFsm() {
         return mainFsm;
@@ -971,18 +984,19 @@ class Scene1L3 extends Scene1 {
             //     this.enemyManager.stopSpawnAndClear();
             //     this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
             // })
-            .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)
-            .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "He told me that the experiment should be fun at first", true)
-            .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
-            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
-            .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
-            .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
-            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
-            .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType something!", false).finishImmediatly()
+            // .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
+            // .addDelayAction(this, 1000)
+            // .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
+            // .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
+            // .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
+            // .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
+            // .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
+            // .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
+            // .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
+            // .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
+            this.enemyManager.stopSpawnAndClear();
             this.centerObject.playerInputText.setAutoContent("Separate Ways");
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {
                 this.subtitle.forceStopAndHideSubtitles();
@@ -994,7 +1008,7 @@ class Scene1L3 extends Scene1 {
     initStBGM() {
         let state = this.normalGameFsm.getState("BGM");
         state.addAction(s => {
-            this.enemyManager.stopSpawnAndClear();
+            this.needFeedback = true;
             this.bgm.play();
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
         })
@@ -2206,9 +2220,16 @@ class Enemy {
         if (this.health <= 0) {
             this.eliminated();
         }
+        else {
+            let sc = this.scene;
+            if (sc.needFeedback)
+                this.playHurtAnimation();
+        }
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
         return ret;
+    }
+    playHurtAnimation() {
     }
     updateOmniDamageHistory(input) {
         this.enemyManager.omniHistory.forEach(e => {
@@ -2300,6 +2321,21 @@ class EnemyImage extends Enemy {
             yoyo: true,
             duration: 500,
             repeat: -1
+        });
+    }
+    playHurtAnimation() {
+        console.log("hoa2");
+        this.hurAnimation = this.scene.tweens.add({
+            targets: this.figure.inner,
+            x: '+=100',
+            yoyo: true,
+            duration: 150,
+        });
+        this.scene.tweens.add({
+            targets: this.figure.inner,
+            alpha: 0,
+            yoyo: true,
+            duration: 300,
         });
     }
     checkIfDontNeedLabel() {
@@ -2603,6 +2639,7 @@ class EnemyManager {
         if (gameplayConfig.onlyDamageMostMatch) {
             ar = this.findBiggestDamage(ar);
         }
+        let validDamageAtLeastOne = false;
         for (let i in ar) {
             let entry = ar[i];
             let entryName = ar[i].name;
@@ -2612,8 +2649,25 @@ class EnemyManager {
             // we need to be careful about the availability of the enemy
             let enemiesWithName = this.findEnemyByName(entryName);
             enemiesWithName.forEach(e => {
-                e.damage(entryValue, input);
+                let dmgRes = e.damage(entryValue, input);
+                if (dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {
+                    console.log(dmgRes.damage);
+                    validDamageAtLeastOne = true;
+                }
             });
+        }
+        let sc = this.scene;
+        if (validDamageAtLeastOne) {
+            if (sc.needFeedback) {
+                sc.sfxLaser.play();
+                sc.hud.addCombo();
+            }
+        }
+        else {
+            if (sc.hud.comboHit > 0 && sc.needFeedback) {
+                sc.sfxFail.play();
+            }
+            sc.hud.resetCombo();
         }
     }
     findBiggestDamage(ar) {
@@ -3814,6 +3868,7 @@ class Hud extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.score = 0;
+        this.comboHit = 0;
         this.inShow = false;
         let hpBottom = 36;
         let hpLeft = 36;
@@ -3825,6 +3880,46 @@ class Hud extends Wrapper {
         this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
         this.scoreText.y += 250;
         this.inner.add(this.scoreText);
+        style.fontSize = '60px';
+        this.comboHitText = this.scene.add.text(getLogicWidth() - 30, 20, "0 HIT COMBO", style).setOrigin(1, 0);
+        this.inner.add(this.comboHitText);
+        this.comboHitText.setVisible(false);
+    }
+    addCombo() {
+        this.comboHitText.setVisible(true);
+        this.comboHit++;
+        this.comboHitText.setText(this.comboHit + " HIT COMBO");
+        this.scene.tweens.add({
+            targets: this.comboHitText,
+            scale: '+1.2',
+            yoyo: true,
+            duration: 200,
+        });
+        let sc = this.scene;
+        if (this.comboHit == 2) {
+            sc.sfxMatches[0].play();
+        }
+        else if (this.comboHit == 3) {
+            sc.sfxMatches[1].play();
+        }
+        else if (this.comboHit >= 4) {
+            sc.sfxMatches[2].play();
+        }
+        this.lastTimeAddCombo = sc.curTime;
+    }
+    update(time, dt) {
+        let sc = this.scene;
+        if (this.comboHit > 0 && sc.curTime - this.lastTimeAddCombo > 7000) {
+            if (sc.needFeedback) {
+                this.resetCombo();
+                sc.sfxFail.play();
+            }
+        }
+    }
+    resetCombo() {
+        this.comboHitText.setVisible(false);
+        this.comboHit = 0;
+        this.comboHitText.setText("");
     }
     addScore(inc) {
         this.score += inc;
@@ -4580,26 +4675,30 @@ class RandomFlow extends SpawnStrategyFlowTheory {
     spawn() {
         let config = this.config;
         let tempConfig = { type: EnemyType.Image, health: config.health, duration: config.enemyDuration };
-        // default
-        if (this.count % 5 == 0) {
-            tempConfig.rotation = 0;
-            tempConfig.needChange = true;
-        }
-        // rotation
-        if (this.count % 5 == 1 || this.count % 5 == 3) {
-            tempConfig.rotation = 1000;
-            tempConfig.needChange = false;
-        }
-        // shake
-        if (this.count % 5 == 2) {
-            tempConfig.rotation = 0;
-            tempConfig.needShake = true;
-        }
-        // flicker
-        if (this.count % 5 == 4) {
-            tempConfig.rotation = 0;
-            tempConfig.needFlicker = true;
-        }
+        tempConfig.rotation = 0;
+        tempConfig.needChange = true;
+        // // default
+        // if(this.count % 5 == 0)  {            
+        //     tempConfig.rotation =  0
+        //     tempConfig.needChange = true;
+        // }
+        // // rotation
+        // if(this.count % 5 == 1 || this.count % 5 == 3)  {            
+        //     tempConfig.rotation =  1000;
+        //     tempConfig.needChange = true;
+        // }        
+        // // shake
+        // if(this.count % 5 == 2)  {            
+        //     tempConfig.rotation =  0;
+        //     tempConfig.needShake = true;
+        //     tempConfig.needChange = true;
+        // }
+        // // flicker
+        // if(this.count % 5 == 4)  {            
+        //     tempConfig.rotation =  0;
+        //     tempConfig.needFlicker = true;
+        //     tempConfig.needChange = true;
+        // }
         this.enemyManager.spawn(tempConfig);
         this.count++;
     }

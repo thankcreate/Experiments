@@ -373,6 +373,7 @@ class EnemyManager {
             ar = this.findBiggestDamage(ar);
         }
 
+        let validDamageAtLeastOne = false;
         for (let i in ar) {
             let entry = ar[i];
             let entryName = ar[i].name;
@@ -383,9 +384,29 @@ class EnemyManager {
             // we need to be careful about the availability of the enemy
             let enemiesWithName = this.findEnemyByName(entryName);
             enemiesWithName.forEach(e => {
-                e.damage(entryValue, input);
+                let dmgRes = e.damage(entryValue, input);
+                if(dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {
+                    console.log(dmgRes.damage);
+                    validDamageAtLeastOne = true;
+                }
             });
         }
+
+        let sc = this.scene as Scene1;
+        if(validDamageAtLeastOne ) {                      
+            if(sc.needFeedback) {
+                sc.sfxLaser.play();
+                sc.hud.addCombo();  
+            }
+            
+        }
+        else {
+            if(sc.hud.comboHit > 0 && sc.needFeedback) {
+                sc.sfxFail.play();
+            }
+            sc.hud.resetCombo();            
+        }
+        
     }
 
 

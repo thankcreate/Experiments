@@ -2,8 +2,11 @@ class Hud extends Wrapper<PhText> {
 
 
     hp: HP;
-    scoreText: PhText;
+    scoreText: PhText;    
     score = 0;
+
+    comboHitText: PhText;
+    comboHit = 0;
 
     hpInitPosi: PhPoint;
     inShow: boolean = false;
@@ -25,6 +28,57 @@ class Hud extends Wrapper<PhText> {
         this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
         this.scoreText.y += 250
         this.inner.add(this.scoreText);
+
+        style.fontSize = '60px';
+        this.comboHitText = this.scene.add.text(getLogicWidth() - 30, 20, "0 HIT COMBO", style).setOrigin(1, 0);
+        this.inner.add(this.comboHitText);
+        this.comboHitText.setVisible(false);
+    }
+    lastTimeAddCombo;
+
+    addCombo() {
+        this.comboHitText.setVisible(true);
+        this.comboHit++;
+        this.comboHitText.setText(this.comboHit + " HIT COMBO");
+
+        this.scene.tweens.add({
+            targets: this.comboHitText,
+            scale: '+1.2',
+            yoyo: true,
+            duration: 200,
+        });
+
+        let sc = this.scene as Scene1;
+        if(this.comboHit == 2) {
+            sc.sfxMatches[0].play();
+        }
+        else if(this.comboHit == 3) {
+            sc.sfxMatches[1].play();
+        }
+        else if(this.comboHit >= 4) {
+            sc.sfxMatches[2].play();
+        }
+
+
+        this.lastTimeAddCombo = sc.curTime;
+    }
+
+    update(time, dt) {
+        let sc = this.scene as Scene1;
+        if(this.comboHit > 0 && sc.curTime - this.lastTimeAddCombo > 7000) {
+            
+            if(sc.needFeedback) {
+                this.resetCombo();
+                sc.sfxFail.play();
+            }
+            
+        }
+    }
+
+    resetCombo() {
+        this.comboHitText.setVisible(false);
+        this.comboHit = 0;
+        this.comboHitText.setText("");
     }
 
     addScore(inc) {

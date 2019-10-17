@@ -164,18 +164,19 @@ class Scene1L3 extends Scene1 {
             //     this.enemyManager.stopSpawnAndClear();
             //     this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
             // })
-            .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
-            .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "He told me that the experiment should be fun at first", true)
-            .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
-            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
-            .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
-            .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
-            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
-            .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType something!", false).finishImmediatly()
+            // .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
+            // .addDelayAction(this, 1000)
+            // .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
+            // .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
+            // .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
+            // .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
+            // .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
+            // .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
+            // .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
+            // .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
+                this.enemyManager.stopSpawnAndClear();
                 this.centerObject.playerInputText.setAutoContent("Separate Ways");
                 s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {                   
                     this.subtitle.forceStopAndHideSubtitles() ;
@@ -194,7 +195,7 @@ class Scene1L3 extends Scene1 {
         let state = this.normalGameFsm.getState("BGM");
         state.addAction(s=>{
             
-            this.enemyManager.stopSpawnAndClear();
+            this.needFeedback = true;
             this.bgm.play();
             
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               

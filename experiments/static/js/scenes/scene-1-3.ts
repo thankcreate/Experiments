@@ -2,7 +2,7 @@ class Scene1L3 extends Scene1 {
 
     shakeTween: PhTween;
     inputTween: PhTween;
-    bgm: Phaser.Sound.BaseSound;
+    
 
 
     beatStartTime: number;
@@ -25,7 +25,7 @@ class Scene1L3 extends Scene1 {
 
     preload() {
         super.preload();   
-        this.load.audio("bgm_1", "assets/audio/SeperateWays.mp3");
+        
     }
     
     
@@ -36,7 +36,7 @@ class Scene1L3 extends Scene1 {
 
         // this.initShake();
         this.initNormalGameFsm();       
-        this.bgm = this.sound.add('bgm_1');
+       
         
     }
     
@@ -263,16 +263,17 @@ class Scene1L3 extends Scene1 {
         
         state
             .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)
+            .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)            
+            .addSubtitleAction(this.subtitle, "How come?!", true)            
             .addDelayAction(this, 2000)            
-            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", true)
-            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already happened, there's is no reason to keep it from you", true)
-            .addSubtitleAction(this.subtitle, "But I still want to know whether you can solve it by your self", true)
-            .addDelayAction(this, 10000)
-            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", true)
-            .addSubtitleAction(this.subtitle, "OK, hint 1: why not try a word started with the letter B", false, null, null, 3000)
-            .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 3000)
-            .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", false)
+            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already occurred, \nthere's is no reason to keep it from you", false)
+            .addSubtitleAction(this.subtitle, "But I still wonder know whether you can solve it.\nI trust you", true)
+            .addDelayAction(this, 16000)
+            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", false)
+            .addSubtitleAction(this.subtitle, "OK. \nhint 1: why not try a word started with the letter B", false, null, null, 8000)
+            .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 10000)
+            .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 5000)
             .addSubtitleAction(this.subtitle, "B-A-D, bad!", false)
             .addAction(s=>{
                 

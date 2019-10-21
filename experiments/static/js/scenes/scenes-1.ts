@@ -75,6 +75,8 @@ class Scene1 extends BaseScene {
     sfxLaser : Phaser.Sound.BaseSound;
     sfxMatches: Phaser.Sound.BaseSound[];
     sfxFail : Phaser.Sound.BaseSound;
+
+    bgm: Phaser.Sound.BaseSound;
     
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {        
@@ -108,7 +110,9 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");        
-        this.load.audio("sfx_fail",  "assets/audio/Fail.wav");        
+        this.load.audio("sfx_fail",  "assets/audio/Fail.wav");       
+        
+        this.load.audio("bgm_1", "assets/audio/SeperateWays.mp3");
     }
 
     
@@ -120,6 +124,8 @@ class Scene1 extends BaseScene {
         this.sfxMatches.push(this.sound.add("sfx_match_2"));
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
         this.sfxFail = this.sound.add("sfx_fail");
+
+        this.bgm = this.sound.add('bgm_1');
 
         this.container = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
@@ -239,7 +245,19 @@ class Scene1 extends BaseScene {
         this.enemyManager.update(time, dt);
         this.centerObject.update();
         this.hud.update(time, dt);
+
+        // this.checkDuckVolumn();
     }
+
+
+    // checkDuckVolumn() {
+    //     if(this.subtitle.isTextInShow()) {
+    //       (this.bgm as any).volume = 0.2;
+    //     }
+    //     else {
+    //         (this.bgm as any).volume = 1;
+    //     }
+    // }
 
     getMainFsm(): IFsmData {
         return mainFsm;

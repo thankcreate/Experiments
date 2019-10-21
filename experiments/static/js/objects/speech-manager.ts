@@ -209,7 +209,8 @@ class SpeechManager {
     
     playSoundByKey(key: string): Pany {
         return new Promise((resolve, reject) => {
-            var music = this.scene.sound.add(key);            
+            var music = this.scene.sound.add(key);          
+            
             
             music.on('complete', (param) => {                
                 arrayRemove(this.playingSounds, music);

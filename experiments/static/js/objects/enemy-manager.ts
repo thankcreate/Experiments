@@ -175,7 +175,7 @@ class EnemyManager {
         config.isSensitive = true;
         config.label = "!@#$%^&*";
         config.health = 9;
-        config.duration = 80000;
+        config.duration = 100000;
     }
 
     spawn(config?: EnemyConfig) : Enemy {

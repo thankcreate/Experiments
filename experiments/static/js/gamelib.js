@@ -161,6 +161,7 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
         this.load.audio("sfx_fail", "assets/audio/Fail.wav");
+        this.load.audio("bgm_1", "assets/audio/SeperateWays.mp3");
     }
     create() {
         this.sfxLaser = this.sound.add("sfx_laser");
@@ -169,6 +170,7 @@ class Scene1 extends BaseScene {
         this.sfxMatches.push(this.sound.add("sfx_match_2"));
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
         this.sfxFail = this.sound.add("sfx_fail");
+        this.bgm = this.sound.add('bgm_1');
         this.container = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         // Center cicle-like object
@@ -249,7 +251,16 @@ class Scene1 extends BaseScene {
         this.enemyManager.update(time, dt);
         this.centerObject.update();
         this.hud.update(time, dt);
+        // this.checkDuckVolumn();
     }
+    // checkDuckVolumn() {
+    //     if(this.subtitle.isTextInShow()) {
+    //       (this.bgm as any).volume = 0.2;
+    //     }
+    //     else {
+    //         (this.bgm as any).volume = 1;
+    //     }
+    // }
     getMainFsm() {
         return mainFsm;
     }
@@ -879,14 +890,12 @@ class Scene1L3 extends Scene1 {
     }
     preload() {
         super.preload();
-        this.load.audio("bgm_1", "assets/audio/SeperateWays.mp3");
     }
     create() {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
-        this.bgm = this.sound.add('bgm_1');
     }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
@@ -1064,15 +1073,16 @@ class Scene1L3 extends Scene1 {
         state
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)
+            .addSubtitleAction(this.subtitle, "How come?!", true)
             .addDelayAction(this, 2000)
-            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", true)
-            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already happened, there's is no reason to keep it from you", true)
-            .addSubtitleAction(this.subtitle, "But I still want to know whether you can solve it by your self", true)
-            .addDelayAction(this, 10000)
-            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", true)
-            .addSubtitleAction(this.subtitle, "OK, hint 1: why not try a word started with the letter B", false, null, null, 3000)
-            .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 3000)
-            .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", false)
+            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already occurred, \nthere's is no reason to keep it from you", false)
+            .addSubtitleAction(this.subtitle, "But I still wonder know whether you can solve it.\nI trust you", true)
+            .addDelayAction(this, 16000)
+            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", false)
+            .addSubtitleAction(this.subtitle, "OK. \nhint 1: why not try a word started with the letter B", false, null, null, 8000)
+            .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 10000)
+            .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 5000)
             .addSubtitleAction(this.subtitle, "B-A-D, bad!", false)
             .addAction(s => {
         });
@@ -2533,7 +2543,7 @@ class EnemyManager {
         config.isSensitive = true;
         config.label = "!@#$%^&*";
         config.health = 9;
-        config.duration = 80000;
+        config.duration = 100000;
     }
     spawn(config) {
         if (notSet(config))
@@ -4990,6 +5000,7 @@ class Subtitle extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.monologueIndex = 0;
+        this.textInShow = false;
         let style = this.getSubtitleStyle();
         let target = this.scene.add.text(0, 0, "", style).setOrigin(0.5);
         target.setWordWrapWidth(1000);
@@ -5037,13 +5048,22 @@ class Subtitle extends Wrapper {
         };
         return ret;
     }
+    isTextInShow() {
+        return this.textInShow;
+    }
     showText(val) {
+        this.textInShow = true;
         if (this.outTween)
             this.outTween.stop();
         this.wrappedObject.alpha = 0;
         this.inTween = this.scene.tweens.add({
             targets: this.wrappedObject,
             alpha: 1,
+            duration: 250,
+        });
+        this.scene.tweens.add({
+            targets: this.scene.bgm,
+            volume: 0.15,
             duration: 250,
         });
         this.wrappedObject.text = val;
@@ -5056,7 +5076,15 @@ class Subtitle extends Wrapper {
                 targets: this.wrappedObject,
                 alpha: 0,
                 duration: 250,
-                onComplete: () => { resolve('hideComplete'); }
+                onComplete: () => {
+                    resolve('hideComplete');
+                    this.textInShow = false;
+                }
+            });
+            this.scene.tweens.add({
+                targets: this.scene.bgm,
+                volume: 1,
+                duration: 250,
             });
         });
         // in case anything extreme may happan

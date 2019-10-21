@@ -90,9 +90,14 @@ class Subtitle extends Wrapper<PhText> {
         return ret;
     }
 
+    private textInShow : boolean = false;
 
+    isTextInShow() : boolean {
+        return this.textInShow;
+    }
 
     showText(val: string) {
+        this.textInShow = true;
         if (this.outTween)
             this.outTween.stop();
         
@@ -103,6 +108,13 @@ class Subtitle extends Wrapper<PhText> {
             duration: 250,
         });
 
+
+        this.scene.tweens.add({
+            targets: (this.scene as Scene1).bgm,
+            volume: 0.15,
+            duration: 250,
+        });
+        
         this.wrappedObject.text = val;
     }
 
@@ -116,9 +128,20 @@ class Subtitle extends Wrapper<PhText> {
                 targets: this.wrappedObject,
                 alpha: 0,
                 duration: 250,
-                onComplete: () => {resolve('hideComplete')}
+                onComplete: () => {
+                    resolve('hideComplete')
+                    this.textInShow = false;
+                }
+            });
+
+            this.scene.tweens.add({
+                targets: (this.scene as Scene1).bgm,
+                volume: 1,
+                duration: 250,
             });
         })
+
+        
 
         // in case anything extreme may happan
         // return a raced timeout

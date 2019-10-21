@@ -38,6 +38,7 @@ class EnemyManager {
        
     enemyReachedCoreEvent: TypedEvent<Enemy> = new TypedEvent();
     enemyEliminatedEvent: TypedEvent<Enemy> = new TypedEvent();
+    enemySpawnedEvent: TypedEvent<Enemy> = new TypedEvent();
 
     curStrategy: SpawnStrategy;
 
@@ -158,11 +159,31 @@ class EnemyManager {
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
     
+    nextNeedSensitvie : boolean;
+
+    setNextNeedSensitive(val: boolean) {
+        this.nextNeedSensitvie = val;
+    }
     
+    checkIfNextNeeedSensitive(config: EnemyConfig) {
+        if(!this.nextNeedSensitvie) {
+            return false;
+        }
+        this.nextNeedSensitvie = false;
+        
+        // convert to sensitive
+        config.isSensitive = true;
+        config.label = "!@#$%^&*";
+        config.health = 9;
+        config.duration = 80000;
+    }
+
     spawn(config?: EnemyConfig) : Enemy {
 
         if(notSet(config))
             config = {};
+
+        this.checkIfNextNeeedSensitive(config);
 
         if(notSet(config.type)) config.type = EnemyType.TextWithImage;
         if(notSet(config.label)) config.label = this.getNextName();      
@@ -208,6 +229,8 @@ class EnemyManager {
 
         if(this.curStrategy)
             this.curStrategy.enemySpawned(enemy);
+
+        this.enemySpawnedEvent.emit(enemy);
         return enemy;
     }
 
@@ -254,7 +277,7 @@ class EnemyManager {
 
         var rdDegree = 0;
 
-        let tryTime = 50;
+        let tryTime = 0;
         while (true) {
             tryTime++;
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
@@ -270,7 +293,7 @@ class EnemyManager {
             if(valid)
                 break;
             
-            if(tryTime > 50)
+            if(tryTime > 100)
                 break;
         }
 

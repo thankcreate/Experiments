@@ -41,24 +41,28 @@ class Hud extends Wrapper<PhText> {
         this.comboHit++;
         this.comboHitText.setText(this.comboHit + " HIT COMBO");
 
-        this.scene.tweens.add({
-            targets: this.comboHitText,
-            scale: '+1.2',
-            yoyo: true,
-            duration: 200,
-        });
-
+        
+        let scaleTo = 1.2;
         let sc = this.scene as Scene1;
         if(this.comboHit == 2) {
             sc.sfxMatches[0].play();
         }
         else if(this.comboHit == 3) {
             sc.sfxMatches[1].play();
+            scaleTo = 2;
         }
         else if(this.comboHit >= 4) {
             sc.sfxMatches[2].play();
+            scaleTo = 4;
         }
 
+
+        this.scene.tweens.add({
+            targets: this.comboHitText,
+            scale: scaleTo,
+            yoyo: true,
+            duration: 200,
+        });
 
         this.lastTimeAddCombo = sc.curTime;
     }

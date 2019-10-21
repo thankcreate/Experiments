@@ -17,6 +17,7 @@ class SpawnStrategy {
     type: SpawnStrategyType;
     config: SpawnStrategyConfig = {};
     
+    isPause : boolean = false;
 
     constructor(manager: EnemyManager, type: SpawnStrategyType, config: SpawnStrategyConfig) {        
         
@@ -40,6 +41,14 @@ class SpawnStrategy {
         }
     }
    
+    pause(){
+        this.isPause = true;
+    }
+
+    unPause() {
+        this.isPause = false;
+    }
+
     onEnter() {
 
     }
@@ -202,6 +211,9 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
     
 
     onUpdate(time, dt) {
+        if(this.isPause) {
+            return;
+        }
         
         let lastSpawnTime = -1000;
         let historyLength = this.enemyManager.omniHistory.length;

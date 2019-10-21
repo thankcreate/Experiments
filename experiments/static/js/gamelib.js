@@ -869,6 +869,7 @@ class Scene1L3 extends Scene1 {
         this.loopTime = 454.5;
         this.lastYoyoIndex = 0;
         this.lastUsedYoyo = -1;
+        this.needToDestroyBeforeShowSensitive = 1;
         this.needChangeDwitter = false;
         this.needChangeCenter = false;
         this.needChangeEnemy = false;
@@ -889,9 +890,11 @@ class Scene1L3 extends Scene1 {
     }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
+        this.destroyedCount = 0;
         this.initStNormalDefault();
         this.initStStart();
         this.initStBGM();
+        this.initStSensitive();
         this.updateObjects.push(this.normalGameFsm);
     }
     initStNormalDefault() {
@@ -994,7 +997,7 @@ class Scene1L3 extends Scene1 {
             // .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
             // .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
             // .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
+            // .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
             this.enemyManager.stopSpawnAndClear();
             this.centerObject.playerInputText.setAutoContent("Separate Ways");
@@ -1007,6 +1010,16 @@ class Scene1L3 extends Scene1 {
     }
     initStBGM() {
         let state = this.normalGameFsm.getState("BGM");
+        state.setUnionEvent('TO_SENSITIVE_WORD', 2);
+        state.setOnEnter(s => {
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+                this.destroyedCount++;
+                if (this.destroyedCount >= this.needToDestroyBeforeShowSensitive) {
+                    s.unionEvent('TO_SENSITIVE_WORD', 'enemies_eliminated');
+                    s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+                }
+            });
+        });
         state.addAction(s => {
             this.needFeedback = true;
             this.bgm.play();
@@ -1032,6 +1045,36 @@ class Scene1L3 extends Scene1 {
             .addDelayAction(this, 3300)
             .addAction(s => {
             this.needChangeEnemy = true;
+        })
+            .addAction(s => {
+            // s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+        });
+    }
+    initStSensitive() {
+        let state = this.normalGameFsm.getState("Sensitive");
+        state.setOnEnter(s => {
+            this.enemyManager.setNextNeedSensitive(true);
+            s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
+                let em = e;
+                if (em.config.isSensitive) {
+                    this.enemyManager.curStrategy.pause();
+                }
+            });
+        });
+        state
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)
+            .addDelayAction(this, 2000)
+            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", true)
+            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already happened, there's is no reason to keep it from you", true)
+            .addSubtitleAction(this.subtitle, "But I still want to know whether you can solve it by your self", true)
+            .addDelayAction(this, 10000)
+            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", true)
+            .addSubtitleAction(this.subtitle, "OK, hint 1: why not try a word started with the letter B", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "B-A-D, bad!", false)
+            .addAction(s => {
         });
     }
 }
@@ -1171,6 +1214,7 @@ var ErrorInputCode;
     ErrorInputCode[ErrorInputCode["Repeat"] = 5] = "Repeat";
     ErrorInputCode[ErrorInputCode["DamagedBefore"] = 6] = "DamagedBefore";
     ErrorInputCode[ErrorInputCode["NotWord"] = 7] = "NotWord";
+    ErrorInputCode[ErrorInputCode["SensitiveCantDamage"] = 8] = "SensitiveCantDamage";
 })(ErrorInputCode || (ErrorInputCode = {}));
 class TypedEvent {
     constructor() {
@@ -2247,6 +2291,10 @@ class Enemy {
     checkIfInputLegalWithEnemy(inputLbl, enemyLbl) {
         inputLbl = inputLbl.trim().toLowerCase();
         enemyLbl = enemyLbl.trim().toLowerCase();
+        // sensitve can't be damanged by ordinary input
+        if (this.config.isSensitive) {
+            return ErrorInputCode.SensitiveCantDamage;
+        }
         if (this.config.type == EnemyType.TextWithImage && inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
         if (this.config.type == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
@@ -2381,6 +2429,7 @@ class EnemyManager {
         this.omniHistory = [];
         this.enemyReachedCoreEvent = new TypedEvent();
         this.enemyEliminatedEvent = new TypedEvent();
+        this.enemySpawnedEvent = new TypedEvent();
         this.strategies = new Map();
         this.scene = scene;
         this.inner = this.scene.add.container(0, 0);
@@ -2472,9 +2521,24 @@ class EnemyManager {
         }
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
+    setNextNeedSensitive(val) {
+        this.nextNeedSensitvie = val;
+    }
+    checkIfNextNeeedSensitive(config) {
+        if (!this.nextNeedSensitvie) {
+            return false;
+        }
+        this.nextNeedSensitvie = false;
+        // convert to sensitive
+        config.isSensitive = true;
+        config.label = "!@#$%^&*";
+        config.health = 9;
+        config.duration = 80000;
+    }
     spawn(config) {
         if (notSet(config))
             config = {};
+        this.checkIfNextNeeedSensitive(config);
         if (notSet(config.type))
             config.type = EnemyType.TextWithImage;
         if (notSet(config.label))
@@ -2511,6 +2575,7 @@ class EnemyManager {
         enemy.startRun();
         if (this.curStrategy)
             this.curStrategy.enemySpawned(enemy);
+        this.enemySpawnedEvent.emit(enemy);
         return enemy;
     }
     insertSpawnHistory(id, posi, name, time) {
@@ -2545,7 +2610,7 @@ class EnemyManager {
     getSpawnPoint() {
         var pt = new Phaser.Geom.Point(0, 0);
         var rdDegree = 0;
-        let tryTime = 50;
+        let tryTime = 0;
         while (true) {
             tryTime++;
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
@@ -2557,7 +2622,7 @@ class EnemyManager {
                 continue;
             if (valid)
                 break;
-            if (tryTime > 50)
+            if (tryTime > 100)
                 break;
         }
         // console.log(rdDegree);
@@ -3662,6 +3727,7 @@ var normal_1_3 = {
     events: [
         { name: 'START', from: 'Default', to: 'Start' },
         { name: 'TO_BGM', from: 'Start', to: 'BGM' },
+        { name: 'TO_SENSITIVE_WORD', from: 'BGM', to: 'Sensitive' }
     ]
 };
 farray.push(normal_1_3);
@@ -3889,22 +3955,25 @@ class Hud extends Wrapper {
         this.comboHitText.setVisible(true);
         this.comboHit++;
         this.comboHitText.setText(this.comboHit + " HIT COMBO");
-        this.scene.tweens.add({
-            targets: this.comboHitText,
-            scale: '+1.2',
-            yoyo: true,
-            duration: 200,
-        });
+        let scaleTo = 1.2;
         let sc = this.scene;
         if (this.comboHit == 2) {
             sc.sfxMatches[0].play();
         }
         else if (this.comboHit == 3) {
             sc.sfxMatches[1].play();
+            scaleTo = 2;
         }
         else if (this.comboHit >= 4) {
             sc.sfxMatches[2].play();
+            scaleTo = 4;
         }
+        this.scene.tweens.add({
+            targets: this.comboHitText,
+            scale: scaleTo,
+            yoyo: true,
+            duration: 200,
+        });
         this.lastTimeAddCombo = sc.curTime;
     }
     update(time, dt) {
@@ -4516,6 +4585,7 @@ var SpawnStrategyType;
 class SpawnStrategy {
     constructor(manager, type, config) {
         this.config = {};
+        this.isPause = false;
         this.config = this.getInitConfig();
         this.enemyManager = manager;
         this.type = type;
@@ -4530,6 +4600,12 @@ class SpawnStrategy {
         for (let key in config) {
             this.config[key] = config[key];
         }
+    }
+    pause() {
+        this.isPause = true;
+    }
+    unPause() {
+        this.isPause = false;
     }
     onEnter() {
     }
@@ -4644,6 +4720,9 @@ class SpawnStrategyFlowTheory extends SpawnStrategy {
         // console.log('flow entered');
     }
     onUpdate(time, dt) {
+        if (this.isPause) {
+            return;
+        }
         let lastSpawnTime = -1000;
         let historyLength = this.enemyManager.omniHistory.length;
         if (historyLength > 0) {

@@ -2,7 +2,7 @@
 enum EnemyType {
     Text,
     TextWithImage,
-    Image,        
+    Image,            
 }
 
 interface EnemyConfig {
@@ -16,6 +16,7 @@ interface EnemyConfig {
     needChange?: boolean,
     needShake? : boolean,
     needFlicker? : boolean,
+    isSensitive? : boolean,
 }
 
 class Enemy {
@@ -260,6 +261,11 @@ class Enemy {
 
         inputLbl = inputLbl.trim().toLowerCase();
         enemyLbl = enemyLbl.trim().toLowerCase();
+
+        // sensitve can't be damanged by ordinary input
+        if(this.config.isSensitive) {
+            return ErrorInputCode.SensitiveCantDamage;
+        }
 
         if (this.config.type == EnemyType.TextWithImage &&  inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;

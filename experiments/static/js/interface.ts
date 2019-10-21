@@ -150,7 +150,8 @@ enum ErrorInputCode {
     TooShort,
     Repeat,                 // repeat input in the input box
     DamagedBefore,          // damaged by the same word before
-    NotWord
+    NotWord,
+    SensitiveCantDamage,
 }
 
 interface SimResultItem {

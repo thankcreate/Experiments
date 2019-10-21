@@ -12,6 +12,8 @@ class Scene1L3 extends Scene1 {
 
     lastUsedYoyo = -1;
 
+    needToDestroyBeforeShowSensitive = 1;
+
     constructor() {
         super('Scene1L3');
     }
@@ -38,11 +40,17 @@ class Scene1L3 extends Scene1 {
         
     }
     
+    // the destroyed number after bgm is on
+    destroyedCount: number;
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
+
+        this.destroyedCount = 0;
+
         this.initStNormalDefault();
         this.initStStart();
         this.initStBGM();
+        this.initStSensitive();
 
         this.updateObjects.push(this.normalGameFsm);
     }
@@ -50,7 +58,7 @@ class Scene1L3 extends Scene1 {
 
 
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.normalGameFsm.getState("Default");        
         state.addDelayAction(this, 500)
             .addEventAction("START");
 
@@ -174,7 +182,7 @@ class Scene1L3 extends Scene1 {
             // .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
             // .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
             // .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
+            // .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
                 this.enemyManager.stopSpawnAndClear();
                 this.centerObject.playerInputText.setAutoContent("Separate Ways");
@@ -193,6 +201,17 @@ class Scene1L3 extends Scene1 {
 
     initStBGM() {
         let state = this.normalGameFsm.getState("BGM");
+        state.setUnionEvent('TO_SENSITIVE_WORD', 2);
+        state.setOnEnter(s=>{
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+                this.destroyedCount++;
+                if(this.destroyedCount >= this.needToDestroyBeforeShowSensitive) {
+                    s.unionEvent('TO_SENSITIVE_WORD', 'enemies_eliminated');
+                    s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+                }
+            });
+        });
+
         state.addAction(s=>{
             
             this.needFeedback = true;
@@ -223,5 +242,40 @@ class Scene1L3 extends Scene1 {
         .addAction(s=>{        
             this.needChangeEnemy = true;
         })
+        .addAction(s=>{
+            // s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+        });
+        
+    }
+
+    initStSensitive() {
+        let state = this.normalGameFsm.getState("Sensitive");
+        state.setOnEnter(s=>{
+            this.enemyManager.setNextNeedSensitive(true);
+
+            s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
+                let em = e as Enemy;
+                if(em.config.isSensitive) {
+                    this.enemyManager.curStrategy.pause();
+                }
+            });
+        });
+        
+        state
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)
+            .addDelayAction(this, 2000)            
+            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", true)
+            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already happened, there's is no reason to keep it from you", true)
+            .addSubtitleAction(this.subtitle, "But I still want to know whether you can solve it by your self", true)
+            .addDelayAction(this, 10000)
+            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", true)
+            .addSubtitleAction(this.subtitle, "OK, hint 1: why not try a word started with the letter B", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "B-A-D, bad!", false)
+            .addAction(s=>{
+                
+            });
     }
 }

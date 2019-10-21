@@ -128,14 +128,19 @@ class Controller extends BaseScene {
         return result;
     }
 
-    gotoFirstScene() {
-        // console.log("origin: " + window.location.origin);
+    getCurLevelIndex() : number{
         let path = window.location.href;
         let params = this.parseUrl(path);
         let index = 1;
         if(params['level'] != null) {
             index = parseInt(params['level']);
         }
+        return index;
+    }
+
+    gotoFirstScene() {
+        // console.log("origin: " + window.location.origin);        
+        let index = this.getCurLevelIndex();
         
         this.scene.launch('Scene1L' + index);      
     }

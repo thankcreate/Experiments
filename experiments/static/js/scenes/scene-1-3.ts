@@ -36,7 +36,7 @@ class Scene1L3 extends Scene1 {
         // this.initShake();
         this.initNormalGameFsm();       
        
-        
+        this.hp.initMaxHealth(100);
     }
     
     // the destroyed number after bgm is on

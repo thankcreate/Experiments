@@ -13,6 +13,8 @@ class Scene1L1 extends Scene1 {
 
         this.initNormalGameFsm();
         this.initZenFsm();
+
+        this.hp.initMaxHealth(10);
     }
 
 

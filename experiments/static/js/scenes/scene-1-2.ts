@@ -13,6 +13,7 @@ class Scene1L2 extends Scene1 {
         this.addCounter(Counter.IntoHome, 1);
         this.initNormalGameFsm();       
 
+        this.hp.initMaxHealth(10);
     }
     
     // ----------------------------------------------------------------------    

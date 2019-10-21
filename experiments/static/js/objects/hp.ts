@@ -14,11 +14,15 @@ class HP extends Wrapper<PhText> {
 
     frameWidth = 6;
 
-    maxHealth = 100;    
+    maxHealth = gameplayConfig.defaultMyHealth;    
     currHealth = this.maxHealth;
 
     deadEvent: TypedEvent<any> = new TypedEvent();
     
+    initMaxHealth(val: number) {
+        this.maxHealth = val;
+        this.currHealth = val;
+    }
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);

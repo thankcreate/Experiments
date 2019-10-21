@@ -19,7 +19,8 @@ var gameplayConfig = {
     allowSameInput: true,  // wheather allow same input accepted in the input box
 
     quickDrawDataPath: "assets/quick-draw-data/",
-    defaultHealth: 3,
+    defaultMyHealth: 10,    // default my health
+    defaultEnemyHealth: 3,   // the default health of enemies
     damageTiers: [
         [0.8, 3],
         [0.5, 2],

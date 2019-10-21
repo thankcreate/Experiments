@@ -97,14 +97,18 @@ class Controller extends BaseScene {
         });
         return result;
     }
-    gotoFirstScene() {
-        // console.log("origin: " + window.location.origin);
+    getCurLevelIndex() {
         let path = window.location.href;
         let params = this.parseUrl(path);
         let index = 1;
         if (params['level'] != null) {
             index = parseInt(params['level']);
         }
+        return index;
+    }
+    gotoFirstScene() {
+        // console.log("origin: " + window.location.origin);        
+        let index = this.getCurLevelIndex();
         this.scene.launch('Scene1L' + index);
     }
     playSpeechInController(text, timeOut = 4000) {
@@ -627,6 +631,7 @@ class Scene1L1 extends Scene1 {
         setCookie("name", "TronTron");
         this.initNormalGameFsm();
         this.initZenFsm();
+        this.hp.initMaxHealth(10);
     }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
@@ -856,6 +861,7 @@ class Scene1L2 extends Scene1 {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
         this.initNormalGameFsm();
+        this.hp.initMaxHealth(10);
     }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
@@ -921,6 +927,7 @@ class Scene1L3 extends Scene1 {
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
+        this.hp.initMaxHealth(100);
     }
     // ----------------------------------------------------------------------    
     initNormalGameFsm() {
@@ -1152,7 +1159,8 @@ var gameplayConfig = {
     tryAvoidDuplicate: true,
     allowSameInput: true,
     quickDrawDataPath: "assets/quick-draw-data/",
-    defaultHealth: 3,
+    defaultMyHealth: 10,
+    defaultEnemyHealth: 3,
     damageTiers: [
         [0.8, 3],
         [0.5, 2],
@@ -3998,7 +4006,7 @@ class HP extends Wrapper {
         this.barHeight = 40;
         this.barWidth = 400;
         this.frameWidth = 6;
-        this.maxHealth = 100;
+        this.maxHealth = gameplayConfig.defaultMyHealth;
         this.currHealth = this.maxHealth;
         this.deadEvent = new TypedEvent();
         this.mainBar = new Rect(this.scene, this.inner, 0, 0, {
@@ -4022,6 +4030,10 @@ class HP extends Wrapper {
         let style = getDefaultTextStyle();
         let title = this.scene.add.text(-this.frameWidth / 2, -this.barHeight - this.titleGap, "HP", style).setOrigin(0, 1);
         this.applyTarget(title);
+    }
+    initMaxHealth(val) {
+        this.maxHealth = val;
+        this.currHealth = val;
     }
     setTitle(val) {
         this.wrappedObject.text = val;

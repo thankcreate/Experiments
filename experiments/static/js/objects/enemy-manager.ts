@@ -188,7 +188,7 @@ class EnemyManager {
         if(notSet(config.type)) config.type = EnemyType.TextWithImage;
         if(notSet(config.label)) config.label = this.getNextName();      
         if(notSet(config.duration)) config.duration = gameplayConfig.enemyDuratrion;        
-        if(notSet(config.health)) config.health = gameplayConfig.defaultHealth;       
+        if(notSet(config.health)) config.health = gameplayConfig.defaultEnemyHealth;       
 
 
         var name = config.label;

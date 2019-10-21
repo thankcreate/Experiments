@@ -56,12 +56,15 @@ class Scene1L2 extends Scene1 {
             .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels now", true)
             .addSubtitleAction(this.subtitle, "But I don't really think you need them", true)
             .addSubtitleAction(this.subtitle, "It might be a little bit harder, but we also got some fun, right?", true)
-            .addSubtitleAction(this.subtitle, "If you have a master's degree on game design like me,\nyou will know that ambiguity is what makes fun happen!", true)
+            .addSubtitleAction(this.subtitle, "If you have a master's degree in game design like me,\nyou will know that ambiguity is what makes fun happen!", true)
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "OK, this time, I won't say 65536 again\n", true)
             .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
-            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe.", true)
-            .addDelayAction(this, 2000)
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just let you know the secret of universe.", false)
+            .addDelayAction(this, 10000)
+            .addAction(s=>{
+                window.location.replace(window.location.origin + "?level=3");
+            })
 
     }
 }

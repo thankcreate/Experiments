@@ -12,7 +12,7 @@ class Scene1L3 extends Scene1 {
 
     lastUsedYoyo = -1;
 
-    needToDestroyBeforeShowSensitive = 1;
+    needToDestroyBeforeShowSensitive = 3;
 
     constructor() {
         super('Scene1L3');
@@ -24,8 +24,7 @@ class Scene1L3 extends Scene1 {
     }
 
     preload() {
-        super.preload();   
-        
+        super.preload();           
     }
     
     
@@ -51,6 +50,7 @@ class Scene1L3 extends Scene1 {
         this.initStStart();
         this.initStBGM();
         this.initStSensitive();
+        this.initEnd();
 
         this.updateObjects.push(this.normalGameFsm);
     }
@@ -172,17 +172,17 @@ class Scene1L3 extends Scene1 {
             //     this.enemyManager.stopSpawnAndClear();
             //     this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
             // })
-            // .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
-            // .addDelayAction(this, 1000)
-            // .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
-            // .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
-            // .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
-            // .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            // .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
-            // .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
-            // .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
-            // .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            // .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
+            .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
+            .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
+            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
+            .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
+            .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
+            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
+            .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
                 this.enemyManager.stopSpawnAndClear();
                 this.centerObject.playerInputText.setAutoContent("Separate Ways");
@@ -251,32 +251,55 @@ class Scene1L3 extends Scene1 {
     initStSensitive() {
         let state = this.normalGameFsm.getState("Sensitive");
         state.setOnEnter(s=>{
-            this.enemyManager.setNextNeedSensitive(true);
+            this.enemyManager.setNextNeedSensitive(true);           
 
-            s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let em = e as Enemy;
                 if(em.config.isSensitive) {
-                    this.enemyManager.curStrategy.pause();
+                    s.finished();
                 }
             });
         });
         
         state
-            .addDelayAction(this, 1000)
+            .addAction((s, result, res, rej)=>{
+                s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
+                    let em = e as Enemy;
+                    if(em.config.isSensitive) {
+                        res("");
+                        this.enemyManager.curStrategy.pause();
+                    }
+                });
+            })
+            .addDelayAction(this, 3000)
             .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)            
             .addSubtitleAction(this.subtitle, "How come?!", true)            
-            .addDelayAction(this, 2000)            
+            .addDelayAction(this, 3000)            
             .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", false)
-            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already occurred, \nthere's is no reason to keep it from you", false)
-            .addSubtitleAction(this.subtitle, "But I still wonder know whether you can solve it.\nI trust you", true)
+            .addSubtitleAction(this.subtitle, "Since THAT THING already occurred,\nthere's is no reason to keep it from you", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "But I still wonder if you can solve it by yourself.\nI trust you!", true)
             .addDelayAction(this, 16000)
             .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", false)
-            .addSubtitleAction(this.subtitle, "OK. \nhint 1: why not try a word started with the letter B", false, null, null, 8000)
+            .addSubtitleAction(this.subtitle, "Okay. \nHint 1: would you kindly try a keyword started with the letter B ?", false, null, null, 8000)
             .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 10000)
             .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 5000)
             .addSubtitleAction(this.subtitle, "B-A-D, bad!", false)
+    }
+
+    initEnd() {
+        let state = this.normalGameFsm.getState("End");
+        state
+            .addDelayAction(this, 1000)
             .addAction(s=>{
-                
-            });
+                this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory); 
+            })
+            .addSubtitleAction(this.subtitle, "Great, you've just eliminated your first BAD word", false)
+            .addSubtitleAction(this.subtitle, "Not sure what BAD means?\n All I can tell you is that they are BAD!\nVery very BAD!", false)
+            .addSubtitleAction(this.subtitle, "It's so bad that everyone should know it at the first glance", false)
+            .addSubtitleAction(this.subtitle, "As you can see, our experiment is still under construction.\nI think we'd better stop here", false, null, null, 5000)
+            .addSubtitleAction(this.subtitle, "I think I said we should stop here.\nWhat are you waiting for? Bye!", false)
+            .addAction(s=>{
+                this.backBtn.clickedEvent.emit(this.backBtn);
+            })
     }
 }

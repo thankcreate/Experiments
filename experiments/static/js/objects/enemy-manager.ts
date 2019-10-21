@@ -354,6 +354,15 @@ class EnemyManager {
     //     }
     // }
 
+    isOfflineHandle(e: Enemy) {
+        let ret = false;
+        if(e.config.isSensitive) {
+            ret = true;
+        }
+        return ret;
+    }
+
+    // only send the enemies that need online judge
     sendInputToServer(inputWord: string) {
         // this.scene.playSpeech(inputWord);
         if(notSet(this.enemies) || this.enemies.length == 0)
@@ -362,24 +371,64 @@ class EnemyManager {
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
+
+            if(this.isOfflineHandle(enemy))
+                continue;
+
             enemyLabels.push(enemy.lbl);
         }
 
-        api3WithTwoParams(inputWord, enemyLabels,
-            // suc
-            res => {
-                // console.log(res);
-                this.confirmCallbackSuc(res);
-            },
-            // err
-            function err(res) {
-                // console.log("API3 failed");
+        if(enemyLabels.length == 0) {
+            this.handleJudgeResult({
+                input: inputWord,
+                array: [],
+                outputArray: []
+            });
+        }
+        else {
+            api3WithTwoParams(inputWord, enemyLabels,
+                // suc
+                res => {
+                    // console.log(res);
+                    this.handleJudgeResult(res);
+                },
+                // err
+                function err(res) {
+                    // console.log("API3 failed");
+                }
+            );
+        }
+        
+        
+    }
+
+    // add the offline judge into the SimResult 
+    appendOfflineResult(res: SimResult) {
+        if(res.input.toLocaleLowerCase() == "bad") {
+            let badWords = this.getBadWords();
+            for(let i in badWords) {
+                res.outputArray.push({name: "", value: 1, enemy: badWords[i]})
+            }            
+        }
+    }
+
+    // haha
+    getBadWords(): Enemy[] {
+
+        let ret = [];
+        for (let i in this.enemies) {
+            let e = this.enemies[i];
+            if (e.config.isSensitive) {
+                ret.push(e);
             }
-        );
+        }
+        return ret;
     }
 
     // api3 callback
-    confirmCallbackSuc(res: SimResult) {
+    handleJudgeResult(res: SimResult) {
+        this.appendOfflineResult(res);
+
         var ar = res.outputArray;
         var input = res.input;
 
@@ -405,11 +454,10 @@ class EnemyManager {
             // since network has latency, 
             // the enemy could have been eliminated when the callback is invoked
             // we need to be careful about the availability of the enemy
-            let enemiesWithName = this.findEnemyByName(entryName);
+            let enemiesWithName = this.findEnemyByEntry(ar[i]);
             enemiesWithName.forEach(e => {
                 let dmgRes = e.damage(entryValue, input);
-                if(dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {
-                    console.log(dmgRes.damage);
+                if(dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {                    
                     validDamageAtLeastOne = true;
                 }
             });
@@ -452,12 +500,14 @@ class EnemyManager {
     }
 
     // haha
-    findEnemyByName(name: string): Enemy[] {
+    findEnemyByEntry(item: SimResultItem): Enemy[] {
+        let name = item.name;
+        let enemy = item.enemy;
 
         let ret = [];
         for (let i in this.enemies) {
             let e = this.enemies[i];
-            if (e.lbl === name) {
+            if (e.lbl === name || e === enemy) {
                 ret.push(e);
             }
         }

@@ -448,7 +448,9 @@ class Scene1 extends BaseScene {
                 s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
                     this.setMode(GameMode.Normal);
                     s.removeAutoRemoveListners();  // in case the player clicked both buttons quickly
-                    resolve('clicked');
+                    resolve('clicked');     
+
+                              
                 });
 
                 s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {

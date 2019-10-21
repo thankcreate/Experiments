@@ -83,9 +83,29 @@ class Controller extends BaseScene {
         });
         // this.myInput = new MyInput(this);
     }
+    parseUrl(url) {
+        var result = {};
+        let spR = url.split("?");
+        if (url.split("?").length <= 1)
+            return result;
+        var query = url.split("?")[1];
+        var queryArr = query.split("&");
+        queryArr.forEach(function (item) {
+            var value = item.split("=")[1];
+            var key = item.split("=")[0];
+            result[key] = value;
+        });
+        return result;
+    }
     gotoFirstScene() {
-        // this.scene.launch('Scene1L2');      
-        this.scene.launch('Scene1L3');
+        // console.log("origin: " + window.location.origin);
+        let path = window.location.href;
+        let params = this.parseUrl(path);
+        let index = 1;
+        if (params['level'] != null) {
+            index = parseInt(params['level']);
+        }
+        this.scene.launch('Scene1L' + index);
     }
     playSpeechInController(text, timeOut = 4000) {
         // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
@@ -775,10 +795,12 @@ class Scene1L1 extends Scene1 {
         }, true, 2000, 3000, 1000)
             .addAction(o => { this.addCounter(Counter.Story0Finished); })
             .addAction(s => {
-            let an = s.fsm.getVar('answer', false);
-            if (!an) {
-                this.backBtn.clickedEvent.emit(this.backBtn);
-            }
+            // let an = s.fsm.getVar('answer', false);
+            // if (!an) {
+            //     this.backBtn.clickedEvent.emit(this.backBtn);
+            // }
+            // ignore for the demo
+            window.location.replace(window.location.origin + "?level=2");
         })
             .addFinishAction().setFinally();
     }
@@ -866,12 +888,15 @@ class Scene1L2 extends Scene1 {
             .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels now", true)
             .addSubtitleAction(this.subtitle, "But I don't really think you need them", true)
             .addSubtitleAction(this.subtitle, "It might be a little bit harder, but we also got some fun, right?", true)
-            .addSubtitleAction(this.subtitle, "If you have a master's degree on game design like me,\nyou will know that ambiguity is what makes fun happen!", true)
+            .addSubtitleAction(this.subtitle, "If you have a master's degree in game design like me,\nyou will know that ambiguity is what makes fun happen!", true)
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "OK, this time, I won't say 65536 again\n", true)
             .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
-            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more, and I'll just let you know the secret of universe.", true)
-            .addDelayAction(this, 2000);
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just let you know the secret of universe.", false)
+            .addDelayAction(this, 10000)
+            .addAction(s => {
+            window.location.replace(window.location.origin + "?level=3");
+        });
     }
 }
 class Scene1L3 extends Scene1 {
@@ -880,7 +905,7 @@ class Scene1L3 extends Scene1 {
         this.loopTime = 454.5;
         this.lastYoyoIndex = 0;
         this.lastUsedYoyo = -1;
-        this.needToDestroyBeforeShowSensitive = 1;
+        this.needToDestroyBeforeShowSensitive = 3;
         this.needChangeDwitter = false;
         this.needChangeCenter = false;
         this.needChangeEnemy = false;
@@ -904,6 +929,7 @@ class Scene1L3 extends Scene1 {
         this.initStStart();
         this.initStBGM();
         this.initStSensitive();
+        this.initEnd();
         this.updateObjects.push(this.normalGameFsm);
     }
     initStNormalDefault() {
@@ -996,17 +1022,17 @@ class Scene1L3 extends Scene1 {
             //     this.enemyManager.stopSpawnAndClear();
             //     this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                 
             // })
-            // .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)            
-            // .addDelayAction(this, 1000)
-            // .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
-            // .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
-            // .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
-            // .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            // .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
-            // .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
-            // .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
-            // .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            // .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
+            .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)
+            .addDelayAction(this, 1000)
+            .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
+            .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
+            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
+            .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
+            .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
+            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
+            .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
             this.enemyManager.stopSpawnAndClear();
             this.centerObject.playerInputText.setAutoContent("Separate Ways");
@@ -1063,28 +1089,51 @@ class Scene1L3 extends Scene1 {
         let state = this.normalGameFsm.getState("Sensitive");
         state.setOnEnter(s => {
             this.enemyManager.setNextNeedSensitive(true);
-            s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
+            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let em = e;
                 if (em.config.isSensitive) {
-                    this.enemyManager.curStrategy.pause();
+                    s.finished();
                 }
             });
         });
         state
-            .addDelayAction(this, 1000)
+            .addAction((s, result, res, rej) => {
+            s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
+                let em = e;
+                if (em.config.isSensitive) {
+                    res("");
+                    this.enemyManager.curStrategy.pause();
+                }
+            });
+        })
+            .addDelayAction(this, 3000)
             .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)
             .addSubtitleAction(this.subtitle, "How come?!", true)
-            .addDelayAction(this, 2000)
+            .addDelayAction(this, 3000)
             .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", false)
-            .addSubtitleAction(this.subtitle, "Since the !@#$%^&* already occurred, \nthere's is no reason to keep it from you", false)
-            .addSubtitleAction(this.subtitle, "But I still wonder know whether you can solve it.\nI trust you", true)
+            .addSubtitleAction(this.subtitle, "Since THAT THING already occurred,\nthere's is no reason to keep it from you", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "But I still wonder if you can solve it by yourself.\nI trust you!", true)
             .addDelayAction(this, 16000)
             .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", false)
-            .addSubtitleAction(this.subtitle, "OK. \nhint 1: why not try a word started with the letter B", false, null, null, 8000)
+            .addSubtitleAction(this.subtitle, "Okay. \nHint 1: would you kindly try a keyword started with the letter B ?", false, null, null, 8000)
             .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 10000)
             .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 5000)
-            .addSubtitleAction(this.subtitle, "B-A-D, bad!", false)
+            .addSubtitleAction(this.subtitle, "B-A-D, bad!", false);
+    }
+    initEnd() {
+        let state = this.normalGameFsm.getState("End");
+        state
+            .addDelayAction(this, 1000)
             .addAction(s => {
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
+        })
+            .addSubtitleAction(this.subtitle, "Great, you've just eliminated your first BAD word", false)
+            .addSubtitleAction(this.subtitle, "Not sure what BAD means?\n All I can tell you is that they are BAD!\nVery very BAD!", false)
+            .addSubtitleAction(this.subtitle, "It's so bad that everyone should know it at the first glance", false)
+            .addSubtitleAction(this.subtitle, "As you can see, our experiment is still under construction.\nI think we'd better stop here", false, null, null, 5000)
+            .addSubtitleAction(this.subtitle, "I think I said we should stop here.\nWhat are you waiting for? Bye!", false)
+            .addAction(s => {
+            this.backBtn.clickedEvent.emit(this.backBtn);
         });
     }
 }
@@ -2259,7 +2308,9 @@ class Enemy {
             return ret;
         }
         // Damaged by thie same input word before
-        if (!gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWordBefore(input)) {
+        if (!gameplayConfig.allowDamageBySameWord
+            && this.checkIfDamagedByThisWordBefore(input)
+            && !this.config.isSensitive) {
             ret.code = ErrorInputCode.DamagedBefore;
             return ret;
         }
@@ -2302,9 +2353,9 @@ class Enemy {
         inputLbl = inputLbl.trim().toLowerCase();
         enemyLbl = enemyLbl.trim().toLowerCase();
         // sensitve can't be damanged by ordinary input
-        if (this.config.isSensitive) {
-            return ErrorInputCode.SensitiveCantDamage;
-        }
+        // if(this.config.isSensitive) {
+        //     return ErrorInputCode.SensitiveCantDamage;
+        // }
         if (this.config.type == EnemyType.TextWithImage && inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
         if (this.config.type == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
@@ -2349,6 +2400,16 @@ class EnemyImage extends Enemy {
         // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
+        // textAsImage
+        if (this.config.isSensitive) {
+            let textAsImageStyle = getDefaultTextStyle();
+            textAsImageStyle.fontSize = '120px';
+            textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
+            let textAsImage = this.scene.add.text(0, 0, "404", textAsImageStyle);
+            textAsImage.setOrigin(0.5);
+            this.inner.add(textAsImage);
+            this.figure.inner.setVisible(false);
+        }
         if (!this.config.needChange) {
             this.figure.stopChange();
         }
@@ -2680,6 +2741,14 @@ class EnemyManager {
     //         console.log("ErrorInputCode before send: " + checkLegal);
     //     }
     // }
+    isOfflineHandle(e) {
+        let ret = false;
+        if (e.config.isSensitive) {
+            ret = true;
+        }
+        return ret;
+    }
+    // only send the enemies that need online judge
     sendInputToServer(inputWord) {
         // this.scene.playSpeech(inputWord);
         if (notSet(this.enemies) || this.enemies.length == 0)
@@ -2687,21 +2756,53 @@ class EnemyManager {
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
+            if (this.isOfflineHandle(enemy))
+                continue;
             enemyLabels.push(enemy.lbl);
         }
-        api3WithTwoParams(inputWord, enemyLabels, 
-        // suc
-        res => {
-            // console.log(res);
-            this.confirmCallbackSuc(res);
-        }, 
-        // err
-        function err(res) {
-            // console.log("API3 failed");
-        });
+        if (enemyLabels.length == 0) {
+            this.handleJudgeResult({
+                input: inputWord,
+                array: [],
+                outputArray: []
+            });
+        }
+        else {
+            api3WithTwoParams(inputWord, enemyLabels, 
+            // suc
+            res => {
+                // console.log(res);
+                this.handleJudgeResult(res);
+            }, 
+            // err
+            function err(res) {
+                // console.log("API3 failed");
+            });
+        }
+    }
+    // add the offline judge into the SimResult 
+    appendOfflineResult(res) {
+        if (res.input.toLocaleLowerCase() == "bad") {
+            let badWords = this.getBadWords();
+            for (let i in badWords) {
+                res.outputArray.push({ name: "", value: 1, enemy: badWords[i] });
+            }
+        }
+    }
+    // haha
+    getBadWords() {
+        let ret = [];
+        for (let i in this.enemies) {
+            let e = this.enemies[i];
+            if (e.config.isSensitive) {
+                ret.push(e);
+            }
+        }
+        return ret;
     }
     // api3 callback
-    confirmCallbackSuc(res) {
+    handleJudgeResult(res) {
+        this.appendOfflineResult(res);
         var ar = res.outputArray;
         var input = res.input;
         // filter the duplicate labels
@@ -2722,11 +2823,10 @@ class EnemyManager {
             // since network has latency, 
             // the enemy could have been eliminated when the callback is invoked
             // we need to be careful about the availability of the enemy
-            let enemiesWithName = this.findEnemyByName(entryName);
+            let enemiesWithName = this.findEnemyByEntry(ar[i]);
             enemiesWithName.forEach(e => {
                 let dmgRes = e.damage(entryValue, input);
                 if (dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {
-                    console.log(dmgRes.damage);
                     validDamageAtLeastOne = true;
                 }
             });
@@ -2760,11 +2860,13 @@ class EnemyManager {
         return ret;
     }
     // haha
-    findEnemyByName(name) {
+    findEnemyByEntry(item) {
+        let name = item.name;
+        let enemy = item.enemy;
         let ret = [];
         for (let i in this.enemies) {
             let e = this.enemies[i];
-            if (e.lbl === name) {
+            if (e.lbl === name || e === enemy) {
                 ret.push(e);
             }
         }
@@ -3737,7 +3839,8 @@ var normal_1_3 = {
     events: [
         { name: 'START', from: 'Default', to: 'Start' },
         { name: 'TO_BGM', from: 'Start', to: 'BGM' },
-        { name: 'TO_SENSITIVE_WORD', from: 'BGM', to: 'Sensitive' }
+        { name: 'TO_SENSITIVE_WORD', from: 'BGM', to: 'Sensitive' },
+        { name: 'FINISHED', from: 'Sensitive', to: 'End' }
     ]
 };
 farray.push(normal_1_3);

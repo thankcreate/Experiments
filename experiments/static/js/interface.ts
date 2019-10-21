@@ -156,7 +156,8 @@ enum ErrorInputCode {
 
 interface SimResultItem {
     name: string,
-    value: number
+    value: number,
+    enemy?: Enemy
 }
 
 interface SimResult {

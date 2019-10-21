@@ -1,5 +1,6 @@
 class EnemyImage extends Enemy {
     figure: QuickDrawFigure;
+    textAsImage: PhText;
     gap : number; // init here has no use
     
     
@@ -43,6 +44,21 @@ class EnemyImage extends Enemy {
         // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
+
+        // textAsImage
+        if(this.config.isSensitive) 
+        {
+            let textAsImageStyle = getDefaultTextStyle();
+            textAsImageStyle.fontSize = '120px';
+            textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
+            
+            let textAsImage = this.scene.add.text(0, 0, "404", textAsImageStyle);        
+            textAsImage.setOrigin(0.5);
+            this.inner.add(textAsImage);
+
+            this.figure.inner.setVisible(false);
+        }
+        
 
         if(!this.config.needChange) {
             this.figure.stopChange();

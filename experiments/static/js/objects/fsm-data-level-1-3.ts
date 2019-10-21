@@ -7,7 +7,8 @@ var normal_1_3 = {
     events: [
         {name: 'START', from:'Default', to: 'Start'},      
         {name: 'TO_BGM', from: 'Start', to: 'BGM'},
-        {name: 'TO_SENSITIVE_WORD', from: 'BGM', to: 'Sensitive'}        
+        {name: 'TO_SENSITIVE_WORD', from: 'BGM', to: 'Sensitive'},
+        {name: 'FINISHED', from:'Sensitive', to:'End'}    
     ]
 }
 

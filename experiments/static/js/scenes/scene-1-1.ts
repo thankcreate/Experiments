@@ -196,10 +196,13 @@ class Scene1L1 extends Scene1 {
             }, true, 2000, 3000, 1000)
             .addAction(o => { this.addCounter(Counter.Story0Finished) })
             .addAction(s => {
-                let an = s.fsm.getVar('answer', false);
-                if (!an) {
-                    this.backBtn.clickedEvent.emit(this.backBtn);
-                }
+                // let an = s.fsm.getVar('answer', false);
+                // if (!an) {
+                //     this.backBtn.clickedEvent.emit(this.backBtn);
+                // }
+
+                // ignore for the demo
+                window.location.replace(window.location.origin + "?level=2");
             })
             .addFinishAction().setFinally();
     }

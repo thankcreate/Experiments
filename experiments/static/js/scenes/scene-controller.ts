@@ -109,9 +109,35 @@ class Controller extends BaseScene {
         // this.myInput = new MyInput(this);
     }
 
+
+    parseUrl(url: string) : object{
+        var result = {};
+
+        let spR = url.split("?");
+        if(url.split("?").length <= 1)
+            return result;
+
+        var query = url.split("?")[1];
+        var queryArr = query.split("&");
+        queryArr.forEach(function(item){            
+            var value = item.split("=")[1];
+            var key = item.split("=")[0];
+            
+            result[key] = value;
+        });
+        return result;
+    }
+
     gotoFirstScene() {
-        // this.scene.launch('Scene1L2');      
-        this.scene.launch('Scene1L3');      
+        // console.log("origin: " + window.location.origin);
+        let path = window.location.href;
+        let params = this.parseUrl(path);
+        let index = 1;
+        if(params['level'] != null) {
+            index = parseInt(params['level']);
+        }
+        
+        this.scene.launch('Scene1L' + index);      
     }
 
     playSpeechInController(text: string, timeOut:number = 4000) : Pany {

@@ -209,7 +209,9 @@ class Enemy {
         }
 
         // Damaged by thie same input word before
-        if(!gameplayConfig.allowDamageBySameWord && this.checkIfDamagedByThisWordBefore(input)) {
+        if(!gameplayConfig.allowDamageBySameWord 
+            && this.checkIfDamagedByThisWordBefore(input)
+            && !this.config.isSensitive) {
             ret.code = ErrorInputCode.DamagedBefore;
             return ret;
         }
@@ -263,9 +265,9 @@ class Enemy {
         enemyLbl = enemyLbl.trim().toLowerCase();
 
         // sensitve can't be damanged by ordinary input
-        if(this.config.isSensitive) {
-            return ErrorInputCode.SensitiveCantDamage;
-        }
+        // if(this.config.isSensitive) {
+        //     return ErrorInputCode.SensitiveCantDamage;
+        // }
 
         if (this.config.type == EnemyType.TextWithImage &&  inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;

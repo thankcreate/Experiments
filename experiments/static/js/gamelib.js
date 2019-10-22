@@ -108,6 +108,7 @@ class Controller extends BaseScene {
     }
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
+        // this.scene.launch('Scene1L2');      
         let index = this.getCurLevelIndex();
         this.scene.launch('Scene1L' + index);
     }
@@ -911,7 +912,7 @@ class Scene1L3 extends Scene1 {
         this.loopTime = 454.5;
         this.lastYoyoIndex = 0;
         this.lastUsedYoyo = -1;
-        this.needToDestroyBeforeShowSensitive = 3;
+        this.needToDestroyBeforeShowSensitive = 5;
         this.needChangeDwitter = false;
         this.needChangeCenter = false;
         this.needChangeEnemy = false;
@@ -1058,7 +1059,7 @@ class Scene1L3 extends Scene1 {
                 this.destroyedCount++;
                 if (this.destroyedCount >= this.needToDestroyBeforeShowSensitive) {
                     s.unionEvent('TO_SENSITIVE_WORD', 'enemies_eliminated');
-                    s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+                    // s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
                 }
             });
         });
@@ -1089,7 +1090,7 @@ class Scene1L3 extends Scene1 {
             this.needChangeEnemy = true;
         })
             .addAction(s => {
-            // s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+            s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
         });
     }
     initStSensitive() {
@@ -2625,7 +2626,7 @@ class EnemyManager {
         if (notSet(config.duration))
             config.duration = gameplayConfig.enemyDuratrion;
         if (notSet(config.health))
-            config.health = gameplayConfig.defaultHealth;
+            config.health = gameplayConfig.defaultEnemyHealth;
         var name = config.label;
         var figureName = name.split(' ').join('-').toLowerCase();
         if (notSet(config.image))

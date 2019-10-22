@@ -12,7 +12,7 @@ class Scene1L3 extends Scene1 {
 
     lastUsedYoyo = -1;
 
-    needToDestroyBeforeShowSensitive = 3;
+    needToDestroyBeforeShowSensitive = 5;
 
     constructor() {
         super('Scene1L3');
@@ -207,7 +207,7 @@ class Scene1L3 extends Scene1 {
                 this.destroyedCount++;
                 if(this.destroyedCount >= this.needToDestroyBeforeShowSensitive) {
                     s.unionEvent('TO_SENSITIVE_WORD', 'enemies_eliminated');
-                    s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+                    // s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
                 }
             });
         });
@@ -243,7 +243,7 @@ class Scene1L3 extends Scene1 {
             this.needChangeEnemy = true;
         })
         .addAction(s=>{
-            // s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+            s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
         });
         
     }

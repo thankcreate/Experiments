@@ -73,7 +73,7 @@ class Hud extends Wrapper<PhText> {
             
             if(sc.needFeedback) {
                 this.resetCombo();
-                sc.sfxFail.play();
+                // sc.sfxFail.play();
             }
             
         }

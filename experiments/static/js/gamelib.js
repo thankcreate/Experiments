@@ -1036,7 +1036,7 @@ class Scene1L3 extends Scene1 {
             .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
             .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
             .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a Master of Fine Arts grad student in game design ", true)
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a MFA in game design ", true)
             .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
             .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
             .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
@@ -1119,7 +1119,7 @@ class Scene1L3 extends Scene1 {
             .addSubtitleAction(this.subtitle, "How come?!", true)
             .addDelayAction(this, 3000)
             .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", false)
-            .addSubtitleAction(this.subtitle, "Since THAT THING already occurred,\nthere's is no reason to keep it from you", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "Since THAT THING already occurred,\nthere's no reason to keep it from you", false, null, null, 3000)
             .addSubtitleAction(this.subtitle, "But I still wonder if you can solve it by yourself.\nI trust you!", true)
             .addDelayAction(this, 16000)
             .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", false)
@@ -4107,7 +4107,7 @@ class Hud extends Wrapper {
         if (this.comboHit > 0 && sc.curTime - this.lastTimeAddCombo > 7000) {
             if (sc.needFeedback) {
                 this.resetCombo();
-                sc.sfxFail.play();
+                // sc.sfxFail.play();
             }
         }
     }
@@ -4198,9 +4198,7 @@ Quick, Draw! The Data: A unique doodle data set that can help developers train n
 
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `;
-var aiAbout = `This AI experiment is a prospect study for a thesis project at the NYU Tisch School of the Arts Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
-
-The developer has been a full-time solo indie game developer since 2012, became an IGF finalst in 2013, and has published several games on PC/Steam and other mobile platforms already.
+var aiAbout = `This experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
 
 This current demo is only at progress 10% at most. 
 `;

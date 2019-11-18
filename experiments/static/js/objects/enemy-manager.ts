@@ -165,17 +165,19 @@ class EnemyManager {
         this.nextNeedSensitvie = val;
     }
     
+    sensetiveDuration = 100000;
+
     checkIfNextNeeedSensitive(config: EnemyConfig) {
         if(!this.nextNeedSensitvie) {
             return false;
         }
-        this.nextNeedSensitvie = false;
+        // this.nextNeedSensitvie = false;
         
         // convert to sensitive
         config.isSensitive = true;
         config.label = "!@#$%^&*";
         config.health = 9;
-        config.duration = 100000;
+        config.duration = this.sensetiveDuration;
     }
 
     spawn(config?: EnemyConfig) : Enemy {

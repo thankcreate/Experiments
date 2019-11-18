@@ -1064,7 +1064,7 @@ class Scene1L3 extends Scene1 {
             });
         });
         state.addAction(s => {
-            this.needFeedback = true;
+            // this.needFeedback = true;
             this.bgm.play();
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
         })
@@ -1145,10 +1145,52 @@ class Scene1L3 extends Scene1 {
         });
     }
 }
+class Scene1L4 extends Scene1 {
+    constructor() {
+        super('Scene1L4');
+    }
+    getNormalGameFsm() {
+        return normal_1_4;
+    }
+    create() {
+        super.create();
+        this.addCounter(Counter.IntoHome, 1);
+        // this.initShake();
+        this.initNormalGameFsm();
+        this.hp.initMaxHealth(100);
+    }
+    // ----------------------------------------------------------------------    
+    initNormalGameFsm() {
+        this.initStNormalDefault();
+        this.initStStart();
+        this.updateObjects.push(this.normalGameFsm);
+    }
+    initStNormalDefault() {
+        let state = this.normalGameFsm.getState("Default");
+        state.addDelayAction(this, 500)
+            .addEventAction("START");
+    }
+    initStStart() {
+        let state = this.normalGameFsm.getState("Start");
+        state.setOnEnter(s => {
+            this.enemyManager.sensetiveDuration = 60000;
+            // this.needFeedback = true;
+            this.enemyManager.setNextNeedSensitive(true);
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore);
+        });
+        state.addSubtitleAction(this.subtitle, "Sorry, I have to admit that I'm a bad experiment designer", true);
+        state.addSubtitleAction(this.subtitle, "In my original design, those 404s shouldn't be here.\nBut I don't know why they keep coming more and more.", true);
+        state.addSubtitleAction(this.subtitle, "However, I think you'll surely help me get rid of them, right?", true);
+        state.addSubtitleAction(this.subtitle, "Don't worry, I've prepared some handy tools for you,\nbut everything comes with a PRICE.", true);
+        state.addSubtitleAction(this.subtitle, "And let's just define the PRICE as the SCORE you've got", true);
+        state.addSubtitleAction(this.subtitle, "Remember, I'm always on YOUR side.", true);
+    }
+}
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-1-3.ts" />
+/// <reference path="scenes/scene-1-4.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
@@ -1198,7 +1240,7 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1, Scene1L3, Scene1L2, Scene1L1]
+    scene: [Controller, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -2511,6 +2553,7 @@ class EnemyManager {
         this.enemyEliminatedEvent = new TypedEvent();
         this.enemySpawnedEvent = new TypedEvent();
         this.strategies = new Map();
+        this.sensetiveDuration = 100000;
         this.scene = scene;
         this.inner = this.scene.add.container(0, 0);
         parentContainer.add(this.inner);
@@ -2608,12 +2651,12 @@ class EnemyManager {
         if (!this.nextNeedSensitvie) {
             return false;
         }
-        this.nextNeedSensitvie = false;
+        // this.nextNeedSensitvie = false;
         // convert to sensitive
         config.isSensitive = true;
         config.label = "!@#$%^&*";
         config.health = 9;
-        config.duration = 100000;
+        config.duration = this.sensetiveDuration;
     }
     spawn(config) {
         if (notSet(config))
@@ -3853,6 +3896,15 @@ var normal_1_3 = {
     ]
 };
 farray.push(normal_1_3);
+/// <reference path="fsm.ts" />
+var normal_1_4 = {
+    name: 'Normal_1_4',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+    ]
+};
+farray.push(normal_1_4);
 /// <reference path="fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',

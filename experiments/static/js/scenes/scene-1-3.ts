@@ -214,7 +214,7 @@ class Scene1L3 extends Scene1 {
 
         state.addAction(s=>{
             
-            this.needFeedback = true;
+            // this.needFeedback = true;
             this.bgm.play();
             
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               

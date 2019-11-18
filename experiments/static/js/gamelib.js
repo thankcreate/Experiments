@@ -162,6 +162,7 @@ class Scene1 extends BaseScene {
         this.homeCounter = 0;
         this.counters = new Map();
         this.playerName = "";
+        this.sfxMatches = [];
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -181,21 +182,33 @@ class Scene1 extends BaseScene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png');
         this.load.image('footer_sep', 'assets/footer_sep.png');
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png');
-        this.load.audio("sfx_laser", "assets/audio/Hit_Hurt131.wav");
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
-        this.load.audio("sfx_fail", "assets/audio/Fail.wav");
-        this.load.audio("bgm_1", "assets/audio/SeperateWays.mp3");
+    }
+    loadAudio() {
+        let audioLoadConfig = {
+            sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
+            sfx_fail: ["assets/audio/Fail.wav", "sfxFail"],
+            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm'],
+        };
+        for (let i in audioLoadConfig) {
+            this.load.audio(i, audioLoadConfig[i][0]);
+        }
+        this.load.on('filecomplete', (arg1) => {
+            if (audioLoadConfig[arg1]) {
+                // console.log(arg1);
+                this[audioLoadConfig[arg1][1]] = this.sound.add(arg1);
+            }
+        });
+        this.load.start();
     }
     create() {
-        this.sfxLaser = this.sound.add("sfx_laser");
+        this.loadAudio();
         this.sfxMatches = [];
         this.sfxMatches.push(this.sound.add("sfx_match_1"));
         this.sfxMatches.push(this.sound.add("sfx_match_2"));
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
-        this.sfxFail = this.sound.add("sfx_fail");
-        this.bgm = this.sound.add('bgm_1');
         this.container = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         // Center cicle-like object
@@ -1064,7 +1077,7 @@ class Scene1L3 extends Scene1 {
             });
         });
         state.addAction(s => {
-            // this.needFeedback = true;
+            this.needFeedback = true;
             this.bgm.play();
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
         })
@@ -2344,7 +2357,6 @@ class Enemy {
         return false;
     }
     damage(val, input) {
-        console.log("hahaha");
         let ret = {
             damage: 0,
             code: this.checkIfInputLegalWithEnemy(input, this.lbl)
@@ -2494,7 +2506,6 @@ class EnemyImage extends Enemy {
         });
     }
     playHurtAnimation() {
-        console.log("hoa2");
         this.hurAnimation = this.scene.tweens.add({
             targets: this.figure.inner,
             x: '+=100',
@@ -2892,7 +2903,7 @@ class EnemyManager {
         }
         else {
             if (sc.hud.comboHit > 0 && sc.needFeedback) {
-                sc.sfxFail.play();
+                // sc.sfxFail.play();
             }
             sc.hud.resetCombo();
         }

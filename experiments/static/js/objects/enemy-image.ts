@@ -99,8 +99,7 @@ class EnemyImage extends Enemy {
 
 
     hurAnimation;
-    playHurtAnimation() {
-        console.log("hoa2");
+    playHurtAnimation() {        
         this.hurAnimation = this.scene.tweens.add({
             targets: this.figure.inner,
             x: '+=100',

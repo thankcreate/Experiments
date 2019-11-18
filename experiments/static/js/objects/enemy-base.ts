@@ -190,8 +190,7 @@ class Enemy {
     }
     
 
-    damage(val: number, input:string) : DamageResult {       
-        console.log("hahaha")  ;
+    damage(val: number, input:string) : DamageResult {               
         let ret: DamageResult = {
             damage: 0, 
             code:this.checkIfInputLegalWithEnemy(input, this.lbl)

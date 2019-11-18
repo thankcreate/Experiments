@@ -467,7 +467,7 @@ class EnemyManager {
 
         let sc = this.scene as Scene1;
         if(validDamageAtLeastOne ) {                      
-            if(sc.needFeedback) {
+            if(sc.needFeedback) {                
                 sc.sfxLaser.play();
                 sc.hud.addCombo();  
             }
@@ -475,7 +475,7 @@ class EnemyManager {
         }
         else {
             if(sc.hud.comboHit > 0 && sc.needFeedback) {
-                sc.sfxFail.play();
+                // sc.sfxFail.play();
             }
             sc.hud.resetCombo();            
         }

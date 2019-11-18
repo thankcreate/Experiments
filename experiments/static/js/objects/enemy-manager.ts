@@ -159,19 +159,24 @@ class EnemyManager {
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
     
-    nextNeedSensitvie : boolean;
+    nextNeedSensitvieOneShot : boolean = false;    
+    nextNeedSensitiveAlways: boolean = false;
 
-    setNextNeedSensitive(val: boolean) {
-        this.nextNeedSensitvie = val;
+    setNextNeedSensitiveOneShot(val: boolean) {
+        this.nextNeedSensitvieOneShot = val;
+    }
+
+    setNextNeedSensitiveAlways(val: boolean) {
+        this.nextNeedSensitiveAlways = val;
     }
     
     sensetiveDuration = 100000;
 
     checkIfNextNeeedSensitive(config: EnemyConfig) {
-        if(!this.nextNeedSensitvie) {
+        if(!this.nextNeedSensitvieOneShot && !this.nextNeedSensitiveAlways) {
             return false;
         }
-        // this.nextNeedSensitvie = false;
+        this.nextNeedSensitvieOneShot = false;
         
         // convert to sensitive
         config.isSensitive = true;

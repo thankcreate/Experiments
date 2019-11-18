@@ -172,7 +172,7 @@ class Button {
 
         this.clickedEvent.emit(this);
     }
-
+    
     pointerin() {
         // We need to double check the hoverState here because in setEnable(true), 
         // if the pointer is alreay in the zone, it will get to pointerin directly
@@ -197,6 +197,8 @@ class Button {
         if(this.needHandOnHover) {
             $("body").css('cursor','pointer');
         }
+
+        this.image.alpha = 0.55;
     }
 
     pointerout() {
@@ -222,6 +224,8 @@ class Button {
         if(this.needHandOnHover) {
             $("body").css('cursor','default');
         }
+
+        this.image.alpha = 1;
     }
 
     setToHoverChangeTextMode(hoverText: string) {

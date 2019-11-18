@@ -251,7 +251,7 @@ class Scene1L3 extends Scene1 {
     initStSensitive() {
         let state = this.normalGameFsm.getState("Sensitive");
         state.setOnEnter(s=>{
-            this.enemyManager.setNextNeedSensitive(true);           
+            this.enemyManager.setNextNeedSensitiveOneShot(true);           
 
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let em = e as Enemy;

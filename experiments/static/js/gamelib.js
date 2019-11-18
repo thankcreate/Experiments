@@ -182,6 +182,8 @@ class Scene1 extends BaseScene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png');
         this.load.image('footer_sep', 'assets/footer_sep.png');
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png');
+        this.load.image('rounded_btn', 'assets/rounded_btn_90.png');
+        this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
@@ -1787,6 +1789,20 @@ set
 `;
 function sayHi() {
     console.log("Hi, I'm tron");
+}
+class Bubble extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        let img = this.scene.add.image(0, 0, 'popup_bubble');
+        img.setOrigin(1, 46 / 229);
+        this.applyTarget(img);
+        let style = getDefaultTextStyle();
+        style.fill = '#FFFFFF';
+        let cc = "You can just type in 'B' instead of 'BAD' for short";
+        this.text = this.scene.add.text(-442, -26, cc, style).setOrigin(0, 0);
+        this.text.setWordWrapWidth(400);
+        this.inner.add(this.text);
+    }
 }
 /**
  * When you want to deactive a button \
@@ -4128,26 +4144,55 @@ class HP extends Wrapper {
         this.innerProgress.setSize(this.progressMaxWidth);
     }
 }
+/**
+ * TronTron
+ * The intention of Hud is to wrap the behavior of HP bar
+ * However, I added more things into it like the score and right tool bar
+ *
+ * If something needs to be facein/fadeout in the animation, we need
+ * include them in the array in the 'show' and 'hide' functions
+ */
 class Hud extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.score = 0;
         this.comboHit = 0;
         this.inShow = false;
+        this.toolBtns = [];
         let hpBottom = 36;
         let hpLeft = 36;
         this.hp = new HP(scene, this.inner, hpLeft, phaserConfig.scale.height - hpBottom);
         this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         this.hp.inner.y += 250; // hide it at beginning
+        // score
         let style = getDefaultTextStyle();
         style.fontSize = '44px';
         this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
         this.scoreText.y += 250;
         this.inner.add(this.scoreText);
+        // combo
         style.fontSize = '60px';
         this.comboHitText = this.scene.add.text(getLogicWidth() - 30, 20, "0 HIT COMBO", style).setOrigin(1, 0);
         this.inner.add(this.comboHitText);
         this.comboHitText.setVisible(false);
+        // tool menu
+        this.toolMenuContainer = this.scene.add.container(getLogicWidth() - 75, 350);
+        this.inner.add(this.toolMenuContainer);
+        let lbls = ['B**', 'HP', 'Auto', '404++'];
+        let lblSizes = [40, 40, 34, 30];
+        let startY = 0;
+        let intervalY = 100;
+        for (let i = 0; i < lbls.length; i++) {
+            let btn = new Button(this.scene, this.toolMenuContainer, 0, startY + intervalY * i, 'rounded_btn', lbls[i], 75, 75, false);
+            btn.text.setFontSize(lblSizes[i]);
+            btn.needInOutAutoAnimation = false;
+            this.toolBtns.push(btn);
+        }
+        // bubble
+        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainer.x - 100;
+        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainer.y;
+        this.popupBubble = new Bubble(this.scene, this.inner, 0, 0);
+        this.popupBubble.inner.setPosition(bubbleX, bubbleY);
     }
     addCombo() {
         this.comboHitText.setVisible(true);

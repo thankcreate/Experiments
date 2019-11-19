@@ -17,4 +17,16 @@ class Bubble extends Wrapper<PhImage> {
         this.text.setWordWrapWidth(400);        
         this.inner.add(this.text);
     }
+
+    setText(val: string) {
+        this.text.text = val;
+    }
+
+    show() {
+        this.inner.setVisible(true);
+    }
+
+    hide() {
+        this.inner.setVisible(false);
+    }
 }

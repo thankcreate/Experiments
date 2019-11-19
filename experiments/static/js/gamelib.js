@@ -182,7 +182,7 @@ class Scene1 extends BaseScene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png');
         this.load.image('footer_sep', 'assets/footer_sep.png');
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png');
-        this.load.image('rounded_btn', 'assets/rounded_btn_90.png');
+        this.load.image('rounded_btn', 'assets/rounded_with_title_btn_90_10.png');
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
@@ -1802,6 +1802,15 @@ class Bubble extends Wrapper {
         this.text = this.scene.add.text(-442, -26, cc, style).setOrigin(0, 0);
         this.text.setWordWrapWidth(400);
         this.inner.add(this.text);
+    }
+    setText(val) {
+        this.text.text = val;
+    }
+    show() {
+        this.inner.setVisible(true);
+    }
+    hide() {
+        this.inner.setVisible(false);
     }
 }
 /**
@@ -4158,6 +4167,7 @@ class Hud extends Wrapper {
         this.score = 0;
         this.comboHit = 0;
         this.inShow = false;
+        this.toolMenuContainerRightIsShown = true;
         this.toolBtns = [];
         let hpBottom = 36;
         let hpLeft = 36;
@@ -4176,23 +4186,44 @@ class Hud extends Wrapper {
         this.inner.add(this.comboHitText);
         this.comboHitText.setVisible(false);
         // tool menu
-        this.toolMenuContainer = this.scene.add.container(getLogicWidth() - 75, 350);
-        this.inner.add(this.toolMenuContainer);
-        let lbls = ['B**', 'HP', 'Auto', '404++'];
-        let lblSizes = [40, 40, 34, 30];
+        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 350);
+        this.inner.add(this.toolMenuContainerRight);
+        this.hideContainerRight(false);
+        let btnInfos = [
+            { title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
+            { title: "HP", size: 40, desc: "HP regen by eliminating BAD words" },
+            { title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically type in B-A-D for you" },
+            { title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words" },
+        ];
         let startY = 0;
         let intervalY = 100;
-        for (let i = 0; i < lbls.length; i++) {
-            let btn = new Button(this.scene, this.toolMenuContainer, 0, startY + intervalY * i, 'rounded_btn', lbls[i], 75, 75, false);
-            btn.text.setFontSize(lblSizes[i]);
+        for (let i = 0; i < btnInfos.length; i++) {
+            let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i, 'rounded_btn', btnInfos[i].title, 75, 75, false);
+            btn.text.setFontSize(btnInfos[i].size);
+            btn.text.y -= 10;
+            btn.needHandOnHover = true;
             btn.needInOutAutoAnimation = false;
+            let priceStyle = getDefaultTextStyle();
+            priceStyle.fontSize = '22px';
+            let priceLbl = this.scene.add.text(0, 30, '100', priceStyle).setOrigin(0.5);
+            btn.inner.add(priceLbl);
             this.toolBtns.push(btn);
+            btn.tag = btnInfos[i].desc;
+            btn.fakeZone.on('pointerover', () => {
+                this.popupBubble.setText(btn.tag);
+                this.popupBubble.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubble.show();
+            });
+            btn.fakeZone.on('pointerout', () => {
+                this.popupBubble.hide();
+            });
         }
         // bubble
-        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainer.x - 100;
-        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainer.y;
+        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
+        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainerRight.y;
         this.popupBubble = new Bubble(this.scene, this.inner, 0, 0);
         this.popupBubble.inner.setPosition(bubbleX, bubbleY);
+        this.popupBubble.hide();
     }
     addCombo() {
         this.comboHitText.setVisible(true);
@@ -4252,9 +4283,21 @@ class Hud extends Wrapper {
             tg = [this.hp.inner, this.scoreText];
         else
             tg = [this.scoreText];
+        let dt = 1000;
         this.inTwenn = this.scene.tweens.add({
             targets: tg,
             y: "-= 250",
+            duration: dt,
+        });
+        this.showContainerRight();
+    }
+    showContainerRight() {
+        if (this.toolMenuContainerRightIsShown)
+            return;
+        this.toolMenuContainerRightIsShown = true;
+        this.scene.tweens.add({
+            targets: this.toolMenuContainerRight,
+            x: "-= 150",
             duration: 1000,
         });
     }
@@ -4265,11 +4308,28 @@ class Hud extends Wrapper {
             tg = [this.hp.inner, this.scoreText];
         else
             tg = [this.scoreText];
+        let dt = 1000;
         this.outTween = this.scene.tweens.add({
             targets: tg,
             y: "+= 250",
-            duration: 1000,
+            duration: dt,
         });
+        this.hideContainerRight();
+    }
+    hideContainerRight(needAnimation = true) {
+        if (!this.toolMenuContainerRightIsShown)
+            return;
+        this.toolMenuContainerRightIsShown = false;
+        if (needAnimation) {
+            this.scene.tweens.add({
+                targets: this.toolMenuContainerRight,
+                x: "+= 150",
+                duration: 1000,
+            });
+        }
+        else {
+            this.toolMenuContainerRight.x += 150;
+        }
     }
 }
 class LeaderboardManager {

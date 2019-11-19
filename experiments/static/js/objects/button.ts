@@ -24,6 +24,8 @@ class Button {
     inTween: PhTween;
     outTween: PhTween;
 
+    tag: string;
+
     // auto scale
     needInOutAutoAnimation: boolean = true;    
 

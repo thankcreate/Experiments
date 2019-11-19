@@ -105,7 +105,7 @@ class Scene1 extends BaseScene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png')
         this.load.image('footer_sep', 'assets/footer_sep.png')
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png')
-        this.load.image('rounded_btn', 'assets/rounded_btn_90.png')
+        this.load.image('rounded_btn', 'assets/rounded_with_title_btn_90_10.png')
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
 
         

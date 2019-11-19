@@ -21,11 +21,12 @@ class Hud extends Wrapper<PhText> {
     inTwenn: PhTween;
     outTween: PhTween;
    
-    toolMenuContainer: PhContainer;
+    toolMenuContainerRight: PhContainer;
+    toolMenuContainerRightIsShown: boolean = true;
     toolBtns: Button[] = [];
     
     
-    popupBubble :Wrapper<PhImage>;
+    popupBubble :Bubble;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
@@ -50,26 +51,52 @@ class Hud extends Wrapper<PhText> {
         this.comboHitText.setVisible(false);
 
         // tool menu
-        this.toolMenuContainer = this.scene.add.container(getLogicWidth() - 75, 350); 
-        this.inner.add(this.toolMenuContainer);
+        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 350); 
+        this.inner.add(this.toolMenuContainerRight);
+        this.hideContainerRight(false);
 
-        let lbls = ['B**', 'HP', 'Auto','404++']        
-        let lblSizes = [40, 40, 34, 30];
+        let btnInfos = [
+            {title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},
+            {title: "HP", size: 40, desc: "HP regen by eliminating BAD words"},
+            {title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically type in B-A-D for you"},
+            {title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words"},
+        ]        
         let startY = 0;
         let intervalY = 100;
-        for(let i = 0; i < lbls.length; i++) {            
-            let btn = new Button(this.scene, this.toolMenuContainer, 0, startY + intervalY * i,
-                 'rounded_btn', lbls[i], 75,75, false);        
-            btn.text.setFontSize(lblSizes[i]);
+        for(let i = 0; i < btnInfos.length; i++) {            
+            let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i,
+                 'rounded_btn', btnInfos[i].title, 75,75, false);        
+            btn.text.setFontSize(btnInfos[i].size);
+            btn.text.y -= 10;
+            btn.needHandOnHover = true;
             btn.needInOutAutoAnimation = false;
+
+            let priceStyle = getDefaultTextStyle();
+            priceStyle.fontSize = '22px';
+            let priceLbl = this.scene.add.text(0, 30, '100',  priceStyle).setOrigin(0.5);
+            btn.inner.add(priceLbl);
+            
             this.toolBtns.push(btn);
-        }      
+            
+            btn.tag = btnInfos[i].desc;
+
+            btn.fakeZone.on('pointerover', ()=>{            
+                this.popupBubble.setText(btn.tag);                         
+                this.popupBubble.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubble.show();                
+            });
+
+            btn.fakeZone.on('pointerout', () =>{
+                this.popupBubble.hide();
+            });
+        }
         
         // bubble
-        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainer.x - 100;    
-        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainer.y;
+        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainerRight.x - 70;    
+        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainerRight.y;
         this.popupBubble = new Bubble(this.scene, this.inner, 0, 0);        
         this.popupBubble.inner.setPosition(bubbleX, bubbleY);        
+        this.popupBubble.hide();
     }
     lastTimeAddCombo;
 
@@ -146,12 +173,28 @@ class Hud extends Wrapper<PhText> {
         else
             tg = [this.scoreText]
 
+
+        let dt = 1000;
         this.inTwenn = this.scene.tweens.add({
             targets: tg,
             y: "-= 250",
-            duration: 1000,
+            duration: dt,
         })
 
+        this.showContainerRight();
+        
+    }
+
+    showContainerRight() {
+        if(this.toolMenuContainerRightIsShown)
+            return;
+        this.toolMenuContainerRightIsShown = true;
+
+        this.scene.tweens.add({
+            targets: this.toolMenuContainerRight,
+            x: "-= 150",
+            duration: 1000,
+        });
     }
 
     hide(mode: GameMode) {
@@ -163,10 +206,32 @@ class Hud extends Wrapper<PhText> {
         else
             tg = [this.scoreText]
 
+            
+        let dt = 1000;
         this.outTween = this.scene.tweens.add({
             targets: tg,
             y: "+= 250",
-            duration: 1000,
+            duration: dt,
         })
+
+        this.hideContainerRight()
+    }
+
+    hideContainerRight(needAnimation:boolean = true) {
+        if(!this.toolMenuContainerRightIsShown)
+            return;
+        this.toolMenuContainerRightIsShown = false;
+
+        if(needAnimation) {
+            this.scene.tweens.add({
+                targets: this.toolMenuContainerRight,
+                x: "+= 150",
+                duration: 1000,
+            });
+        }
+        else {
+            this.toolMenuContainerRight.x += 150;
+        }
+        
     }
 }

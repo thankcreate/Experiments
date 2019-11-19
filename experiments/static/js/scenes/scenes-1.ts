@@ -107,7 +107,7 @@ class Scene1 extends BaseScene {
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png')
         this.load.image('rounded_btn', 'assets/rounded_with_title_btn_90_10.png')
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
-
+        this.load.image('popup_bubble_left', 'assets/popup_bubble_left.png');
         
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");

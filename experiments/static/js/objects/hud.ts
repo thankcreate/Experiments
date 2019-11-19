@@ -32,6 +32,7 @@ class Hud extends Wrapper<PhText> {
     
     
     popupBubbleRight :Bubble;
+    popupBubbleLeft:Bubble;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
@@ -68,7 +69,7 @@ class Hud extends Wrapper<PhText> {
 
         let btnInfos = [
             {title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},
-            {title: "HP", size: 40, desc: "HP regen by eliminating BAD words"},
+            {title: "HP", size: 40, desc: "Get HP regen by eliminating BAD words"},
             {title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
             {title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words"},
         ]        
@@ -105,14 +106,60 @@ class Hud extends Wrapper<PhText> {
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;    
         let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.y;
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0);        
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, true);        
         this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);        
         this.popupBubbleRight.hide();
     }
 
 
     createMenuLeft() {
+        // tool menu left
+        this.toolMenuContainerLeft = this.scene.add.container(75, 400); 
+        this.inner.add(this.toolMenuContainerLeft);
+        // this.hideContainerRight(false);
 
+        let btnInfos = [
+            {title: "Shameful", size: 16, desc: "Shameful"},
+            {title: "Immoral", size: 20, desc: "Immoral"},
+            {title: "Vicious", size: 24, desc: "Vicious"},
+            {title: "Evil", size: 40, desc: "Evil"},
+        ]        
+        let startY = 0;
+        let intervalY = 100;
+        for(let i = 0; i < btnInfos.length; i++) {            
+            let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i,
+                'rounded_btn', btnInfos[i].title, 75,75, false);        
+            btn.text.setFontSize(btnInfos[i].size);
+            btn.text.y -= 10;
+            btn.needHandOnHover = true;
+            btn.needInOutAutoAnimation = false;
+
+            let priceStyle = getDefaultTextStyle();
+            priceStyle.fontSize = '22px';
+            let priceLbl = this.scene.add.text(0, 30, '100',  priceStyle).setOrigin(0.5);
+            btn.inner.add(priceLbl);
+            
+            this.leftBtns.push(btn);
+            
+            btn.tag = btnInfos[i].desc;
+
+            btn.fakeZone.on('pointerover', ()=>{            
+                this.popupBubbleLeft.setText(btn.tag);                         
+                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubbleLeft.show();                
+            });
+
+            btn.fakeZone.on('pointerout', () =>{
+                this.popupBubbleLeft.hide();
+            });
+        }
+
+        // bubble
+        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.x + 70;    
+        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.y;
+        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);        
+        this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);        
+        this.popupBubbleLeft.hide();
     }
 
     lastTimeAddCombo;

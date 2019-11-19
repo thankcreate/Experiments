@@ -1196,11 +1196,14 @@ class Scene1L4 extends Scene1 {
             // this.needFeedback = true;
             this.enemyManager.setNextNeedSensitiveAlways(true);
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore);
-        });
-        state.addSubtitleAction(this.subtitle, "Sorry, I have to admit that I'm a bad experiment designer", true);
-        state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming more and more.\nHowever, I think you'll surely help me get rid of them, right?", true);
-        state.addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true);
-        state.addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true);
+        })
+            .addSubtitleAction(this.subtitle, "Ah! I have to admit that I'm a bad experiment designer", true)
+            .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
+            .addAction(s => {
+            this.hud.showContainerRight();
+        })
+            .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
+            .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true);
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -4168,7 +4171,9 @@ class Hud extends Wrapper {
         this.comboHit = 0;
         this.inShow = false;
         this.toolMenuContainerRightIsShown = true;
-        this.toolBtns = [];
+        this.rightBtns = [];
+        this.toolMenuContainerLeftIsShown = true;
+        this.leftBtns = [];
         let hpBottom = 36;
         let hpLeft = 36;
         this.hp = new HP(scene, this.inner, hpLeft, phaserConfig.scale.height - hpBottom);
@@ -4185,14 +4190,18 @@ class Hud extends Wrapper {
         this.comboHitText = this.scene.add.text(getLogicWidth() - 30, 20, "0 HIT COMBO", style).setOrigin(1, 0);
         this.inner.add(this.comboHitText);
         this.comboHitText.setVisible(false);
-        // tool menu
-        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 350);
+        this.createMenuRight();
+        this.createMenuLeft();
+    }
+    createMenuRight() {
+        // tool menu right
+        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400);
         this.inner.add(this.toolMenuContainerRight);
-        this.hideContainerRight(false);
+        // this.hideContainerRight(false);
         let btnInfos = [
             { title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
             { title: "HP", size: 40, desc: "HP regen by eliminating BAD words" },
-            { title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically type in B-A-D for you" },
+            { title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
             { title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words" },
         ];
         let startY = 0;
@@ -4207,23 +4216,25 @@ class Hud extends Wrapper {
             priceStyle.fontSize = '22px';
             let priceLbl = this.scene.add.text(0, 30, '100', priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
-            this.toolBtns.push(btn);
+            this.rightBtns.push(btn);
             btn.tag = btnInfos[i].desc;
             btn.fakeZone.on('pointerover', () => {
-                this.popupBubble.setText(btn.tag);
-                this.popupBubble.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
-                this.popupBubble.show();
+                this.popupBubbleRight.setText(btn.tag);
+                this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubbleRight.show();
             });
             btn.fakeZone.on('pointerout', () => {
-                this.popupBubble.hide();
+                this.popupBubbleRight.hide();
             });
         }
         // bubble
-        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
-        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainerRight.y;
-        this.popupBubble = new Bubble(this.scene, this.inner, 0, 0);
-        this.popupBubble.inner.setPosition(bubbleX, bubbleY);
-        this.popupBubble.hide();
+        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
+        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.y;
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0);
+        this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);
+        this.popupBubbleRight.hide();
+    }
+    createMenuLeft() {
     }
     addCombo() {
         this.comboHitText.setVisible(true);
@@ -4289,7 +4300,9 @@ class Hud extends Wrapper {
             y: "-= 250",
             duration: dt,
         });
-        this.showContainerRight();
+        // Don't call showContainerRight automatiaclly here
+        // but still call hideContainerRight when hide()
+        // showContainerRight();
     }
     showContainerRight() {
         if (this.toolMenuContainerRightIsShown)

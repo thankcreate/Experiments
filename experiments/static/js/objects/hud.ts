@@ -23,10 +23,15 @@ class Hud extends Wrapper<PhText> {
    
     toolMenuContainerRight: PhContainer;
     toolMenuContainerRightIsShown: boolean = true;
-    toolBtns: Button[] = [];
+    rightBtns: Button[] = [];
+
+    toolMenuContainerLeft: PhContainer;
+    toolMenuContainerLeftIsShown: boolean = true;
+    leftBtns: Button[] = [];
     
     
-    popupBubble :Bubble;
+    
+    popupBubbleRight :Bubble;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
@@ -50,15 +55,21 @@ class Hud extends Wrapper<PhText> {
         this.inner.add(this.comboHitText);
         this.comboHitText.setVisible(false);
 
-        // tool menu
-        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 350); 
+        this.createMenuRight();
+        this.createMenuLeft();
+    }
+
+
+    createMenuRight() {
+        // tool menu right
+        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
         this.inner.add(this.toolMenuContainerRight);
-        this.hideContainerRight(false);
+        // this.hideContainerRight(false);
 
         let btnInfos = [
             {title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},
             {title: "HP", size: 40, desc: "HP regen by eliminating BAD words"},
-            {title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically type in B-A-D for you"},
+            {title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
             {title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words"},
         ]        
         let startY = 0;
@@ -76,28 +87,34 @@ class Hud extends Wrapper<PhText> {
             let priceLbl = this.scene.add.text(0, 30, '100',  priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
             
-            this.toolBtns.push(btn);
+            this.rightBtns.push(btn);
             
             btn.tag = btnInfos[i].desc;
 
             btn.fakeZone.on('pointerover', ()=>{            
-                this.popupBubble.setText(btn.tag);                         
-                this.popupBubble.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
-                this.popupBubble.show();                
+                this.popupBubbleRight.setText(btn.tag);                         
+                this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubbleRight.show();                
             });
 
             btn.fakeZone.on('pointerout', () =>{
-                this.popupBubble.hide();
+                this.popupBubbleRight.hide();
             });
         }
         
         // bubble
-        let bubbleX = this.toolBtns[0].inner.x + this.toolMenuContainerRight.x - 70;    
-        let bubbleY = this.toolBtns[0].inner.y + this.toolMenuContainerRight.y;
-        this.popupBubble = new Bubble(this.scene, this.inner, 0, 0);        
-        this.popupBubble.inner.setPosition(bubbleX, bubbleY);        
-        this.popupBubble.hide();
+        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;    
+        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.y;
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0);        
+        this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);        
+        this.popupBubbleRight.hide();
     }
+
+
+    createMenuLeft() {
+
+    }
+
     lastTimeAddCombo;
 
     addCombo() {
@@ -179,10 +196,11 @@ class Hud extends Wrapper<PhText> {
             targets: tg,
             y: "-= 250",
             duration: dt,
-        })
+        })        
 
-        this.showContainerRight();
-        
+        // Don't call showContainerRight automatiaclly here
+        // but still call hideContainerRight when hide()
+        // showContainerRight();
     }
 
     showContainerRight() {

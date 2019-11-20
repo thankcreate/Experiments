@@ -22,6 +22,8 @@ type FigureConfig = {
     autoHeight?: boolean
     itemCount?: number
 
+    roundRadius?: number
+
 }
 
 /**
@@ -120,14 +122,23 @@ class Rect extends Figure {
             return;
 
         graphics.fillStyle(config.fillColor, config.fillAlpha);
-        graphics.fillRect(0, 0, config.width, config.height);
+
+        if(notSet(config.roundRadius)){
+            graphics.fillRect(0, 0, config.width, config.height);
+        }            
+        else {
+            graphics.fillRoundedRect(0, 0, config.width, config.height, config.roundRadius);
+        }
 
         if (config.lineWidth != 0) {
             graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha)
-            graphics.strokeRect(0, 0, config.width, config.height);
+            if(notSet(config.roundRadius)){
+                graphics.strokeRect(0, 0, config.width, config.height);
+            }
+            else {
+                graphics.strokeRoundedRect(0, 0, config.width, config.height, config.roundRadius);
+            }
         }
-
-
     }
 }
 

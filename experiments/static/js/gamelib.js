@@ -1198,7 +1198,7 @@ class Scene1L4 extends Scene1 {
             this.enemyManager.setNextNeedSensitiveAlways(true);
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore);
         })
-            .addSubtitleAction(this.subtitle, "Ah! I have to admit that I'm a bad experiment designer", true)
+            .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .addAction(s => {
             this.hud.showContainerRight();
@@ -3134,10 +3134,20 @@ class Rect extends Figure {
         if (config.width === 0)
             return;
         graphics.fillStyle(config.fillColor, config.fillAlpha);
-        graphics.fillRect(0, 0, config.width, config.height);
+        if (notSet(config.roundRadius)) {
+            graphics.fillRect(0, 0, config.width, config.height);
+        }
+        else {
+            graphics.fillRoundedRect(0, 0, config.width, config.height, config.roundRadius);
+        }
         if (config.lineWidth != 0) {
             graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
-            graphics.strokeRect(0, 0, config.width, config.height);
+            if (notSet(config.roundRadius)) {
+                graphics.strokeRect(0, 0, config.width, config.height);
+            }
+            else {
+                graphics.strokeRoundedRect(0, 0, config.width, config.height, config.roundRadius);
+            }
         }
     }
 }
@@ -4236,18 +4246,40 @@ class Hud extends Wrapper {
         this.popupBubbleRight.hide();
     }
     createMenuLeft() {
-        // tool menu left
-        this.toolMenuContainerLeft = this.scene.add.container(75, 400);
-        this.inner.add(this.toolMenuContainerLeft);
-        // this.hideContainerRight(false);
         let btnInfos = [
             { title: "Shameful", size: 16, desc: "Shameful" },
             { title: "Immoral", size: 20, desc: "Immoral" },
             { title: "Vicious", size: 24, desc: "Vicious" },
+            { title: "Guilty", size: 28, desc: "Guilty" },
             { title: "Evil", size: 40, desc: "Evil" },
         ];
+        let btnWidth = 90;
         let startY = 0;
         let intervalY = 100;
+        let frameBtnGap = 15;
+        let frameTopPadding = 60;
+        let frameBottonPadding = 15;
+        // tool menu left
+        this.toolMenuContainerLeft = this.scene.add.container(75, 400);
+        this.inner.add(this.toolMenuContainerLeft);
+        // this.hideContainerRight(false);
+        let bkgWidth = btnWidth + frameBtnGap * 2;
+        let bkgHeight = frameTopPadding + frameBottonPadding + btnInfos.length * btnWidth + (btnInfos.length - 1) * (intervalY - btnWidth);
+        let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
+            fillColor: 0xFFFFFF,
+            // lineColor: 0x222222,
+            lineWidth: 6,
+            width: bkgWidth,
+            height: bkgHeight,
+            originY: 0,
+            originX: 0,
+            roundRadius: 30
+        });
+        let titleStyle = getDefaultTextStyle();
+        titleStyle.fontSize = '20px';
+        titleStyle.fill = '#1A1A1A';
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Keywords', titleStyle).setOrigin(0.5, 1);
+        this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < btnInfos.length; i++) {
             let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i, 'rounded_btn', btnInfos[i].title, 75, 75, false);
             btn.text.setFontSize(btnInfos[i].size);

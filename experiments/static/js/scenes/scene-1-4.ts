@@ -50,7 +50,7 @@ class Scene1L4 extends Scene1 {
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore);
             
         })
-        .addSubtitleAction(this.subtitle, "Ah! I have to admit that I'm a bad experiment designer", true)
+        .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
         .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
         .addAction(s=>{
             this.hud.showContainerRight();

@@ -68,8 +68,10 @@ class PlayerInputText {
 
         this.title = this.scene.add.text(- this.getAvailableWidth() / 2, -this.gapTitle,
             dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
-        this.parentContainer.add(this.title);
+        // this.title.setWordWrapWidth(1000);
+        this.parentContainer.add(this.title);        
 
+        this.initKeywords();
     }
 
     /**
@@ -226,20 +228,35 @@ class PlayerInputText {
         this.changedEvent.emit(this);
     }
 
-    avaiKeywords: string[];
+    
+    avaiKeywords: string[] = [];
+    initKeywords() {
+        this.avaiKeywords.push('Bad');
+        for(let i = 0; i < keywordInfos.length; i++) {
+            this.avaiKeywords.push(keywordInfos[i].title);            
+        }        
+    }
+
     // B** -> Bad
     checkIfNeedAutoComplete() {
         this.underlieText.text = '';
         if(this.text.text.length == 0)
             return;
-        let autoStr = 'Bad'
-        if(autoStr.indexOf(this.text.text) == 0) {
-            this.underlieText.text  = 'Bad';
-        }
+
+        for(let i = 0; i < this.avaiKeywords.length; i++) {
+            let autoStr = this.avaiKeywords[i];            
+            if(autoStr.indexOf(this.text.text) == 0) {
+                this.underlieText.text  = autoStr;
+                break;
+            }
+        }        
     }
 
-    confirm() {
+    confirm() {        
         var inputWord = this.text.text;
+        if(this.underlieText.text != '') {
+            inputWord = this.underlieText.text;   
+        }
 
         let checkLegal: ErrorInputCode = this.checkIfInputLegalBeforeSend(inputWord);
         let legal = checkLegal == ErrorInputCode.NoError;
@@ -264,6 +281,8 @@ class PlayerInputText {
             oriWord, refText.style).setOrigin(refText.originX, refText.originY);
 
         refText.parentContainer.add(fakeText);
+        
+        fakeText.setWordWrapWidth(refText.displayWidth, true);
 
         let fadeTween = this.scene.tweens.add({
             targets: fakeText,
@@ -321,7 +340,7 @@ class PlayerInputText {
         let toShowText = showOriginal ? 
             gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
         
-        this.title.setText(toShowText);
+        this.title.setText(toShowText);        
 
         if (this.titleOut)
             this.titleOut.stop();

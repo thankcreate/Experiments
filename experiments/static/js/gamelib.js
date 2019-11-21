@@ -2109,6 +2109,13 @@ class CenterObject {
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
+let keywordInfos = [
+    { title: "Shameful", size: 16, desc: "Shameful" },
+    { title: "Immoral", size: 20, desc: "Immoral" },
+    { title: "Vicious", size: 24, desc: "Vicious" },
+    { title: "Guilty", size: 28, desc: "Guilty" },
+    { title: "Evil", size: 40, desc: "Evil" },
+];
 class Died extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
@@ -4177,13 +4184,6 @@ class HP extends Wrapper {
  * If something needs to be facein/fadeout in the animation, we need
  * include them in the array in the 'show' and 'hide' functions
  */
-let keywordInfos = [
-    { title: "Shameful", size: 16, desc: "Shameful" },
-    { title: "Immoral", size: 20, desc: "Immoral" },
-    { title: "Vicious", size: 24, desc: "Vicious" },
-    { title: "Guilty", size: 28, desc: "Guilty" },
-    { title: "Evil", size: 40, desc: "Evil" },
-];
 class Hud extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
@@ -4795,7 +4795,7 @@ class PlayerInputText {
         if (legal) {
             this.inputHistory.push(inputWord);
             this.confirmedEvent.emit(inputWord);
-            this.showConfirmEffect(inputWord, this.text, 250);
+            this.showConfirmEffect(inputWord, this.text, 250, true);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
@@ -4805,11 +4805,13 @@ class PlayerInputText {
      * Set the real label to a empty string\
      * then construct a new pseudo text and show a fade tween on it
      */
-    showConfirmEffect(oriWord, refText, dt) {
+    showConfirmEffect(oriWord, refText, dt, needWrap) {
         refText.text = "";
         let fakeText = this.scene.add.text(refText.x, refText.y, oriWord, refText.style).setOrigin(refText.originX, refText.originY);
         refText.parentContainer.add(fakeText);
-        fakeText.setWordWrapWidth(refText.displayWidth, true);
+        if (needWrap) {
+            fakeText.setWordWrapWidth(this.getAvailableWidth(), true);
+        }
         let fadeTween = this.scene.tweens.add({
             targets: fakeText,
             alpha: 0,
@@ -4893,12 +4895,12 @@ class PlayerInputText {
             this.titleOut.stop();
     }
     prepareToGame() {
-        this.showConfirmEffect(this.title.text, this.title, 1000);
+        this.showConfirmEffect(this.title.text, this.title, 1000, false);
         this.setCanAcceptInput(true);
     }
     prepareToHome() {
         // this.title.setText(gameplayConfig.titleOriginal);
-        this.showConfirmEffect(this.text.text, this.text, 1000);
+        this.showConfirmEffect(this.text.text, this.text, 1000, false);
         this.setCanAcceptInput(false);
         // set title alpha to 0 becuase when entered game mode, the title's alpha is still 1
         // we only used a pseudo title to show the faked showConfirmEffect

@@ -263,7 +263,7 @@ class PlayerInputText {
         if (legal) {
             this.inputHistory.push(inputWord);
             this.confirmedEvent.emit(inputWord);
-            this.showConfirmEffect(inputWord, this.text, 250);
+            this.showConfirmEffect(inputWord, this.text, 250, true);
         }
         else {
             // console.log("ErrorInputCode before send: " + checkLegal);
@@ -274,7 +274,7 @@ class PlayerInputText {
      * Set the real label to a empty string\
      * then construct a new pseudo text and show a fade tween on it
      */
-    showConfirmEffect(oriWord: string, refText: PhText, dt: number) {
+    showConfirmEffect(oriWord: string, refText: PhText, dt: number, needWrap: boolean) {
 
         refText.text = "";
         let fakeText = this.scene.add.text(refText.x, refText.y,
@@ -282,7 +282,9 @@ class PlayerInputText {
 
         refText.parentContainer.add(fakeText);
         
-        fakeText.setWordWrapWidth(refText.displayWidth, true);
+        if(needWrap) {
+            fakeText.setWordWrapWidth(this.getAvailableWidth(), true);
+        }
 
         let fadeTween = this.scene.tweens.add({
             targets: fakeText,
@@ -389,13 +391,13 @@ class PlayerInputText {
     }
 
     prepareToGame(){
-        this.showConfirmEffect(this.title.text, this.title, 1000);
+        this.showConfirmEffect(this.title.text, this.title, 1000, false);
         this.setCanAcceptInput(true);
     }
 
     prepareToHome() {
         // this.title.setText(gameplayConfig.titleOriginal);
-        this.showConfirmEffect(this.text.text, this.text, 1000);
+        this.showConfirmEffect(this.text.text, this.text, 1000, false);
         this.setCanAcceptInput(false);
 
         // set title alpha to 0 becuase when entered game mode, the title's alpha is still 1

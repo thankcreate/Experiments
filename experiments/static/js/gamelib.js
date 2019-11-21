@@ -1201,7 +1201,7 @@ class Scene1L4 extends Scene1 {
             .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .addAction(s => {
-            this.hud.showContainerRight();
+            this.hud.showSideMenuBar();
         })
             .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
             .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true);
@@ -4217,7 +4217,7 @@ class Hud extends Wrapper {
         // tool menu right
         this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400);
         this.inner.add(this.toolMenuContainerRight);
-        // this.hideContainerRight(false);
+        this.hideContainerRight(false);
         let btnInfos = [
             { title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
             { title: "HP", size: 40, desc: "Get HP regen by eliminating BAD words" },
@@ -4264,7 +4264,7 @@ class Hud extends Wrapper {
         // tool menu left
         this.toolMenuContainerLeft = this.scene.add.container(75, 400);
         this.inner.add(this.toolMenuContainerLeft);
-        // this.hideContainerRight(false);
+        this.hideContainerLeft(false);
         let bkgWidth = btnWidth + frameBtnGap * 2;
         let bkgHeight = frameTopPadding + frameBottonPadding + keywordInfos.length * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
@@ -4388,6 +4388,16 @@ class Hud extends Wrapper {
             duration: 1000,
         });
     }
+    showContainerLeft() {
+        if (this.toolMenuContainerLeftIsShown)
+            return;
+        this.toolMenuContainerLeftIsShown = true;
+        this.scene.tweens.add({
+            targets: this.toolMenuContainerLeft,
+            x: "+= 150",
+            duration: 1000,
+        });
+    }
     hide(mode) {
         this.inShow = false;
         let tg = [];
@@ -4401,7 +4411,15 @@ class Hud extends Wrapper {
             y: "+= 250",
             duration: dt,
         });
+        this.hideSideMenuBar();
+    }
+    hideSideMenuBar() {
         this.hideContainerRight();
+        this.hideContainerLeft();
+    }
+    showSideMenuBar() {
+        this.showContainerLeft();
+        this.showContainerRight();
     }
     hideContainerRight(needAnimation = true) {
         if (!this.toolMenuContainerRightIsShown)
@@ -4416,6 +4434,21 @@ class Hud extends Wrapper {
         }
         else {
             this.toolMenuContainerRight.x += 150;
+        }
+    }
+    hideContainerLeft(needAnimation = true) {
+        if (!this.toolMenuContainerLeftIsShown)
+            return;
+        this.toolMenuContainerLeftIsShown = false;
+        if (needAnimation) {
+            this.scene.tweens.add({
+                targets: this.toolMenuContainerLeft,
+                x: "-= 150",
+                duration: 1000,
+            });
+        }
+        else {
+            this.toolMenuContainerLeft.x -= 150;
         }
     }
 }

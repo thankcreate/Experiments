@@ -75,7 +75,7 @@ class Hud extends Wrapper<PhText> {
         // tool menu right
         this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
         this.inner.add(this.toolMenuContainerRight);
-        // this.hideContainerRight(false);
+        this.hideContainerRight(false);
 
         let btnInfos = [
             {title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},
@@ -137,7 +137,7 @@ class Hud extends Wrapper<PhText> {
         // tool menu left
         this.toolMenuContainerLeft = this.scene.add.container(75, 400); 
         this.inner.add(this.toolMenuContainerLeft);
-        // this.hideContainerRight(false);
+        this.hideContainerLeft(false);
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
         let bkgHeight = frameTopPadding + frameBottonPadding + keywordInfos.length * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
@@ -295,6 +295,18 @@ class Hud extends Wrapper<PhText> {
         });
     }
 
+    showContainerLeft() {
+        if(this.toolMenuContainerLeftIsShown)
+            return;
+        this.toolMenuContainerLeftIsShown = true;
+
+        this.scene.tweens.add({
+            targets: this.toolMenuContainerLeft,
+            x: "+= 150",
+            duration: 1000,
+        });
+    }
+
     hide(mode: GameMode) {
         this.inShow = false;
 
@@ -312,7 +324,17 @@ class Hud extends Wrapper<PhText> {
             duration: dt,
         })
 
+        this.hideSideMenuBar();
+    }
+
+    hideSideMenuBar() {
         this.hideContainerRight()
+        this.hideContainerLeft();
+    }
+
+    showSideMenuBar() {
+        this.showContainerLeft()
+        this.showContainerRight();
     }
 
     hideContainerRight(needAnimation:boolean = true) {
@@ -329,6 +351,24 @@ class Hud extends Wrapper<PhText> {
         }
         else {
             this.toolMenuContainerRight.x += 150;
+        }
+        
+    }
+
+    hideContainerLeft(needAnimation:boolean = true) {
+        if(!this.toolMenuContainerLeftIsShown)
+            return;
+        this.toolMenuContainerLeftIsShown = false;
+
+        if(needAnimation) {
+            this.scene.tweens.add({
+                targets: this.toolMenuContainerLeft,
+                x: "-= 150",
+                duration: 1000,
+            });
+        }
+        else {
+            this.toolMenuContainerLeft.x -= 150;
         }
         
     }

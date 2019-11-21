@@ -1965,7 +1965,8 @@ class Button {
         if (this.needHandOnHover) {
             $("body").css('cursor', 'pointer');
         }
-        this.image.alpha = 0.55;
+        if (this.image)
+            this.image.alpha = 0.55;
     }
     pointerout() {
         // Not like pointer in, I don't know if I need to double check like this
@@ -1986,7 +1987,8 @@ class Button {
         if (this.needHandOnHover) {
             $("body").css('cursor', 'default');
         }
-        this.image.alpha = 1;
+        if (this.image)
+            this.image.alpha = 1;
     }
     setToHoverChangeTextMode(hoverText) {
         this.hoverTitle = hoverText;
@@ -4614,9 +4616,23 @@ class PlayerInputText {
         this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         this.parentContainer.add(this.title);
     }
+    /**
+     * Init here will construct two texts
+     * 1. The main text that player interact with
+     * 2. The text underline for the auto-complete like B -> Bad
+     * @param defaultStr
+     */
     init(defaultStr) {
+        // Main text
         this.text = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gap, defaultStr, this.lblStyl).setOrigin(0, 1);
         this.text.setWordWrapWidth(this.getAvailableWidth(), true);
+        // Underline text        
+        this.underlieText = this.scene.add.text(this.text.x, this.text.y, "", this.text.style).setOrigin(this.text.originX, this.text.originY);
+        this.underlieText.setColor('#888888');
+        this.underlieText.setWordWrapWidth(this.getAvailableWidth(), true);
+        // Underline text shoud be under the normal text
+        // So it should be added first
+        this.parentContainer.add(this.underlieText);
         this.parentContainer.add(this.text);
     }
     setAutoContent(autoText) {
@@ -4669,9 +4685,7 @@ class PlayerInputText {
         if (height > 80) {
             this.text.setText(oriText);
         }
-        this.changedEvent.emit(this);
-        // console.log("dis width: " + this.text.displayWidth);
-        // console.log("width: " + this.text.width);
+        this.textChanged();
     }
     getAvailableWidth() {
         return this.centerObject.getTextMaxWidth();
@@ -4710,7 +4724,21 @@ class PlayerInputText {
             this.confirm();
         }
         this.text.setText(t);
+        this.textChanged();
+    }
+    textChanged() {
+        this.checkIfNeedAutoComplete();
         this.changedEvent.emit(this);
+    }
+    // B** -> Bad
+    checkIfNeedAutoComplete() {
+        this.underlieText.text = '';
+        if (this.text.text.length == 0)
+            return;
+        let autoStr = 'Bad';
+        if (autoStr.indexOf(this.text.text) == 0) {
+            this.underlieText.text = 'Bad';
+        }
     }
     confirm() {
         var inputWord = this.text.text;

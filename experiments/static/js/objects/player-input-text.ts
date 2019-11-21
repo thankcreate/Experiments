@@ -9,7 +9,8 @@ class PlayerInputText {
     fontSize = 32;
     lblStyl;
     maxCount;
-    text: Phaser.GameObjects.Text;
+    text: PhText;
+    underlieText: PhText
 
     title: PhText; // dummy title
     titleSize = 24;
@@ -71,12 +72,26 @@ class PlayerInputText {
 
     }
 
-    init(defaultStr: string) {
-        this.text = this.scene.add.text(- this.getAvailableWidth() / 2, -this.gap,
-            defaultStr, this.lblStyl).setOrigin(0, 1);
-        
-        this.text.setWordWrapWidth(this.getAvailableWidth(), true);
-        
+    /**
+     * Init here will construct two texts
+     * 1. The main text that player interact with
+     * 2. The text underline for the auto-complete like B -> Bad
+     * @param defaultStr 
+     */
+    init(defaultStr: string) {        
+        // Main text
+        this.text = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gap,
+            defaultStr, this.lblStyl).setOrigin(0, 1);        
+        this.text.setWordWrapWidth(this.getAvailableWidth(), true);                
+
+        // Underline text        
+        this.underlieText = this.scene.add.text(this.text.x, this.text.y, "", this.text.style).setOrigin(this.text.originX, this.text.originY);
+        this.underlieText.setColor('#888888');
+        this.underlieText.setWordWrapWidth(this.getAvailableWidth(), true);
+
+        // Underline text shoud be under the normal text
+        // So it should be added first
+        this.parentContainer.add(this.underlieText);
         this.parentContainer.add(this.text);
     }
 
@@ -150,11 +165,7 @@ class PlayerInputText {
             this.text.setText(oriText);
         }
 
-
-        this.changedEvent.emit(this);
-
-        // console.log("dis width: " + this.text.displayWidth);
-        // console.log("width: " + this.text.width);
+        this.textChanged();        
     }
 
     getAvailableWidth(): number {
@@ -205,7 +216,26 @@ class PlayerInputText {
         }
 
         this.text.setText(t);
+
+
+        this.textChanged();
+    }
+
+    textChanged() {
+        this.checkIfNeedAutoComplete();
         this.changedEvent.emit(this);
+    }
+
+    avaiKeywords: string[];
+    // B** -> Bad
+    checkIfNeedAutoComplete() {
+        this.underlieText.text = '';
+        if(this.text.text.length == 0)
+            return;
+        let autoStr = 'Bad'
+        if(autoStr.indexOf(this.text.text) == 0) {
+            this.underlieText.text  = 'Bad';
+        }
     }
 
     confirm() {

@@ -31,8 +31,7 @@ class Hud extends Wrapper<PhText> {
     toolMenuContainerLeft: PhContainer;
     toolMenuContainerLeftIsShown: boolean = true;
     leftBtns: Button[] = [];
-    
-    
+       
     
     popupBubbleRight :Bubble;
     popupBubbleLeft:Bubble;
@@ -90,7 +89,8 @@ class Hud extends Wrapper<PhText> {
             priceStyle.fontSize = '22px';
             let priceLbl = this.scene.add.text(0, 30, '100',  priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
-            
+            btn.priceLbl = priceLbl;
+
             this.rightBtns.push(btn);
             
             btn.tag = btnInfos[i].desc;
@@ -128,12 +128,12 @@ class Hud extends Wrapper<PhText> {
 
 
         // tool menu left
-        this.toolMenuContainerLeft = this.scene.add.container(75, 400); 
+        this.toolMenuContainerLeft = this.scene.add.container(75, 360); 
         this.inner.add(this.toolMenuContainerLeft);
         this.hideContainerLeft(false);
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
-        let bkgHeight = frameTopPadding + frameBottonPadding + keywordInfos.length * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
+        let bkgHeight = frameTopPadding + frameBottonPadding + (keywordInfos.length) * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
         
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
             fillColor: 0xFFFFFF,
@@ -162,22 +162,32 @@ class Hud extends Wrapper<PhText> {
 
             let priceStyle = getDefaultTextStyle();
             priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, '100',  priceStyle).setOrigin(0.5);
+            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : keywordInfos[i].cost + '',  priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
-            
+            btn.priceLbl = priceLbl;
+
             this.leftBtns.push(btn);
             
             btn.tag = keywordInfos[i].desc;
+            btn.priceTag = keywordInfos[i].cost;
 
             btn.fakeZone.on('pointerover', ()=>{            
                 this.popupBubbleLeft.setText(btn.tag);                         
-                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerLeft.y);
                 this.popupBubbleLeft.show();                
             });
 
             btn.fakeZone.on('pointerout', () =>{
                 this.popupBubbleLeft.hide();
-            });
+            });          
+
+            btn.clickedEvent.on(()=>{
+                if(this.score >= btn.priceTag) {
+                    keywordInfos[i].consumed = true;
+                    this.score -= btn.priceTag;     
+                    priceLbl.text = "✓" + keywordInfos[i].cost;
+                }
+            });                
         }
 
         // bubble
@@ -186,6 +196,44 @@ class Hud extends Wrapper<PhText> {
         this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);        
         this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);        
         this.popupBubbleLeft.hide();
+    }
+
+    getCurrentStrongestKeyword() : number{        
+        let i = 0;
+        for(i = 0; i < keywordInfos.length; i++) {
+            if(!keywordInfos[i].consumed) {
+                return i - 1;
+            }            
+        }
+        return i - 1;
+    }
+
+    refreshMenuBtnState() {
+        let currentStrongest = this.getCurrentStrongestKeyword();
+        for(let i = 0; i < keywordInfos.length; i++) {
+            let item = keywordInfos[i];
+            let btn = this.leftBtns[i];
+
+            if(i >= currentStrongest + 2) {
+                btn.setEnable(false, false);
+                continue;
+            }
+            
+            btn.setEnable(true, true);
+            if(item.consumed) {
+                btn.inner.alpha = 1;
+                btn.canClick = false;
+            }
+            else if(this.score < item.cost){
+                btn.inner.alpha = 0.2;
+                btn.canClick = false;
+            }
+            else {
+                btn.inner.alpha = 1;
+                btn.canClick = true;
+            }
+            
+        }
     }
 
     lastTimeAddCombo;
@@ -231,6 +279,7 @@ class Hud extends Wrapper<PhText> {
             }
             
         }
+        // this.refreshMenuBtnState();
     }
 
     resetCombo() {

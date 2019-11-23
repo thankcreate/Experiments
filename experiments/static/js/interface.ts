@@ -154,10 +154,16 @@ enum ErrorInputCode {
     SensitiveCantDamage,
 }
 
+/**
+ * Initially we only have the 'value' to represent the normalized damage
+ * However, after the clicker game is introduced, I think we need a 
+ * specified 'damage?' field to assign that damage diredtly 
+ */
 interface SimResultItem {
     name: string,
     value: number,
-    enemy?: Enemy
+    enemy?: Enemy,
+    damage?: number
 }
 
 interface SimResult {

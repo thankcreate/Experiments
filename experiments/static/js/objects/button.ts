@@ -25,6 +25,8 @@ class Button {
     outTween: PhTween;
 
     tag: string;
+    priceTag: number;
+    priceLbl: PhText;
 
     // auto scale
     needInOutAutoAnimation: boolean = true;    
@@ -154,9 +156,14 @@ class Button {
         return this;
     }
 
+    canClick: boolean = true;
 
 
     click() {
+        if(!this.canClick) {
+            return;
+        }
+
         if(this.needInOutAutoAnimation) {          
             let timeline = this.scene.tweens.createTimeline(null);
             timeline.add({

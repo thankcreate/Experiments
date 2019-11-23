@@ -411,12 +411,16 @@ class EnemyManager {
 
     // add the offline judge into the SimResult 
     appendOfflineResult(res: SimResult) {
-        if(res.input.toLocaleLowerCase() == "bad") {
-            let badWords = this.getBadWords();
-            for(let i in badWords) {
-                res.outputArray.push({name: "", value: 1, enemy: badWords[i]})
-            }            
-        }
+        for(let i = 0; i < keywordInfos.length; i++) {
+            let item = keywordInfos[i];
+
+            if(res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
+                let badWords = this.getBadWords();
+                for(let i in badWords) {
+                    res.outputArray.push({name: "", value: 1, enemy: badWords[i], damage: item.damage});
+                }            
+            }
+        }        
     }
 
     // haha
@@ -455,15 +459,15 @@ class EnemyManager {
         let validDamageAtLeastOne = false;
         for (let i in ar) {
             let entry = ar[i];
-            let entryName = ar[i].name;
-            let entryValue = ar[i].value;
+            let entryName = entry.name;
+            let entryValue = entry.value;
 
             // since network has latency, 
             // the enemy could have been eliminated when the callback is invoked
             // we need to be careful about the availability of the enemy
-            let enemiesWithName = this.findEnemyByEntry(ar[i]);
+            let enemiesWithName = this.findEnemyByEntry(entry);
             enemiesWithName.forEach(e => {
-                let dmgRes = e.damage(entryValue, input);
+                let dmgRes = e.damage(entry, input);
                 if(dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {                    
                     validDamageAtLeastOne = true;
                 }

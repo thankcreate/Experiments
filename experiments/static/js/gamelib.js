@@ -545,7 +545,7 @@ class Scene1 extends BaseScene {
             }
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let enemy = e;
-                this.hud.addScore(1000);
+                this.hud.addScore(baseScore);
             });
             // Dead event handling
             s.autoOn(this.hp.deadEvent, null, e => {
@@ -1844,6 +1844,7 @@ class Button {
         this.clickedEvent = new TypedEvent();
         this.ignoreOverlay = false;
         this.animationTargets = [];
+        this.canClick = true;
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.inner = this.scene.add.container(x, y);
@@ -1929,6 +1930,9 @@ class Button {
         return this;
     }
     click() {
+        if (!this.canClick) {
+            return;
+        }
         if (this.needInOutAutoAnimation) {
             let timeline = this.scene.tweens.createTimeline(null);
             timeline.add({
@@ -2110,12 +2114,18 @@ class CenterObject {
     }
 }
 let keywordInfos = [
-    { title: "Shameful", size: 16, desc: "Shameful" },
-    { title: "Immoral", size: 20, desc: "Immoral" },
-    { title: "Vicious", size: 24, desc: "Vicious" },
-    { title: "Guilty", size: 28, desc: "Guilty" },
-    { title: "Evil", size: 40, desc: "Evil" },
+    { title: "Bad", size: 44, desc: "", damage: 3, cost: 0, consumed: true },
+    { title: "Evil", size: 40, desc: "", damage: 5, cost: 300, consumed: false },
+    { title: "Guilty", size: 28, desc: "", damage: 8, cost: 1000, consumed: false },
+    { title: "Vicious", size: 24, desc: "", damage: 12, cost: 3000, consumed: false },
+    { title: "Immoral", size: 20, desc: "", damage: 20, cost: 10000, consumed: false },
+    { title: "Shameful", size: 18, desc: "", damage: 32, cost: 30000, consumed: false },
 ];
+let baseScore = 100;
+for (let i = 0; i < keywordInfos.length; i++) {
+    let item = keywordInfos[i];
+    item.desc = '"' + item.title + '"' + "\nDamage: " + item.damage + "\nCost: " + item.cost;
+}
 class Died extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
@@ -2380,7 +2390,10 @@ class Enemy {
     dispose() {
         this.inner.destroy();
     }
-    getRealHealthDamage(val) {
+    getRealHealthDamage(item) {
+        if (item.damage)
+            return item.damage;
+        let val = item.value;
         let ret = 0;
         let tiers = gameplayConfig.damageTiers;
         for (let i in tiers) {
@@ -2398,7 +2411,8 @@ class Enemy {
         }
         return false;
     }
-    damage(val, input) {
+    damage(item, input) {
+        let val = item.value;
         let ret = {
             damage: 0,
             code: this.checkIfInputLegalWithEnemy(input, this.lbl)
@@ -2408,7 +2422,7 @@ class Enemy {
             return ret;
         }
         // Zero damage
-        ret.damage = this.getRealHealthDamage(val);
+        ret.damage = this.getRealHealthDamage(item);
         if (ret.damage == 0) {
             return ret;
         }
@@ -2892,10 +2906,13 @@ class EnemyManager {
     }
     // add the offline judge into the SimResult 
     appendOfflineResult(res) {
-        if (res.input.toLocaleLowerCase() == "bad") {
-            let badWords = this.getBadWords();
-            for (let i in badWords) {
-                res.outputArray.push({ name: "", value: 1, enemy: badWords[i] });
+        for (let i = 0; i < keywordInfos.length; i++) {
+            let item = keywordInfos[i];
+            if (res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
+                let badWords = this.getBadWords();
+                for (let i in badWords) {
+                    res.outputArray.push({ name: "", value: 1, enemy: badWords[i], damage: item.damage });
+                }
             }
         }
     }
@@ -2928,14 +2945,14 @@ class EnemyManager {
         let validDamageAtLeastOne = false;
         for (let i in ar) {
             let entry = ar[i];
-            let entryName = ar[i].name;
-            let entryValue = ar[i].value;
+            let entryName = entry.name;
+            let entryValue = entry.value;
             // since network has latency, 
             // the enemy could have been eliminated when the callback is invoked
             // we need to be careful about the availability of the enemy
-            let enemiesWithName = this.findEnemyByEntry(ar[i]);
+            let enemiesWithName = this.findEnemyByEntry(entry);
             enemiesWithName.forEach(e => {
-                let dmgRes = e.damage(entryValue, input);
+                let dmgRes = e.damage(entry, input);
                 if (dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {
                     validDamageAtLeastOne = true;
                 }
@@ -4236,6 +4253,7 @@ class Hud extends Wrapper {
             priceStyle.fontSize = '22px';
             let priceLbl = this.scene.add.text(0, 30, '100', priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
+            btn.priceLbl = priceLbl;
             this.rightBtns.push(btn);
             btn.tag = btnInfos[i].desc;
             btn.fakeZone.on('pointerover', () => {
@@ -4262,11 +4280,11 @@ class Hud extends Wrapper {
         let frameTopPadding = 60;
         let frameBottonPadding = 15;
         // tool menu left
-        this.toolMenuContainerLeft = this.scene.add.container(75, 400);
+        this.toolMenuContainerLeft = this.scene.add.container(75, 360);
         this.inner.add(this.toolMenuContainerLeft);
         this.hideContainerLeft(false);
         let bkgWidth = btnWidth + frameBtnGap * 2;
-        let bkgHeight = frameTopPadding + frameBottonPadding + keywordInfos.length * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
+        let bkgHeight = frameTopPadding + frameBottonPadding + (keywordInfos.length) * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
             fillColor: 0xFFFFFF,
             // lineColor: 0x222222,
@@ -4290,17 +4308,26 @@ class Hud extends Wrapper {
             btn.needInOutAutoAnimation = false;
             let priceStyle = getDefaultTextStyle();
             priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, '100', priceStyle).setOrigin(0.5);
+            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : keywordInfos[i].cost + '', priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
+            btn.priceLbl = priceLbl;
             this.leftBtns.push(btn);
             btn.tag = keywordInfos[i].desc;
+            btn.priceTag = keywordInfos[i].cost;
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleLeft.setText(btn.tag);
-                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerLeft.y);
                 this.popupBubbleLeft.show();
             });
             btn.fakeZone.on('pointerout', () => {
                 this.popupBubbleLeft.hide();
+            });
+            btn.clickedEvent.on(() => {
+                if (this.score >= btn.priceTag) {
+                    keywordInfos[i].consumed = true;
+                    this.score -= btn.priceTag;
+                    priceLbl.text = "✓" + keywordInfos[i].cost;
+                }
             });
         }
         // bubble
@@ -4309,6 +4336,39 @@ class Hud extends Wrapper {
         this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);
         this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);
         this.popupBubbleLeft.hide();
+    }
+    getCurrentStrongestKeyword() {
+        let i = 0;
+        for (i = 0; i < keywordInfos.length; i++) {
+            if (!keywordInfos[i].consumed) {
+                return i - 1;
+            }
+        }
+        return i - 1;
+    }
+    refreshMenuBtnState() {
+        let currentStrongest = this.getCurrentStrongestKeyword();
+        for (let i = 0; i < keywordInfos.length; i++) {
+            let item = keywordInfos[i];
+            let btn = this.leftBtns[i];
+            if (i >= currentStrongest + 2) {
+                btn.setEnable(false, false);
+                continue;
+            }
+            btn.setEnable(true, true);
+            if (item.consumed) {
+                btn.inner.alpha = 1;
+                btn.canClick = false;
+            }
+            else if (this.score < item.cost) {
+                btn.inner.alpha = 0.2;
+                btn.canClick = false;
+            }
+            else {
+                btn.inner.alpha = 1;
+                btn.canClick = true;
+            }
+        }
     }
     addCombo() {
         this.comboHitText.setVisible(true);
@@ -4343,6 +4403,7 @@ class Hud extends Wrapper {
                 // sc.sfxFail.play();
             }
         }
+        // this.refreshMenuBtnState();
     }
     resetCombo() {
         this.comboHitText.setVisible(false);
@@ -4767,7 +4828,6 @@ class PlayerInputText {
         this.changedEvent.emit(this);
     }
     initKeywords() {
-        this.avaiKeywords.push('Bad');
         for (let i = 0; i < keywordInfos.length; i++) {
             this.avaiKeywords.push(keywordInfos[i].title);
         }

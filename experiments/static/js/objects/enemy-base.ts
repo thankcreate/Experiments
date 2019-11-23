@@ -167,7 +167,11 @@ class Enemy {
     }
 
 
-    getRealHealthDamage(val : number) : number {        
+    getRealHealthDamage(item: SimResultItem) : number {        
+        if(item.damage)
+            return item.damage;
+
+        let val = item.value;
         let ret = 0;        
         let tiers = gameplayConfig.damageTiers;
         for(let i in tiers) {
@@ -190,7 +194,8 @@ class Enemy {
     }
     
 
-    damage(val: number, input:string) : DamageResult {               
+    damage(item: SimResultItem, input:string) : DamageResult {            
+        let val = item.value;   
         let ret: DamageResult = {
             damage: 0, 
             code:this.checkIfInputLegalWithEnemy(input, this.lbl)
@@ -202,7 +207,7 @@ class Enemy {
         }
 
         // Zero damage
-        ret.damage = this.getRealHealthDamage(val);        
+        ret.damage = this.getRealHealthDamage(item);        
         if(ret.damage == 0) {
             return ret;
         }

@@ -230,8 +230,7 @@ class PlayerInputText {
 
     
     avaiKeywords: string[] = [];
-    initKeywords() {
-        this.avaiKeywords.push('Bad');
+    initKeywords() {        
         for(let i = 0; i < keywordInfos.length; i++) {
             this.avaiKeywords.push(keywordInfos[i].title);            
         }        

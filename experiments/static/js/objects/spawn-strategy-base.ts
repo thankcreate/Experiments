@@ -3,6 +3,7 @@ enum SpawnStrategyType{
     SpawnOnEliminatedAndReachCore,
     FlowTheory,
     RandomFlow,
+    ClickerGame
 }
 
 
@@ -84,6 +85,10 @@ class SpawnStrategy {
     // }
 }
 
+
+
+
+
 var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
 class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
     constructor(manager: EnemyManager, config?) {
@@ -128,8 +133,6 @@ class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
         this.spawn();
     }
 }
-
-
 
 
 class SpawnStrategyFlowTheory extends SpawnStrategy {
@@ -288,3 +291,5 @@ class RandomFlow extends SpawnStrategyFlowTheory {
 
 
 }
+
+

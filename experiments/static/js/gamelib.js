@@ -1193,10 +1193,10 @@ class Scene1L4 extends Scene1 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
-            this.enemyManager.sensetiveDuration = 60000;
-            // this.needFeedback = true;
-            this.enemyManager.setNextNeedSensitiveAlways(true);
-            this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore);
+            // this.enemyManager.sensetiveDuration = 60000;
+            // // this.needFeedback = true;
+            // this.enemyManager.setNextNeedSensitiveAlways(true);     
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.ClickerGame);
         })
             .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
@@ -2114,12 +2114,12 @@ class CenterObject {
     }
 }
 let keywordInfos = [
-    { title: "Bad", size: 44, desc: "", damage: 3, cost: 0, consumed: true },
-    { title: "Evil", size: 40, desc: "", damage: 5, cost: 300, consumed: false },
-    { title: "Guilty", size: 28, desc: "", damage: 8, cost: 1000, consumed: false },
-    { title: "Vicious", size: 24, desc: "", damage: 12, cost: 3000, consumed: false },
-    { title: "Immoral", size: 20, desc: "", damage: 20, cost: 10000, consumed: false },
-    { title: "Shameful", size: 18, desc: "", damage: 32, cost: 30000, consumed: false },
+    { title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: true },
+    { title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false },
+    { title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false },
+    { title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false },
+    { title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false },
+    { title: "Shameful", size: 18, desc: "", damage: 20, cost: 30000, consumed: false },
 ];
 let baseScore = 100;
 for (let i = 0; i < keywordInfos.length; i++) {
@@ -2307,8 +2307,16 @@ var EnemyType;
     EnemyType[EnemyType["TextWithImage"] = 1] = "TextWithImage";
     EnemyType[EnemyType["Image"] = 2] = "Image";
 })(EnemyType || (EnemyType = {}));
+var ClickerType;
+(function (ClickerType) {
+    ClickerType[ClickerType["None"] = 0] = "None";
+    ClickerType[ClickerType["Normal"] = 1] = "Normal";
+    ClickerType[ClickerType["Bad"] = 2] = "Bad";
+    ClickerType[ClickerType["BadFromNormal"] = 3] = "BadFromNormal";
+})(ClickerType || (ClickerType = {}));
 class Enemy {
     constructor(scene, enemyManager, posi, lblStyle, config) {
+        this.clickerType = ClickerType.None;
         this.centerRadius = 125;
         this.damagedHistory = []; //store only valid input history
         this.inStop = false;
@@ -2475,12 +2483,12 @@ class Enemy {
         // if(this.config.isSensitive) {
         //     return ErrorInputCode.SensitiveCantDamage;
         // }
-        if (this.config.type == EnemyType.TextWithImage && inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
+        if (this.config.enemyType == EnemyType.TextWithImage && inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
-        if (this.config.type == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
+        if (this.config.enemyType == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
             return ErrorInputCode.Contain;
         }
-        if (this.config.type == EnemyType.TextWithImage && inputLbl.indexOf(enemyLbl) != -1) {
+        if (this.config.enemyType == EnemyType.TextWithImage && inputLbl.indexOf(enemyLbl) != -1) {
             return ErrorInputCode.Wrap;
         }
         return ErrorInputCode.NoError;
@@ -2576,7 +2584,7 @@ class EnemyImage extends Enemy {
         });
     }
     checkIfDontNeedLabel() {
-        if (this.config.type == EnemyType.TextWithImage || this.config.showLabel == true) {
+        if (this.config.enemyType == EnemyType.TextWithImage || this.config.showLabel == true) {
             return;
         }
         this.text.setVisible(false);
@@ -2638,6 +2646,7 @@ class EnemyManager {
         this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
         this.strategies.set(SpawnStrategyType.RandomFlow, new RandomFlow(this));
         this.strategies.set(SpawnStrategyType.None, new SpawnStrategy(this, SpawnStrategyType.None, {}));
+        this.strategies.set(SpawnStrategyType.ClickerGame, new SpawnStrategyClickerGame(this, {}));
     }
     ;
     startSpawnStrategy(strategy, config) {
@@ -2734,8 +2743,8 @@ class EnemyManager {
         if (notSet(config))
             config = {};
         this.checkIfNextNeeedSensitive(config);
-        if (notSet(config.type))
-            config.type = EnemyType.TextWithImage;
+        if (notSet(config.enemyType))
+            config.enemyType = EnemyType.TextWithImage;
         if (notSet(config.label))
             config.label = this.getNextName();
         if (notSet(config.duration))
@@ -2837,15 +2846,20 @@ class EnemyManager {
             var lastOne = this.omniHistory[this.omniHistory.length - 1];
             farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
         }
+        farEnoughFromLastOne = true;
         let min = 1000;
         for (let i in this.omniHistory) {
             let iter = this.omniHistory[i];
+            if (iter.eliminated)
+                continue;
             let clamp = this.getAngleDiff(iter.degree, rdDegree);
             if (clamp < min) {
                 min = clamp;
             }
         }
         // console.log("min " + min);
+        // console.log(min);
+        // console.log(this.omniHistory.length);
         let farEnoughFromEvery = min > (Math.PI / 3);
         return farEnoughFromLastOne && farEnoughFromEvery;
     }
@@ -4234,7 +4248,7 @@ class Hud extends Wrapper {
         // tool menu right
         this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400);
         this.inner.add(this.toolMenuContainerRight);
-        this.hideContainerRight(false);
+        // this.hideContainerRight(false);
         let btnInfos = [
             { title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
             { title: "HP", size: 40, desc: "Get HP regen by eliminating BAD words" },
@@ -4282,7 +4296,7 @@ class Hud extends Wrapper {
         // tool menu left
         this.toolMenuContainerLeft = this.scene.add.container(75, 360);
         this.inner.add(this.toolMenuContainerLeft);
-        this.hideContainerLeft(false);
+        // this.hideContainerLeft(false);
         let bkgWidth = btnWidth + frameBtnGap * 2;
         let bkgHeight = frameTopPadding + frameBottonPadding + (keywordInfos.length) * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
@@ -4296,9 +4310,9 @@ class Hud extends Wrapper {
             roundRadius: 30
         });
         let titleStyle = getDefaultTextStyle();
-        titleStyle.fontSize = '20px';
+        titleStyle.fontSize = '24px';
         titleStyle.fill = '#1A1A1A';
-        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Keywords', titleStyle).setOrigin(0.5, 1);
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Typer', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < keywordInfos.length; i++) {
             let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i, 'rounded_btn', keywordInfos[i].title, 75, 75, false);
@@ -5100,6 +5114,7 @@ var SpawnStrategyType;
     SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
     SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
     SpawnStrategyType[SpawnStrategyType["RandomFlow"] = 3] = "RandomFlow";
+    SpawnStrategyType[SpawnStrategyType["ClickerGame"] = 4] = "ClickerGame";
 })(SpawnStrategyType || (SpawnStrategyType = {}));
 /**
  * We have two level of configs
@@ -5305,6 +5320,50 @@ class RandomFlow extends SpawnStrategyFlowTheory {
         // }
         this.enemyManager.spawn(tempConfig);
         this.count++;
+    }
+}
+/// <reference path="spawn-strategy-base.ts" />
+class SpawnStrategyClickerGame extends SpawnStrategy {
+    constructor(manager, config) {
+        super(manager, SpawnStrategyType.FlowTheory, config);
+    }
+    getInitConfig() {
+        return {
+            healthMin: 3,
+            healthMax: 3,
+            health: 3,
+            enemyDuration: 40000,
+        };
+    }
+    spawnBad() {
+        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, label: '!@#$%^&*', isSensitive: true });
+        ene.clickerType = ClickerType.Bad;
+        return ene;
+    }
+    spawnNormal() {
+        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, isSensitive: false });
+        ene.clickerType = ClickerType.Normal;
+        return ene;
+    }
+    onEnter() {
+        this.spawnBad();
+        this.spawnNormal();
+        this.spawnNormal();
+    }
+    enemyDisappear(enemy) {
+        let clickerType = enemy.clickerType;
+        if (clickerType == ClickerType.Bad) {
+            this.spawnBad();
+        }
+        else if (clickerType == ClickerType.Normal) {
+            this.spawnNormal();
+        }
+    }
+    enemyReachedCore(enemy) {
+        this.enemyDisappear(enemy);
+    }
+    enemyEliminated(enemy) {
+        this.enemyDisappear(enemy);
     }
 }
 class SpeechManager {

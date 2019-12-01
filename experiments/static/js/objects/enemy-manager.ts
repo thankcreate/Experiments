@@ -67,6 +67,7 @@ class EnemyManager {
         this.strategies.set(SpawnStrategyType.FlowTheory, new SpawnStrategyFlowTheory(this));
         this.strategies.set(SpawnStrategyType.RandomFlow, new RandomFlow(this));
         this.strategies.set(SpawnStrategyType.None, new SpawnStrategy(this, SpawnStrategyType.None, {}));
+        this.strategies.set(SpawnStrategyType.ClickerGame, new SpawnStrategyClickerGame(this, {}));
     }
 
     
@@ -192,7 +193,7 @@ class EnemyManager {
 
         this.checkIfNextNeeedSensitive(config);
 
-        if(notSet(config.type)) config.type = EnemyType.TextWithImage;
+        if(notSet(config.enemyType)) config.enemyType = EnemyType.TextWithImage;
         if(notSet(config.label)) config.label = this.getNextName();      
         if(notSet(config.duration)) config.duration = gameplayConfig.enemyDuratrion;        
         if(notSet(config.health)) config.health = gameplayConfig.defaultEnemyHealth;       
@@ -285,6 +286,7 @@ class EnemyManager {
         var rdDegree = 0;
 
         let tryTime = 0;
+        
         while (true) {
             tryTime++;
             rdDegree = (Math.random() * 2 - 1) * Math.PI;
@@ -293,7 +295,7 @@ class EnemyManager {
 
             let notBottom = this.notInBottomZone(rdDegree);
             let valid = this.isValidDegree(rdDegree);
-
+            
             if(!notBottom)
                 continue;
 
@@ -326,16 +328,21 @@ class EnemyManager {
             var lastOne = this.omniHistory[this.omniHistory.length - 1];
             farEnoughFromLastOne = this.getAngleDiff(lastOne.degree, rdDegree) > threshould;
         }
+        farEnoughFromLastOne = true;
 
         let min = 1000;
         for(let i in this.omniHistory) {
             let iter = this.omniHistory[i];
+            if(iter.eliminated)
+                continue;
             let clamp = this.getAngleDiff(iter.degree, rdDegree);
             if(clamp < min) {
                 min = clamp;
             }
         }
         // console.log("min " + min);
+        // console.log(min);
+        // console.log(this.omniHistory.length);
         let farEnoughFromEvery = min > (Math.PI / 3);
 
 

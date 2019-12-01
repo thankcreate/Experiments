@@ -117,7 +117,7 @@ class EnemyImage extends Enemy {
 
 
     checkIfDontNeedLabel() {
-        if(this.config.type == EnemyType.TextWithImage || this.config.showLabel == true) {
+        if(this.config.enemyType == EnemyType.TextWithImage || this.config.showLabel == true) {
             return;
         }
 

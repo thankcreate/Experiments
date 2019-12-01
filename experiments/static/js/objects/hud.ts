@@ -67,7 +67,7 @@ class Hud extends Wrapper<PhText> {
         // tool menu right
         this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
         this.inner.add(this.toolMenuContainerRight);
-        this.hideContainerRight(false);
+        // this.hideContainerRight(false);
 
         let btnInfos = [
             {title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},
@@ -130,7 +130,7 @@ class Hud extends Wrapper<PhText> {
         // tool menu left
         this.toolMenuContainerLeft = this.scene.add.container(75, 360); 
         this.inner.add(this.toolMenuContainerLeft);
-        this.hideContainerLeft(false);
+        // this.hideContainerLeft(false);
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
         let bkgHeight = frameTopPadding + frameBottonPadding + (keywordInfos.length) * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
@@ -147,9 +147,9 @@ class Hud extends Wrapper<PhText> {
         });
 
         let titleStyle = getDefaultTextStyle();
-        titleStyle.fontSize = '20px';
+        titleStyle.fontSize = '24px';
         titleStyle.fill = '#1A1A1A'
-        let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Keywords', titleStyle).setOrigin(0.5, 1);
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Typer', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         
         for(let i = 0; i < keywordInfos.length; i++) {            

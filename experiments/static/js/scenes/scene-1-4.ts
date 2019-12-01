@@ -44,10 +44,10 @@ class Scene1L4 extends Scene1 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s=>{
-            this.enemyManager.sensetiveDuration = 60000;
-            // this.needFeedback = true;
-            this.enemyManager.setNextNeedSensitiveAlways(true);     
-            this.enemyManager.startSpawnStrategy(SpawnStrategyType.SpawnOnEliminatedAndReachCore);
+            // this.enemyManager.sensetiveDuration = 60000;
+            // // this.needFeedback = true;
+            // this.enemyManager.setNextNeedSensitiveAlways(true);     
+            this.enemyManager.startSpawnStrategy(SpawnStrategyType.ClickerGame);
             
         })
         .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)

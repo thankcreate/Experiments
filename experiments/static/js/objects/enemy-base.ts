@@ -5,8 +5,16 @@ enum EnemyType {
     Image,            
 }
 
+enum ClickerType {
+    None,
+    Normal,
+    Bad,
+    BadFromNormal,
+}
+
 interface EnemyConfig {
-    type?: EnemyType,
+    enemyType?: EnemyType,
+    clickerType?: ClickerType,
     label?: string,
     image?: string,
     health?: number,
@@ -29,6 +37,8 @@ class Enemy {
     initPosi : Phaser.Geom.Point;
 
     id: number;
+
+    clickerType: ClickerType = ClickerType.None;
 
     /**
      * lbl is name shown
@@ -273,14 +283,14 @@ class Enemy {
         //     return ErrorInputCode.SensitiveCantDamage;
         // }
 
-        if (this.config.type == EnemyType.TextWithImage &&  inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
+        if (this.config.enemyType == EnemyType.TextWithImage &&  inputLbl.replace(/ /g, '') === enemyLbl.replace(/ /g, ''))
             return ErrorInputCode.Same;
 
-        if (this.config.type == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
+        if (this.config.enemyType == EnemyType.TextWithImage && enemyLbl.indexOf(inputLbl) != -1) {
             return ErrorInputCode.Contain;
         }
 
-        if (this.config.type == EnemyType.TextWithImage && inputLbl.indexOf(enemyLbl) != -1) {
+        if (this.config.enemyType == EnemyType.TextWithImage && inputLbl.indexOf(enemyLbl) != -1) {
             return ErrorInputCode.Wrap;
         }
 

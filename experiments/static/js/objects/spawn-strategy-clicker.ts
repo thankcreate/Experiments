@@ -15,8 +15,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     spawnBad() : Enemy {        
-        let ene = this.enemyManager.spawn({health:3, duration: 60000, label: '!@#$%^&*', isSensitive: true});
-        ene.clickerType = ClickerType.Bad;
+        let ene = this.enemyManager.spawn({health:3, duration: 60000, label: '!@#$%^&*', isSensitive: true, clickerType: ClickerType.Bad});        
         return ene;
     }
 
@@ -33,9 +32,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     enemyDisappear(enemy: Enemy) {
+        console.log('dis');        
         let clickerType = enemy.clickerType;
         if(clickerType == ClickerType.Bad) {
             this.spawnBad();
+            console.log('ss');
         }
         else if(clickerType == ClickerType.Normal) {
             this.spawnNormal();

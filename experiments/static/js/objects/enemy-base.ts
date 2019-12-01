@@ -77,6 +77,7 @@ class Enemy {
         this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
         this.health = config.health;
+        this.clickerType = config.clickerType;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
         this.config = config;

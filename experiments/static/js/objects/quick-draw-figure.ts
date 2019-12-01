@@ -30,19 +30,22 @@ class QuickDrawFigure{
 
     forceStop: boolean = false;
 
-    constructor(scene, parentContainer, lbl) {
+    constructor(scene, parentContainer, lbl, isFake: boolean = false) {
         this.scene = scene;        
         this.parentContainer = parentContainer;
         this.lbl = lbl;
         this.inner = this.scene.add.graphics({lineStyle: this.graphicLineStyle});        
         let fullPath = this.getFilePathByLbl(lbl);        
-
-        $.getJSON(fullPath,  json => {
-            this.figures = json;   
-            // this.drawFigure(this.figures[3]);          
-            
-            this.startChange();
-        });
+        
+        if(!isFake) {
+            $.getJSON(fullPath,  json => {
+                this.figures = json;   
+                // this.drawFigure(this.figures[3]);          
+                
+                this.startChange();
+            });
+        }
+        
 
         this.testIndex = gQuickIndex;
         gQuickIndex++;

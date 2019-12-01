@@ -12,10 +12,10 @@ class EnemyImage extends Enemy {
     initContent() {
         super.initContent();
         this.gap = 10;
-
-
+        
         // figure
-        this.figure = new QuickDrawFigure(this.scene, this.inner, this.config.image);
+        let isFakeFigure = this.config.clickerType == ClickerType.Bad;
+        this.figure = new QuickDrawFigure(this.scene, this.inner, this.config.image, isFakeFigure);
 
 
         let lb = this.figure.getLeftBottom();

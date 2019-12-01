@@ -65,7 +65,7 @@ class SpawnStrategy {
     enemyReachedCore(enemy: Enemy) {        
     }
 
-    enemyEliminated(enemy: Enemy) {
+    enemyEliminated(enemy: Enemy, damagedBy: string) {
     }
 
     enemySpawned(enemy: Enemy) {        

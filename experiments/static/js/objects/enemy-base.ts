@@ -23,7 +23,9 @@ interface EnemyConfig {
     showLabel?: boolean,   
     needChange?: boolean,
     needShake? : boolean,
-    needFlicker? : boolean
+    needFlicker? : boolean,
+    initPosi? : PhPoint
+
 }
 
 
@@ -247,7 +249,7 @@ class Enemy {
         // Handle health
         this.health -= ret.damage;
         if (this.health <= 0) {
-            this.eliminated();            
+            this.eliminated(input);            
         }
         else {
             let sc = this.scene as Scene1;
@@ -272,8 +274,8 @@ class Enemy {
         })
     }
 
-    eliminated() {
-        this.enemyManager.enemyEliminated(this);
+    eliminated(damagedBy: string) {
+        this.enemyManager.enemyEliminated(this, damagedBy);
         this.stopRunAndDestroySelf();
     }
 

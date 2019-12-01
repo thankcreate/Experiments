@@ -20,7 +20,8 @@ for(let i = 0; i < badInfos.length; i++) {
 }
 
 
-function isReservedKeyword(inputWord: string) : boolean {
+function isReservedBadKeyword(inputWord: string) : boolean {
+    if(notSet(inputWord)) return false;
     let foundKeyword = false;
     for(let i = 0; i < badInfos.length; i++) {
         if(inputWord.toLocaleLowerCase() == badInfos[i].title.toLocaleLowerCase()) {
@@ -28,7 +29,13 @@ function isReservedKeyword(inputWord: string) : boolean {
             break;
         }
     }
+    return foundKeyword;
+}
 
+
+function isReservedTurnKeyword(inputWord: string) : boolean {
+    if(notSet(inputWord)) return false;
+    let foundKeyword = false;
     for(let i = 0; i < turnInfos.length; i++) {
         if(inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
             foundKeyword = true;
@@ -36,4 +43,8 @@ function isReservedKeyword(inputWord: string) : boolean {
         }
     }
     return foundKeyword;   
+}
+
+function isReservedKeyword(inputWord: string) : boolean {
+    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord);
 }

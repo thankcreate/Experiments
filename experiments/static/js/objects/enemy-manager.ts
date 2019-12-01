@@ -209,7 +209,16 @@ class EnemyManager {
         var figureName = name.split(' ').join('-').toLowerCase();
         if(notSet(config.image)) config.image = figureName;
         
-        var posi = this.getSpawnPoint();
+        // If forcibly assigned a posi, use it
+        // Otherwide, generate a random position
+        var posi;
+        if(notSet(config.initPosi)) {
+            posi = this.getSpawnPoint();
+        }
+        else {
+            posi = config.initPosi;
+        }
+
         var tm = getGame().getTime();
         var id = gEnemyID++;
         this.insertSpawnHistory(id, posi, name, tm);
@@ -396,7 +405,9 @@ class EnemyManager {
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
-
+            // bad words can only hit by badKeywords
+            if(enemy.isSensative())
+                continue;
             enemyLabels.push(enemy.lbl);
         }
 
@@ -611,11 +622,11 @@ class EnemyManager {
         this.enemyReachedCoreEvent.emit(enemy);
     }
 
-    enemyEliminated(enemy: Enemy) {
+    enemyEliminated(enemy: Enemy, damagedBy: string) {
         this.updateTheKilledTimeHistoryForEnemy(enemy, true);
 
         if(this.curStrategy)
-            this.curStrategy.enemyEliminated(enemy);
+            this.curStrategy.enemyEliminated(enemy, damagedBy);
 
         this.enemyEliminatedEvent.emit(enemy);
     }

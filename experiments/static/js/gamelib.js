@@ -2129,7 +2129,9 @@ for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
     item.desc = '"' + item.title + '"' + "\nDamage: " + item.damage + "\nCost: " + item.cost;
 }
-function isReservedKeyword(inputWord) {
+function isReservedBadKeyword(inputWord) {
+    if (notSet(inputWord))
+        return false;
     let foundKeyword = false;
     for (let i = 0; i < badInfos.length; i++) {
         if (inputWord.toLocaleLowerCase() == badInfos[i].title.toLocaleLowerCase()) {
@@ -2137,6 +2139,12 @@ function isReservedKeyword(inputWord) {
             break;
         }
     }
+    return foundKeyword;
+}
+function isReservedTurnKeyword(inputWord) {
+    if (notSet(inputWord))
+        return false;
+    let foundKeyword = false;
     for (let i = 0; i < turnInfos.length; i++) {
         if (inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
             foundKeyword = true;
@@ -2144,6 +2152,9 @@ function isReservedKeyword(inputWord) {
         }
     }
     return foundKeyword;
+}
+function isReservedKeyword(inputWord) {
+    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord);
 }
 class Died extends Wrapper {
     constructor(scene, parentContainer, x, y) {
@@ -2473,7 +2484,7 @@ class Enemy {
         // Handle health
         this.health -= ret.damage;
         if (this.health <= 0) {
-            this.eliminated();
+            this.eliminated(input);
         }
         else {
             let sc = this.scene;
@@ -2495,8 +2506,8 @@ class Enemy {
             }
         });
     }
-    eliminated() {
-        this.enemyManager.enemyEliminated(this);
+    eliminated(damagedBy) {
+        this.enemyManager.enemyEliminated(this, damagedBy);
         this.stopRunAndDestroySelf();
     }
     checkIfInputLegalWithEnemy(inputLbl, enemyLbl) {
@@ -2784,7 +2795,15 @@ class EnemyManager {
         var figureName = name.split(' ').join('-').toLowerCase();
         if (notSet(config.image))
             config.image = figureName;
-        var posi = this.getSpawnPoint();
+        // If forcibly assigned a posi, use it
+        // Otherwide, generate a random position
+        var posi;
+        if (notSet(config.initPosi)) {
+            posi = this.getSpawnPoint();
+        }
+        else {
+            posi = config.initPosi;
+        }
         var tm = getGame().getTime();
         var id = gEnemyID++;
         this.insertSpawnHistory(id, posi, name, tm);
@@ -2927,6 +2946,9 @@ class EnemyManager {
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
+            // bad words can only hit by badKeywords
+            if (enemy.isSensative())
+                continue;
             enemyLabels.push(enemy.lbl);
         }
         if (enemyLabels.length == 0) {
@@ -3108,10 +3130,10 @@ class EnemyManager {
             this.curStrategy.enemyReachedCore(enemy);
         this.enemyReachedCoreEvent.emit(enemy);
     }
-    enemyEliminated(enemy) {
+    enemyEliminated(enemy, damagedBy) {
         this.updateTheKilledTimeHistoryForEnemy(enemy, true);
         if (this.curStrategy)
-            this.curStrategy.enemyEliminated(enemy);
+            this.curStrategy.enemyEliminated(enemy, damagedBy);
         this.enemyEliminatedEvent.emit(enemy);
     }
     // This is mostly used when died
@@ -5232,7 +5254,7 @@ class SpawnStrategy {
     }
     enemyReachedCore(enemy) {
     }
-    enemyEliminated(enemy) {
+    enemyEliminated(enemy, damagedBy) {
     }
     enemySpawned(enemy) {
     }
@@ -5412,12 +5434,14 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             enemyDuration: 40000,
         };
     }
-    spawnBad() {
-        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad });
+    spawnBad(extraConfig) {
+        let cg = { health: 3, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
+        updateObject(extraConfig, cg);
+        let ene = this.enemyManager.spawn(cg);
         return ene;
     }
     spawnNormal() {
-        let ene = this.enemyManager.spawn({ health: 3, duration: 1500, clickerType: ClickerType.Normal });
+        let ene = this.enemyManager.spawn({ health: 3, duration: 50000, clickerType: ClickerType.Normal });
         return ene;
     }
     onEnter() {
@@ -5425,22 +5449,29 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.spawnNormal();
         this.spawnNormal();
     }
-    enemyDisappear(enemy) {
-        console.log('dis');
+    enemyDisappear(enemy, damagedBy) {
         let clickerType = enemy.clickerType;
         if (clickerType == ClickerType.Bad) {
             this.spawnBad();
-            console.log('ss');
         }
         else if (clickerType == ClickerType.Normal) {
+            // if the normal word is destroyed by a 'turn', respawn a bad word in the same direction
+            if (isReservedTurnKeyword(damagedBy)) {
+                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal });
+            }
+            else {
+                this.spawnNormal();
+            }
+        }
+        else if (clickerType == ClickerType.BadFromNormal) {
             this.spawnNormal();
         }
     }
     enemyReachedCore(enemy) {
-        this.enemyDisappear(enemy);
+        this.enemyDisappear(enemy, null);
     }
-    enemyEliminated(enemy) {
-        this.enemyDisappear(enemy);
+    enemyEliminated(enemy, damagedBy) {
+        this.enemyDisappear(enemy, damagedBy);
     }
 }
 class SpeechManager {

@@ -173,6 +173,11 @@ class EnemyManager {
     
     sensetiveDuration = 100000;
 
+    /**
+     * This is only for level 1-3 when the 404 logic is not in the SpawnStrategy,
+     * but in the hard coded fsm logic instead
+     * @param config 
+     */
     checkIfNextNeeedSensitive(config: EnemyConfig) {
         if(!this.nextNeedSensitvieOneShot && !this.nextNeedSensitiveAlways) {
             return false;
@@ -180,10 +185,10 @@ class EnemyManager {
         this.nextNeedSensitvieOneShot = false;
         
         // convert to sensitive
-        config.isSensitive = true;
         config.label = "!@#$%^&*";
         config.health = 9;
         config.duration = this.sensetiveDuration;
+        config.clickerType = ClickerType.Bad;
     }
 
     spawn(config?: EnemyConfig) : Enemy {
@@ -368,26 +373,43 @@ class EnemyManager {
     //     }
     // }
 
-    isOfflineHandle(e: Enemy) {
-        let ret = false;
-        if(e.config.isSensitive) {
-            ret = true;
+    isOfflineHandle(inputWord: string) {
+        let foundKeyword = false;
+        for(let i = 0; i < keywordInfos.length; i++) {
+            if(inputWord.toLocaleLowerCase() == keywordInfos[i].title.toLocaleLowerCase()) {
+                foundKeyword = true;
+                break;
+            }
         }
-        return ret;
+
+        for(let i = 0; i < turnInfos.length; i++) {
+            if(inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
+                foundKeyword = true;
+                break;
+            }
+        }
+        return foundKeyword;
     }
 
     // only send the enemies that need online judge
-    sendInputToServer(inputWord: string) {
-        // this.scene.playSpeech(inputWord);
+    sendInputToServer(inputWord: string) {       
         if(notSet(this.enemies) || this.enemies.length == 0)
             return;
+        
+        let offline = this.isOfflineHandle(inputWord);
 
+        if(offline) {
+            this.sendInputToServerOffline(inputWord);
+        }
+        else {
+            this.sendInputToServerOnline(inputWord);
+        }
+    }
+
+    sendInputToServerOnline(inputWord: string) {
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
-
-            if(this.isOfflineHandle(enemy))
-                continue;
 
             enemyLabels.push(enemy.lbl);
         }
@@ -412,31 +434,69 @@ class EnemyManager {
                 }
             );
         }
-        
-        
+    }
+
+    sendInputToServerOffline(inputWord: string) {
+        let fakeResult : SimResult = {
+            input: inputWord,
+            array: [],
+            outputArray: []
+        }
+        this.appendOfflineResult(fakeResult);
+        this.handleJudgeResult(fakeResult);
     }
 
     // add the offline judge into the SimResult 
     appendOfflineResult(res: SimResult) {
+        this.handleBad(res);
+        this.handleNormal(res);
+    }
+
+    handleBad(res: SimResult) {
         for(let i = 0; i < keywordInfos.length; i++) {
             let item = keywordInfos[i];
-
             if(res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
                 let badWords = this.getBadWords();
                 for(let i in badWords) {
+                    // The 'value' attribute doens't work here
                     res.outputArray.push({name: "", value: 1, enemy: badWords[i], damage: item.damage});
                 }            
             }
-        }        
+        } 
     }
 
-    // haha
-    getBadWords(): Enemy[] {
+    handleNormal(res: SimResult) {
+        for(let i = 0; i < turnInfos.length; i++) {
+            let item = turnInfos[i];
+            if(res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
+                let normalWords = this.getNormalWords();
+                for(let i in normalWords) {
+                    // The 'value' attribute doens't work here
+                    res.outputArray.push({name: "", value: 1, enemy: normalWords[i], damage: item.damage});
+                }            
+            }
+        } 
+    }
 
+    /**
+     * Get bad words including those converted from normal words     
+     */
+    getBadWords(): Enemy[] {
         let ret = [];
         for (let i in this.enemies) {
             let e = this.enemies[i];
-            if (e.config.isSensitive) {
+            if (e.isSensative()) {
+                ret.push(e);
+            }
+        }
+        return ret;
+    }
+
+    getNormalWords() : Enemy[] {        
+        let ret = [];
+        for (let i in this.enemies) {
+            let e = this.enemies[i];
+            if (!e.isSensative()) {
                 ret.push(e);
             }
         }
@@ -445,8 +505,6 @@ class EnemyManager {
 
     // api3 callback
     handleJudgeResult(res: SimResult) {
-        this.appendOfflineResult(res);
-
         var ar = res.outputArray;
         var input = res.input;
 

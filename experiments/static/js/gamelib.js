@@ -1115,7 +1115,7 @@ class Scene1L3 extends Scene1 {
             this.enemyManager.setNextNeedSensitiveOneShot(true);
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let em = e;
-                if (em.config.isSensitive) {
+                if (em.isSensative()) {
                     s.finished();
                 }
             });
@@ -1124,7 +1124,7 @@ class Scene1L3 extends Scene1 {
             .addAction((s, result, res, rej) => {
             s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
                 let em = e;
-                if (em.config.isSensitive) {
+                if (em.isSensative()) {
                     res("");
                     this.enemyManager.curStrategy.pause();
                 }
@@ -2121,6 +2121,9 @@ let keywordInfos = [
     { title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false },
     { title: "Shameful", size: 18, desc: "", damage: 20, cost: 30000, consumed: false },
 ];
+let turnInfos = [
+    { title: "Turn", damage: 3 },
+];
 let baseScore = 100;
 for (let i = 0; i < keywordInfos.length; i++) {
     let item = keywordInfos[i];
@@ -2334,6 +2337,9 @@ class Enemy {
         this.dest = new Phaser.Geom.Point(0, 0);
         this.initContent();
     }
+    isSensative() {
+        return this.clickerType == ClickerType.Bad || this.clickerType == ClickerType.BadFromNormal;
+    }
     initContent() {
         // init in inheritance
     }
@@ -2438,7 +2444,7 @@ class Enemy {
         // Damaged by thie same input word before
         if (!gameplayConfig.allowDamageBySameWord
             && this.checkIfDamagedByThisWordBefore(input)
-            && !this.config.isSensitive) {
+            && !this.isSensative()) {
             ret.code = ErrorInputCode.DamagedBefore;
             return ret;
         }
@@ -2530,7 +2536,7 @@ class EnemyImage extends Enemy {
         // this.healthText.setOrigin(0, 0);
         // this.inner.add(this.healthText);  
         // textAsImage
-        if (this.config.isSensitive) {
+        if (this.isSensative()) {
             let textAsImageStyle = getDefaultTextStyle();
             textAsImageStyle.fontSize = '120px';
             textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
@@ -2730,16 +2736,21 @@ class EnemyManager {
     setNextNeedSensitiveAlways(val) {
         this.nextNeedSensitiveAlways = val;
     }
+    /**
+     * This is only for level 1-3 when the 404 logic is not in the SpawnStrategy,
+     * but in the hard coded fsm logic instead
+     * @param config
+     */
     checkIfNextNeeedSensitive(config) {
         if (!this.nextNeedSensitvieOneShot && !this.nextNeedSensitiveAlways) {
             return false;
         }
         this.nextNeedSensitvieOneShot = false;
         // convert to sensitive
-        config.isSensitive = true;
         config.label = "!@#$%^&*";
         config.health = 9;
         config.duration = this.sensetiveDuration;
+        config.clickerType = ClickerType.Bad;
     }
     spawn(config) {
         if (notSet(config))
@@ -2881,23 +2892,38 @@ class EnemyManager {
     //         console.log("ErrorInputCode before send: " + checkLegal);
     //     }
     // }
-    isOfflineHandle(e) {
-        let ret = false;
-        if (e.config.isSensitive) {
-            ret = true;
+    isOfflineHandle(inputWord) {
+        let foundKeyword = false;
+        for (let i = 0; i < keywordInfos.length; i++) {
+            if (inputWord.toLocaleLowerCase() == keywordInfos[i].title.toLocaleLowerCase()) {
+                foundKeyword = true;
+                break;
+            }
         }
-        return ret;
+        for (let i = 0; i < turnInfos.length; i++) {
+            if (inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
+                foundKeyword = true;
+                break;
+            }
+        }
+        return foundKeyword;
     }
     // only send the enemies that need online judge
     sendInputToServer(inputWord) {
-        // this.scene.playSpeech(inputWord);
         if (notSet(this.enemies) || this.enemies.length == 0)
             return;
+        let offline = this.isOfflineHandle(inputWord);
+        if (offline) {
+            this.sendInputToServerOffline(inputWord);
+        }
+        else {
+            this.sendInputToServerOnline(inputWord);
+        }
+    }
+    sendInputToServerOnline(inputWord) {
         var enemyLabels = [];
         for (let i in this.enemies) {
             var enemy = this.enemies[i];
-            if (this.isOfflineHandle(enemy))
-                continue;
             enemyLabels.push(enemy.lbl);
         }
         if (enemyLabels.length == 0) {
@@ -2920,24 +2946,62 @@ class EnemyManager {
             });
         }
     }
+    sendInputToServerOffline(inputWord) {
+        let fakeResult = {
+            input: inputWord,
+            array: [],
+            outputArray: []
+        };
+        this.appendOfflineResult(fakeResult);
+        this.handleJudgeResult(fakeResult);
+    }
     // add the offline judge into the SimResult 
     appendOfflineResult(res) {
+        this.handleBad(res);
+        this.handleNormal(res);
+    }
+    handleBad(res) {
         for (let i = 0; i < keywordInfos.length; i++) {
             let item = keywordInfos[i];
             if (res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
                 let badWords = this.getBadWords();
                 for (let i in badWords) {
+                    // The 'value' attribute doens't work here
                     res.outputArray.push({ name: "", value: 1, enemy: badWords[i], damage: item.damage });
                 }
             }
         }
     }
-    // haha
+    handleNormal(res) {
+        for (let i = 0; i < turnInfos.length; i++) {
+            let item = turnInfos[i];
+            if (res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
+                let normalWords = this.getNormalWords();
+                for (let i in normalWords) {
+                    // The 'value' attribute doens't work here
+                    res.outputArray.push({ name: "", value: 1, enemy: normalWords[i], damage: item.damage });
+                }
+            }
+        }
+    }
+    /**
+     * Get bad words including those converted from normal words
+     */
     getBadWords() {
         let ret = [];
         for (let i in this.enemies) {
             let e = this.enemies[i];
-            if (e.config.isSensitive) {
+            if (e.isSensative()) {
+                ret.push(e);
+            }
+        }
+        return ret;
+    }
+    getNormalWords() {
+        let ret = [];
+        for (let i in this.enemies) {
+            let e = this.enemies[i];
+            if (!e.isSensative()) {
                 ret.push(e);
             }
         }
@@ -2945,7 +3009,6 @@ class EnemyManager {
     }
     // api3 callback
     handleJudgeResult(res) {
-        this.appendOfflineResult(res);
         var ar = res.outputArray;
         var input = res.input;
         // filter the duplicate labels
@@ -4843,9 +4906,13 @@ class PlayerInputText {
         this.checkIfNeedAutoComplete();
         this.changedEvent.emit(this);
     }
+    // TODO: the avaiKeywords should be based on whether given skill is acqured later        
     initKeywords() {
         for (let i = 0; i < keywordInfos.length; i++) {
             this.avaiKeywords.push(keywordInfos[i].title);
+        }
+        for (let i = 0; i < turnInfos.length; i++) {
+            this.avaiKeywords.push(turnInfos[i].title);
         }
     }
     // B** -> Bad
@@ -5340,12 +5407,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         };
     }
     spawnBad() {
-        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, label: '!@#$%^&*', isSensitive: true, clickerType: ClickerType.Bad });
+        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad });
         return ene;
     }
     spawnNormal() {
-        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, isSensitive: false });
-        ene.clickerType = ClickerType.Normal;
+        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, clickerType: ClickerType.Normal });
         return ene;
     }
     onEnter() {

@@ -46,7 +46,7 @@ class EnemyImage extends Enemy {
         // this.inner.add(this.healthText);  
 
         // textAsImage
-        if(this.config.isSensitive) 
+        if(this.isSensative()) 
         {
             let textAsImageStyle = getDefaultTextStyle();
             textAsImageStyle.fontSize = '120px';

@@ -23,9 +23,9 @@ interface EnemyConfig {
     showLabel?: boolean,   
     needChange?: boolean,
     needShake? : boolean,
-    needFlicker? : boolean,
-    isSensitive? : boolean,
+    needFlicker? : boolean
 }
+
 
 class Enemy {
 
@@ -62,13 +62,18 @@ class Enemy {
 
 
     inputAngle: number;
-    health: number;
+    health: number;             // hp
+    resistance: number;         // the shield to protect itself from turning into 404
 
     config : EnemyConfig;
 
     healthIndicator: HealthIndicator;
      
     damagedHistory : string[] = []; //store only valid input history
+
+    isSensative() : boolean {
+        return this.clickerType == ClickerType.Bad || this.clickerType == ClickerType.BadFromNormal;
+    }
     
 
     constructor(scene, enemyManager: EnemyManager, posi : Phaser.Geom.Point, lblStyle, config : EnemyConfig) {        
@@ -226,7 +231,7 @@ class Enemy {
         // Damaged by thie same input word before
         if(!gameplayConfig.allowDamageBySameWord 
             && this.checkIfDamagedByThisWordBefore(input)
-            && !this.config.isSensitive) {
+            && !this.isSensative()) {
             ret.code = ErrorInputCode.DamagedBefore;
             return ret;
         }

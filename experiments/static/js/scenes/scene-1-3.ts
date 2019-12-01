@@ -255,7 +255,7 @@ class Scene1L3 extends Scene1 {
 
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 let em = e as Enemy;
-                if(em.config.isSensitive) {
+                if(em.isSensative()) {
                     s.finished();
                 }
             });
@@ -265,7 +265,7 @@ class Scene1L3 extends Scene1 {
             .addAction((s, result, res, rej)=>{
                 s.autoOn(this.enemyManager.enemySpawnedEvent, null, e => {
                     let em = e as Enemy;
-                    if(em.config.isSensitive) {
+                    if(em.isSensative()) {
                         res("");
                         this.enemyManager.curStrategy.pause();
                     }

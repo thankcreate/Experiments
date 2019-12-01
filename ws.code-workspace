@@ -9,6 +9,7 @@
 			"**/*.js": {"when": "$(basename).ts"},
 			"**/*.map": {"when": "$(basename).map"}
 		},
+		"favorites.sortDirection": "DESC",
 		// "files.associations": {
 		// 	"*.html": "jinja-html"
 		// }

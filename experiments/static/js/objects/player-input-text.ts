@@ -230,10 +230,16 @@ class PlayerInputText {
 
     
     avaiKeywords: string[] = [];
+
+    
+    // TODO: the avaiKeywords should be based on whether given skill is acqured later        
     initKeywords() {        
         for(let i = 0; i < keywordInfos.length; i++) {
-            this.avaiKeywords.push(keywordInfos[i].title);            
+            this.avaiKeywords.push(keywordInfos[i].title);       
         }        
+        for(let i = 0; i < turnInfos.length; i++) {
+            this.avaiKeywords.push(turnInfos[i].title);       
+        }      
     }
 
     // B** -> Bad

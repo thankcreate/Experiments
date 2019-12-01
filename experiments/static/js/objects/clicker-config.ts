@@ -5,7 +5,12 @@ let keywordInfos = [
     {title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false},
     {title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false},
     {title: "Shameful", size: 18, desc: "", damage: 20, cost: 30000, consumed: false},
-]       
+]
+
+let turnInfos = [
+    {title: "Turn", damage: 3},
+]
+
 
 let baseScore = 100;
 

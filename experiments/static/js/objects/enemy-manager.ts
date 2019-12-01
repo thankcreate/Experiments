@@ -338,7 +338,7 @@ class EnemyManager {
         let min = 1000;
         for(let i in this.omniHistory) {
             let iter = this.omniHistory[i];
-            if(iter.eliminated)
+            if(hasSet(iter.eliminated))
                 continue;
             let clamp = this.getAngleDiff(iter.degree, rdDegree);
             if(clamp < min) {
@@ -374,21 +374,7 @@ class EnemyManager {
     // }
 
     isOfflineHandle(inputWord: string) {
-        let foundKeyword = false;
-        for(let i = 0; i < keywordInfos.length; i++) {
-            if(inputWord.toLocaleLowerCase() == keywordInfos[i].title.toLocaleLowerCase()) {
-                foundKeyword = true;
-                break;
-            }
-        }
-
-        for(let i = 0; i < turnInfos.length; i++) {
-            if(inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
-                foundKeyword = true;
-                break;
-            }
-        }
-        return foundKeyword;
+        return isReservedKeyword(inputWord);
     }
 
     // only send the enemies that need online judge
@@ -440,7 +426,7 @@ class EnemyManager {
         let fakeResult : SimResult = {
             input: inputWord,
             array: [],
-            outputArray: []
+            outputArray: [] 
         }
         this.appendOfflineResult(fakeResult);
         this.handleJudgeResult(fakeResult);
@@ -453,8 +439,8 @@ class EnemyManager {
     }
 
     handleBad(res: SimResult) {
-        for(let i = 0; i < keywordInfos.length; i++) {
-            let item = keywordInfos[i];
+        for(let i = 0; i < badInfos.length; i++) {
+            let item = badInfos[i];
             if(res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
                 let badWords = this.getBadWords();
                 for(let i in badWords) {
@@ -472,7 +458,7 @@ class EnemyManager {
                 let normalWords = this.getNormalWords();
                 for(let i in normalWords) {
                     // The 'value' attribute doens't work here
-                    res.outputArray.push({name: "", value: 1, enemy: normalWords[i], damage: item.damage});
+                    res.outputArray.push({name: normalWords[i].lbl, value: 1, enemy: normalWords[i], damage: item.damage});
                 }            
             }
         } 
@@ -510,10 +496,10 @@ class EnemyManager {
 
 
         // filter the duplicate labels
-        var seen = {};
-        ar = ar.filter(item => {
-            return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
-        });
+        // var seen = {};
+        // ar = ar.filter(item => {
+        //     return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
+        // });
 
         let legal = true;
         // if we only want to damage the most similar word

@@ -66,6 +66,10 @@ function notSet(val: any) : boolean {
     return val === null || val === undefined;
 }
 
+function hasSet(val : any) : boolean {
+    return val !== null && val !== undefined;
+}
+
 
 FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string | FromStateToStringFunc, autoHideAfter: boolean,
      timeout?, minStay?, finishedSpeechWait?) {    

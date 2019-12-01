@@ -231,7 +231,7 @@ class Enemy {
         // Damaged by thie same input word before
         if(!gameplayConfig.allowDamageBySameWord 
             && this.checkIfDamagedByThisWordBefore(input)
-            && !this.isSensative()) {
+            && !isReservedKeyword(input)) {
             ret.code = ErrorInputCode.DamagedBefore;
             return ret;
         }

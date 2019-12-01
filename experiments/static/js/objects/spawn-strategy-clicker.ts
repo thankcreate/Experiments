@@ -20,7 +20,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     spawnNormal(): Enemy {
-        let ene = this.enemyManager.spawn({health:3, duration: 60000, clickerType: ClickerType.Normal});
+        let ene = this.enemyManager.spawn({health:3, duration: 1500, clickerType: ClickerType.Normal});
         return ene;
     }
     

@@ -133,7 +133,7 @@ class Hud extends Wrapper<PhText> {
         // this.hideContainerLeft(false);
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
-        let bkgHeight = frameTopPadding + frameBottonPadding + (keywordInfos.length) * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
+        let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
         
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
             fillColor: 0xFFFFFF,
@@ -152,24 +152,24 @@ class Hud extends Wrapper<PhText> {
         let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Typer', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         
-        for(let i = 0; i < keywordInfos.length; i++) {            
+        for(let i = 0; i < badInfos.length; i++) {            
             let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i,
-                'rounded_btn', keywordInfos[i].title, 75,75, false);        
-            btn.text.setFontSize(keywordInfos[i].size);
+                'rounded_btn', badInfos[i].title, 75,75, false);        
+            btn.text.setFontSize(badInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
             btn.needInOutAutoAnimation = false;
 
             let priceStyle = getDefaultTextStyle();
             priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : keywordInfos[i].cost + '',  priceStyle).setOrigin(0.5);
+            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : badInfos[i].cost + '',  priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
             btn.priceLbl = priceLbl;
 
             this.leftBtns.push(btn);
             
-            btn.tag = keywordInfos[i].desc;
-            btn.priceTag = keywordInfos[i].cost;
+            btn.tag = badInfos[i].desc;
+            btn.priceTag = badInfos[i].cost;
 
             btn.fakeZone.on('pointerover', ()=>{            
                 this.popupBubbleLeft.setText(btn.tag);                         
@@ -183,9 +183,9 @@ class Hud extends Wrapper<PhText> {
 
             btn.clickedEvent.on(()=>{
                 if(this.score >= btn.priceTag) {
-                    keywordInfos[i].consumed = true;
+                    badInfos[i].consumed = true;
                     this.score -= btn.priceTag;     
-                    priceLbl.text = "✓" + keywordInfos[i].cost;
+                    priceLbl.text = "✓" + badInfos[i].cost;
                 }
             });                
         }
@@ -200,8 +200,8 @@ class Hud extends Wrapper<PhText> {
 
     getCurrentStrongestKeyword() : number{        
         let i = 0;
-        for(i = 0; i < keywordInfos.length; i++) {
-            if(!keywordInfos[i].consumed) {
+        for(i = 0; i < badInfos.length; i++) {
+            if(!badInfos[i].consumed) {
                 return i - 1;
             }            
         }
@@ -210,8 +210,8 @@ class Hud extends Wrapper<PhText> {
 
     refreshMenuBtnState() {
         let currentStrongest = this.getCurrentStrongestKeyword();
-        for(let i = 0; i < keywordInfos.length; i++) {
-            let item = keywordInfos[i];
+        for(let i = 0; i < badInfos.length; i++) {
+            let item = badInfos[i];
             let btn = this.leftBtns[i];
 
             if(i >= currentStrongest + 2) {

@@ -2113,7 +2113,7 @@ class CenterObject {
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
-let keywordInfos = [
+let badInfos = [
     { title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: true },
     { title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false },
     { title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false },
@@ -2122,12 +2122,28 @@ let keywordInfos = [
     { title: "Shameful", size: 18, desc: "", damage: 20, cost: 30000, consumed: false },
 ];
 let turnInfos = [
-    { title: "Turn", damage: 3 },
+    { title: "Turn", damage: 1 },
 ];
 let baseScore = 100;
-for (let i = 0; i < keywordInfos.length; i++) {
-    let item = keywordInfos[i];
+for (let i = 0; i < badInfos.length; i++) {
+    let item = badInfos[i];
     item.desc = '"' + item.title + '"' + "\nDamage: " + item.damage + "\nCost: " + item.cost;
+}
+function isReservedKeyword(inputWord) {
+    let foundKeyword = false;
+    for (let i = 0; i < badInfos.length; i++) {
+        if (inputWord.toLocaleLowerCase() == badInfos[i].title.toLocaleLowerCase()) {
+            foundKeyword = true;
+            break;
+        }
+    }
+    for (let i = 0; i < turnInfos.length; i++) {
+        if (inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
+            foundKeyword = true;
+            break;
+        }
+    }
+    return foundKeyword;
 }
 class Died extends Wrapper {
     constructor(scene, parentContainer, x, y) {
@@ -2444,7 +2460,7 @@ class Enemy {
         // Damaged by thie same input word before
         if (!gameplayConfig.allowDamageBySameWord
             && this.checkIfDamagedByThisWordBefore(input)
-            && !this.isSensative()) {
+            && !isReservedKeyword(input)) {
             ret.code = ErrorInputCode.DamagedBefore;
             return ret;
         }
@@ -2863,7 +2879,7 @@ class EnemyManager {
         let min = 1000;
         for (let i in this.omniHistory) {
             let iter = this.omniHistory[i];
-            if (iter.eliminated)
+            if (hasSet(iter.eliminated))
                 continue;
             let clamp = this.getAngleDiff(iter.degree, rdDegree);
             if (clamp < min) {
@@ -2893,20 +2909,7 @@ class EnemyManager {
     //     }
     // }
     isOfflineHandle(inputWord) {
-        let foundKeyword = false;
-        for (let i = 0; i < keywordInfos.length; i++) {
-            if (inputWord.toLocaleLowerCase() == keywordInfos[i].title.toLocaleLowerCase()) {
-                foundKeyword = true;
-                break;
-            }
-        }
-        for (let i = 0; i < turnInfos.length; i++) {
-            if (inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
-                foundKeyword = true;
-                break;
-            }
-        }
-        return foundKeyword;
+        return isReservedKeyword(inputWord);
     }
     // only send the enemies that need online judge
     sendInputToServer(inputWord) {
@@ -2961,8 +2964,8 @@ class EnemyManager {
         this.handleNormal(res);
     }
     handleBad(res) {
-        for (let i = 0; i < keywordInfos.length; i++) {
-            let item = keywordInfos[i];
+        for (let i = 0; i < badInfos.length; i++) {
+            let item = badInfos[i];
             if (res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
                 let badWords = this.getBadWords();
                 for (let i in badWords) {
@@ -2979,7 +2982,7 @@ class EnemyManager {
                 let normalWords = this.getNormalWords();
                 for (let i in normalWords) {
                     // The 'value' attribute doens't work here
-                    res.outputArray.push({ name: "", value: 1, enemy: normalWords[i], damage: item.damage });
+                    res.outputArray.push({ name: normalWords[i].lbl, value: 1, enemy: normalWords[i], damage: item.damage });
                 }
             }
         }
@@ -3012,10 +3015,10 @@ class EnemyManager {
         var ar = res.outputArray;
         var input = res.input;
         // filter the duplicate labels
-        var seen = {};
-        ar = ar.filter(item => {
-            return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
-        });
+        // var seen = {};
+        // ar = ar.filter(item => {
+        //     return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
+        // });
         let legal = true;
         // if we only want to damage the most similar word
         if (gameplayConfig.onlyDamageMostMatch) {
@@ -3977,6 +3980,9 @@ var TimeOutAll = {
 function notSet(val) {
     return val === null || val === undefined;
 }
+function hasSet(val) {
+    return val !== null && val !== undefined;
+}
 FsmState.prototype.addSubtitleAction = function (subtitle, text, autoHideAfter, timeout, minStay, finishedSpeechWait) {
     let self = this;
     if (notSet(timeout))
@@ -4363,7 +4369,7 @@ class Hud extends Wrapper {
         this.inner.add(this.toolMenuContainerLeft);
         // this.hideContainerLeft(false);
         let bkgWidth = btnWidth + frameBtnGap * 2;
-        let bkgHeight = frameTopPadding + frameBottonPadding + (keywordInfos.length) * btnWidth + (keywordInfos.length - 1) * (intervalY - btnWidth);
+        let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
             fillColor: 0xFFFFFF,
             // lineColor: 0x222222,
@@ -4379,20 +4385,20 @@ class Hud extends Wrapper {
         titleStyle.fill = '#1A1A1A';
         let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Typer', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
-        for (let i = 0; i < keywordInfos.length; i++) {
-            let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i, 'rounded_btn', keywordInfos[i].title, 75, 75, false);
-            btn.text.setFontSize(keywordInfos[i].size);
+        for (let i = 0; i < badInfos.length; i++) {
+            let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
+            btn.text.setFontSize(badInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
             btn.needInOutAutoAnimation = false;
             let priceStyle = getDefaultTextStyle();
             priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : keywordInfos[i].cost + '', priceStyle).setOrigin(0.5);
+            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : badInfos[i].cost + '', priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
             btn.priceLbl = priceLbl;
             this.leftBtns.push(btn);
-            btn.tag = keywordInfos[i].desc;
-            btn.priceTag = keywordInfos[i].cost;
+            btn.tag = badInfos[i].desc;
+            btn.priceTag = badInfos[i].cost;
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleLeft.setText(btn.tag);
                 this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerLeft.y);
@@ -4403,9 +4409,9 @@ class Hud extends Wrapper {
             });
             btn.clickedEvent.on(() => {
                 if (this.score >= btn.priceTag) {
-                    keywordInfos[i].consumed = true;
+                    badInfos[i].consumed = true;
                     this.score -= btn.priceTag;
-                    priceLbl.text = "✓" + keywordInfos[i].cost;
+                    priceLbl.text = "✓" + badInfos[i].cost;
                 }
             });
         }
@@ -4418,8 +4424,8 @@ class Hud extends Wrapper {
     }
     getCurrentStrongestKeyword() {
         let i = 0;
-        for (i = 0; i < keywordInfos.length; i++) {
-            if (!keywordInfos[i].consumed) {
+        for (i = 0; i < badInfos.length; i++) {
+            if (!badInfos[i].consumed) {
                 return i - 1;
             }
         }
@@ -4427,8 +4433,8 @@ class Hud extends Wrapper {
     }
     refreshMenuBtnState() {
         let currentStrongest = this.getCurrentStrongestKeyword();
-        for (let i = 0; i < keywordInfos.length; i++) {
-            let item = keywordInfos[i];
+        for (let i = 0; i < badInfos.length; i++) {
+            let item = badInfos[i];
             let btn = this.leftBtns[i];
             if (i >= currentStrongest + 2) {
                 btn.setEnable(false, false);
@@ -4908,8 +4914,8 @@ class PlayerInputText {
     }
     // TODO: the avaiKeywords should be based on whether given skill is acqured later        
     initKeywords() {
-        for (let i = 0; i < keywordInfos.length; i++) {
-            this.avaiKeywords.push(keywordInfos[i].title);
+        for (let i = 0; i < badInfos.length; i++) {
+            this.avaiKeywords.push(badInfos[i].title);
         }
         for (let i = 0; i < turnInfos.length; i++) {
             this.avaiKeywords.push(turnInfos[i].title);
@@ -5411,7 +5417,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return ene;
     }
     spawnNormal() {
-        let ene = this.enemyManager.spawn({ health: 3, duration: 60000, clickerType: ClickerType.Normal });
+        let ene = this.enemyManager.spawn({ health: 3, duration: 1500, clickerType: ClickerType.Normal });
         return ene;
     }
     onEnter() {

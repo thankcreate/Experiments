@@ -26,7 +26,7 @@ class PlayerInputText {
 
     canAcceptInput: boolean = false;
     autoText: string;
-    inAutoMode: boolean = false;
+    inAutoForceMode: boolean = false;
 
     constructor(scene: PhScene, container: PhContainer, centerObject: CenterObject, dummyTitle: string) {
         this.scene = scene;
@@ -58,7 +58,7 @@ class PlayerInputText {
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         // $(document).keypress(this.keypress.bind(this));
         // $(document).keydown(this.keydown.bind(this));
-
+        $(document).keyup(this.keyup.bind(this));
 
         this.titleStyle = {
             fontSize: this.titleSize + 'px',
@@ -100,7 +100,7 @@ class PlayerInputText {
 
     setAutoContent(autoText) {
         this.text.setText("");
-        this.inAutoMode = true;
+        this.inAutoForceMode = true;
         this.autoText = autoText;
     }
 
@@ -108,7 +108,7 @@ class PlayerInputText {
      * @returns true if need to forward the operation to auto mode
      */
     handleAutoContentKeyPress(): boolean {
-        if(!this.inAutoMode)
+        if(!this.inAutoForceMode)
             return false;
 
         let curLen = this.text.text.length;
@@ -139,6 +139,8 @@ class PlayerInputText {
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
+
+        // console.log('press:' + code);
 
         // console.log("keykown: " + code);
         if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
@@ -174,8 +176,18 @@ class PlayerInputText {
         return this.centerObject.getTextMaxWidth();
     }
 
+    
+    keyReleased: boolean = true;
+    keyup(event) {
+        this.keyReleased = true;        
+    }
+
     // keydown to handle the commands
     keydown(event) {
+        if(!this.keyReleased)
+            return;
+        
+
         if(!this.isInBeat())  
             return;
 
@@ -186,9 +198,11 @@ class PlayerInputText {
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
+        // console.log('keydown:' + code);
+        // console.log(event);
 
         // if in autoMode, only continue when length matches and input is ENTER
-        if(this.inAutoMode) {
+        if(this.inAutoForceMode) {
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
 
@@ -196,7 +210,7 @@ class PlayerInputText {
                 return;
             }
             else {
-                this.inAutoMode = false;
+                this.inAutoForceMode = false;
             }
         }
 
@@ -213,7 +227,7 @@ class PlayerInputText {
         }
         else if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             t = "";
-
+            this.keyReleased = false;
             this.confirm();
         }
 

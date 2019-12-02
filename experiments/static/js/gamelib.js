@@ -4785,7 +4785,8 @@ class PlayerInputText {
         this.gap = 4;
         this.gapTitle = 6;
         this.canAcceptInput = false;
-        this.inAutoMode = false;
+        this.inAutoForceMode = false;
+        this.keyReleased = true;
         this.avaiKeywords = [];
         this.inBeat = true;
         this.scene = scene;
@@ -4810,6 +4811,7 @@ class PlayerInputText {
         // this.scene.input.keyboard.on('keydown', (event) => this.keydown(event));        
         // $(document).keypress(this.keypress.bind(this));
         // $(document).keydown(this.keydown.bind(this));
+        $(document).keyup(this.keyup.bind(this));
         this.titleStyle = {
             fontSize: this.titleSize + 'px',
             fill: '#FFFFFF',
@@ -4841,14 +4843,14 @@ class PlayerInputText {
     }
     setAutoContent(autoText) {
         this.text.setText("");
-        this.inAutoMode = true;
+        this.inAutoForceMode = true;
         this.autoText = autoText;
     }
     /**
      * @returns true if need to forward the operation to auto mode
      */
     handleAutoContentKeyPress() {
-        if (!this.inAutoMode)
+        if (!this.inAutoForceMode)
             return false;
         let curLen = this.text.text.length;
         let allLen = this.autoText.length;
@@ -4868,6 +4870,7 @@ class PlayerInputText {
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
+        // console.log('press:' + code);
         // console.log("keykown: " + code);
         if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             return;
@@ -4894,8 +4897,13 @@ class PlayerInputText {
     getAvailableWidth() {
         return this.centerObject.getTextMaxWidth();
     }
+    keyup(event) {
+        this.keyReleased = true;
+    }
     // keydown to handle the commands
     keydown(event) {
+        if (!this.keyReleased)
+            return;
         if (!this.isInBeat())
             return;
         if (!this.getCanAcceptInput())
@@ -4903,15 +4911,17 @@ class PlayerInputText {
         // console.log('keydown');
         var t = this.text.text;
         var code = event.keyCode;
+        // console.log('keydown:' + code);
+        // console.log(event);
         // if in autoMode, only continue when length matches and input is ENTER
-        if (this.inAutoMode) {
+        if (this.inAutoForceMode) {
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
             if (curLen != allLen || code != Phaser.Input.Keyboard.KeyCodes.ENTER) {
                 return;
             }
             else {
-                this.inAutoMode = false;
+                this.inAutoForceMode = false;
             }
         }
         if (code == Phaser.Input.Keyboard.KeyCodes.BACKSPACE /* backspace */
@@ -4925,6 +4935,7 @@ class PlayerInputText {
         }
         else if (code == Phaser.Input.Keyboard.KeyCodes.ENTER) {
             t = "";
+            this.keyReleased = false;
             this.confirm();
         }
         this.text.setText(t);

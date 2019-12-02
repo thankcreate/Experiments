@@ -400,7 +400,7 @@ class EnemyManager {
             this.sendInputToServerOnline(inputWord);
         }
     }
-
+                                              
     sendInputToServerOnline(inputWord: string) {
         var enemyLabels = [];
         for (let i in this.enemies) {

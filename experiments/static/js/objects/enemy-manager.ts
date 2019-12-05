@@ -357,7 +357,7 @@ class EnemyManager {
         // console.log("min " + min);
         // console.log(min);
         // console.log(this.omniHistory.length);
-        let farEnoughFromEvery = min > (Math.PI / 3);
+        let farEnoughFromEvery = min > (Math.PI / 6);
 
 
         return farEnoughFromLastOne && farEnoughFromEvery; 
@@ -628,6 +628,15 @@ class EnemyManager {
         if(this.curStrategy)
             this.curStrategy.enemyEliminated(enemy, damagedBy);
 
+
+        if(this.curStrategy.needHandleRewardExclusively){
+            // let the strategy handle the award logic
+        }
+        else {
+            // add a base 100 here
+            (this.scene as Scene1).hud.addScore(100);
+        }
+        
         this.enemyEliminatedEvent.emit(enemy);
     }
 

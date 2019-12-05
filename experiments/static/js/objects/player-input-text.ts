@@ -71,7 +71,7 @@ class PlayerInputText {
         // this.title.setWordWrapWidth(1000);
         this.parentContainer.add(this.title);        
 
-        this.initKeywords();
+        this.initAutoKeywords();
     }
 
     /**
@@ -243,17 +243,21 @@ class PlayerInputText {
     }
 
     
-    avaiKeywords: string[] = [];
+    avaiAutoKeywords: string[] = [];
 
+    addAutoKeywords(val: string) {
+        this.avaiAutoKeywords.push(val);
+    }
     
     // TODO: the avaiKeywords should be based on whether given skill is acqured later        
-    initKeywords() {        
-        for(let i = 0; i < badInfos.length; i++) {
-            this.avaiKeywords.push(badInfos[i].title);       
-        }        
-        for(let i = 0; i < turnInfos.length; i++) {
-            this.avaiKeywords.push(turnInfos[i].title);       
-        }      
+    initAutoKeywords() {      
+        this.addAutoKeywords('Turn');
+        // for(let i = 0; i < badInfos.length; i++) {
+        //     this.avaiKeywords.push(badInfos[i].title);       
+        // }        
+        // for(let i = 0; i < turnInfos.length; i++) {
+        //     this.avaiKeywords.push(turnInfos[i].title);       
+        // }      
     }
 
     // B** -> Bad
@@ -262,8 +266,8 @@ class PlayerInputText {
         if(this.text.text.length == 0)
             return;
 
-        for(let i = 0; i < this.avaiKeywords.length; i++) {
-            let autoStr = this.avaiKeywords[i];            
+        for(let i = 0; i < this.avaiAutoKeywords.length; i++) {
+            let autoStr = this.avaiAutoKeywords[i];            
             if(autoStr.indexOf(this.text.text) == 0) {
                 this.underlieText.text  = autoStr;
                 break;

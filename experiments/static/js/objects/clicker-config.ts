@@ -1,5 +1,5 @@
 let badInfos = [
-    {title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: true},
+    {title: "Bad", size: 44, desc: "", dos: 1, cost: 0, consumed: false},
     {title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false},
     {title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false},
     {title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false},
@@ -11,12 +11,24 @@ let turnInfos = [
     {title: "Turn", damage: 1},
 ]
 
+let propInfos = [
+    {title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},            
+    {title: "Auto\nTyper", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
+    {title: "Turn", consumed: false, price: 3000, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 't' for short"},
+    {title: "Auto\nmata", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words"},
+
+]   
+
+function getTurnInfo() {
+    return propInfos[2];
+}
+
 
 let baseScore = 100;
 
 for(let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDamage: " + item.damage + "\nCost: " + item.cost;
+    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.cost;
 }
 
 

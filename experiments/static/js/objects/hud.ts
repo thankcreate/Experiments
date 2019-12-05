@@ -36,6 +36,9 @@ class Hud extends Wrapper<PhText> {
     popupBubbleRight :Bubble;
     popupBubbleLeft:Bubble;
 
+    infoPanel: ClickerInfoPanel;
+
+
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
 
@@ -60,6 +63,8 @@ class Hud extends Wrapper<PhText> {
 
         this.createMenuRight();
         this.createMenuLeft();
+
+        this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
     }
 
 
@@ -69,34 +74,31 @@ class Hud extends Wrapper<PhText> {
         this.inner.add(this.toolMenuContainerRight);
         // this.hideContainerRight(false);
 
-        let btnInfos = [
-            {title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},
-            {title: "HP", size: 40, desc: "Get HP regen by eliminating BAD words"},
-            {title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
-            {title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words"},
-        ]        
+             
         let startY = 0;
         let intervalY = 100;
-        for(let i = 0; i < btnInfos.length; i++) {            
+
+        
+        for(let i = 0; i < propInfos.length; i++) {            
             let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i,
-                 'rounded_btn', btnInfos[i].title, 75,75, false);        
-            btn.text.setFontSize(btnInfos[i].size);
+                 'rounded_btn', propInfos[i].title, 75,75, false);        
+            btn.text.setFontSize(propInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
             btn.needInOutAutoAnimation = false;
 
             let priceStyle = getDefaultTextStyle();
             priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, '100',  priceStyle).setOrigin(0.5);
+            let priceLbl = this.scene.add.text(0, 30, propInfos[i].price + '',  priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
             btn.priceLbl = priceLbl;
-
+            btn.priceTag = propInfos[i].price;
             this.rightBtns.push(btn);
             
-            btn.tag = btnInfos[i].desc;
+            btn.tag = propInfos[i].desc;
 
             btn.fakeZone.on('pointerover', ()=>{            
-                this.popupBubbleRight.setText(btn.tag);                         
+                this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);                         
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
                 this.popupBubbleRight.show();                
             });
@@ -105,6 +107,30 @@ class Hud extends Wrapper<PhText> {
                 this.popupBubbleRight.hide();
             });
         }
+        
+        // 'Bad' Btn click
+        this.rightBtns[0].clickedEvent.on(btn=>{            
+            if(!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);                         
+                (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad');
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                // btn.priceLbl.setColor('#00ff00');
+            }
+        });
+
+        // 'Auto'
+        this.rightBtns[1].clickedEvent.on(btn=>{            
+            if(!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);         
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                badInfos[0].consumed = true;
+                this.showContainerLeft();
+            }
+        });
+
+
         
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;    
@@ -130,7 +156,7 @@ class Hud extends Wrapper<PhText> {
         // tool menu left
         this.toolMenuContainerLeft = this.scene.add.container(75, 360); 
         this.inner.add(this.toolMenuContainerLeft);
-        // this.hideContainerLeft(false);
+        this.hideContainerLeft(false);
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
@@ -147,9 +173,9 @@ class Hud extends Wrapper<PhText> {
         });
 
         let titleStyle = getDefaultTextStyle();
-        titleStyle.fontSize = '24px';
+        titleStyle.fontSize = '20px';
         titleStyle.fill = '#1A1A1A'
-        let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Typer', titleStyle).setOrigin(0.5, 1);
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15,'AutoTyper', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         
         for(let i = 0; i < badInfos.length; i++) {            
@@ -181,10 +207,11 @@ class Hud extends Wrapper<PhText> {
                 this.popupBubbleLeft.hide();
             });          
 
-            btn.clickedEvent.on(()=>{
-                if(this.score >= btn.priceTag) {
+            btn.clickedEvent.on((btn)=>{
+                if(!btn.purchased && this.score >= btn.priceTag) {
+                    btn.purchased = true;
                     badInfos[i].consumed = true;
-                    this.score -= btn.priceTag;     
+                    this.addScore(-btn.priceTag);     
                     priceLbl.text = "✓" + badInfos[i].cost;
                 }
             });                
@@ -209,17 +236,12 @@ class Hud extends Wrapper<PhText> {
     }
 
     refreshMenuBtnState() {
-        let currentStrongest = this.getCurrentStrongestKeyword();
+        // let currentStrongest = this.getCurrentStrongestKeyword();
         for(let i = 0; i < badInfos.length; i++) {
             let item = badInfos[i];
-            let btn = this.leftBtns[i];
-
-            if(i >= currentStrongest + 2) {
-                btn.setEnable(false, false);
-                continue;
-            }
+            let btn = this.leftBtns[i];           
             
-            btn.setEnable(true, true);
+            // btn.setEnable(true, true);
             if(item.consumed) {
                 btn.inner.alpha = 1;
                 btn.canClick = false;
@@ -231,8 +253,23 @@ class Hud extends Wrapper<PhText> {
             else {
                 btn.inner.alpha = 1;
                 btn.canClick = true;
+            }            
+        }
+
+        for(let i = 0; i < this.rightBtns.length; i++) {
+            let btn = this.rightBtns[i];
+            if(btn.purchased) {
+                btn.inner.alpha = 1;
+                btn.canClick = false;
             }
-            
+            else if(this.score < btn.priceTag) {
+                btn.inner.alpha = 0.2;
+                btn.canClick = false;
+            }
+            else {
+                btn.inner.alpha = 1;
+                btn.canClick = true;
+            }
         }
     }
 
@@ -279,7 +316,7 @@ class Hud extends Wrapper<PhText> {
             }
             
         }
-        // this.refreshMenuBtnState();
+        this.refreshMenuBtnState();
     }
 
     resetCombo() {
@@ -287,6 +324,8 @@ class Hud extends Wrapper<PhText> {
         this.comboHit = 0;
         this.comboHitText.setText("");
     }
+
+    
 
     addScore(inc) {
         this.score += inc;
@@ -298,7 +337,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     reset() {
-        this.score = 0;        
+        this.score = 1000;        
         this.refreshScore();
 
         this.hp.reset();

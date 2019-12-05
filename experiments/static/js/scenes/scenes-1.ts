@@ -571,10 +571,11 @@ class Scene1 extends BaseScene {
             }
             
 
-            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
-                let enemy = <Enemy>e;
-                this.hud.addScore(baseScore);
-            });
+            // s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+            //     let enemy = <Enemy>e;
+            //     // TODO
+            //     // this.hud.addScore(baseScore);
+            // });
 
 
             // Dead event handling

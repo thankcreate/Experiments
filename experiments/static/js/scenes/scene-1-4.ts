@@ -17,7 +17,7 @@ class Scene1L4 extends Scene1 {
         // this.initShake();
         this.initNormalGameFsm();       
        
-        this.hp.initMaxHealth(100);
+        this.hp.initMaxHealth(10);
         this.createBtns();
     }
 
@@ -53,7 +53,7 @@ class Scene1L4 extends Scene1 {
         .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
         .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
         .addAction(s=>{
-            this.hud.showSideMenuBar();
+            this.hud.showContainerRight();            
         })        
         .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
         .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)

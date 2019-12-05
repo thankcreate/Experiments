@@ -543,10 +543,11 @@ class Scene1 extends BaseScene {
                     this.hp.damageBy(enemy.health);
                 });
             }
-            s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
-                let enemy = e;
-                this.hud.addScore(baseScore);
-            });
+            // s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
+            //     let enemy = <Enemy>e;
+            //     // TODO
+            //     // this.hud.addScore(baseScore);
+            // });
             // Dead event handling
             s.autoOn(this.hp.deadEvent, null, e => {
                 s.event("DIED");
@@ -1173,7 +1174,7 @@ class Scene1L4 extends Scene1 {
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
-        this.hp.initMaxHealth(100);
+        this.hp.initMaxHealth(10);
         this.createBtns();
     }
     createBtns() {
@@ -1201,7 +1202,7 @@ class Scene1L4 extends Scene1 {
             .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .addAction(s => {
-            this.hud.showSideMenuBar();
+            this.hud.showContainerRight();
         })
             .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
             .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true);
@@ -1835,6 +1836,7 @@ class Button {
         this.hoverState = 0; // 0:in 1:out
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
+        this.purchased = false;
         // auto scale
         this.needInOutAutoAnimation = true;
         // auto change the text to another when hovered
@@ -2114,7 +2116,7 @@ class CenterObject {
     }
 }
 let badInfos = [
-    { title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: true },
+    { title: "Bad", size: 44, desc: "", dos: 1, cost: 0, consumed: false },
     { title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false },
     { title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false },
     { title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false },
@@ -2124,10 +2126,19 @@ let badInfos = [
 let turnInfos = [
     { title: "Turn", damage: 1 },
 ];
+let propInfos = [
+    { title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
+    { title: "Auto\nTyper", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
+    { title: "Turn", consumed: false, price: 3000, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 't' for short" },
+    { title: "Auto\nmata", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words" },
+];
+function getTurnInfo() {
+    return propInfos[2];
+}
 let baseScore = 100;
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDamage: " + item.damage + "\nCost: " + item.cost;
+    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.cost;
 }
 function isReservedBadKeyword(inputWord) {
     if (notSet(inputWord))
@@ -2155,6 +2166,51 @@ function isReservedTurnKeyword(inputWord) {
 }
 function isReservedKeyword(inputWord) {
     return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord);
+}
+var s_infoPanelWidth = 450;
+class ClickerInfoPanel extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.bkg = new Rect(this.scene, this.inner, 0, 0, {
+            fillColor: 0xFFFFFF,
+            // lineColor: 0x222222,
+            lineWidth: 3,
+            width: s_infoPanelWidth,
+            height: 250,
+            originY: 0,
+            originX: 0,
+            roundRadius: 16,
+            fillAlpha: 0.4
+        });
+        let style = getDefaultTextStyle();
+        style.fontSize = '25px';
+        let h = 20;
+        let l = 20;
+        let gapVertical = 10;
+        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS (404): ", style);
+        this.inner.add(this.lblDpsFor404);
+        h += this.lblDpsFor404.displayHeight + gapVertical;
+        this.lblAwardFor404 = this.scene.add.text(l, h, "Award (404): ", style);
+        this.inner.add(this.lblAwardFor404);
+        h += this.lblAwardFor404.displayHeight + gapVertical;
+        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Normal): ", style);
+        this.inner.add(this.lblAwardForNormal);
+        this.updateValues();
+        this.refreahDisplay();
+    }
+    updateValues() {
+        let dps = 0;
+        for (let i = 0; i < badInfos.length; i++) {
+            if (badInfos[i].consumed)
+                dps += badInfos[i].damage;
+        }
+        this.valDpsFor404 = dps;
+    }
+    refreahDisplay() {
+        this.lblDpsFor404.setText("DPS (404): " + this.valDpsFor404);
+        this.lblAwardFor404.setText("Award (404): " + this.valAwardFor404);
+        this.lblAwardForNormal.setText("Award (Normal): " + this.valAwardForNormal);
+    }
 }
 class Died extends Wrapper {
     constructor(scene, parentContainer, x, y) {
@@ -2908,7 +2964,7 @@ class EnemyManager {
         // console.log("min " + min);
         // console.log(min);
         // console.log(this.omniHistory.length);
-        let farEnoughFromEvery = min > (Math.PI / 3);
+        let farEnoughFromEvery = min > (Math.PI / 6);
         return farEnoughFromLastOne && farEnoughFromEvery;
     }
     getAngleDiff(angl1, angle2) {
@@ -3134,6 +3190,13 @@ class EnemyManager {
         this.updateTheKilledTimeHistoryForEnemy(enemy, true);
         if (this.curStrategy)
             this.curStrategy.enemyEliminated(enemy, damagedBy);
+        if (this.curStrategy.needHandleRewardExclusively) {
+            // let the strategy handle the award logic
+        }
+        else {
+            // add a base 100 here
+            this.scene.hud.addScore(100);
+        }
         this.enemyEliminatedEvent.emit(enemy);
     }
     // This is mostly used when died
@@ -4336,35 +4399,31 @@ class Hud extends Wrapper {
         this.comboHitText.setVisible(false);
         this.createMenuRight();
         this.createMenuLeft();
+        this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
     }
     createMenuRight() {
         // tool menu right
         this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400);
         this.inner.add(this.toolMenuContainerRight);
         // this.hideContainerRight(false);
-        let btnInfos = [
-            { title: "B**", size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
-            { title: "HP", size: 40, desc: "Get HP regen by eliminating BAD words" },
-            { title: "Auto", size: 34, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-            { title: "404++", size: 30, desc: "Turn NON-BAD words into BAD words" },
-        ];
         let startY = 0;
         let intervalY = 100;
-        for (let i = 0; i < btnInfos.length; i++) {
-            let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i, 'rounded_btn', btnInfos[i].title, 75, 75, false);
-            btn.text.setFontSize(btnInfos[i].size);
+        for (let i = 0; i < propInfos.length; i++) {
+            let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i, 'rounded_btn', propInfos[i].title, 75, 75, false);
+            btn.text.setFontSize(propInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
             btn.needInOutAutoAnimation = false;
             let priceStyle = getDefaultTextStyle();
             priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, '100', priceStyle).setOrigin(0.5);
+            let priceLbl = this.scene.add.text(0, 30, propInfos[i].price + '', priceStyle).setOrigin(0.5);
             btn.inner.add(priceLbl);
             btn.priceLbl = priceLbl;
+            btn.priceTag = propInfos[i].price;
             this.rightBtns.push(btn);
-            btn.tag = btnInfos[i].desc;
+            btn.tag = propInfos[i].desc;
             btn.fakeZone.on('pointerover', () => {
-                this.popupBubbleRight.setText(btn.tag);
+                this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
                 this.popupBubbleRight.show();
             });
@@ -4372,6 +4431,26 @@ class Hud extends Wrapper {
                 this.popupBubbleRight.hide();
             });
         }
+        // 'Bad' Btn click
+        this.rightBtns[0].clickedEvent.on(btn => {
+            if (!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);
+                this.scene.centerObject.playerInputText.addAutoKeywords('Bad');
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                // btn.priceLbl.setColor('#00ff00');
+            }
+        });
+        // 'Auto'
+        this.rightBtns[1].clickedEvent.on(btn => {
+            if (!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                badInfos[0].consumed = true;
+                this.showContainerLeft();
+            }
+        });
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
         let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.y;
@@ -4389,7 +4468,7 @@ class Hud extends Wrapper {
         // tool menu left
         this.toolMenuContainerLeft = this.scene.add.container(75, 360);
         this.inner.add(this.toolMenuContainerLeft);
-        // this.hideContainerLeft(false);
+        this.hideContainerLeft(false);
         let bkgWidth = btnWidth + frameBtnGap * 2;
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
@@ -4403,9 +4482,9 @@ class Hud extends Wrapper {
             roundRadius: 30
         });
         let titleStyle = getDefaultTextStyle();
-        titleStyle.fontSize = '24px';
+        titleStyle.fontSize = '20px';
         titleStyle.fill = '#1A1A1A';
-        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Typer', titleStyle).setOrigin(0.5, 1);
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'AutoTyper', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
             let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
@@ -4429,10 +4508,11 @@ class Hud extends Wrapper {
             btn.fakeZone.on('pointerout', () => {
                 this.popupBubbleLeft.hide();
             });
-            btn.clickedEvent.on(() => {
-                if (this.score >= btn.priceTag) {
+            btn.clickedEvent.on((btn) => {
+                if (!btn.purchased && this.score >= btn.priceTag) {
+                    btn.purchased = true;
                     badInfos[i].consumed = true;
-                    this.score -= btn.priceTag;
+                    this.addScore(-btn.priceTag);
                     priceLbl.text = "✓" + badInfos[i].cost;
                 }
             });
@@ -4454,20 +4534,31 @@ class Hud extends Wrapper {
         return i - 1;
     }
     refreshMenuBtnState() {
-        let currentStrongest = this.getCurrentStrongestKeyword();
+        // let currentStrongest = this.getCurrentStrongestKeyword();
         for (let i = 0; i < badInfos.length; i++) {
             let item = badInfos[i];
             let btn = this.leftBtns[i];
-            if (i >= currentStrongest + 2) {
-                btn.setEnable(false, false);
-                continue;
-            }
-            btn.setEnable(true, true);
+            // btn.setEnable(true, true);
             if (item.consumed) {
                 btn.inner.alpha = 1;
                 btn.canClick = false;
             }
             else if (this.score < item.cost) {
+                btn.inner.alpha = 0.2;
+                btn.canClick = false;
+            }
+            else {
+                btn.inner.alpha = 1;
+                btn.canClick = true;
+            }
+        }
+        for (let i = 0; i < this.rightBtns.length; i++) {
+            let btn = this.rightBtns[i];
+            if (btn.purchased) {
+                btn.inner.alpha = 1;
+                btn.canClick = false;
+            }
+            else if (this.score < btn.priceTag) {
                 btn.inner.alpha = 0.2;
                 btn.canClick = false;
             }
@@ -4510,7 +4601,7 @@ class Hud extends Wrapper {
                 // sc.sfxFail.play();
             }
         }
-        // this.refreshMenuBtnState();
+        this.refreshMenuBtnState();
     }
     resetCombo() {
         this.comboHitText.setVisible(false);
@@ -4525,7 +4616,7 @@ class Hud extends Wrapper {
         this.scoreText.text = "Score: " + this.score;
     }
     reset() {
-        this.score = 0;
+        this.score = 1000;
         this.refreshScore();
         this.hp.reset();
     }
@@ -4787,7 +4878,7 @@ class PlayerInputText {
         this.canAcceptInput = false;
         this.inAutoForceMode = false;
         this.keyReleased = true;
-        this.avaiKeywords = [];
+        this.avaiAutoKeywords = [];
         this.inBeat = true;
         this.scene = scene;
         this.parentContainer = container;
@@ -4820,7 +4911,7 @@ class PlayerInputText {
         this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         // this.title.setWordWrapWidth(1000);
         this.parentContainer.add(this.title);
-        this.initKeywords();
+        this.initAutoKeywords();
     }
     /**
      * Init here will construct two texts
@@ -4945,22 +5036,26 @@ class PlayerInputText {
         this.checkIfNeedAutoComplete();
         this.changedEvent.emit(this);
     }
+    addAutoKeywords(val) {
+        this.avaiAutoKeywords.push(val);
+    }
     // TODO: the avaiKeywords should be based on whether given skill is acqured later        
-    initKeywords() {
-        for (let i = 0; i < badInfos.length; i++) {
-            this.avaiKeywords.push(badInfos[i].title);
-        }
-        for (let i = 0; i < turnInfos.length; i++) {
-            this.avaiKeywords.push(turnInfos[i].title);
-        }
+    initAutoKeywords() {
+        this.addAutoKeywords('Turn');
+        // for(let i = 0; i < badInfos.length; i++) {
+        //     this.avaiKeywords.push(badInfos[i].title);       
+        // }        
+        // for(let i = 0; i < turnInfos.length; i++) {
+        //     this.avaiKeywords.push(turnInfos[i].title);       
+        // }      
     }
     // B** -> Bad
     checkIfNeedAutoComplete() {
         this.underlieText.text = '';
         if (this.text.text.length == 0)
             return;
-        for (let i = 0; i < this.avaiKeywords.length; i++) {
-            let autoStr = this.avaiKeywords[i];
+        for (let i = 0; i < this.avaiAutoKeywords.length; i++) {
+            let autoStr = this.avaiAutoKeywords[i];
             if (autoStr.indexOf(this.text.text) == 0) {
                 this.underlieText.text = autoStr;
                 break;
@@ -5236,6 +5331,7 @@ class SpawnStrategy {
     constructor(manager, type, config) {
         this.config = {};
         this.isPause = false;
+        this.needHandleRewardExclusively = false;
         this.config = this.getInitConfig();
         this.enemyManager = manager;
         this.type = type;
@@ -5436,6 +5532,14 @@ class RandomFlow extends SpawnStrategyFlowTheory {
 class SpawnStrategyClickerGame extends SpawnStrategy {
     constructor(manager, config) {
         super(manager, SpawnStrategyType.FlowTheory, config);
+        this.badCount = 0;
+        this.badEliminatedCount = 0;
+        this.normalTurnedCount = 0;
+        this.respawnAfterKilledThreshould = 9999;
+        this.curBadHealth = 2;
+        this.lastAutoTypeTime = -1;
+        this.autoTypeInterval = 1 * 1000;
+        this.needHandleRewardExclusively = true;
     }
     getInitConfig() {
         return {
@@ -5445,43 +5549,104 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             enemyDuration: 40000,
         };
     }
-    spawnBad(extraConfig) {
-        let cg = { health: 3, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
+    spawnBad(extraConfig, needIncHp = true) {
+        let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth;
+        let cg = { health: health, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
         updateObject(extraConfig, cg);
         let ene = this.enemyManager.spawn(cg);
+        this.badCount++;
         return ene;
     }
+    incAndGetBadHealth() {
+        if (this.badEliminatedCount < 4) {
+            this.curBadHealth = ++this.curBadHealth;
+        }
+        else {
+            this.curBadHealth *= 1.1;
+            this.curBadHealth = Math.ceil(this.curBadHealth);
+        }
+        return this.curBadHealth;
+    }
+    typerAutoDamage(time, dt) {
+        if (badInfos[0].consumed && time - this.lastAutoTypeTime > this.autoTypeInterval) {
+            this.lastAutoTypeTime = time;
+            for (let i = 0; i < badInfos.length; i++) {
+                if (badInfos[i].consumed)
+                    this.enemyManager.sendInputToServer(badInfos[i].title);
+            }
+        }
+    }
+    getNormalHelath() {
+        return this.normalTurnedCount + 3;
+    }
     spawnNormal() {
-        let ene = this.enemyManager.spawn({ health: 3, duration: 50000, clickerType: ClickerType.Normal });
+        let health = this.getNormalHelath();
+        let ene = this.enemyManager.spawn({ health: health, duration: 60000, clickerType: ClickerType.Normal });
         return ene;
     }
     onEnter() {
         this.spawnBad();
         this.spawnNormal();
         this.spawnNormal();
+        this.startLoopCreateNormal();
+    }
+    startLoopCreateNormal() {
+        this.needLoopCreateNormal = true;
+        this.lastNormalTime = this.enemyManager.scene.curTime;
+        this.freqNormal = 15 * 1000;
+    }
+    startLoopCreateBad() {
+        this.needloopCeateBad = true;
+        this.last404Time = this.enemyManager.scene.curTime;
+        this.freq404 = 6 * 1000;
+    }
+    onUpdate(time, dt) {
+        if (this.needloopCeateBad && time - this.last404Time > this.freq404) {
+            this.spawnBad();
+            this.last404Time = time;
+        }
+        if (this.needLoopCreateNormal && time - this.lastNormalTime > this.freqNormal) {
+            this.spawnNormal();
+            this.lastNormalTime = time;
+        }
+        this.typerAutoDamage(time, dt);
     }
     enemyDisappear(enemy, damagedBy) {
         let clickerType = enemy.clickerType;
         if (clickerType == ClickerType.Bad) {
-            this.spawnBad();
+            this.badEliminatedCount++;
+            if (this.badCount < this.respawnAfterKilledThreshould) {
+                this.spawnBad();
+            }
+            else if (this.badCount == this.respawnAfterKilledThreshould) {
+                this.startLoopCreateBad();
+            }
         }
         else if (clickerType == ClickerType.Normal) {
             // if the normal word is destroyed by a 'turn', respawn a bad word in the same direction
             if (isReservedTurnKeyword(damagedBy)) {
-                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal });
+                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal }, false);
+                this.normalTurnedCount++;
             }
             else {
-                this.spawnNormal();
             }
         }
         else if (clickerType == ClickerType.BadFromNormal) {
-            this.spawnNormal();
         }
     }
     enemyReachedCore(enemy) {
         this.enemyDisappear(enemy, null);
     }
+    getAwardFor404() {
+        let sc = Math.floor(baseScore * Math.pow(1.1, this.badEliminatedCount));
+        return sc;
+    }
     enemyEliminated(enemy, damagedBy) {
+        let clickerType = enemy.clickerType;
+        if (clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {
+            let sc = this.getAwardFor404();
+            this.enemyManager.scene.hud.addScore(sc);
+        }
         this.enemyDisappear(enemy, damagedBy);
     }
 }

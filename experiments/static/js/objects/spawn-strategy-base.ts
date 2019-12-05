@@ -20,6 +20,8 @@ class SpawnStrategy {
     
     isPause : boolean = false;
 
+    needHandleRewardExclusively: boolean = false;
+
     constructor(manager: EnemyManager, type: SpawnStrategyType, config: SpawnStrategyConfig) {        
         
         this.config = this.getInitConfig();

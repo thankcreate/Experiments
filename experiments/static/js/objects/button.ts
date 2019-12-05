@@ -28,6 +28,8 @@ class Button {
     priceTag: number;
     priceLbl: PhText;
 
+    purchased: boolean = false;
+
     // auto scale
     needInOutAutoAnimation: boolean = true;    
 

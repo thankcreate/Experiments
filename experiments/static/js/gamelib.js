@@ -189,6 +189,7 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
+        this.load.image('purchased_mark', "assets/purchased_mark.png");
     }
     loadAudio() {
         let audioLoadConfig = {
@@ -1332,6 +1333,13 @@ class ImageWrapperClass extends Wrapper {
 class TextWrapperClass extends Wrapper {
 }
 ;
+var Dir;
+(function (Dir) {
+    Dir[Dir["Left"] = 0] = "Left";
+    Dir[Dir["Right"] = 1] = "Right";
+    Dir[Dir["Bottom"] = 2] = "Bottom";
+    Dir[Dir["Top"] = 3] = "Top";
+})(Dir || (Dir = {}));
 var GameState;
 (function (GameState) {
     GameState[GameState["Home"] = 0] = "Home";
@@ -1837,7 +1845,6 @@ class Button {
         this.hoverState = 0; // 0:in 1:out
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
-        this.purchased = false;
         // auto scale
         this.needInOutAutoAnimation = true;
         // auto change the text to another when hovered
@@ -2128,8 +2135,8 @@ class CenterObject {
     }
 }
 let badInfos = [
-    { title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: false },
-    { title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false },
+    { title: "Bad", size: 36, desc: "", damage: 1, cost: 0, consumed: false },
+    { title: "Evil", size: 34, desc: "", damage: 3, cost: 300, consumed: false },
     { title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false },
     { title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false },
     { title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false },
@@ -2154,7 +2161,7 @@ function getTurnInfo() {
 function getAutoTurnInfo() {
     return propInfos[3];
 }
-let initScore = 100;
+let initScore = 10000;
 let baseScore = 100;
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
@@ -4443,7 +4450,7 @@ class Hud extends Wrapper {
         let startY = 0;
         let intervalY = 100;
         for (let i = 0; i < propInfos.length; i++) {
-            let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i, 'rounded_btn', propInfos[i].title, 75, 75, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i].title, 75, 75, false);
             btn.text.setFontSize(propInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
@@ -4456,9 +4463,7 @@ class Hud extends Wrapper {
             btn.priceTag = propInfos[i].price;
             this.rightBtns.push(btn);
             btn.tag = propInfos[i].desc;
-            btn.addPromptImg();
-            btn.promptImg.x -= 40;
-            btn.promptImg.y -= 50;
+            btn.addPromptImg(Dir.Right);
             // btn.promptImg.setVisible(false);
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);
@@ -4470,44 +4475,24 @@ class Hud extends Wrapper {
             });
         }
         // 'Bad' Btn click
-        this.rightBtns[0].clickedEvent.on(btn => {
-            if (!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);
-                this.scene.centerObject.playerInputText.addAutoKeywords('Bad');
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                // btn.priceLbl.setColor('#00ff00');
-            }
+        this.rightBtns[0].purchasedEvent.on(btn => {
+            this.scene.centerObject.playerInputText.addAutoKeywords('Bad');
         });
         // 'Auto'
-        this.rightBtns[1].clickedEvent.on(btn => {
-            if (!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                badInfos[0].consumed = true;
-                this.showContainerLeft();
-                getAutoTypeInfo().consumed = true;
-            }
+        this.rightBtns[1].purchasedEvent.on(btn => {
+            badInfos[0].consumed = true;
+            this.showContainerLeft();
+            this.leftBtns[0].setPurchased(true);
+            getAutoTypeInfo().consumed = true;
         });
         // Turn 
-        this.rightBtns[2].clickedEvent.on(btn => {
-            if (!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
-                getTurnInfo().consumed = true;
-            }
+        this.rightBtns[2].purchasedEvent.on(btn => {
+            this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
+            getTurnInfo().consumed = true;
         });
         // Auto Turn 
-        this.rightBtns[3].clickedEvent.on(btn => {
-            if (!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                getAutoTurnInfo().consumed = true;
-            }
+        this.rightBtns[3].purchasedEvent.on(btn => {
+            getAutoTurnInfo().consumed = true;
         });
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
@@ -4545,7 +4530,7 @@ class Hud extends Wrapper {
         let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'AutoTyper', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
-            let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
             btn.text.setFontSize(badInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
@@ -4556,6 +4541,7 @@ class Hud extends Wrapper {
             btn.inner.add(priceLbl);
             btn.priceLbl = priceLbl;
             this.leftBtns.push(btn);
+            btn.addPromptImg(Dir.Left);
             btn.tag = badInfos[i].desc;
             btn.priceTag = badInfos[i].cost;
             btn.fakeZone.on('pointerover', () => {
@@ -4566,13 +4552,8 @@ class Hud extends Wrapper {
             btn.fakeZone.on('pointerout', () => {
                 this.popupBubbleLeft.hide();
             });
-            btn.clickedEvent.on((btn) => {
-                if (!btn.purchased && this.score >= btn.priceTag) {
-                    btn.purchased = true;
-                    badInfos[i].consumed = true;
-                    this.addScore(-btn.priceTag);
-                    priceLbl.text = "✓" + badInfos[i].cost;
-                }
+            btn.purchasedEvent.on(btn => {
+                badInfos[i].consumed = true;
             });
         }
         // bubble
@@ -4594,54 +4575,12 @@ class Hud extends Wrapper {
     refreshMenuBtnState() {
         // let currentStrongest = this.getCurrentStrongestKeyword();
         for (let i = 0; i < badInfos.length; i++) {
-            let item = badInfos[i];
             let btn = this.leftBtns[i];
-            // btn.setEnable(true, true);
-            if (item.consumed) {
-                btn.inner.alpha = 1;
-                btn.canClick = false;
-                if (btn.promptImg) {
-                    btn.promptImg.setVisible(false);
-                }
-            }
-            else if (this.score < item.cost) {
-                btn.inner.alpha = 0.2;
-                btn.canClick = false;
-                if (btn.promptImg) {
-                    btn.promptImg.setVisible(false);
-                }
-            }
-            else {
-                if (btn.promptImg) {
-                    btn.promptImg.setVisible(true);
-                }
-                btn.inner.alpha = 1;
-                btn.canClick = true;
-            }
+            btn.refreshState();
         }
         for (let i = 0; i < this.rightBtns.length; i++) {
             let btn = this.rightBtns[i];
-            if (btn.purchased) {
-                btn.inner.alpha = 1;
-                btn.canClick = false;
-                if (btn.promptImg) {
-                    btn.promptImg.setVisible(false);
-                }
-            }
-            else if (this.score < btn.priceTag) {
-                btn.inner.alpha = 0.2;
-                btn.canClick = false;
-                if (btn.promptImg) {
-                    btn.promptImg.setVisible(false);
-                }
-            }
-            else {
-                btn.inner.alpha = 1;
-                btn.canClick = true;
-                if (btn.promptImg) {
-                    btn.promptImg.setVisible(true);
-                }
-            }
+            btn.refreshState();
         }
     }
     addCombo() {
@@ -5268,6 +5207,78 @@ class PlayerInputText {
     }
     isInBeat() {
         return this.inBeat;
+    }
+}
+class PropButton extends Button {
+    constructor(scene, parentContainer, hd, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
+        super(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY);
+        this.purchased = false;
+        this.purchasedEvent = new TypedEvent();
+        this.hud = hd;
+        this.clickedEvent.on(btn1 => {
+            let btn = btn1;
+            if (!btn.purchased && this.hud.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.hud.addScore(-btn.priceTag);
+                // btn.priceLbl.text = "✓" + btn.priceLbl.text;    
+                this.purchasedMark.setVisible(true);
+                this.purchasedEvent.emit(this);
+            }
+        });
+        this.purchasedMark = this.scene.add.image(0, 0, 'purchased_mark');
+        this.inner.add(this.purchasedMark);
+        let markOffset = 40;
+        this.purchasedMark.setPosition(markOffset, -markOffset);
+        this.purchasedMark.setVisible(false);
+    }
+    /**
+     * Dir means the button location.
+     * For example: button dir = top means arrow shoud be pointed from bottom to top
+     * @param dir
+     */
+    addPromptImg(dir) {
+        this.promptImg = this.scene.add.image(0, 0, 'arrow');
+        this.inner.add(this.promptImg);
+        if (dir == Dir.Left || dir == Dir.Right) {
+            let isLeft = dir == Dir.Left;
+            this.promptImg.y -= 50;
+            this.promptImg.x += isLeft ? 40 : -40;
+            this.promptImg.setOrigin(isLeft ? 0 : 1);
+            this.scene.tweens.add({
+                targets: this.promptImg,
+                x: isLeft ? 60 : -60,
+                yoyo: true,
+                duration: 250,
+                loop: -1,
+            });
+        }
+    }
+    setPurchased(val) {
+        this.purchased = val;
+        this.purchasedMark.setVisible(val);
+    }
+    refreshState() {
+        if (this.purchased) {
+            this.inner.alpha = 1;
+            this.canClick = false;
+            if (this.promptImg) {
+                this.promptImg.setVisible(false);
+            }
+        }
+        else if (this.hud.score < this.priceTag) {
+            this.inner.alpha = 0.2;
+            this.canClick = false;
+            if (this.promptImg) {
+                this.promptImg.setVisible(false);
+            }
+        }
+        else {
+            if (this.promptImg) {
+                this.promptImg.setVisible(true);
+            }
+            this.inner.alpha = 1;
+            this.canClick = true;
+        }
     }
 }
 var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];

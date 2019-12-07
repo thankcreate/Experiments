@@ -1,6 +1,6 @@
 let badInfos = [
-    {title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: false},
-    {title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false},
+    {title: "Bad", size: 36, desc: "", damage: 1, cost: 0, consumed: false},
+    {title: "Evil", size: 34, desc: "", damage: 3, cost: 300, consumed: false},
     {title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false},
     {title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false},
     {title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false},
@@ -32,7 +32,7 @@ function getAutoTurnInfo() {
 }
 
 
-let initScore = 100;
+let initScore = 10000;
 let baseScore = 100;
 
 for(let i = 0; i < badInfos.length; i++) {

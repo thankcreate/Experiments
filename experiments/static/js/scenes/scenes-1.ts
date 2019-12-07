@@ -114,6 +114,8 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");        
 
+        this.load.image('purchased_mark', "assets/purchased_mark.png")
+
     }
 
     loadAudio() {

@@ -137,6 +137,13 @@ interface OmniHistoryItem {
     damagedBy?: string[]
 }
 
+enum Dir{
+    Left,
+    Right,
+    Bottom,
+    Top,
+}
+
 enum GameState {
     Home,
     Scene1,

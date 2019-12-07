@@ -26,11 +26,11 @@ class Hud extends Wrapper<PhText> {
    
     toolMenuContainerRight: PhContainer;
     toolMenuContainerRightIsShown: boolean = true;
-    rightBtns: Button[] = [];
+    rightBtns: PropButton[] = [];
 
     toolMenuContainerLeft: PhContainer;
     toolMenuContainerLeftIsShown: boolean = true;
-    leftBtns: Button[] = [];
+    leftBtns: PropButton[] = [];
        
     
     popupBubbleRight :Bubble;
@@ -80,7 +80,7 @@ class Hud extends Wrapper<PhText> {
 
         
         for(let i = 0; i < propInfos.length; i++) {            
-            let btn = new Button(this.scene, this.toolMenuContainerRight, 0, startY + intervalY * i,
+            let btn = new PropButton(this.scene, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
                  'rounded_btn', propInfos[i].title, 75,75, false);        
             btn.text.setFontSize(propInfos[i].size);
             btn.text.y -= 10;
@@ -96,10 +96,7 @@ class Hud extends Wrapper<PhText> {
             this.rightBtns.push(btn);
             
             btn.tag = propInfos[i].desc;
-
-            btn.addPromptImg();
-            btn.promptImg.x -= 40;
-            btn.promptImg.y -= 50;
+            btn.addPromptImg(Dir.Right);
             // btn.promptImg.setVisible(false);
 
             btn.fakeZone.on('pointerover', ()=>{            
@@ -111,53 +108,33 @@ class Hud extends Wrapper<PhText> {
             btn.fakeZone.on('pointerout', () =>{
                 this.popupBubbleRight.hide();
             });
+
+            
         }
         
         // 'Bad' Btn click
-        this.rightBtns[0].clickedEvent.on(btn=>{            
-            if(!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);                         
-                (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad');
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                // btn.priceLbl.setColor('#00ff00');
-            }
+        this.rightBtns[0].purchasedEvent.on(btn=>{    
+            (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad');            
         });
 
         // 'Auto'
-        this.rightBtns[1].clickedEvent.on(btn=>{            
-            if(!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);         
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                badInfos[0].consumed = true;
-                this.showContainerLeft();
+        this.rightBtns[1].purchasedEvent.on(btn=>{    
+            badInfos[0].consumed = true;
+            this.showContainerLeft();
+            this.leftBtns[0].setPurchased(true);
+            getAutoTypeInfo().consumed = true;
 
-                getAutoTypeInfo().consumed = true;
-            }
         });
 
         // Turn 
-        this.rightBtns[2].clickedEvent.on(btn=>{
-            if(!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                
-                (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Turn');
-                getTurnInfo().consumed = true;
-            }
+        this.rightBtns[2].purchasedEvent.on(btn=>{    
+            (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Turn');
+            getTurnInfo().consumed = true;
         });
 
         // Auto Turn 
-        this.rightBtns[3].clickedEvent.on(btn=>{
-            if(!btn.purchased && this.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.addScore(-btn.priceTag);
-                btn.priceLbl.text = "✓" + btn.priceLbl.text;
-                
-                getAutoTurnInfo().consumed = true;
-            }
+        this.rightBtns[3].purchasedEvent.on(btn=>{      
+            getAutoTurnInfo().consumed = true;
         });
         
         // bubble
@@ -207,7 +184,7 @@ class Hud extends Wrapper<PhText> {
         this.toolMenuContainerLeft.add(title);
         
         for(let i = 0; i < badInfos.length; i++) {            
-            let btn = new Button(this.scene, this.toolMenuContainerLeft, 0, startY + intervalY * i,
+            let btn = new PropButton(this.scene, this.toolMenuContainerLeft, this, 0, startY + intervalY * i,
                 'rounded_btn', badInfos[i].title, 75,75, false);        
             btn.text.setFontSize(badInfos[i].size);
             btn.text.y -= 10;
@@ -221,7 +198,7 @@ class Hud extends Wrapper<PhText> {
             btn.priceLbl = priceLbl;
 
             this.leftBtns.push(btn);
-             
+            btn.addPromptImg(Dir.Left);
             btn.tag = badInfos[i].desc;
             btn.priceTag = badInfos[i].cost;
 
@@ -235,14 +212,9 @@ class Hud extends Wrapper<PhText> {
                 this.popupBubbleLeft.hide();
             });          
 
-            btn.clickedEvent.on((btn)=>{
-                if(!btn.purchased && this.score >= btn.priceTag) {
-                    btn.purchased = true;
-                    badInfos[i].consumed = true;
-                    this.addScore(-btn.priceTag);     
-                    priceLbl.text = "✓" + badInfos[i].cost;
-                }
-            });                
+            btn.purchasedEvent.on(btn=>{
+                badInfos[i].consumed = true;
+            });        
         }
 
         // bubble
@@ -266,58 +238,13 @@ class Hud extends Wrapper<PhText> {
     refreshMenuBtnState() {
         // let currentStrongest = this.getCurrentStrongestKeyword();
         for(let i = 0; i < badInfos.length; i++) {
-            let item = badInfos[i];
-            let btn = this.leftBtns[i];           
-            
-            // btn.setEnable(true, true);
-            if(item.consumed) {
-                btn.inner.alpha = 1;
-                btn.canClick = false;
-
-                if(btn.promptImg) {
-                    btn.promptImg.setVisible(false);
-                }
-            }
-            else if(this.score < item.cost){
-                btn.inner.alpha = 0.2;
-                btn.canClick = false;
-                
-                if(btn.promptImg) {                    
-                    btn.promptImg.setVisible(false);
-                }                
-            }
-            else {                                
-                if(btn.promptImg) {
-                    btn.promptImg.setVisible(true);
-                }
-                btn.inner.alpha = 1;
-                btn.canClick = true;
-            }            
+            let btn = this.leftBtns[i];     
+            btn.refreshState();
         }
 
         for(let i = 0; i < this.rightBtns.length; i++) {
-            let btn = this.rightBtns[i];
-            if(btn.purchased) {
-                btn.inner.alpha = 1;
-                btn.canClick = false;
-                if(btn.promptImg) {
-                    btn.promptImg.setVisible(false);
-                }
-            }
-            else if(this.score < btn.priceTag) {
-                btn.inner.alpha = 0.2;
-                btn.canClick = false;
-                if(btn.promptImg) {                    
-                    btn.promptImg.setVisible(false);
-                }  
-            }
-            else {
-                btn.inner.alpha = 1;
-                btn.canClick = true;
-                if(btn.promptImg) {
-                    btn.promptImg.setVisible(true);
-                }
-            }
+            let btn = this.rightBtns[i];           
+            btn.refreshState();
         }
     }
 

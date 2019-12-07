@@ -25,7 +25,7 @@ class EnemyImage extends Enemy {
         this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
 
         // text
-        this.text = this.scene.add.text((lb.x + lb.y) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
+        this.text = this.scene.add.text((lb.x + rb.x) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
         this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;        
         this.text.setOrigin(0.5, 0);
         this.inner.add(this.text); 
@@ -57,8 +57,16 @@ class EnemyImage extends Enemy {
             this.inner.add(textAsImage);
 
             this.figure.inner.setVisible(false);
+
+           
         }
-        
+
+        let hpBarPosi = this.text.getBottomLeft();
+        hpBarPosi.x = lb.x;
+        hpBarPosi.y += 4;
+
+        this.healthIndicator.inner.setVisible(false);
+        this.hpBar = new EnemyHpBar(this.scene as BaseScene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x);
 
         if(!this.config.needChange) {
             this.figure.stopChange();

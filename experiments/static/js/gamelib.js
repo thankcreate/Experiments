@@ -2439,6 +2439,7 @@ class Enemy {
         this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
         this.health = config.health;
+        this.maxHealth = config.health;
         this.clickerType = config.clickerType;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
@@ -2457,6 +2458,7 @@ class Enemy {
     update(time, dt) {
         this.checkIfReachEnd();
         this.healthIndicator.update(time, dt);
+        this.updateHealthBarDisplay();
     }
     checkIfReachEnd() {
         if (this.inStop)
@@ -2579,6 +2581,11 @@ class Enemy {
         this.healthIndicator.damagedTo(this.health);
         return ret;
     }
+    updateHealthBarDisplay() {
+        if (this.hpBar) {
+            this.hpBar.updateDisplay(this.health, this.maxHealth);
+        }
+    }
     playHurtAnimation() {
     }
     updateOmniDamageHistory(input) {
@@ -2617,6 +2624,54 @@ class Enemy {
     startRotate() {
     }
 }
+class EnemyHpBar extends Wrapper {
+    constructor(scene, parentContainer, x, y, width) {
+        super(scene, parentContainer, x, y, null);
+        this.frameColor = 0x000000;
+        this.bkgColor = 0xffffff;
+        this.progressColor = 0x999999;
+        this.progressGap = 4;
+        this.barHeight = 25;
+        this.frameWidth = 5;
+        this.outterRadius = 10;
+        this.barWidth = width;
+        this.bkgBar = new Rect(this.scene, this.inner, 0, 0, {
+            lineColor: this.bkgColor,
+            fillColor: this.bkgColor,
+            width: this.barWidth,
+            height: this.barHeight,
+            lineWidth: 1,
+            originX: 0,
+            originY: 0,
+            roundRadius: this.outterRadius,
+        });
+        this.progressBar = new Rect(this.scene, this.inner, 0, 0, {
+            lineColor: this.progressColor,
+            fillColor: this.progressColor,
+            width: this.barWidth,
+            height: this.barHeight,
+            lineWidth: 1,
+            originX: 0,
+            originY: 0,
+            roundRadius: this.outterRadius,
+        });
+        this.frameBar = new Rect(this.scene, this.inner, 0, 0, {
+            lineColor: this.frameColor,
+            fillColor: this.frameColor,
+            fillAlpha: 0,
+            width: this.barWidth,
+            height: this.barHeight,
+            lineWidth: this.frameWidth,
+            originX: 0,
+            originY: 0,
+            roundRadius: this.outterRadius,
+        });
+    }
+    updateDisplay(curHp, maxHp) {
+        this.progressBar.setSize(0);
+        // this.progressBar.setSize(curHp / maxHp * this.barWidth);
+    }
+}
 class EnemyImage extends Enemy {
     constructor(scene, enemyManager, posi, lblStyle, config) {
         super(scene, enemyManager, posi, lblStyle, config);
@@ -2631,7 +2686,7 @@ class EnemyImage extends Enemy {
         let rb = this.figure.getRightBottom();
         this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
         // text
-        this.text = this.scene.add.text((lb.x + lb.y) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
+        this.text = this.scene.add.text((lb.x + rb.x) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
         this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
         this.text.setOrigin(0.5, 0);
         this.inner.add(this.text);
@@ -2656,6 +2711,11 @@ class EnemyImage extends Enemy {
             this.inner.add(textAsImage);
             this.figure.inner.setVisible(false);
         }
+        let hpBarPosi = this.text.getBottomLeft();
+        hpBarPosi.x = lb.x;
+        hpBarPosi.y += 4;
+        this.healthIndicator.inner.setVisible(false);
+        this.hpBar = new EnemyHpBar(this.scene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x);
         if (!this.config.needChange) {
             this.figure.stopChange();
         }

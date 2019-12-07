@@ -49,6 +49,7 @@ class Enemy {
     lblStyle: TextStyle;
 
     text: Phaser.GameObjects.Text;
+    hpBar: EnemyHpBar;
     
 
     dest: Phaser.Geom.Point;
@@ -65,6 +66,7 @@ class Enemy {
 
     inputAngle: number;
     health: number;             // hp
+    maxHealth: number;
     resistance: number;         // the shield to protect itself from turning into 404
 
     config : EnemyConfig;
@@ -84,6 +86,7 @@ class Enemy {
         this.parentContainer = enemyManager.inner;
         this.lbl = config.label;
         this.health = config.health;
+        this.maxHealth = config.health;
         this.clickerType = config.clickerType;
         this.lblStyle = lblStyle;
         this.initPosi = posi;
@@ -107,6 +110,8 @@ class Enemy {
     update(time, dt) {        
         this.checkIfReachEnd();
         this.healthIndicator.update(time, dt);
+
+        this.updateHealthBarDisplay();
     }
 
     checkIfReachEnd() {
@@ -261,6 +266,13 @@ class Enemy {
 
         return ret;
     }
+
+    updateHealthBarDisplay() {
+        if(this.hpBar) {
+            this.hpBar.updateDisplay(this.health, this.maxHealth);
+        }
+    }
+
     playHurtAnimation() {
 
     }

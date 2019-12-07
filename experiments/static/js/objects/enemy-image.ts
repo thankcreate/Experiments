@@ -66,7 +66,7 @@ class EnemyImage extends Enemy {
         hpBarPosi.y += 4;
 
         this.healthIndicator.inner.setVisible(false);
-        this.hpBar = new EnemyHpBar(this.scene as BaseScene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x);
+        this.hpBar = new EnemyHpBar(this.scene as BaseScene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x, this.maxHealth);
 
         if(!this.config.needChange) {
             this.figure.stopChange();

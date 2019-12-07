@@ -59,8 +59,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     lastAutoTurnTime = -1;
     autoTurnInterval = 1 * 1000;
+
+
     typerAutoDamage(time ,dt) {
-        if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {
+         // auto damage to 404
+         if(badInfos[0].consumed) {
             this.lastAutoTypeTime = time;
             for(let i = 0; i < badInfos.length; i++) {
                 if(badInfos[i].consumed)
@@ -68,10 +71,26 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             }            
         }
 
-        if(getAutoTurnInfo().consumed && time  - this.lastAutoTurnTime > this.autoTurnInterval) {
+        // auto damage to real word
+        if(getAutoTurnInfo().consumed) {
             this.lastAutoTurnTime = time;
             this.enemyManager.sendInputToServer(turnInfos[0].title);
         }
+
+        // // auto damage to 404
+        // if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {
+        //     this.lastAutoTypeTime = time;
+        //     for(let i = 0; i < badInfos.length; i++) {
+        //         if(badInfos[i].consumed)
+        //             this.enemyManager.sendInputToServer(badInfos[i].title);
+        //     }            
+        // }
+
+        // // auto damage to real word
+        // if(getAutoTurnInfo().consumed && time  - this.lastAutoTurnTime > this.autoTurnInterval) {
+        //     this.lastAutoTurnTime = time;
+        //     this.enemyManager.sendInputToServer(turnInfos[0].title);
+        // }
     }
 
     getNormalHelath() : number {

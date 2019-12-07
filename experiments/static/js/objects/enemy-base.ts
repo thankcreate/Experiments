@@ -217,7 +217,7 @@ class Enemy {
     }
     
 
-    damage(item: SimResultItem, input:string) : DamageResult {            
+    damageFromSimResult(item: SimResultItem, input:string) : DamageResult {            
         let val = item.value;   
         let ret: DamageResult = {
             damage: 0, 
@@ -249,10 +249,15 @@ class Enemy {
         this.damagedHistory.push(input);
         this.updateOmniDamageHistory(input);
 
-        console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
+        // console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
 
         // Handle health
-        this.health -= ret.damage;
+        this.damageInner(ret.damage, input);
+        return ret;
+    }
+
+    damageInner(dmg: number, input: string) {
+        this.health -= dmg;
         if (this.health <= 0) {
             this.eliminated(input);            
         }
@@ -263,8 +268,6 @@ class Enemy {
         }
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
-
-        return ret;
     }
 
     updateHealthBarDisplay() {

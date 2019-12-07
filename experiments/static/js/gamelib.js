@@ -2539,7 +2539,7 @@ class Enemy {
         }
         return false;
     }
-    damage(item, input) {
+    damageFromSimResult(item, input) {
         let val = item.value;
         let ret = {
             damage: 0,
@@ -2566,9 +2566,13 @@ class Enemy {
         // and the manager's omni history
         this.damagedHistory.push(input);
         this.updateOmniDamageHistory(input);
-        console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
+        // console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
         // Handle health
-        this.health -= ret.damage;
+        this.damageInner(ret.damage, input);
+        return ret;
+    }
+    damageInner(dmg, input) {
+        this.health -= dmg;
         if (this.health <= 0) {
             this.eliminated(input);
         }
@@ -2579,7 +2583,6 @@ class Enemy {
         }
         this.health = Math.max(0, this.health);
         this.healthIndicator.damagedTo(this.health);
-        return ret;
     }
     updateHealthBarDisplay() {
         if (this.hpBar) {
@@ -2625,16 +2628,17 @@ class Enemy {
     }
 }
 class EnemyHpBar extends Wrapper {
-    constructor(scene, parentContainer, x, y, width) {
+    constructor(scene, parentContainer, x, y, width, maxHp) {
         super(scene, parentContainer, x, y, null);
         this.frameColor = 0x000000;
         this.bkgColor = 0xffffff;
         this.progressColor = 0x999999;
         this.progressGap = 4;
         this.barHeight = 25;
-        this.frameWidth = 5;
-        this.outterRadius = 10;
+        this.frameWidth = 4;
+        this.outterRadius = 12;
         this.barWidth = width;
+        this.maxHp = maxHp;
         this.bkgBar = new Rect(this.scene, this.inner, 0, 0, {
             lineColor: this.bkgColor,
             fillColor: this.bkgColor,
@@ -2666,10 +2670,29 @@ class EnemyHpBar extends Wrapper {
             originY: 0,
             roundRadius: this.outterRadius,
         });
+        let style = getDefaultTextStyle();
+        style.fontSize = '20px';
+        style.fill = '#111111';
+        this.centerText = this.scene.add.text(width / 2, this.barHeight / 2, "hp", style);
+        this.centerText.setOrigin(0.5, 0.5);
+        this.inner.add(this.centerText);
+        this.refreshCenterText(this.maxHp, this.maxHp);
     }
+    refreshCenterText(curHp, maxHp) {
+        let curHpShown = Math.ceil(curHp);
+        let maxHpShown = Math.ceil(maxHp);
+        this.centerText.text = curHpShown + " / " + maxHpShown;
+    }
+    /**
+     * Called by EnemyBase
+     * @param curHp
+     * @param maxHp
+     */
     updateDisplay(curHp, maxHp) {
-        this.progressBar.setSize(0);
-        // this.progressBar.setSize(curHp / maxHp * this.barWidth);
+        curHp = clamp(curHp, 0, maxHp);
+        //this.progressBar.setSize(0);
+        this.progressBar.setSize(curHp / maxHp * this.barWidth);
+        this.refreshCenterText(curHp, maxHp);
     }
 }
 class EnemyImage extends Enemy {
@@ -2715,7 +2738,7 @@ class EnemyImage extends Enemy {
         hpBarPosi.x = lb.x;
         hpBarPosi.y += 4;
         this.healthIndicator.inner.setVisible(false);
-        this.hpBar = new EnemyHpBar(this.scene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x);
+        this.hpBar = new EnemyHpBar(this.scene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x, this.maxHealth);
         if (!this.config.needChange) {
             this.figure.stopChange();
         }
@@ -3203,7 +3226,7 @@ class EnemyManager {
             // we need to be careful about the availability of the enemy
             let enemiesWithName = this.findEnemyByEntry(entry);
             enemiesWithName.forEach(e => {
-                let dmgRes = e.damage(entry, input);
+                let dmgRes = e.damageFromSimResult(entry, input);
                 if (dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {
                     validDamageAtLeastOne = true;
                 }
@@ -5724,17 +5747,32 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return this.curBadHealth;
     }
     typerAutoDamage(time, dt) {
-        if (badInfos[0].consumed && time - this.lastAutoTypeTime > this.autoTypeInterval) {
+        // auto damage to 404
+        if (badInfos[0].consumed) {
             this.lastAutoTypeTime = time;
             for (let i = 0; i < badInfos.length; i++) {
                 if (badInfos[i].consumed)
                     this.enemyManager.sendInputToServer(badInfos[i].title);
             }
         }
-        if (getAutoTurnInfo().consumed && time - this.lastAutoTurnTime > this.autoTurnInterval) {
+        // auto damage to real word
+        if (getAutoTurnInfo().consumed) {
             this.lastAutoTurnTime = time;
             this.enemyManager.sendInputToServer(turnInfos[0].title);
         }
+        // // auto damage to 404
+        // if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {
+        //     this.lastAutoTypeTime = time;
+        //     for(let i = 0; i < badInfos.length; i++) {
+        //         if(badInfos[i].consumed)
+        //             this.enemyManager.sendInputToServer(badInfos[i].title);
+        //     }            
+        // }
+        // // auto damage to real word
+        // if(getAutoTurnInfo().consumed && time  - this.lastAutoTurnTime > this.autoTurnInterval) {
+        //     this.lastAutoTurnTime = time;
+        //     this.enemyManager.sendInputToServer(turnInfos[0].title);
+        // }
     }
     getNormalHelath() {
         return this.normalTurnedCount + 3;

@@ -531,7 +531,7 @@ class EnemyManager {
             // we need to be careful about the availability of the enemy
             let enemiesWithName = this.findEnemyByEntry(entry);
             enemiesWithName.forEach(e => {
-                let dmgRes = e.damage(entry, input);
+                let dmgRes = e.damageFromSimResult(entry, input);
                 if(dmgRes.damage > 0 && dmgRes.code == ErrorInputCode.NoError) {                    
                     validDamageAtLeastOne = true;
                 }

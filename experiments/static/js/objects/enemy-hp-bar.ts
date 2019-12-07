@@ -14,14 +14,18 @@ class EnemyHpBar extends Wrapper<PhText> {
     barWidth;
 
     
-    frameWidth = 5;
+    frameWidth = 4;
 
-    outterRadius = 10;
+    outterRadius = 12;
 
-    constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, width: number) {
+    centerText: PhText;
+    
+    maxHp: number;
+    constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, width: number, maxHp: number) {
         super(scene, parentContainer, x, y, null);
 
         this.barWidth = width;
+        this.maxHp = maxHp;
 
         this.bkgBar = new Rect(this.scene, this.inner, 0, 0, {
             lineColor: this.bkgColor,
@@ -57,11 +61,35 @@ class EnemyHpBar extends Wrapper<PhText> {
             originY: 0,   
             roundRadius: this.outterRadius,         
         });
+
+        let style = getDefaultTextStyle();
+        style.fontSize = '20px'
+        style.fill = '#111111'
+        this.centerText = this.scene.add.text(width / 2, this.barHeight / 2, "hp", style);
+        this.centerText.setOrigin(0.5, 0.5);
+        this.inner.add(this.centerText);
+        this.refreshCenterText(this.maxHp, this.maxHp);
+
     }
 
+    refreshCenterText(curHp, maxHp) {
+        
+        let curHpShown = Math.ceil(curHp);
+        let maxHpShown = Math.ceil(maxHp);
+        this.centerText.text = curHpShown + " / " + maxHpShown;
+    }
+
+    /**
+     * Called by EnemyBase
+     * @param curHp 
+     * @param maxHp 
+     */
+
     updateDisplay(curHp, maxHp) {
-        this.progressBar.setSize(0);
-        // this.progressBar.setSize(curHp / maxHp * this.barWidth);
+        curHp = clamp(curHp, 0, maxHp);        
+        //this.progressBar.setSize(0);
+        this.progressBar.setSize(curHp / maxHp * this.barWidth);
+        this.refreshCenterText(curHp, maxHp);
     }
 
 }

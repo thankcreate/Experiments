@@ -41,7 +41,7 @@ class EnemyManager {
     enemySpawnedEvent: TypedEvent<Enemy> = new TypedEvent();
 
     curStrategy: SpawnStrategy;
-
+    curStrategyID : SpawnStrategyType;
     strategies: Map<SpawnStrategyType, SpawnStrategy> = new Map();;
     
     constructor(scene, parentContainer) {
@@ -76,6 +76,7 @@ class EnemyManager {
         if(this.curStrategy)
             this.curStrategy.onExit();
 
+        this.curStrategyID = strategy;
         this.curStrategy = this.strategies.get(strategy);
         this.curStrategy.updateConfig(config);
 
@@ -155,7 +156,6 @@ class EnemyManager {
                 ret = name;
                 break;
             }
-
         }
         return ret[0].toUpperCase() + ret.substring(1, ret.length);
     }
@@ -463,6 +463,8 @@ class EnemyManager {
     }
 
     handleNormal(res: SimResult) {
+        if(!getTurnInfo().consumed)
+            return;
         for(let i = 0; i < turnInfos.length; i++) {
             let item = turnInfos[i];
             if(res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {

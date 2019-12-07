@@ -97,6 +97,11 @@ class Hud extends Wrapper<PhText> {
             
             btn.tag = propInfos[i].desc;
 
+            btn.addPromptImg();
+            btn.promptImg.x -= 40;
+            btn.promptImg.y -= 50;
+            // btn.promptImg.setVisible(false);
+
             btn.fakeZone.on('pointerover', ()=>{            
                 this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);                         
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
@@ -127,10 +132,33 @@ class Hud extends Wrapper<PhText> {
                 btn.priceLbl.text = "✓" + btn.priceLbl.text;
                 badInfos[0].consumed = true;
                 this.showContainerLeft();
+
+                getAutoTypeInfo().consumed = true;
             }
         });
 
+        // Turn 
+        this.rightBtns[2].clickedEvent.on(btn=>{
+            if(!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                
+                (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Turn');
+                getTurnInfo().consumed = true;
+            }
+        });
 
+        // Auto Turn 
+        this.rightBtns[3].clickedEvent.on(btn=>{
+            if(!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                
+                getAutoTurnInfo().consumed = true;
+            }
+        });
         
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;    
@@ -193,7 +221,7 @@ class Hud extends Wrapper<PhText> {
             btn.priceLbl = priceLbl;
 
             this.leftBtns.push(btn);
-            
+             
             btn.tag = badInfos[i].desc;
             btn.priceTag = badInfos[i].cost;
 
@@ -245,12 +273,23 @@ class Hud extends Wrapper<PhText> {
             if(item.consumed) {
                 btn.inner.alpha = 1;
                 btn.canClick = false;
+
+                if(btn.promptImg) {
+                    btn.promptImg.setVisible(false);
+                }
             }
             else if(this.score < item.cost){
                 btn.inner.alpha = 0.2;
                 btn.canClick = false;
+                
+                if(btn.promptImg) {                    
+                    btn.promptImg.setVisible(false);
+                }                
             }
-            else {
+            else {                                
+                if(btn.promptImg) {
+                    btn.promptImg.setVisible(true);
+                }
                 btn.inner.alpha = 1;
                 btn.canClick = true;
             }            
@@ -261,14 +300,23 @@ class Hud extends Wrapper<PhText> {
             if(btn.purchased) {
                 btn.inner.alpha = 1;
                 btn.canClick = false;
+                if(btn.promptImg) {
+                    btn.promptImg.setVisible(false);
+                }
             }
             else if(this.score < btn.priceTag) {
                 btn.inner.alpha = 0.2;
                 btn.canClick = false;
+                if(btn.promptImg) {                    
+                    btn.promptImg.setVisible(false);
+                }  
             }
             else {
                 btn.inner.alpha = 1;
                 btn.canClick = true;
+                if(btn.promptImg) {
+                    btn.promptImg.setVisible(true);
+                }
             }
         }
     }
@@ -317,6 +365,7 @@ class Hud extends Wrapper<PhText> {
             
         }
         this.refreshMenuBtnState();
+        this.infoPanel.update(time, dt);
     }
 
     resetCombo() {
@@ -337,7 +386,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     reset() {
-        this.score = 1000;        
+        this.score = initScore;        
         this.refreshScore();
 
         this.hp.reset();

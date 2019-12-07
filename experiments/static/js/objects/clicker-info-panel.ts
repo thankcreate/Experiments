@@ -18,17 +18,17 @@ class ClickerInfoPanel extends Wrapper<PhText> {
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0xFFFFFF,
             // lineColor: 0x222222,
-            lineWidth: 3,
+            lineWidth: 4,
             width: s_infoPanelWidth, 
             height: 250,             
             originY: 0,
             originX: 0,            
-            roundRadius: 16,
-            fillAlpha: 0.4
+            roundRadius: 22,
+            fillAlpha: 0.3
         });
 
         let style = getDefaultTextStyle();
-        style.fontSize = '25px';
+        style.fontSize = '30px';
         let h = 20;
         let l = 20;
         let gapVertical = 10;
@@ -43,20 +43,35 @@ class ClickerInfoPanel extends Wrapper<PhText> {
         this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Normal): ", style);
         this.inner.add(this.lblAwardForNormal);
 
+      
+    }
+
+    update(time, dt) {
         this.updateValues();
         this.refreahDisplay();
     }
 
     updateValues() {
-        let dps = 0;         
-        for(let i = 0; i < badInfos.length; i++) {
-            if(badInfos[i].consumed)
-                dps += badInfos[i].damage;
-        }
-        this.valDpsFor404 = dps;
-        
-        
+        this.valDpsFor404 = undefined;
+        this.valAwardFor404 = undefined;
+        this.valAwardForNormal = undefined;
+       
 
+
+
+        let sc = (this.scene as Scene1);
+        let em = sc.enemyManager;
+        if(em.curStrategyID == SpawnStrategyType.ClickerGame) {
+            let dps = 0;         
+            for(let i = 0; i < badInfos.length; i++) {
+                if(badInfos[i].consumed)
+                    dps += badInfos[i].damage;
+            }
+            this.valDpsFor404 = dps;
+
+            this.valAwardFor404 = (em.curStrategy as SpawnStrategyClickerGame).getAwardFor404();
+            this.valAwardForNormal = (em.curStrategy as SpawnStrategyClickerGame).getAwardForNormal();
+        }        
     }
 
     refreahDisplay() {

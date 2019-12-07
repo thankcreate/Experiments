@@ -97,6 +97,7 @@ class Scene1 extends BaseScene {
 
     preload() {
         this.load.image('circle', 'assets/circle.png');
+        this.load.image('arrow', 'assets/arrow.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('unit_white', 'assets/unit_white.png')
@@ -569,14 +570,12 @@ class Scene1 extends BaseScene {
                     this.hp.damageBy(enemy.health);
                 });
             }
-            
 
             // s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
             //     let enemy = <Enemy>e;
             //     // TODO
             //     // this.hud.addScore(baseScore);
             // });
-
 
             // Dead event handling
             s.autoOn(this.hp.deadEvent, null, e => {
@@ -606,7 +605,6 @@ class Scene1 extends BaseScene {
                     s.event('START', this.zenFsm);
                 }
             })
-
     }
 
     /**

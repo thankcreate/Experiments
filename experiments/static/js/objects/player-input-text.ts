@@ -251,7 +251,7 @@ class PlayerInputText {
     
     // TODO: the avaiKeywords should be based on whether given skill is acqured later        
     initAutoKeywords() {      
-        this.addAutoKeywords('Turn');
+        // this.addAutoKeywords('Turn');
         // for(let i = 0; i < badInfos.length; i++) {
         //     this.avaiKeywords.push(badInfos[i].title);       
         // }        

@@ -17,6 +17,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     badCount = 0;
     badEliminatedCount = 0;
+    normalNormalCount = 0;
     normalTurnedCount = 0;
     respawnAfterKilledThreshould: number = 9999;
 
@@ -31,7 +32,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     spawnBad(extraConfig?: EnemyConfig, needIncHp:boolean = true) : Enemy {      
         let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth ;
-        let cg = {health:health, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad};
+        let cg = {health:health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad};
         updateObject(extraConfig, cg);
 
         let ene = this.enemyManager.spawn(cg);        
@@ -53,16 +54,23 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return this.curBadHealth;
     }
 
-    lastAutoTypeTime = -1;
+    lastAutoTypeTime = -1;    
     autoTypeInterval = 1 * 1000;
+
+    lastAutoTurnTime = -1;
+    autoTurnInterval = 1 * 1000;
     typerAutoDamage(time ,dt) {
         if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {
             this.lastAutoTypeTime = time;
             for(let i = 0; i < badInfos.length; i++) {
                 if(badInfos[i].consumed)
                     this.enemyManager.sendInputToServer(badInfos[i].title);
-            }
-            
+            }            
+        }
+
+        if(getAutoTurnInfo().consumed && time  - this.lastAutoTurnTime > this.autoTurnInterval) {
+            this.lastAutoTurnTime = time;
+            this.enemyManager.sendInputToServer(turnInfos[0].title);
         }
     }
 
@@ -72,7 +80,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     spawnNormal(): Enemy {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({health:health, duration: 60000, clickerType: ClickerType.Normal});
+        let ene = this.enemyManager.spawn({health:health, duration: 70000, clickerType: ClickerType.Normal});
         return ene;
     }
     
@@ -133,7 +141,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
                 this.normalTurnedCount++;
             }            
             else {
-                
+                this.normalNormalCount++;
             }
         }  
         else if(clickerType == ClickerType.BadFromNormal)  {
@@ -145,9 +153,13 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.enemyDisappear(enemy, null);
     }
 
-    getAwardFor404() {
+    getAwardFor404() : number {
         let sc = Math.floor(baseScore * Math.pow(1.1, this.badEliminatedCount));
         return sc;
+    }
+
+    getAwardForNormal() : number {
+        return 1 - this.normalNormalCount;
     }
 
     enemyEliminated(enemy: Enemy, damagedBy: string) {
@@ -155,6 +167,12 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         if(clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {            
             let sc = this.getAwardFor404();
             (this.enemyManager.scene as Scene1).hud.addScore(sc);
+        }
+        else if(clickerType == ClickerType.Normal) {
+            if(!isReservedTurnKeyword(damagedBy)) {
+                let sc = this.getAwardForNormal();
+                (this.enemyManager.scene as Scene1).hud.addScore(sc);
+            }
         }
         this.enemyDisappear(enemy, damagedBy);
     }

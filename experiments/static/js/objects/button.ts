@@ -16,6 +16,8 @@ class Button {
     fakeZone: PhImage;
     debugFrame: PhGraphics;
 
+    promptImg: PhImage;
+
     hoverState: number = 0; // 0:in 1:out
     prevDownState: number = 0; // 0: not down  1: down
 
@@ -95,6 +97,8 @@ class Button {
         if(this.image) this.animationTargets.push(this.image);
         if(this.text) this.animationTargets.push(this.text);
 
+
+
         
         this.fakeZone.setInteractive()
         this.fakeZone.on('pointerover', ()=>{            
@@ -112,6 +116,18 @@ class Button {
         this.scene.updateObjects.push(this);                     
     }
 
+    addPromptImg() {
+        this.promptImg = this.scene.add.image(0, 0, 'arrow').setOrigin(1, 0);
+        this.inner.add(this.promptImg);
+
+        this.scene.tweens.add({
+            targets: this.promptImg,
+            x: -60,
+            yoyo: true,
+            duration: 250,
+            loop: -1,
+        });
+    }
                                                
 
     update(time, dt) {                   

@@ -174,6 +174,7 @@ class Scene1 extends BaseScene {
     }
     preload() {
         this.load.image('circle', 'assets/circle.png');
+        this.load.image('arrow', 'assets/arrow.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('unit_white', 'assets/unit_white.png');
@@ -1894,6 +1895,17 @@ class Button {
         // this.scene.input.setTopOnly(false);
         this.scene.updateObjects.push(this);
     }
+    addPromptImg() {
+        this.promptImg = this.scene.add.image(0, 0, 'arrow').setOrigin(1, 0);
+        this.inner.add(this.promptImg);
+        this.scene.tweens.add({
+            targets: this.promptImg,
+            x: -60,
+            yoyo: true,
+            duration: 250,
+            loop: -1,
+        });
+    }
     update(time, dt) {
     }
     setEnable(val, needFade) {
@@ -2116,7 +2128,7 @@ class CenterObject {
     }
 }
 let badInfos = [
-    { title: "Bad", size: 44, desc: "", dos: 1, cost: 0, consumed: false },
+    { title: "Bad", size: 44, desc: "", damage: 1, cost: 0, consumed: false },
     { title: "Evil", size: 40, desc: "", damage: 3, cost: 300, consumed: false },
     { title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false },
     { title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false },
@@ -2129,12 +2141,20 @@ let turnInfos = [
 let propInfos = [
     { title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
     { title: "Auto\nTyper", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "Turn", consumed: false, price: 3000, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 't' for short" },
+    { title: "Turn", consumed: false, price: 2500, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 't' for short" },
     { title: "Auto\nmata", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words" },
+    { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!" }
 ];
+function getAutoTypeInfo() {
+    return propInfos[1];
+}
 function getTurnInfo() {
     return propInfos[2];
 }
+function getAutoTurnInfo() {
+    return propInfos[3];
+}
+let initScore = 100;
 let baseScore = 100;
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
@@ -2174,16 +2194,16 @@ class ClickerInfoPanel extends Wrapper {
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0xFFFFFF,
             // lineColor: 0x222222,
-            lineWidth: 3,
+            lineWidth: 4,
             width: s_infoPanelWidth,
             height: 250,
             originY: 0,
             originX: 0,
-            roundRadius: 16,
-            fillAlpha: 0.4
+            roundRadius: 22,
+            fillAlpha: 0.3
         });
         let style = getDefaultTextStyle();
-        style.fontSize = '25px';
+        style.fontSize = '30px';
         let h = 20;
         let l = 20;
         let gapVertical = 10;
@@ -2195,16 +2215,27 @@ class ClickerInfoPanel extends Wrapper {
         h += this.lblAwardFor404.displayHeight + gapVertical;
         this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Normal): ", style);
         this.inner.add(this.lblAwardForNormal);
+    }
+    update(time, dt) {
         this.updateValues();
         this.refreahDisplay();
     }
     updateValues() {
-        let dps = 0;
-        for (let i = 0; i < badInfos.length; i++) {
-            if (badInfos[i].consumed)
-                dps += badInfos[i].damage;
+        this.valDpsFor404 = undefined;
+        this.valAwardFor404 = undefined;
+        this.valAwardForNormal = undefined;
+        let sc = this.scene;
+        let em = sc.enemyManager;
+        if (em.curStrategyID == SpawnStrategyType.ClickerGame) {
+            let dps = 0;
+            for (let i = 0; i < badInfos.length; i++) {
+                if (badInfos[i].consumed)
+                    dps += badInfos[i].damage;
+            }
+            this.valDpsFor404 = dps;
+            this.valAwardFor404 = em.curStrategy.getAwardFor404();
+            this.valAwardForNormal = em.curStrategy.getAwardForNormal();
         }
-        this.valDpsFor404 = dps;
     }
     refreahDisplay() {
         this.lblDpsFor404.setText("DPS (404): " + this.valDpsFor404);
@@ -2743,6 +2774,7 @@ class EnemyManager {
     startSpawnStrategy(strategy, config) {
         if (this.curStrategy)
             this.curStrategy.onExit();
+        this.curStrategyID = strategy;
         this.curStrategy = this.strategies.get(strategy);
         this.curStrategy.updateConfig(config);
         if (this.curStrategy)
@@ -3054,6 +3086,8 @@ class EnemyManager {
         }
     }
     handleNormal(res) {
+        if (!getTurnInfo().consumed)
+            return;
         for (let i = 0; i < turnInfos.length; i++) {
             let item = turnInfos[i];
             if (res.input.toLocaleLowerCase() == item.title.toLocaleLowerCase()) {
@@ -4422,6 +4456,10 @@ class Hud extends Wrapper {
             btn.priceTag = propInfos[i].price;
             this.rightBtns.push(btn);
             btn.tag = propInfos[i].desc;
+            btn.addPromptImg();
+            btn.promptImg.x -= 40;
+            btn.promptImg.y -= 50;
+            // btn.promptImg.setVisible(false);
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
@@ -4449,6 +4487,26 @@ class Hud extends Wrapper {
                 btn.priceLbl.text = "✓" + btn.priceLbl.text;
                 badInfos[0].consumed = true;
                 this.showContainerLeft();
+                getAutoTypeInfo().consumed = true;
+            }
+        });
+        // Turn 
+        this.rightBtns[2].clickedEvent.on(btn => {
+            if (!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
+                getTurnInfo().consumed = true;
+            }
+        });
+        // Auto Turn 
+        this.rightBtns[3].clickedEvent.on(btn => {
+            if (!btn.purchased && this.score >= btn.priceTag) {
+                btn.purchased = true;
+                this.addScore(-btn.priceTag);
+                btn.priceLbl.text = "✓" + btn.priceLbl.text;
+                getAutoTurnInfo().consumed = true;
             }
         });
         // bubble
@@ -4542,12 +4600,21 @@ class Hud extends Wrapper {
             if (item.consumed) {
                 btn.inner.alpha = 1;
                 btn.canClick = false;
+                if (btn.promptImg) {
+                    btn.promptImg.setVisible(false);
+                }
             }
             else if (this.score < item.cost) {
                 btn.inner.alpha = 0.2;
                 btn.canClick = false;
+                if (btn.promptImg) {
+                    btn.promptImg.setVisible(false);
+                }
             }
             else {
+                if (btn.promptImg) {
+                    btn.promptImg.setVisible(true);
+                }
                 btn.inner.alpha = 1;
                 btn.canClick = true;
             }
@@ -4557,14 +4624,23 @@ class Hud extends Wrapper {
             if (btn.purchased) {
                 btn.inner.alpha = 1;
                 btn.canClick = false;
+                if (btn.promptImg) {
+                    btn.promptImg.setVisible(false);
+                }
             }
             else if (this.score < btn.priceTag) {
                 btn.inner.alpha = 0.2;
                 btn.canClick = false;
+                if (btn.promptImg) {
+                    btn.promptImg.setVisible(false);
+                }
             }
             else {
                 btn.inner.alpha = 1;
                 btn.canClick = true;
+                if (btn.promptImg) {
+                    btn.promptImg.setVisible(true);
+                }
             }
         }
     }
@@ -4602,6 +4678,7 @@ class Hud extends Wrapper {
             }
         }
         this.refreshMenuBtnState();
+        this.infoPanel.update(time, dt);
     }
     resetCombo() {
         this.comboHitText.setVisible(false);
@@ -4616,7 +4693,7 @@ class Hud extends Wrapper {
         this.scoreText.text = "Score: " + this.score;
     }
     reset() {
-        this.score = 1000;
+        this.score = initScore;
         this.refreshScore();
         this.hp.reset();
     }
@@ -5041,7 +5118,7 @@ class PlayerInputText {
     }
     // TODO: the avaiKeywords should be based on whether given skill is acqured later        
     initAutoKeywords() {
-        this.addAutoKeywords('Turn');
+        // this.addAutoKeywords('Turn');
         // for(let i = 0; i < badInfos.length; i++) {
         //     this.avaiKeywords.push(badInfos[i].title);       
         // }        
@@ -5534,11 +5611,14 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         super(manager, SpawnStrategyType.FlowTheory, config);
         this.badCount = 0;
         this.badEliminatedCount = 0;
+        this.normalNormalCount = 0;
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould = 9999;
         this.curBadHealth = 2;
         this.lastAutoTypeTime = -1;
         this.autoTypeInterval = 1 * 1000;
+        this.lastAutoTurnTime = -1;
+        this.autoTurnInterval = 1 * 1000;
         this.needHandleRewardExclusively = true;
     }
     getInitConfig() {
@@ -5551,7 +5631,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     spawnBad(extraConfig, needIncHp = true) {
         let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth;
-        let cg = { health: health, duration: 60000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
+        let cg = { health: health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
         updateObject(extraConfig, cg);
         let ene = this.enemyManager.spawn(cg);
         this.badCount++;
@@ -5575,13 +5655,17 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
                     this.enemyManager.sendInputToServer(badInfos[i].title);
             }
         }
+        if (getAutoTurnInfo().consumed && time - this.lastAutoTurnTime > this.autoTurnInterval) {
+            this.lastAutoTurnTime = time;
+            this.enemyManager.sendInputToServer(turnInfos[0].title);
+        }
     }
     getNormalHelath() {
         return this.normalTurnedCount + 3;
     }
     spawnNormal() {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({ health: health, duration: 60000, clickerType: ClickerType.Normal });
+        let ene = this.enemyManager.spawn({ health: health, duration: 70000, clickerType: ClickerType.Normal });
         return ene;
     }
     onEnter() {
@@ -5629,6 +5713,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
                 this.normalTurnedCount++;
             }
             else {
+                this.normalNormalCount++;
             }
         }
         else if (clickerType == ClickerType.BadFromNormal) {
@@ -5641,11 +5726,20 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         let sc = Math.floor(baseScore * Math.pow(1.1, this.badEliminatedCount));
         return sc;
     }
+    getAwardForNormal() {
+        return 1 - this.normalNormalCount;
+    }
     enemyEliminated(enemy, damagedBy) {
         let clickerType = enemy.clickerType;
         if (clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {
             let sc = this.getAwardFor404();
             this.enemyManager.scene.hud.addScore(sc);
+        }
+        else if (clickerType == ClickerType.Normal) {
+            if (!isReservedTurnKeyword(damagedBy)) {
+                let sc = this.getAwardForNormal();
+                this.enemyManager.scene.hud.addScore(sc);
+            }
         }
         this.enemyDisappear(enemy, damagedBy);
     }

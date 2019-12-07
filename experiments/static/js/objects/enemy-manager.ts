@@ -277,7 +277,7 @@ class EnemyManager {
 
 
     update(time, dt) {
-
+        
         // dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;

@@ -321,7 +321,7 @@ function arrayRemove<T>(ar: T[], element: T) {
 
 function updateObject(from: any, to: any) {
     if(notSet(from) || notSet(to)) {
-        console.log('update object found null');
+        // console.log('update object found null');
         return;
     }        
 

@@ -38,7 +38,7 @@ class EnemyHpBar extends Wrapper<PhText> {
             roundRadius: this.outterRadius,         
         });
 
-        this.progressBar = new Rect(this.scene, this.inner, 0, 0, {
+        this.progressBar = new Rect(this.scene, this.inner, 0, this.barHeight / 2, {
             lineColor: this.progressColor,
             fillColor: this.progressColor,
             width: this.barWidth, 
@@ -48,6 +48,7 @@ class EnemyHpBar extends Wrapper<PhText> {
             originY: 0,   
             roundRadius: this.outterRadius,         
         });
+        this.progressBar.setOrigin(0, 0.5);
 
 
         this.frameBar = new Rect(this.scene, this.inner, 0, 0, {
@@ -88,7 +89,21 @@ class EnemyHpBar extends Wrapper<PhText> {
     updateDisplay(curHp, maxHp) {
         curHp = clamp(curHp, 0, maxHp);        
         //this.progressBar.setSize(0);
-        this.progressBar.setSize(curHp / maxHp * this.barWidth);
+        // maxHp = 100
+        // curHp = 0;
+        let ratio = curHp / maxHp;        
+        let newWidth = ratio * this.barWidth;
+
+        let threshouldWidth = this.outterRadius * 2;
+        if(newWidth < threshouldWidth) {
+            this.progressBar.setScale(newWidth / threshouldWidth, Math.pow(newWidth / threshouldWidth, 0.7));
+            newWidth = threshouldWidth;
+        }        
+
+        this.progressBar.setSize(newWidth);
+        // if(ratio < 1)
+        //     console.log(ratio)
+        
         this.refreshCenterText(curHp, maxHp);
     }
 

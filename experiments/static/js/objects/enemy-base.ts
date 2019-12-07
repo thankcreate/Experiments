@@ -111,7 +111,7 @@ class Enemy {
         this.checkIfReachEnd();
         this.healthIndicator.update(time, dt);
 
-        this.updateHealthBarDisplay();
+        // this.updateHealthBarDisplay();
     }
 
     checkIfReachEnd() {
@@ -258,6 +258,11 @@ class Enemy {
 
     damageInner(dmg: number, input: string) {
         this.health -= dmg;
+        
+        this.health = Math.max(0, this.health);
+        this.healthIndicator.damagedTo(this.health);
+
+        this.updateHealthBarDisplay()
         if (this.health <= 0) {
             this.eliminated(input);            
         }
@@ -266,8 +271,6 @@ class Enemy {
             if(sc.needFeedback)
                 this.playHurtAnimation();
         }
-        this.health = Math.max(0, this.health);
-        this.healthIndicator.damagedTo(this.health);
     }
 
     updateHealthBarDisplay() {

@@ -1784,7 +1784,7 @@ function arrayRemove(ar, element) {
 }
 function updateObject(from, to) {
     if (notSet(from) || notSet(to)) {
-        console.log('update object found null');
+        // console.log('update object found null');
         return;
     }
     for (let key in from) {
@@ -2458,7 +2458,7 @@ class Enemy {
     update(time, dt) {
         this.checkIfReachEnd();
         this.healthIndicator.update(time, dt);
-        this.updateHealthBarDisplay();
+        // this.updateHealthBarDisplay();
     }
     checkIfReachEnd() {
         if (this.inStop)
@@ -2573,6 +2573,9 @@ class Enemy {
     }
     damageInner(dmg, input) {
         this.health -= dmg;
+        this.health = Math.max(0, this.health);
+        this.healthIndicator.damagedTo(this.health);
+        this.updateHealthBarDisplay();
         if (this.health <= 0) {
             this.eliminated(input);
         }
@@ -2581,8 +2584,6 @@ class Enemy {
             if (sc.needFeedback)
                 this.playHurtAnimation();
         }
-        this.health = Math.max(0, this.health);
-        this.healthIndicator.damagedTo(this.health);
     }
     updateHealthBarDisplay() {
         if (this.hpBar) {
@@ -2649,7 +2650,7 @@ class EnemyHpBar extends Wrapper {
             originY: 0,
             roundRadius: this.outterRadius,
         });
-        this.progressBar = new Rect(this.scene, this.inner, 0, 0, {
+        this.progressBar = new Rect(this.scene, this.inner, 0, this.barHeight / 2, {
             lineColor: this.progressColor,
             fillColor: this.progressColor,
             width: this.barWidth,
@@ -2659,6 +2660,7 @@ class EnemyHpBar extends Wrapper {
             originY: 0,
             roundRadius: this.outterRadius,
         });
+        this.progressBar.setOrigin(0, 0.5);
         this.frameBar = new Rect(this.scene, this.inner, 0, 0, {
             lineColor: this.frameColor,
             fillColor: this.frameColor,
@@ -2691,7 +2693,18 @@ class EnemyHpBar extends Wrapper {
     updateDisplay(curHp, maxHp) {
         curHp = clamp(curHp, 0, maxHp);
         //this.progressBar.setSize(0);
-        this.progressBar.setSize(curHp / maxHp * this.barWidth);
+        // maxHp = 100
+        // curHp = 0;
+        let ratio = curHp / maxHp;
+        let newWidth = ratio * this.barWidth;
+        let threshouldWidth = this.outterRadius * 2;
+        if (newWidth < threshouldWidth) {
+            this.progressBar.setScale(newWidth / threshouldWidth, Math.pow(newWidth / threshouldWidth, 0.7));
+            newWidth = threshouldWidth;
+        }
+        this.progressBar.setSize(newWidth);
+        // if(ratio < 1)
+        //     console.log(ratio)
         this.refreshCenterText(curHp, maxHp);
     }
 }
@@ -5749,16 +5762,27 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     typerAutoDamage(time, dt) {
         // auto damage to 404
         if (badInfos[0].consumed) {
-            this.lastAutoTypeTime = time;
+            let dpsSum = 0;
             for (let i = 0; i < badInfos.length; i++) {
                 if (badInfos[i].consumed)
-                    this.enemyManager.sendInputToServer(badInfos[i].title);
+                    dpsSum += badInfos[i].damage;
+            }
+            for (let i in this.enemyManager.enemies) {
+                let e = this.enemyManager.enemies[i];
+                if (e.isSensative()) {
+                    e.damageInner(dpsSum * dt, badInfos[0].title);
+                }
             }
         }
         // auto damage to real word
         if (getAutoTurnInfo().consumed) {
-            this.lastAutoTurnTime = time;
-            this.enemyManager.sendInputToServer(turnInfos[0].title);
+            let dpsSum = turnInfos[0].damage;
+            for (let i in this.enemyManager.enemies) {
+                let e = this.enemyManager.enemies[i];
+                if (!e.isSensative()) {
+                    e.damageInner(dpsSum * dt, turnInfos[0].title);
+                }
+            }
         }
         // // auto damage to 404
         // if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {

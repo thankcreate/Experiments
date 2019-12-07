@@ -51,7 +51,7 @@ class Hud extends Wrapper<PhText> {
         // score
         let style = getDefaultTextStyle();
         style.fontSize = '44px';
-        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
+        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "$core: 0", style).setOrigin(1, 1);
         this.scoreText.y += 250
         this.inner.add(this.scoreText);
 
@@ -309,7 +309,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     refreshScore() {
-        this.scoreText.text = "Score: " + this.score;
+        this.scoreText.text = "$core: " + this.score;
     }
 
     reset() {
@@ -341,6 +341,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     showContainerRight() {
+        this.toolMenuContainerRight.setVisible(true);
         if(this.toolMenuContainerRightIsShown)
             return;
         this.toolMenuContainerRightIsShown = true;
@@ -353,6 +354,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     showContainerLeft() {
+        this.toolMenuContainerLeft.setVisible(true);
         if(this.toolMenuContainerLeftIsShown)
             return;
         this.toolMenuContainerLeftIsShown = true;
@@ -408,6 +410,7 @@ class Hud extends Wrapper<PhText> {
         }
         else {
             this.toolMenuContainerRight.x += 150;
+            this.toolMenuContainerRight.setVisible(false);
         }
         
     }
@@ -426,6 +429,7 @@ class Hud extends Wrapper<PhText> {
         }
         else {
             this.toolMenuContainerLeft.x -= 150;
+            this.toolMenuContainerLeft.setVisible(false);
         }
         
     }

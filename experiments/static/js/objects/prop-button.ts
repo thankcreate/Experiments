@@ -11,6 +11,8 @@ class PropButton extends Button {
 
     purchasedMark: PhImage;
 
+  
+
     constructor (scene: BaseScene, parentContainer: PhContainer, hd: Hud,
         x: number, y: number,
         imgKey: string, title: string,
@@ -46,17 +48,20 @@ class PropButton extends Button {
      * @param dir 
      */
     addPromptImg(dir: Dir) {
-        this.promptImg = this.scene.add.image(0, 0, 'arrow');
-        this.inner.add(this.promptImg);
 
+        
         if(dir == Dir.Left || dir == Dir.Right) {
-            let isLeft = dir == Dir.Left;
-            this.promptImg.y -= 50;
+            let isLeft = dir == Dir.Left;            
+            this.promptImg = this.scene.add.image(0, 0, isLeft ? 'arrow_rev' : 'arrow');
+            this.inner.add(this.promptImg);
+            
             this.promptImg.x += isLeft ?  40 : -40;
-            this.promptImg.setOrigin(isLeft ? 0 : 1);
+            this.promptImg.setOrigin(isLeft ? 0 : 1, 0.5);
+            // this.promptImg.setScale(isLeft ? -1 : 1);
+
             this.scene.tweens.add({
                 targets: this.promptImg,
-                x: isLeft ? 60 : -60,
+                x:  isLeft ? +60 : -60,
                 yoyo: true,
                 duration: 250,
                 loop: -1,
@@ -71,6 +76,18 @@ class PropButton extends Button {
         this.purchasedMark.setVisible(val);
     }
 
+    /**
+     * Some prop button is purchased by some prerequisite condition.
+     * Even though the current score has been greater than its price,
+     * we still don't show the prompt img.
+     * For example, Keyword 'Bad' is acquired by the purchasing of the 'AutoTyper',
+     * and the price of 'Bad' is 0.
+     * We don't want to show a prompt img beside the 'Bad'
+     */
+    canBePurchased() : boolean {
+        return this.hud.score >= this.priceTag && this.priceTag != 0;
+    }
+
     refreshState() {
         if(this.purchased) {
             this.inner.alpha = 1;
@@ -80,20 +97,20 @@ class PropButton extends Button {
                 this.promptImg.setVisible(false);
             }
         }
-        else if(this.hud.score < this.priceTag){
+        else if(this.canBePurchased()){
+            if(this.promptImg) {
+                this.promptImg.setVisible(true);
+            }
+            this.inner.alpha = 1;
+            this.canClick = true;          
+        }
+        else {   
             this.inner.alpha = 0.2;
             this.canClick = false;
             
             if(this.promptImg) {                    
                 this.promptImg.setVisible(false);
-            }                
-        }
-        else {                                
-            if(this.promptImg) {
-                this.promptImg.setVisible(true);
-            }
-            this.inner.alpha = 1;
-            this.canClick = true;
+            }  
         }         
     }
 }

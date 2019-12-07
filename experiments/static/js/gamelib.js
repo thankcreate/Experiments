@@ -175,6 +175,7 @@ class Scene1 extends BaseScene {
     preload() {
         this.load.image('circle', 'assets/circle.png');
         this.load.image('arrow', 'assets/arrow.png');
+        this.load.image('arrow_rev', 'assets/arrow_rev.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
         this.load.image('speaker', 'assets/speaker.png');
         this.load.image('unit_white', 'assets/unit_white.png');
@@ -1901,17 +1902,6 @@ class Button {
         });
         // this.scene.input.setTopOnly(false);
         this.scene.updateObjects.push(this);
-    }
-    addPromptImg() {
-        this.promptImg = this.scene.add.image(0, 0, 'arrow').setOrigin(1, 0);
-        this.inner.add(this.promptImg);
-        this.scene.tweens.add({
-            targets: this.promptImg,
-            x: -60,
-            yoyo: true,
-            duration: 250,
-            loop: -1,
-        });
     }
     update(time, dt) {
     }
@@ -4430,7 +4420,7 @@ class Hud extends Wrapper {
         // score
         let style = getDefaultTextStyle();
         style.fontSize = '44px';
-        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "Score: 0", style).setOrigin(1, 1);
+        this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "$core: 0", style).setOrigin(1, 1);
         this.scoreText.y += 250;
         this.inner.add(this.scoreText);
         // combo
@@ -4629,7 +4619,7 @@ class Hud extends Wrapper {
         this.refreshScore();
     }
     refreshScore() {
-        this.scoreText.text = "Score: " + this.score;
+        this.scoreText.text = "$core: " + this.score;
     }
     reset() {
         this.score = initScore;
@@ -4654,6 +4644,7 @@ class Hud extends Wrapper {
         // showContainerRight();
     }
     showContainerRight() {
+        this.toolMenuContainerRight.setVisible(true);
         if (this.toolMenuContainerRightIsShown)
             return;
         this.toolMenuContainerRightIsShown = true;
@@ -4664,6 +4655,7 @@ class Hud extends Wrapper {
         });
     }
     showContainerLeft() {
+        this.toolMenuContainerLeft.setVisible(true);
         if (this.toolMenuContainerLeftIsShown)
             return;
         this.toolMenuContainerLeftIsShown = true;
@@ -4709,6 +4701,7 @@ class Hud extends Wrapper {
         }
         else {
             this.toolMenuContainerRight.x += 150;
+            this.toolMenuContainerRight.setVisible(false);
         }
     }
     hideContainerLeft(needAnimation = true) {
@@ -4724,6 +4717,7 @@ class Hud extends Wrapper {
         }
         else {
             this.toolMenuContainerLeft.x -= 150;
+            this.toolMenuContainerLeft.setVisible(false);
         }
     }
 }
@@ -5237,16 +5231,16 @@ class PropButton extends Button {
      * @param dir
      */
     addPromptImg(dir) {
-        this.promptImg = this.scene.add.image(0, 0, 'arrow');
-        this.inner.add(this.promptImg);
         if (dir == Dir.Left || dir == Dir.Right) {
             let isLeft = dir == Dir.Left;
-            this.promptImg.y -= 50;
+            this.promptImg = this.scene.add.image(0, 0, isLeft ? 'arrow_rev' : 'arrow');
+            this.inner.add(this.promptImg);
             this.promptImg.x += isLeft ? 40 : -40;
-            this.promptImg.setOrigin(isLeft ? 0 : 1);
+            this.promptImg.setOrigin(isLeft ? 0 : 1, 0.5);
+            // this.promptImg.setScale(isLeft ? -1 : 1);
             this.scene.tweens.add({
                 targets: this.promptImg,
-                x: isLeft ? 60 : -60,
+                x: isLeft ? +60 : -60,
                 yoyo: true,
                 duration: 250,
                 loop: -1,
@@ -5257,6 +5251,17 @@ class PropButton extends Button {
         this.purchased = val;
         this.purchasedMark.setVisible(val);
     }
+    /**
+     * Some prop button is purchased by some prerequisite condition.
+     * Even though the current score has been greater than its price,
+     * we still don't show the prompt img.
+     * For example, Keyword 'Bad' is acquired by the purchasing of the 'AutoTyper',
+     * and the price of 'Bad' is 0.
+     * We don't want to show a prompt img beside the 'Bad'
+     */
+    canBePurchased() {
+        return this.hud.score >= this.priceTag && this.priceTag != 0;
+    }
     refreshState() {
         if (this.purchased) {
             this.inner.alpha = 1;
@@ -5265,19 +5270,19 @@ class PropButton extends Button {
                 this.promptImg.setVisible(false);
             }
         }
-        else if (this.hud.score < this.priceTag) {
-            this.inner.alpha = 0.2;
-            this.canClick = false;
-            if (this.promptImg) {
-                this.promptImg.setVisible(false);
-            }
-        }
-        else {
+        else if (this.canBePurchased()) {
             if (this.promptImg) {
                 this.promptImg.setVisible(true);
             }
             this.inner.alpha = 1;
             this.canClick = true;
+        }
+        else {
+            this.inner.alpha = 0.2;
+            this.canClick = false;
+            if (this.promptImg) {
+                this.promptImg.setVisible(false);
+            }
         }
     }
 }

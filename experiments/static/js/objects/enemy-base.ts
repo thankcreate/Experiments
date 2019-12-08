@@ -109,7 +109,8 @@ class Enemy {
 
     update(time, dt) {        
         this.checkIfReachEnd();
-        this.healthIndicator.update(time, dt);
+        if(this.healthIndicator)        
+            this.healthIndicator.update(time, dt);
 
         // this.updateHealthBarDisplay();
     }
@@ -260,7 +261,9 @@ class Enemy {
         this.health -= dmg;
         
         this.health = Math.max(0, this.health);
-        this.healthIndicator.damagedTo(this.health);
+        
+        if(this.healthIndicator)
+            this.healthIndicator.damagedTo(this.health);
 
         this.updateHealthBarDisplay()
         if (this.health <= 0) {

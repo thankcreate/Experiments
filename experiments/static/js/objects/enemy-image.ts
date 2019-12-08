@@ -11,39 +11,47 @@ class EnemyImage extends Enemy {
 
     initContent() {
         super.initContent();
-        this.gap = 10;
+        let y = 0;
+        this.gap = 15;
+
+        let imgSize = gameplayConfig.drawDataDefaultSize;
         
         // figure
         let isFakeFigure = this.config.clickerType == ClickerType.Bad;
         this.figure = new QuickDrawFigure(this.scene, this.inner, this.config.image, isFakeFigure);
 
 
-        let lb = this.figure.getLeftBottom();
-        let rb = this.figure.getRightBottom();
+        // let lb = this.figure.getLeftBottom();
+        // let rb = this.figure.getRightBottom();
+        let lb = MakePoint2(-imgSize / 2, 0);
+        let rb = MakePoint2(imgSize / 2, 0);
+               
 
 
         this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
+        
+        y+= this.gap;
 
-        // text
-        this.text = this.scene.add.text((lb.x + rb.x) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
-        this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;        
-        this.text.setOrigin(0.5, 0);
-        this.inner.add(this.text); 
+        // title
+        if(!this.isSensative()) 
+        {
+            this.text = this.scene.add.text((lb.x + rb.x) / 2, y, this.config.label, this.lblStyle);
+            this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;        
+            this.text.setOrigin(0.5, 0);
+            this.inner.add(this.text); 
 
-        // let center = this.figure.getCenter();
-        // this.text.setPosition(center.x, center.y);
+            y += this.text.displayHeight
+            y += 4;
+
+            
+            // legacy health bubble
+            let lc = this.text.getLeftCenter();
+            lc.x -= gameplayConfig.healthIndicatorWidth / 2;
+            lc.x -= 4;
+            this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);    
+        }      
         
-        
-        let lc = this.text.getLeftCenter();
-        lc.x -= gameplayConfig.healthIndicatorWidth / 2;
-        lc.x -= 4;
-        this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
-        
-        // // healthText
-        // let lb = this.text.getBottomLeft();
-        // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
-        // this.healthText.setOrigin(0, 0);
-        // this.inner.add(this.healthText);  
+    
 
         // textAsImage
         if(this.isSensative()) 
@@ -53,19 +61,18 @@ class EnemyImage extends Enemy {
             textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
             
             let textAsImage = this.scene.add.text(0, 0, "404", textAsImageStyle);        
-            textAsImage.setOrigin(0.5);
+            textAsImage.setOrigin(0.5, 1);
             this.inner.add(textAsImage);
 
             this.figure.inner.setVisible(false);
-
-           
         }
 
-        let hpBarPosi = this.text.getBottomLeft();
+        let hpBarPosi = MakePoint2(0,0);
         hpBarPosi.x = lb.x;
-        hpBarPosi.y += 4;
+        hpBarPosi.y = y;
 
-        this.healthIndicator.inner.setVisible(false);
+        if(this.healthIndicator)
+            this.healthIndicator.inner.setVisible(false);
         this.hpBar = new EnemyHpBar(this.scene as BaseScene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x, this.maxHealth);
 
         if(!this.config.needChange) {

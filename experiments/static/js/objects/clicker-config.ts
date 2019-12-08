@@ -13,9 +13,9 @@ let turnInfos = [
 
 let propInfos = [
     {title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},            
-    {title: "Auto\nTyper", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
-    {title: "Turn", consumed: false, price: 2500, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 't' for short"},
-    {title: "Auto\nmata", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words"},
+    {title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
+    {title: "T**", consumed: false, price: 2500, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 'T' for short"},
+    {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words"},
     {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!"}
 ]   
 
@@ -31,9 +31,16 @@ function getAutoTurnInfo() {
     return propInfos[3];
 }
 
+function getNormalFreq() {
+    return normalFreq1;
+}
+
+
 
 let initScore = 10000;
 let baseScore = 100;
+let normalFreq1 = 4;
+
 
 for(let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];

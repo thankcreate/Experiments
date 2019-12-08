@@ -11,6 +11,7 @@ class Bubble extends Wrapper<PhImage> {
 
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
+        style.fontSize = '26px'
         let cc = "You can just type in 'B' instead of 'BAD' for short";
         
         this.text = this.scene.add.text(isRight ? -442 : 40, -26, cc, style).setOrigin(0, 0);

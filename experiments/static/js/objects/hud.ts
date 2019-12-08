@@ -180,7 +180,7 @@ class Hud extends Wrapper<PhText> {
         let titleStyle = getDefaultTextStyle();
         titleStyle.fontSize = '20px';
         titleStyle.fill = '#1A1A1A'
-        let title = this.scene.add.text(0, -btnWidth / 2 - 15,'AutoTyper', titleStyle).setOrigin(0.5, 1);
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         
         for(let i = 0; i < badInfos.length; i++) {            

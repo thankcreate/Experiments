@@ -64,6 +64,31 @@ class QuickDrawFigure{
     drawFigure(figure) {
         var strokes = figure.drawing;
         this.inner.clear();
+
+        let minX = this.sampleRate;
+        let maxX = 0;
+        let minY = this.sampleRate;
+        let maxY = 0;
+        for(let strokeI = 0; strokeI < strokes.length; strokeI++) {
+            // console.log("drawFigure strokeI:" + strokeI);
+
+            var xArr = strokes[strokeI][0];
+            var yArr = strokes[strokeI][1];
+            var count = xArr.length;
+            for(let i = 0; i < count; i++) {                     
+                minX = Math.min(minX, xArr[i]);
+                maxX = Math.max(maxX, xArr[i]);
+                minY = Math.min(minY, yArr[i]);
+                maxY = Math.max(maxY, yArr[i]);
+            }                 
+        }
+        this.originX = (minX + maxX ) / 2 / this.sampleRate;
+        this.originY = (minY + maxY) / 2 / this.sampleRate;
+        // console.log(maxY + "  min:" + minY);
+        // this.originY = maxY / this.sampleRate;
+        
+        this.inner.y = -(maxY / this.sampleRate - this.originY) * this.newSize;
+
         // let maxY = -10000;
         // let maxX = -10000;
         // the sample is 255, which means that x, y are both <= 255        

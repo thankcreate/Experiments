@@ -1813,6 +1813,7 @@ class Bubble extends Wrapper {
         this.applyTarget(img);
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
+        style.fontSize = '26px';
         let cc = "You can just type in 'B' instead of 'BAD' for short";
         this.text = this.scene.add.text(isRight ? -442 : 40, -26, cc, style).setOrigin(0, 0);
         this.text.setWordWrapWidth(400);
@@ -2137,9 +2138,9 @@ let turnInfos = [
 ];
 let propInfos = [
     { title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
-    { title: "Auto\nTyper", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "Turn", consumed: false, price: 2500, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 't' for short" },
-    { title: "Auto\nmata", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words" },
+    { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
+    { title: "T**", consumed: false, price: 2500, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 'T' for short" },
+    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words" },
     { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!" }
 ];
 function getAutoTypeInfo() {
@@ -2151,8 +2152,12 @@ function getTurnInfo() {
 function getAutoTurnInfo() {
     return propInfos[3];
 }
+function getNormalFreq() {
+    return normalFreq1;
+}
 let initScore = 10000;
 let baseScore = 100;
+let normalFreq1 = 4;
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
     item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.cost;
@@ -2457,7 +2462,8 @@ class Enemy {
     }
     update(time, dt) {
         this.checkIfReachEnd();
-        this.healthIndicator.update(time, dt);
+        if (this.healthIndicator)
+            this.healthIndicator.update(time, dt);
         // this.updateHealthBarDisplay();
     }
     checkIfReachEnd() {
@@ -2574,7 +2580,8 @@ class Enemy {
     damageInner(dmg, input) {
         this.health -= dmg;
         this.health = Math.max(0, this.health);
-        this.healthIndicator.damagedTo(this.health);
+        if (this.healthIndicator)
+            this.healthIndicator.damagedTo(this.health);
         this.updateHealthBarDisplay();
         if (this.health <= 0) {
             this.eliminated(input);
@@ -2638,6 +2645,7 @@ class EnemyHpBar extends Wrapper {
         this.barHeight = 25;
         this.frameWidth = 4;
         this.outterRadius = 12;
+        this.progressOffsetX = 0;
         this.barWidth = width;
         this.maxHp = maxHp;
         this.bkgBar = new Rect(this.scene, this.inner, 0, 0, {
@@ -2653,7 +2661,7 @@ class EnemyHpBar extends Wrapper {
         this.progressBar = new Rect(this.scene, this.inner, 0, this.barHeight / 2, {
             lineColor: this.progressColor,
             fillColor: this.progressColor,
-            width: this.barWidth,
+            width: this.barWidth - this.frameWidth,
             height: this.barHeight,
             lineWidth: 1,
             originX: 0,
@@ -2661,6 +2669,8 @@ class EnemyHpBar extends Wrapper {
             roundRadius: this.outterRadius,
         });
         this.progressBar.setOrigin(0, 0.5);
+        this.progressOffsetX = 2;
+        this.progressBar.inner.x = this.progressOffsetX;
         this.frameBar = new Rect(this.scene, this.inner, 0, 0, {
             lineColor: this.frameColor,
             fillColor: this.frameColor,
@@ -2695,16 +2705,28 @@ class EnemyHpBar extends Wrapper {
         //this.progressBar.setSize(0);
         // maxHp = 100
         // curHp = 0;
-        let ratio = curHp / maxHp;
-        let newWidth = ratio * this.barWidth;
-        let threshouldWidth = this.outterRadius * 2;
-        if (newWidth < threshouldWidth) {
-            this.progressBar.setScale(newWidth / threshouldWidth, Math.pow(newWidth / threshouldWidth, 0.7));
-            newWidth = threshouldWidth;
+        let useSetSize = false;
+        if (useSetSize) {
+            let ratio = curHp / maxHp;
+            let newWidth = ratio * this.barWidth;
+            let threshouldWidth = this.outterRadius * 2;
+            if (newWidth < threshouldWidth) {
+                this.progressBar.setScale(newWidth / threshouldWidth, Math.pow(newWidth / threshouldWidth, 0.5));
+                newWidth = threshouldWidth;
+            }
+            this.progressBar.setSize(newWidth);
         }
-        this.progressBar.setSize(newWidth);
-        // if(ratio < 1)
-        //     console.log(ratio)
+        else {
+            let ratioX = curHp / maxHp;
+            let ratioY = 1;
+            let newWidth = ratioX * this.progressBar.config.width;
+            let threshouldWidth = this.outterRadius * 1.8;
+            if (newWidth < threshouldWidth) {
+                ratioY = Math.pow(newWidth / threshouldWidth, 1);
+                // this.progressBar.inner.x = (1 - newWidth / threshouldWidth) * 1 + this.progressOffsetX;
+            }
+            this.progressBar.setScale(ratioX, ratioY);
+        }
         this.refreshCenterText(curHp, maxHp);
     }
 }
@@ -2714,43 +2736,47 @@ class EnemyImage extends Enemy {
     }
     initContent() {
         super.initContent();
-        this.gap = 10;
+        let y = 0;
+        this.gap = 15;
+        let imgSize = gameplayConfig.drawDataDefaultSize;
         // figure
         let isFakeFigure = this.config.clickerType == ClickerType.Bad;
         this.figure = new QuickDrawFigure(this.scene, this.inner, this.config.image, isFakeFigure);
-        let lb = this.figure.getLeftBottom();
-        let rb = this.figure.getRightBottom();
+        // let lb = this.figure.getLeftBottom();
+        // let rb = this.figure.getRightBottom();
+        let lb = MakePoint2(-imgSize / 2, 0);
+        let rb = MakePoint2(imgSize / 2, 0);
         this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
-        // text
-        this.text = this.scene.add.text((lb.x + rb.x) / 2, lb.y + this.gap, this.config.label, this.lblStyle);
-        this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
-        this.text.setOrigin(0.5, 0);
-        this.inner.add(this.text);
-        // let center = this.figure.getCenter();
-        // this.text.setPosition(center.x, center.y);
-        let lc = this.text.getLeftCenter();
-        lc.x -= gameplayConfig.healthIndicatorWidth / 2;
-        lc.x -= 4;
-        this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
-        // // healthText
-        // let lb = this.text.getBottomLeft();
-        // this.healthText = this.scene.add.text(lb.x, lb.y, this.health.toString(), this.lblStyle);
-        // this.healthText.setOrigin(0, 0);
-        // this.inner.add(this.healthText);  
+        y += this.gap;
+        // title
+        if (!this.isSensative()) {
+            this.text = this.scene.add.text((lb.x + rb.x) / 2, y, this.config.label, this.lblStyle);
+            this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
+            this.text.setOrigin(0.5, 0);
+            this.inner.add(this.text);
+            y += this.text.displayHeight;
+            y += 4;
+            // legacy health bubble
+            let lc = this.text.getLeftCenter();
+            lc.x -= gameplayConfig.healthIndicatorWidth / 2;
+            lc.x -= 4;
+            this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
+        }
         // textAsImage
         if (this.isSensative()) {
             let textAsImageStyle = getDefaultTextStyle();
             textAsImageStyle.fontSize = '120px';
             textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
             let textAsImage = this.scene.add.text(0, 0, "404", textAsImageStyle);
-            textAsImage.setOrigin(0.5);
+            textAsImage.setOrigin(0.5, 1);
             this.inner.add(textAsImage);
             this.figure.inner.setVisible(false);
         }
-        let hpBarPosi = this.text.getBottomLeft();
+        let hpBarPosi = MakePoint2(0, 0);
         hpBarPosi.x = lb.x;
-        hpBarPosi.y += 4;
-        this.healthIndicator.inner.setVisible(false);
+        hpBarPosi.y = y;
+        if (this.healthIndicator)
+            this.healthIndicator.inner.setVisible(false);
         this.hpBar = new EnemyHpBar(this.scene, this.inner, hpBarPosi.x, hpBarPosi.y, rb.x - lb.x, this.maxHealth);
         if (!this.config.needChange) {
             this.figure.stopChange();
@@ -2913,6 +2939,7 @@ class EnemyManager {
         this.omniHistory.length = 0;
     }
     getNextName() {
+        // return "Hexagon";
         let ret = "";
         // max try count
         let maxTry = 100;
@@ -3187,7 +3214,7 @@ class EnemyManager {
                 let normalWords = this.getNormalWords();
                 for (let i in normalWords) {
                     // The 'value' attribute doens't work here
-                    res.outputArray.push({ name: normalWords[i].lbl, value: 1, enemy: normalWords[i], damage: item.damage });
+                    res.outputArray.push({ name: "", value: 1, enemy: normalWords[i], damage: item.damage });
                 }
             }
         }
@@ -4613,7 +4640,7 @@ class Hud extends Wrapper {
         let titleStyle = getDefaultTextStyle();
         titleStyle.fontSize = '20px';
         titleStyle.fill = '#1A1A1A';
-        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'AutoTyper', titleStyle).setOrigin(0.5, 1);
+        let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
@@ -5426,6 +5453,27 @@ class QuickDrawFigure {
     drawFigure(figure) {
         var strokes = figure.drawing;
         this.inner.clear();
+        let minX = this.sampleRate;
+        let maxX = 0;
+        let minY = this.sampleRate;
+        let maxY = 0;
+        for (let strokeI = 0; strokeI < strokes.length; strokeI++) {
+            // console.log("drawFigure strokeI:" + strokeI);
+            var xArr = strokes[strokeI][0];
+            var yArr = strokes[strokeI][1];
+            var count = xArr.length;
+            for (let i = 0; i < count; i++) {
+                minX = Math.min(minX, xArr[i]);
+                maxX = Math.max(maxX, xArr[i]);
+                minY = Math.min(minY, yArr[i]);
+                maxY = Math.max(maxY, yArr[i]);
+            }
+        }
+        this.originX = (minX + maxX) / 2 / this.sampleRate;
+        this.originY = (minY + maxY) / 2 / this.sampleRate;
+        // console.log(maxY + "  min:" + minY);
+        // this.originY = maxY / this.sampleRate;
+        this.inner.y = -(maxY / this.sampleRate - this.originY) * this.newSize;
         // let maxY = -10000;
         // let maxX = -10000;
         // the sample is 255, which means that x, y are both <= 255        
@@ -5808,6 +5856,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     onEnter() {
         this.spawnBad();
+        this.spawnBad();
         this.spawnNormal();
         this.spawnNormal();
         this.startLoopCreateNormal();
@@ -5815,7 +5864,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;
         this.lastNormalTime = this.enemyManager.scene.curTime;
-        this.freqNormal = 15 * 1000;
+        this.freqNormal = normalFreq1 * 1000;
     }
     startLoopCreateBad() {
         this.needloopCeateBad = true;

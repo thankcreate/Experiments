@@ -117,6 +117,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     
     onEnter(){
         this.spawnBad();
+        this.spawnBad();
         this.spawnNormal();
         this.spawnNormal();
         this.startLoopCreateNormal();
@@ -127,8 +128,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;        
         
-        this.lastNormalTime = (this.enemyManager.scene as Scene1).curTime;
-        this.freqNormal = 15 * 1000;
+        this.lastNormalTime = (this.enemyManager.scene as Scene1).curTime;        
+        this.freqNormal = normalFreq1 * 1000;
     }
 
     startLoopCreateBad() {

@@ -21,6 +21,8 @@ class EnemyHpBar extends Wrapper<PhText> {
     centerText: PhText;
     
     maxHp: number;
+    
+    progressOffsetX = 0;
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, width: number, maxHp: number) {
         super(scene, parentContainer, x, y, null);
 
@@ -41,7 +43,7 @@ class EnemyHpBar extends Wrapper<PhText> {
         this.progressBar = new Rect(this.scene, this.inner, 0, this.barHeight / 2, {
             lineColor: this.progressColor,
             fillColor: this.progressColor,
-            width: this.barWidth, 
+            width: this.barWidth - this.frameWidth, 
             height: this.barHeight, 
             lineWidth: 1,
             originX: 0,
@@ -49,6 +51,8 @@ class EnemyHpBar extends Wrapper<PhText> {
             roundRadius: this.outterRadius,         
         });
         this.progressBar.setOrigin(0, 0.5);
+        this.progressOffsetX = 2;
+        this.progressBar.inner.x = this.progressOffsetX; 
 
 
         this.frameBar = new Rect(this.scene, this.inner, 0, 0, {
@@ -91,18 +95,33 @@ class EnemyHpBar extends Wrapper<PhText> {
         //this.progressBar.setSize(0);
         // maxHp = 100
         // curHp = 0;
-        let ratio = curHp / maxHp;        
-        let newWidth = ratio * this.barWidth;
 
-        let threshouldWidth = this.outterRadius * 2;
-        if(newWidth < threshouldWidth) {
-            this.progressBar.setScale(newWidth / threshouldWidth, Math.pow(newWidth / threshouldWidth, 0.7));
-            newWidth = threshouldWidth;
-        }        
-
-        this.progressBar.setSize(newWidth);
-        // if(ratio < 1)
-        //     console.log(ratio)
+        let useSetSize = false;
+        if(useSetSize) {
+            let ratio = curHp / maxHp;        
+            let newWidth = ratio * this.barWidth;
+    
+            let threshouldWidth = this.outterRadius * 2;
+            if(newWidth < threshouldWidth) {
+                this.progressBar.setScale(newWidth / threshouldWidth, Math.pow(newWidth / threshouldWidth, 0.5));
+                newWidth = threshouldWidth;
+            }        
+    
+            this.progressBar.setSize(newWidth);
+        }
+        else {
+            let ratioX = curHp / maxHp;        
+            let ratioY = 1;
+    
+            let newWidth = ratioX * this.progressBar.config.width;
+    
+            let threshouldWidth = this.outterRadius * 1.8;
+            if(newWidth < threshouldWidth) {            
+                ratioY = Math.pow(newWidth / threshouldWidth, 1);
+                // this.progressBar.inner.x = (1 - newWidth / threshouldWidth) * 1 + this.progressOffsetX;
+            }   
+            this.progressBar.setScale(ratioX,ratioY);     
+        }
         
         this.refreshCenterText(curHp, maxHp);
     }

@@ -133,6 +133,7 @@ class EnemyManager {
     }
 
     getNextName(): string {
+        // return "Hexagon";
         let ret: string = "";
         // max try count
         let maxTry = 100;
@@ -471,7 +472,7 @@ class EnemyManager {
                 let normalWords = this.getNormalWords();
                 for(let i in normalWords) {
                     // The 'value' attribute doens't work here
-                    res.outputArray.push({name: normalWords[i].lbl, value: 1, enemy: normalWords[i], damage: item.damage});
+                    res.outputArray.push({name: "", value: 1, enemy: normalWords[i], damage: item.damage});
                 }            
             }
         } 

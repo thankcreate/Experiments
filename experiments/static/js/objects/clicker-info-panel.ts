@@ -40,7 +40,7 @@ class ClickerInfoPanel extends Wrapper<PhText> {
         this.inner.add(this.lblAwardFor404);
 
         h += this.lblAwardFor404.displayHeight + gapVertical;
-        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Normal): ", style);
+        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Non-404): ", style);
         this.inner.add(this.lblAwardForNormal);
 
       

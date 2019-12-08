@@ -14,8 +14,8 @@ let turnInfos = [
 let propInfos = [
     {title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},            
     {title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
-    {title: "T**", consumed: false, price: 2500, size: 30, desc: "Turn NON-BAD words into BAD words.\nYou can just type in 'T' for short"},
-    {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-BAD words into BAD words"},
+    {title: "T**", consumed: false, price: 2500, size: 30, desc: "Turn NON-404 words into 404.\nYou can just type in 'T' for short"},
+    {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-404 words into 404"},
     {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!"}
 ]   
 

@@ -8,6 +8,15 @@ class EnemyImage extends Enemy {
         super(scene, enemyManager, posi, lblStyle, config);       
     }
 
+    getMainImage() : Phaser.GameObjects.Components.Transform{
+        if(this.textAsImage) {
+            return this.textAsImage;
+        }
+        else {
+            return this.figure.inner;
+        }
+    }
+
 
     initContent() {
         super.initContent();
@@ -61,10 +70,12 @@ class EnemyImage extends Enemy {
             textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
             
             let textAsImage = this.scene.add.text(0, 0, "404", textAsImageStyle);        
-            textAsImage.setOrigin(0.5, 1);
+            textAsImage.setOrigin(0.5, 0.5);
+            textAsImage.y -= textAsImage.displayHeight / 2;
             this.inner.add(textAsImage);
 
             this.figure.inner.setVisible(false);
+            this.textAsImage = textAsImage;
         }
 
         let hpBarPosi = MakePoint2(0,0);

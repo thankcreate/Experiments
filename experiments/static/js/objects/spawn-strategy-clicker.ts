@@ -116,8 +116,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     
     onEnter(){
-        this.spawnBad();
-        this.spawnBad();
+        this.spawnBad();        
         this.spawnNormal();
         this.spawnNormal();
         this.startLoopCreateNormal();
@@ -160,7 +159,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             this.badEliminatedCount++;  
 
             if(this.badCount < this.respawnAfterKilledThreshould) {
-                this.spawnBad();
+                setTimeout(()=>{
+                    this.spawnBad();
+                }, 500);                
             }
             else if(this.badCount == this.respawnAfterKilledThreshould) {
                 this.startLoopCreateBad();
@@ -198,12 +199,12 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         let clickerType = enemy.clickerType;
         if(clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {            
             let sc = this.getAwardFor404();
-            (this.enemyManager.scene as Scene1).hud.addScore(sc);
+            (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
         }
         else if(clickerType == ClickerType.Normal) {
             if(!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
-                (this.enemyManager.scene as Scene1).hud.addScore(sc);
+                (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
             }
         }
         this.enemyDisappear(enemy, damagedBy);

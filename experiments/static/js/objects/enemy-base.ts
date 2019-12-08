@@ -179,7 +179,7 @@ class Enemy {
         this.fadeTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: 0,
-            duration: 300,
+            duration: 500,
             onComplete:  () => {                
                 this.dispose();
             }

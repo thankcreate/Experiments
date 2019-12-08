@@ -216,6 +216,7 @@ class Scene1 extends BaseScene {
         this.sfxMatches.push(this.sound.add("sfx_match_2"));
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
         this.container = this.add.container(400, 299);
+        this.midContainder = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
@@ -291,6 +292,7 @@ class Scene1 extends BaseScene {
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
+        this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
         this.centerObject.update();
@@ -2515,7 +2517,7 @@ class Enemy {
         this.fadeTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: 0,
-            duration: 300,
+            duration: 500,
             onComplete: () => {
                 this.dispose();
             }
@@ -2734,6 +2736,14 @@ class EnemyImage extends Enemy {
     constructor(scene, enemyManager, posi, lblStyle, config) {
         super(scene, enemyManager, posi, lblStyle, config);
     }
+    getMainImage() {
+        if (this.textAsImage) {
+            return this.textAsImage;
+        }
+        else {
+            return this.figure.inner;
+        }
+    }
     initContent() {
         super.initContent();
         let y = 0;
@@ -2768,9 +2778,11 @@ class EnemyImage extends Enemy {
             textAsImageStyle.fontSize = '120px';
             textAsImageStyle.fontFamily = gameplayConfig.titleFontFamily;
             let textAsImage = this.scene.add.text(0, 0, "404", textAsImageStyle);
-            textAsImage.setOrigin(0.5, 1);
+            textAsImage.setOrigin(0.5, 0.5);
+            textAsImage.y -= textAsImage.displayHeight / 2;
             this.inner.add(textAsImage);
             this.figure.inner.setVisible(false);
+            this.textAsImage = textAsImage;
         }
         let hpBarPosi = MakePoint2(0, 0);
         hpBarPosi.x = lb.x;
@@ -4737,9 +4749,46 @@ class Hud extends Wrapper {
         this.comboHit = 0;
         this.comboHitText.setText("");
     }
-    addScore(inc) {
+    addScore(inc, enemy, showGainEffect = true) {
         this.score += inc;
         this.refreshScore();
+        if (enemy) {
+            if (showGainEffect) {
+                this.showScoreGainEffect(inc, enemy);
+            }
+        }
+    }
+    showScoreGainEffect(inc, enemy) {
+        let posi = MakePoint2(enemy.inner.x, enemy.inner.y);
+        if (enemy.config.enemyType == EnemyType.TextWithImage) {
+            posi.y += enemy.getMainImage().y;
+        }
+        else {
+            posi.y -= 75;
+        }
+        let style = getDefaultTextStyle();
+        style.fontSize = '40px';
+        style.fill = inc > 0 ? style.fill : '#ff0000';
+        let str = (inc >= 0 ? '+' : '-') + ' $: ' + Math.abs(inc);
+        let lbl = this.scene.add.text(posi.x, posi.y, str, style);
+        lbl.setOrigin(0.5, 0.5);
+        // this.inner.add(lbl);
+        let parentContainer = this.scene.midContainder;
+        parentContainer.add(lbl);
+        let dt = 1800;
+        let tw = this.scene.tweens.add({
+            targets: lbl,
+            y: '-= 30',
+            alpha: {
+                getStart: () => 1,
+                getEnd: () => 0,
+                duration: dt
+            },
+            onComplete: () => {
+                lbl.destroy();
+            },
+            duration: dt
+        });
     }
     refreshScore() {
         this.scoreText.text = "$core: " + this.score;
@@ -5856,7 +5905,6 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     onEnter() {
         this.spawnBad();
-        this.spawnBad();
         this.spawnNormal();
         this.spawnNormal();
         this.startLoopCreateNormal();
@@ -5887,7 +5935,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         if (clickerType == ClickerType.Bad) {
             this.badEliminatedCount++;
             if (this.badCount < this.respawnAfterKilledThreshould) {
-                this.spawnBad();
+                setTimeout(() => {
+                    this.spawnBad();
+                }, 500);
             }
             else if (this.badCount == this.respawnAfterKilledThreshould) {
                 this.startLoopCreateBad();
@@ -5920,12 +5970,12 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         let clickerType = enemy.clickerType;
         if (clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {
             let sc = this.getAwardFor404();
-            this.enemyManager.scene.hud.addScore(sc);
+            this.enemyManager.scene.hud.addScore(sc, enemy);
         }
         else if (clickerType == ClickerType.Normal) {
             if (!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
-                this.enemyManager.scene.hud.addScore(sc);
+                this.enemyManager.scene.hud.addScore(sc, enemy);
             }
         }
         this.enemyDisappear(enemy, damagedBy);

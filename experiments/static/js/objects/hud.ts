@@ -303,9 +303,56 @@ class Hud extends Wrapper<PhText> {
 
     
 
-    addScore(inc) {
+    addScore(inc, enemy?: Enemy, showGainEffect: boolean = true) {
         this.score += inc;
         this.refreshScore();
+
+        if(enemy) {
+            if(showGainEffect) {
+                this.showScoreGainEffect(inc, enemy);
+            }
+        }
+    }
+
+    showScoreGainEffect(inc: number, enemy: Enemy)  {        
+        
+
+        let posi = MakePoint2(enemy.inner.x, enemy.inner.y);
+        if(enemy.config.enemyType == EnemyType.TextWithImage) {
+            posi.y += (enemy as EnemyImage).getMainImage().y;
+        }
+        else {
+            posi.y -= 75;
+        }
+        
+
+        let style = getDefaultTextStyle();
+        style.fontSize = '40px';
+        style.fill = inc > 0 ? style.fill : '#ff0000';
+        let str = (inc >= 0 ? '+' : '-') + ' $: ' + Math.abs(inc);
+        let lbl = this.scene.add.text(posi.x, posi.y, str, style);
+
+        lbl.setOrigin(0.5, 0.5);
+
+        
+        // this.inner.add(lbl);
+        let parentContainer = (this.scene as Scene1).midContainder;
+        parentContainer.add(lbl);
+        let dt = 1800;
+
+        let tw = this.scene.tweens.add({
+            targets: lbl,            
+            y: '-= 30',
+            alpha: {
+                getStart: () => 1,
+                getEnd: () => 0,
+                duration: dt
+            },
+            onComplete: ()=>{
+                lbl.destroy();
+            },
+            duration: dt
+        });
     }
 
     refreshScore() {

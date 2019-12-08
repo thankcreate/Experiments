@@ -32,9 +32,25 @@ class Scene1 extends BaseScene {
     labels;
     lblStyl;
 
-    container: Phaser.GameObjects.Container;
-    abContainer: Phaser.GameObjects.Container;
-    overlayContainer: Phaser.GameObjects.Container;
+    /**
+     * container is aligned to the center of canvas
+     */
+    container: PhContainer;
+
+    /**
+     * middle is also aligned to the center
+     */
+    midContainder: PhContainer;
+
+    /**
+     * abContainer is aligned to the top-left corner
+     */
+    abContainer: PhContainer;
+
+    /**
+     * overlayContainer is also aligned to the center, but above the standard container
+     */
+    overlayContainer: PhContainer;
 
     enemyManager: EnemyManager;
     playerInput: PlayerInputText;
@@ -148,10 +164,13 @@ class Scene1 extends BaseScene {
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
 
         this.container = this.add.container(400, 299);
+        this.midContainder = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
 
         // Center cicle-like object
         this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+
+        
         // Enemies
         this.enemyManager = new EnemyManager(this, this.container);
         // Leaderboard
@@ -258,6 +277,7 @@ class Scene1 extends BaseScene {
         var h = phaserConfig.scale.height;
 
         this.container.setPosition(w / 2, h / 2);
+        this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
 
         this.enemyManager.update(time, dt);

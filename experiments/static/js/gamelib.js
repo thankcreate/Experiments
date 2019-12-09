@@ -2170,7 +2170,7 @@ let propInfos = [
     { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
     { title: "T**", consumed: false, price: 2500, size: 30,
         desc: "Turn NON-404 words into 404.\nYou can just type in 'T' for short",
-        warning: "Warning: Once you purchased this item, you can no longer do semantic word matching"
+        warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
     },
     { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-404 words into 404" },
     { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!" }
@@ -3627,6 +3627,8 @@ class Figure extends Wrapper {
             config.originX = 0;
         if (notSet(config.originY))
             config.originY = 0;
+        if (notSet(config.btn1))
+            config.btn1 = 'OK';
         this.config = config;
     }
     constructor(scene, parentContainer, x, y, config) {
@@ -3721,10 +3723,10 @@ class Dialog extends Figure {
         // OK btn
         // If fixed height, btn's position is anchored to the bottom
         // If auto height, btn's position is anchored to the content
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< OK >', 120, 50);
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< ' + config.btn1 + '>', 120, 50);
         this.okBtn.text.setColor('#000000');
         this.okBtn.text.setFontSize(38);
-        this.okBtn.setToHoverChangeTextMode("-< OK >-");
+        this.okBtn.setToHoverChangeTextMode("-< " + config.btn1 + " >-");
         this.okBtn.needHandOnHover = true;
         this.okBtn.ignoreOverlay = true;
         this.calcUiPosi();
@@ -3767,7 +3769,7 @@ class Dialog extends Figure {
             this.okBtn.inner.y = btnY;
         }
     }
-    setContent(content, title) {
+    setContent(content, title, btns) {
         this.config.title = title;
         this.config.content = content;
         this.content.text = content;
@@ -4811,6 +4813,7 @@ class Hud extends Wrapper {
         this.rightBtns[2].purchasedEvent.on(btn => {
             this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
             getTurnInfo().consumed = true;
+            this.scene.overlay.showTurnCautionDialog();
         });
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
@@ -5137,6 +5140,10 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 
 This current demo is only at progress 10% at most. 
 `;
+var cautionDefault = `Once you purchased this item, you can no longer do semantic word matching.
+
+All you can input will be 'Turn' and 'Bad'
+`;
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper {
@@ -5155,7 +5162,15 @@ class Overlay extends Wrapper {
             originY: 0.5,
         });
         this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
-        // uni
+        this.initUniDialog();
+        this.initInGameDialog();
+        this.initLeaderboardDialog();
+        this.uniDialog.hide();
+        this.inGameDialog.hide();
+        this.leaderboardDialog.hide();
+        this.hide();
+    }
+    initUniDialog() {
         this.uniDialog = new Dialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
@@ -5176,8 +5191,30 @@ class Overlay extends Wrapper {
             this.hide();
             this.uniDialog.hide();
         });
-        this.uniDialog.inner.setVisible(false);
-        // leaderboard
+    }
+    initInGameDialog() {
+        this.inGameDialog = new Dialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 800,
+            height: 700,
+            title: 'Caution',
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
+            content: cautionDefault,
+            autoHeight: true
+        });
+        this.inGameDialog.setOrigin(0.5, 0.5);
+        this.inGameDialog.okBtn.clickedEvent.on(() => {
+            this.hide();
+            this.inGameDialog.hide();
+        });
+    }
+    initLeaderboardDialog() {
         this.leaderboardDialog = new LeaderboardDialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
@@ -5199,9 +5236,6 @@ class Overlay extends Wrapper {
             this.hide();
             this.leaderboardDialog.hide();
         });
-        this.uniDialog.hide();
-        this.leaderboardDialog.hide();
-        this.hide();
     }
     showAiDialog() {
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
@@ -5217,6 +5251,11 @@ class Overlay extends Wrapper {
         this.uniDialog.setContent(googleAbout, "Solutions");
         this.show();
         this.uniDialog.show();
+    }
+    showTurnCautionDialog() {
+        this.inGameDialog.setContent(cautionDefault, 'Caution');
+        this.show();
+        this.inGameDialog.show();
     }
     showLeaderBoardDialog() {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");

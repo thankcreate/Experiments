@@ -24,6 +24,8 @@ type FigureConfig = {
 
     roundRadius?: number
 
+    btn1?: string
+
 }
 
 /**
@@ -41,6 +43,7 @@ class Figure extends Wrapper<PhGraphics> {
         if (notSet(config.height)) config.height = 100;
         if (notSet(config.originX)) config.originX = 0;
         if (notSet(config.originY)) config.originY = 0;
+        if (notSet(config.btn1)) config.btn1 = 'OK';
 
         this.config = config;
     }
@@ -170,10 +173,10 @@ class Dialog extends Figure {
         // If auto height, btn's position is anchored to the content
 
 
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< OK >', 120, 50);
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< ' + config.btn1 +  '>', 120, 50);
         this.okBtn.text.setColor('#000000');
         this.okBtn.text.setFontSize(38);
-        this.okBtn.setToHoverChangeTextMode("-< OK >-");
+        this.okBtn.setToHoverChangeTextMode("-< " + config.btn1 + " >-");
         this.okBtn.needHandOnHover = true;
         this.okBtn.ignoreOverlay = true;
 
@@ -229,7 +232,7 @@ class Dialog extends Figure {
         }
     }
 
-    setContent(content: string, title: string) {
+    setContent(content: string, title: string, btns: string[]) {
         this.config.title = title;
         this.config.content = content;
 

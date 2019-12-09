@@ -15,13 +15,27 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 This current demo is only at progress 10% at most. 
 `
 
+var cautionDefault = `Once you purchased this item, you can no longer do semantic word matching.
+
+All you can input will be 'Turn' and 'Bad'
+`
+
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper<PhText> {
     
     bkg: Rect;
 
-    uniDialog: Dialog;
+    /**
+     * uniDialog is mostly used in UI
+     */
+    uniDialog: Dialog;    
+
+    /**
+     * inGameDialog is mostly shown during play
+     */
+    inGameDialog: Dialog;
+
     leaderboardDialog: LeaderboardDialog;
     inShow: boolean = false;
 
@@ -30,48 +44,80 @@ class Overlay extends Wrapper<PhText> {
     frontDark: Rect;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
-         super(scene, parentContainer, x, y, null);
+        super(scene, parentContainer, x, y, null);
 
-         let width = getLogicWidth();
-         let height = phaserConfig.scale.height
-         this.bkg = new Rect(this.scene, this.inner, 0, 0, {            
-            fillColor: 0x000000,
-            fillAlpha: 0.8,            
-            width: width, 
-            height: height,
-            lineWidth: 0,
-            originX: 0.5,
-            originY: 0.5, 
-         });
+        let width = getLogicWidth();
+        let height = phaserConfig.scale.height
+        this.bkg = new Rect(this.scene, this.inner, 0, 0, {            
+        fillColor: 0x000000,
+        fillAlpha: 0.8,            
+        width: width, 
+        height: height,
+        lineWidth: 0,
+        originX: 0.5,
+        originY: 0.5, 
+        });
 
-         this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+        this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
 
-         
-         // uni
-         this.uniDialog =  new Dialog(this.scene, this.inner, 0, 0, {
-             fillColor: 0xbbbbbb,
-             lineColor: 0x000000,
-             lineWidth: 6,
-             padding: 16,
-             width: 1000,
-             height: 700,
-             title: 'About',
-             titleContentGap: 40, 
-             contentPadding: 60, 
-             contentBtnGap: 30, 
-             btnToBottom: 65,                   
-             content: nyuAbout,
-             autoHeight: true
-         });
-         this.uniDialog.setOrigin(0.5, 0.5);
-         this.uniDialog.okBtn.clickedEvent.on(()=>{
+        
+        this.initUniDialog();
+        this.initInGameDialog();
+        this.initLeaderboardDialog();
+        
+        this.uniDialog.hide();
+        this.inGameDialog.hide();
+        this.leaderboardDialog.hide();
+        this.hide();
+    } 
+
+    initUniDialog(){
+        this.uniDialog =  new Dialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 1000,
+            height: 700,
+            title: 'About',
+            titleContentGap: 40, 
+            contentPadding: 60, 
+            contentBtnGap: 30, 
+            btnToBottom: 65,                   
+            content: nyuAbout,
+            autoHeight: true
+        });
+        this.uniDialog.setOrigin(0.5, 0.5);
+        this.uniDialog.okBtn.clickedEvent.on(()=>{
             this.hide();
             this.uniDialog.hide();
-         });
+        });
+    }
 
-        this.uniDialog.inner.setVisible(false);
+    initInGameDialog() {
+        this.inGameDialog =  new Dialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 800,
+            height: 700,
+            title: 'Caution',
+            titleContentGap: 40, 
+            contentPadding: 60, 
+            contentBtnGap: 30, 
+            btnToBottom: 65,                   
+            content: cautionDefault,
+            autoHeight: true
+        });
+        this.inGameDialog.setOrigin(0.5, 0.5);
+        this.inGameDialog.okBtn.clickedEvent.on(()=>{
+            this.hide();
+            this.inGameDialog.hide();
+        });
+    }
 
-        // leaderboard
+    initLeaderboardDialog() {
         this.leaderboardDialog =  new LeaderboardDialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
@@ -93,11 +139,8 @@ class Overlay extends Wrapper<PhText> {
             this.hide();
             this.leaderboardDialog.hide();
         });
+    }
 
-        this.uniDialog.hide();
-        this.leaderboardDialog.hide();
-        this.hide();
-    } 
 
     showAiDialog() {
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
@@ -116,6 +159,13 @@ class Overlay extends Wrapper<PhText> {
         this.show();
         this.uniDialog.show();
     }
+
+    showTurnCautionDialog() {
+        this.inGameDialog.setContent(cautionDefault, 'Caution');
+        this.show();
+        this.inGameDialog.show();
+    }
+    
 
     showLeaderBoardDialog() {        
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");

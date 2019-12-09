@@ -130,6 +130,7 @@ class Hud extends Wrapper<PhText> {
         this.rightBtns[2].purchasedEvent.on(btn=>{    
             (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Turn');
             getTurnInfo().consumed = true;
+            (this.scene as Scene1).overlay.showTurnCautionDialog();
         });
 
         // Auto Turn 

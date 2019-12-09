@@ -100,7 +100,7 @@ class Hud extends Wrapper<PhText> {
             // btn.promptImg.setVisible(false);
 
             btn.fakeZone.on('pointerover', ()=>{            
-                this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);                         
+                this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price, (propInfos[i] as any).warning);                         
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
                 this.popupBubbleRight.show();                
             });
@@ -338,7 +338,7 @@ class Hud extends Wrapper<PhText> {
         // this.inner.add(lbl);
         let parentContainer = (this.scene as Scene1).midContainder;
         parentContainer.add(lbl);
-        let dt = 3500;
+        let dt = 2000;
 
         let tw = this.scene.tweens.add({
             targets: lbl,            

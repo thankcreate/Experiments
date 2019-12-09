@@ -1819,6 +1819,7 @@ function sayHi() {
 class Bubble extends Wrapper {
     constructor(scene, parentContainer, x, y, isRight) {
         super(scene, parentContainer, x, y, null);
+        this.gapBetweenTextAndWarningText = 6;
         let img = this.scene.add.image(0, 0, isRight ? 'popup_bubble' : 'popup_bubble_left');
         img.setOrigin(isRight ? 1 : 0, 46 / 229);
         this.applyTarget(img);
@@ -1826,12 +1827,29 @@ class Bubble extends Wrapper {
         style.fill = '#FFFFFF';
         style.fontSize = '26px';
         let cc = "You can just type in 'B' instead of 'BAD' for short";
+        let wordWrapthWidt = 400;
+        // main text
         this.text = this.scene.add.text(isRight ? -442 : 40, -26, cc, style).setOrigin(0, 0);
-        this.text.setWordWrapWidth(400);
+        this.text.setWordWrapWidth(wordWrapthWidt);
         this.inner.add(this.text);
+        // warning text
+        let warningStyle = getDefaultTextStyle();
+        style.fill = '#FF0000';
+        style.fontSize = '24px';
+        let posi = this.text.getBottomLeft();
+        this.warningText = this.scene.add.text(posi.x, 0, "", style).setOrigin(0, 0);
+        this.warningText.setWordWrapWidth(wordWrapthWidt);
+        this.inner.add(this.warningText);
     }
-    setText(val) {
+    setText(val, warningVal) {
         this.text.text = val;
+        if (warningVal) {
+            this.warningText.text = warningVal;
+            this.warningText.y = this.text.getBottomLeft().y + this.gapBetweenTextAndWarningText;
+        }
+        else {
+            this.warningText.text = "";
+        }
     }
     show() {
         this.inner.setVisible(true);
@@ -2150,7 +2168,10 @@ let turnInfos = [
 let propInfos = [
     { title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
     { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "T**", consumed: false, price: 2500, size: 30, desc: "Turn NON-404 words into 404.\nYou can just type in 'T' for short" },
+    { title: "T**", consumed: false, price: 2500, size: 30,
+        desc: "Turn NON-404 words into 404.\nYou can just type in 'T' for short",
+        warning: "Warning: Once you purchased this item, you can no longer do semantic word matching"
+    },
     { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-404 words into 404" },
     { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!" }
 ];
@@ -3436,7 +3457,7 @@ class EnemyManager {
         var input = res.input;
         // filter the duplicate labels
         // var seen = {};
-        // ar = ar.filter(item => {
+        // ar = ar.filter(item => {x
         //     return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         // });
         let legal = true;
@@ -4767,7 +4788,7 @@ class Hud extends Wrapper {
             btn.addPromptImg(Dir.Right);
             // btn.promptImg.setVisible(false);
             btn.fakeZone.on('pointerover', () => {
-                this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price);
+                this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price, propInfos[i].warning);
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
                 this.popupBubbleRight.show();
             });
@@ -4951,7 +4972,7 @@ class Hud extends Wrapper {
         // this.inner.add(lbl);
         let parentContainer = this.scene.midContainder;
         parentContainer.add(lbl);
-        let dt = 3500;
+        let dt = 2000;
         let tw = this.scene.tweens.add({
             targets: lbl,
             y: '-= 30',

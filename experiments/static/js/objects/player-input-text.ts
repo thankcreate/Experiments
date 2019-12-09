@@ -159,8 +159,6 @@ class PlayerInputText {
                 codeS = codeS.toUpperCase();
             t += codeS;
         }
-
-
         this.text.setText(t);
 
         // if height exceeded 2 rows,set the content back to before

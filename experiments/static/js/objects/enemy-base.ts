@@ -299,7 +299,7 @@ class Enemy {
     checkIfNeedShowBadBadge(dmg: number, input: string) {
         if(dmg > 0 && this.isSensative())
             this.showBadgeEffect();
-        else if(dmg > 0 && !this.isSensative()) {
+        else if(dmg > 0 && !this.isSensative() && isReservedTurnKeyword(input)) {
             this.showTurnEffect(true);
         }
     }

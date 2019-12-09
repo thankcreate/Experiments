@@ -206,6 +206,10 @@ class TypedEvent<T> {
     private listeners: Listener<T>[] = [];
     private listenersOncer: Listener<T>[] = [];
 
+    public clear() {
+        this.listeners = [];
+    }
+
     public on = (listener: Listener<T>): Disposable => {
         this.listeners.push(listener);
 

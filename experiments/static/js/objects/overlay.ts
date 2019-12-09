@@ -15,9 +15,11 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 This current demo is only at progress 10% at most. 
 `
 
-var cautionDefault = `Once you purchased this item, you can no longer do semantic word matching.
+var cautionDefault = `Once purchased this item, you can no longer do semantic word matching.
 
-All you can input will be 'Turn' and 'Bad'
+All you can input will be limited to "Turn" and "Bad"
+
+Click "OK" to confirm
 `
 
 // The wrapped PhText is only for the fact the Wrapper must have a T
@@ -115,6 +117,10 @@ class Overlay extends Wrapper<PhText> {
             this.hide();
             this.inGameDialog.hide();
         });
+        this.inGameDialog.cancelBtn.clickedEvent.on(()=>{
+            this.hide();
+            this.inGameDialog.hide();
+        });
     }
 
     initLeaderboardDialog() {
@@ -160,10 +166,11 @@ class Overlay extends Wrapper<PhText> {
         this.uniDialog.show();
     }
 
-    showTurnCautionDialog() {
-        this.inGameDialog.setContent(cautionDefault, 'Caution');
+    showTurnCautionDialog() : Dialog {
+        this.inGameDialog.setContent(cautionDefault, 'Caution', ['OK', 'Cancel']);
         this.show();
         this.inGameDialog.show();
+        return this.inGameDialog;
     }
     
 

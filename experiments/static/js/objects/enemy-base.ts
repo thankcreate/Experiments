@@ -166,7 +166,13 @@ class Enemy {
     }
 
     freeze() {
-        this.mvTween.pause();
+        if(this.mvTween)
+            this.mvTween.pause();
+    }
+
+    unFreeze() {
+        if(this.mvTween)
+            this.mvTween.resume();
     }
     
 

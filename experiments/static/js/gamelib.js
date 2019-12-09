@@ -206,6 +206,7 @@ class Scene1 extends BaseScene {
             sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
             sfx_fail: ["assets/audio/Fail.wav", "sfxFail"],
             bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm'],
+            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
         };
         for (let i in audioLoadConfig) {
             this.load.audio(i, audioLoadConfig[i][0]);
@@ -1396,6 +1397,9 @@ class TypedEvent {
             return this.on(e => te.emit(e));
         };
     }
+    clear() {
+        this.listeners = [];
+    }
 }
 // return the logic degisn wdith based on the config.scale.height
 // this is the available canvas width
@@ -2549,7 +2553,12 @@ class Enemy {
         });
     }
     freeze() {
-        this.mvTween.pause();
+        if (this.mvTween)
+            this.mvTween.pause();
+    }
+    unFreeze() {
+        if (this.mvTween)
+            this.mvTween.resume();
     }
     stopRunAndDestroySelf() {
         let thisEnemy = this;
@@ -3566,9 +3575,16 @@ class EnemyManager {
     freezeAllEnemies() {
         if (this.autoSpawnTween)
             this.autoSpawnTween.pause();
+        this.curStrategy.pause();
         this.startSpawnStrategy(SpawnStrategyType.None);
         this.enemies.forEach(element => {
             element.freeze();
+        });
+    }
+    unFreezeAllEnemies() {
+        this.curStrategy.unPause();
+        this.enemies.forEach(element => {
+            element.unFreeze();
         });
     }
     getLastSpawnedEnemyName() {
@@ -3627,8 +3643,8 @@ class Figure extends Wrapper {
             config.originX = 0;
         if (notSet(config.originY))
             config.originY = 0;
-        if (notSet(config.btn1))
-            config.btn1 = 'OK';
+        if (notSet(config.btns))
+            config.btns = ['OK'];
         this.config = config;
     }
     constructor(scene, parentContainer, x, y, config) {
@@ -3712,6 +3728,9 @@ class Rect extends Figure {
 class Dialog extends Figure {
     constructor(scene, parentContainer, x, y, config) {
         super(scene, parentContainer, x, y, config);
+        this.fixedHalfButtonOffset = 100;
+        this.singleUseConfirmEvent = new TypedEvent();
+        this.singleUseClosedEvent = new TypedEvent();
         this.othersContainer = this.scene.add.container(0, 0);
         this.inner.add(this.othersContainer);
         let width = config.width;
@@ -3723,13 +3742,36 @@ class Dialog extends Figure {
         // OK btn
         // If fixed height, btn's position is anchored to the bottom
         // If auto height, btn's position is anchored to the content
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< ' + config.btn1 + '>', 120, 50);
+        // By default, we always initialize two buttons,
+        // and decide whether to hide them in the calcUniPosi
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2 - this.fixedHalfButtonOffset, 0, null, '< ' + this.getOkBtnTitle() + ' >', 120, 50);
         this.okBtn.text.setColor('#000000');
         this.okBtn.text.setFontSize(38);
-        this.okBtn.setToHoverChangeTextMode("-< " + config.btn1 + " >-");
+        this.okBtn.setToHoverChangeTextMode("-< " + this.getOkBtnTitle() + " >-");
         this.okBtn.needHandOnHover = true;
         this.okBtn.ignoreOverlay = true;
+        this.okBtn.clickedEvent.on(() => {
+            this.singleUseConfirmEvent.emit(this);
+        });
+        this.cancelBtn = new Button(this.scene, this.othersContainer, width / 2 + this.fixedHalfButtonOffset, 0, null, '< ' + this.getCancelBtnTitle() + ' >', 120, 50);
+        this.cancelBtn.text.setColor('#000000');
+        this.cancelBtn.text.setFontSize(38);
+        this.cancelBtn.setToHoverChangeTextMode("-< " + this.getCancelBtnTitle() + " >-");
+        this.cancelBtn.needHandOnHover = true;
+        this.cancelBtn.ignoreOverlay = true;
         this.calcUiPosi();
+    }
+    getOkBtnTitle() {
+        if (this.config.btns && this.config.btns[0]) {
+            return this.config.btns[0];
+        }
+        return 'OK';
+    }
+    getCancelBtnTitle() {
+        if (this.config.btns && this.config.btns[1]) {
+            return this.config.btns[1];
+        }
+        return 'Cancel';
     }
     fillTitle() {
         let config = this.config;
@@ -3761,17 +3803,33 @@ class Dialog extends Figure {
         if (config.autoHeight) {
             btnY = this.getContentBottomCenterY() + config.contentBtnGap;
             this.okBtn.inner.y = btnY;
+            this.cancelBtn.inner.y = btnY;
             let newHeight = btnY + config.btnToBottom;
             this.setSize(config.width, newHeight);
         }
         else {
             btnY = height - config.btnToBottom;
             this.okBtn.inner.y = btnY;
+            this.cancelBtn.inner.y = btnY;
+        }
+        // handle whether to hide and adjust the buttons based on the number
+        if (this.config.btns && this.config.btns.length == 1) {
+            this.cancelBtn.setEnable(false, false);
+            this.okBtn.inner.x = this.config.width / 2;
+        }
+        else if (this.config.btns && this.config.btns.length == 2) {
+            this.cancelBtn.setEnable(true, false);
+            this.okBtn.inner.x = this.config.width / 2 - this.fixedHalfButtonOffset;
+            this.cancelBtn.inner.x = this.config.width / 2 + this.fixedHalfButtonOffset;
         }
     }
     setContent(content, title, btns) {
         this.config.title = title;
         this.config.content = content;
+        if (notSet(btns)) {
+            btns = ['OK'];
+        }
+        this.config.btns = btns;
         this.content.text = content;
         this.title.text = title;
         if (this.config.autoHeight) {
@@ -3809,6 +3867,9 @@ class Dialog extends Figure {
     }
     hide() {
         this.inner.setVisible(false);
+        this.singleUseClosedEvent.emit(this);
+        this.singleUseConfirmEvent.clear();
+        this.singleUseClosedEvent.clear();
     }
 }
 class LeaderboardDialog extends Dialog {
@@ -4810,10 +4871,11 @@ class Hud extends Wrapper {
             getAutoTypeInfo().consumed = true;
         });
         // Turn 
+        this.rightBtns[2].needConfirm = true;
         this.rightBtns[2].purchasedEvent.on(btn => {
             this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
             getTurnInfo().consumed = true;
-            this.scene.overlay.showTurnCautionDialog();
+            this.scene.openTurn.play();
         });
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
@@ -5140,9 +5202,11 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 
 This current demo is only at progress 10% at most. 
 `;
-var cautionDefault = `Once you purchased this item, you can no longer do semantic word matching.
+var cautionDefault = `Once purchased this item, you can no longer do semantic word matching.
 
-All you can input will be 'Turn' and 'Bad'
+All you can input will be limited to "Turn" and "Bad"
+
+Click "OK" to confirm
 `;
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
@@ -5213,6 +5277,10 @@ class Overlay extends Wrapper {
             this.hide();
             this.inGameDialog.hide();
         });
+        this.inGameDialog.cancelBtn.clickedEvent.on(() => {
+            this.hide();
+            this.inGameDialog.hide();
+        });
     }
     initLeaderboardDialog() {
         this.leaderboardDialog = new LeaderboardDialog(this.scene, this.inner, 0, 0, {
@@ -5253,9 +5321,10 @@ class Overlay extends Wrapper {
         this.uniDialog.show();
     }
     showTurnCautionDialog() {
-        this.inGameDialog.setContent(cautionDefault, 'Caution');
+        this.inGameDialog.setContent(cautionDefault, 'Caution', ['OK', 'Cancel']);
         this.show();
         this.inGameDialog.show();
+        return this.inGameDialog;
     }
     showLeaderBoardDialog() {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
@@ -5655,15 +5724,28 @@ class PropButton extends Button {
         super(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY);
         this.purchased = false;
         this.purchasedEvent = new TypedEvent();
+        this.needConfirmEvent = new TypedEvent();
+        /**
+         * Some props need to pop up and dialog to confirm whether to buy
+         */
+        this.needConfirm = false;
         this.hud = hd;
         this.clickedEvent.on(btn1 => {
             let btn = btn1;
             if (!btn.purchased && this.hud.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.hud.addScore(-btn.priceTag);
-                // btn.priceLbl.text = "✓" + btn.priceLbl.text;    
-                this.purchasedMark.setVisible(true);
-                this.purchasedEvent.emit(this);
+                if (this.needConfirm) {
+                    let dialog = this.scene.overlay.showTurnCautionDialog();
+                    this.scene.enemyManager.freezeAllEnemies();
+                    dialog.singleUseConfirmEvent.on(() => {
+                        this.doPurchased();
+                    });
+                    dialog.singleUseClosedEvent.on(() => {
+                        this.scene.enemyManager.unFreezeAllEnemies();
+                    });
+                }
+                else {
+                    this.doPurchased();
+                }
             }
         });
         this.purchasedMark = this.scene.add.image(0, 0, 'purchased_mark');
@@ -5671,6 +5753,12 @@ class PropButton extends Button {
         let markOffset = 40;
         this.purchasedMark.setPosition(markOffset, -markOffset);
         this.purchasedMark.setVisible(false);
+    }
+    doPurchased() {
+        this.purchased = true;
+        this.hud.addScore(-this.priceTag);
+        this.purchasedMark.setVisible(true);
+        this.purchasedEvent.emit(this);
     }
     /**
      * Dir means the button location.
@@ -6195,6 +6283,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.freq404 = 6 * 1000;
     }
     onUpdate(time, dt) {
+        if (this.isPause)
+            return;
         if (this.needloopCeateBad && time - this.last404Time > this.freq404) {
             this.spawnBad();
             this.last404Time = time;

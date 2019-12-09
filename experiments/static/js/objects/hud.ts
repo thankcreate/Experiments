@@ -127,10 +127,11 @@ class Hud extends Wrapper<PhText> {
         });
 
         // Turn 
+        this.rightBtns[2].needConfirm = true;
         this.rightBtns[2].purchasedEvent.on(btn=>{    
             (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Turn');
-            getTurnInfo().consumed = true;
-            (this.scene as Scene1).overlay.showTurnCautionDialog();
+            getTurnInfo().consumed = true;            
+            (this.scene as Scene1).openTurn.play();
         });
 
         // Auto Turn 
@@ -147,8 +148,7 @@ class Hud extends Wrapper<PhText> {
     }
 
 
-    createMenuLeft() {
-    
+    createMenuLeft() {   
 
         let btnWidth = 90;
         let startY = 0;

@@ -138,6 +138,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     onUpdate(time ,dt) {
+        if(this.isPause)
+            return;
+            
         if(this.needloopCeateBad &&  time - this.last404Time > this.freq404) {
             this.spawnBad();
             this.last404Time = time;

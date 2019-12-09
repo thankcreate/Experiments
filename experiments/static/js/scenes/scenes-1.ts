@@ -94,6 +94,8 @@ class Scene1 extends BaseScene {
 
     bgm: Phaser.Sound.BaseSound;
     
+    openTurn: Phaser.Sound.BaseSound;
+    
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {        
         super(config);
@@ -150,6 +152,7 @@ class Scene1 extends BaseScene {
             sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
             sfx_fail: ["assets/audio/Fail.wav", "sfxFail"],
             bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm'],
+            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
         };
         
         for(let i in audioLoadConfig) {

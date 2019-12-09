@@ -24,7 +24,7 @@ type FigureConfig = {
 
     roundRadius?: number
 
-    btn1?: string
+    btns?: string[]
 
 }
 
@@ -43,7 +43,7 @@ class Figure extends Wrapper<PhGraphics> {
         if (notSet(config.height)) config.height = 100;
         if (notSet(config.originX)) config.originX = 0;
         if (notSet(config.originY)) config.originY = 0;
-        if (notSet(config.btn1)) config.btn1 = 'OK';
+        if (notSet(config.btns)) config.btns = ['OK'];
 
         this.config = config;
     }
@@ -151,6 +151,13 @@ class Dialog extends Figure {
     title: PhText;
     content: PhText;
     okBtn: Button;
+    cancelBtn: Button;
+
+    fixedHalfButtonOffset = 100;
+
+    singleUseConfirmEvent : TypedEvent<Dialog> = new TypedEvent();
+    singleUseClosedEvent: TypedEvent<Dialog> = new TypedEvent();
+    
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, config: FigureConfig) {
         super(scene, parentContainer, x, y, config)
@@ -172,15 +179,43 @@ class Dialog extends Figure {
         // If fixed height, btn's position is anchored to the bottom
         // If auto height, btn's position is anchored to the content
 
+        // By default, we always initialize two buttons,
+        // and decide whether to hide them in the calcUniPosi
+        
 
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2, 0, null, '< ' + config.btn1 +  '>', 120, 50);
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2 - this.fixedHalfButtonOffset, 0, null, '< ' + this.getOkBtnTitle() +  ' >', 120, 50);
         this.okBtn.text.setColor('#000000');
         this.okBtn.text.setFontSize(38);
-        this.okBtn.setToHoverChangeTextMode("-< " + config.btn1 + " >-");
+        this.okBtn.setToHoverChangeTextMode("-< " + this.getOkBtnTitle() + " >-");
         this.okBtn.needHandOnHover = true;
         this.okBtn.ignoreOverlay = true;
+        
+        this.okBtn.clickedEvent.on(()=>{
+            this.singleUseConfirmEvent.emit(this);
+        })
+
+        this.cancelBtn = new Button(this.scene, this.othersContainer, width / 2 + this.fixedHalfButtonOffset, 0, null, '< ' + this.getCancelBtnTitle() +  ' >', 120, 50);
+        this.cancelBtn.text.setColor('#000000');
+        this.cancelBtn.text.setFontSize(38);
+        this.cancelBtn.setToHoverChangeTextMode("-< " + this.getCancelBtnTitle() + " >-");
+        this.cancelBtn.needHandOnHover = true;
+        this.cancelBtn.ignoreOverlay = true;
 
         this.calcUiPosi();
+    }
+
+    getOkBtnTitle() {
+        if(this.config.btns && this.config.btns[0]) {
+            return this.config.btns[0];
+        }
+        return 'OK';
+    }
+
+    getCancelBtnTitle() {
+        if(this.config.btns && this.config.btns[1]) {
+            return this.config.btns[1];
+        }
+        return 'Cancel';
     }
 
     fillTitle() {
@@ -223,18 +258,36 @@ class Dialog extends Figure {
         if (config.autoHeight) {
             btnY = this.getContentBottomCenterY() + config.contentBtnGap;
             this.okBtn.inner.y = btnY;
+            this.cancelBtn.inner.y = btnY;
             let newHeight = btnY + config.btnToBottom;
             this.setSize(config.width, newHeight);
         }
         else {
             btnY = height - config.btnToBottom;
             this.okBtn.inner.y = btnY;
+            this.cancelBtn.inner.y = btnY;
+        }
+
+        // handle whether to hide and adjust the buttons based on the number
+        if(this.config.btns && this.config.btns.length == 1) {
+            this.cancelBtn.setEnable(false, false);
+            this.okBtn.inner.x = this.config.width / 2;
+
+        }
+        else if(this.config.btns && this.config.btns.length == 2) {
+            this.cancelBtn.setEnable(true, false);
+            this.okBtn.inner.x = this.config.width / 2 - this.fixedHalfButtonOffset;
+            this.cancelBtn.inner.x = this.config.width / 2 + this.fixedHalfButtonOffset;
         }
     }
 
-    setContent(content: string, title: string, btns: string[]) {
+    setContent(content: string, title: string, btns?: string[]) {
         this.config.title = title;
         this.config.content = content;
+        if(notSet(btns)) {
+            btns =  ['OK'];
+        }
+        this.config.btns = btns;
 
         this.content.text = content;
         this.title.text = title;
@@ -279,6 +332,11 @@ class Dialog extends Figure {
 
     hide() {
         this.inner.setVisible(false);
+
+        this.singleUseClosedEvent.emit(this);
+        
+        this.singleUseConfirmEvent.clear();
+        this.singleUseClosedEvent.clear();
     }
 }
 

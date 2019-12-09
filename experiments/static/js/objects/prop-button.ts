@@ -8,9 +8,14 @@ class PropButton extends Button {
     promptImg: PhImage;
 
     purchasedEvent: TypedEvent<PropButton> = new TypedEvent();
+    needConfirmEvent: TypedEvent<PropButton> = new TypedEvent();
 
     purchasedMark: PhImage;
 
+    /**
+     * Some props need to pop up and dialog to confirm whether to buy
+     */
+    needConfirm: boolean = false;
   
 
     constructor (scene: BaseScene, parentContainer: PhContainer, hd: Hud,
@@ -24,11 +29,22 @@ class PropButton extends Button {
         this.clickedEvent.on(btn1=>{    
             let btn = btn1 as PropButton;          
             if(!btn.purchased && this.hud.score >= btn.priceTag) {
-                btn.purchased = true;
-                this.hud.addScore(-btn.priceTag);                   
-                // btn.priceLbl.text = "✓" + btn.priceLbl.text;    
-                this.purchasedMark.setVisible(true);
-                this.purchasedEvent.emit(this);
+                if(this.needConfirm) {
+                    let dialog = (this.scene as Scene1).overlay.showTurnCautionDialog();
+                    (this.scene as Scene1).enemyManager.freezeAllEnemies();
+
+                    dialog.singleUseConfirmEvent.on(() => {
+                        this.doPurchased();
+                    });                
+
+                    dialog.singleUseClosedEvent.on(() => {
+                        (this.scene as Scene1).enemyManager.unFreezeAllEnemies();
+                    })
+                }
+                else {
+                    this.doPurchased();
+                }
+                
             }
         });
 
@@ -37,9 +53,13 @@ class PropButton extends Button {
         let markOffset = 40;
         this.purchasedMark.setPosition(markOffset, -markOffset);
         this.purchasedMark.setVisible(false);
+    }
 
-        
-     
+    doPurchased() {
+        this.purchased = true;
+        this.hud.addScore(-this.priceTag);                                   
+        this.purchasedMark.setVisible(true);
+        this.purchasedEvent.emit(this);
     }
 
     /**

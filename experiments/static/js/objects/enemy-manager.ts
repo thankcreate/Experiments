@@ -642,16 +642,25 @@ class EnemyManager {
         
         this.enemyEliminatedEvent.emit(enemy);
     }
+    
 
     // This is mostly used when died
     freezeAllEnemies() {
         if(this.autoSpawnTween)
             this.autoSpawnTween.pause();
-        
+    
+        this.curStrategy.pause();
         this.startSpawnStrategy(SpawnStrategyType.None);
 
         this.enemies.forEach(element => {
             element.freeze();
+        });
+    }
+
+    unFreezeAllEnemies() {
+        this.curStrategy.unPause();
+        this.enemies.forEach(element => {
+            element.unFreeze();
         });
     }
 

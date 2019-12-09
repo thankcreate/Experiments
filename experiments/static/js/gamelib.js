@@ -191,6 +191,15 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
         this.load.image('purchased_mark', "assets/purchased_mark.png");
+        this.load.image('magic', 'assets/magic.png');
+        this.preloadBadges();
+    }
+    preloadBadges() {
+        for (let i in badInfos) {
+            let resId = getBadgeResID(i);
+            let resPath = 'assets/' + resId + '.png';
+            this.load.image(resId, resPath);
+        }
     }
     loadAudio() {
         let audioLoadConfig = {
@@ -2145,6 +2154,10 @@ let propInfos = [
     { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-404 words into 404" },
     { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!" }
 ];
+function getBadgeResID(i) {
+    let resId = 'badge_' + badInfos[i].title.toLowerCase();
+    return resId;
+}
 function getAutoTypeInfo() {
     return propInfos[1];
 }
@@ -2157,9 +2170,11 @@ function getAutoTurnInfo() {
 function getNormalFreq() {
     return normalFreq1;
 }
-let initScore = 10000;
+let initScore = 100000;
 let baseScore = 100;
 let normalFreq1 = 4;
+let autoBadgeInterval = 400;
+let autoTurnInterval = 1000;
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
     item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.cost;
@@ -2441,6 +2456,10 @@ class Enemy {
         this.centerRadius = 125;
         this.damagedHistory = []; //store only valid input history
         this.inStop = false;
+        this.hasBeenDamagedByTurn = false;
+        this.lastAutoBadge = -1000;
+        this.autoBadgeIndex = 0;
+        this.lastAutoTurn = -1000;
         this.scene = scene;
         this.enemyManager = enemyManager;
         this.parentContainer = enemyManager.inner;
@@ -2464,6 +2483,8 @@ class Enemy {
     }
     update(time, dt) {
         this.checkIfReachEnd();
+        this.checkIfNeedShowAutoBadBadge(time, dt);
+        this.checkIfNeedAutoTurn(time, dt);
         if (this.healthIndicator)
             this.healthIndicator.update(time, dt);
         // this.updateHealthBarDisplay();
@@ -2576,12 +2597,15 @@ class Enemy {
         this.updateOmniDamageHistory(input);
         // console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
         // Handle health
-        this.damageInner(ret.damage, input);
+        this.damageInner(ret.damage, input, true);
         return ret;
     }
-    damageInner(dmg, input) {
+    damageInner(dmg, input, fromPlayer) {
         this.health -= dmg;
         this.health = Math.max(0, this.health);
+        this.checkIfNeedChangeAlphaByTurn(input);
+        if (fromPlayer)
+            this.checkIfNeedShowBadBadge(dmg, input);
         if (this.healthIndicator)
             this.healthIndicator.damagedTo(this.health);
         this.updateHealthBarDisplay();
@@ -2592,6 +2616,22 @@ class Enemy {
             let sc = this.scene;
             if (sc.needFeedback)
                 this.playHurtAnimation();
+        }
+    }
+    checkIfNeedChangeAlphaByTurn(input) {
+        if (this.hasBeenDamagedByTurn || isReservedTurnKeyword(input)) {
+            this.hasBeenDamagedByTurn = true;
+            this.updateAlphaByHealth();
+        }
+    }
+    updateAlphaByHealth() {
+        this.getMainTransform().alpha = this.health / this.maxHealth;
+    }
+    checkIfNeedShowBadBadge(dmg, input) {
+        if (dmg > 0 && this.isSensative())
+            this.showBadgeEffect();
+        else if (dmg > 0 && !this.isSensative()) {
+            this.showTurnEffect(true);
         }
     }
     updateHealthBarDisplay() {
@@ -2635,6 +2675,142 @@ class Enemy {
         this.stopRunAndDestroySelf();
     }
     startRotate() {
+    }
+    getMainTransform() {
+        return this.inner;
+    }
+    checkIfNeedShowAutoBadBadge(time, dt) {
+        if (!this.isSensative())
+            return;
+        if (this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {
+            if (time - this.lastAutoBadge > autoBadgeInterval) {
+                let avi = [];
+                for (let i in badInfos) {
+                    if (badInfos[i].consumed) {
+                        avi.push(i);
+                    }
+                }
+                if (avi.length == 0)
+                    return;
+                this.showBadgeEffect(avi[this.autoBadgeIndex % avi.length]);
+                this.autoBadgeIndex++;
+                this.lastAutoBadge = time;
+            }
+        }
+    }
+    checkIfNeedAutoTurn(time, dt) {
+        if (this.isSensative())
+            return;
+        if (this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {
+            if (time - this.lastAutoTurn > autoTurnInterval) {
+                if (!getAutoTurnInfo().consumed)
+                    return;
+                this.showTurnEffect(false);
+                this.lastAutoTurn = time;
+            }
+        }
+    }
+    showTurnEffect(fromPlayer) {
+        let posi = MakePoint(this.getMainTransform());
+        // posi.x += this.inner.x;
+        // posi.y += this.inner.y;
+        posi.x += 70;
+        posi.y -= 70;
+        let magic;
+        if (fromPlayer) {
+            magic = this.scene.add.image(posi.x, posi.y, 'magic');
+            // let posiAmplitude = 20;
+            // let randomOffsetX = Math.random() * posiAmplitude * 2 - posiAmplitude;
+            // let randomOffsetY = Math.random() * posiAmplitude * 2 - posiAmplitude;
+            // posi.x += randomOffsetX;
+            // posi.y += randomOffsetY;
+            // magic.setPosition(posi.x, posi.y);
+        }
+        else {
+            if (notSet(this.loopMagic)) {
+                this.loopMagic = this.scene.add.image(posi.x, posi.y, 'magic');
+            }
+            magic = this.loopMagic;
+        }
+        magic.setOrigin(23 / 49, 81 / 86);
+        // this.scene.midContainder.add(magic);
+        this.inner.add(magic);
+        let scale = 0.8;
+        let fromRt = -30 / 180 * Math.PI;
+        let toRt = -60 / 180 * Math.PI;
+        let rtDt = 250;
+        magic.setRotation(fromRt);
+        magic.setScale(scale);
+        magic.alpha = 1;
+        let rt = this.scene.add.tween({
+            targets: magic,
+            rotation: toRt,
+            duration: rtDt,
+            yoyo: true,
+            ease: 'Sine.easeOut',
+        });
+        if (fromPlayer) {
+            let fadeDelay = 400;
+            let fade = this.scene.add.tween({
+                targets: magic,
+                delay: fadeDelay,
+                alpha: 0,
+                duration: rtDt * 2 - fadeDelay,
+                onComplete: () => {
+                    magic.destroy();
+                }
+            });
+        }
+    }
+    showBadgeEffect(idx) {
+        let posi = MakePoint(this.getMainTransform());
+        posi.x += this.inner.x;
+        posi.y += this.inner.y;
+        posi.y += 8;
+        if (notSet(idx)) {
+            idx = 0;
+        }
+        let resID = getBadgeResID(idx);
+        let badge = this.scene.add.image(0, 0, resID);
+        this.scene.midContainder.add(badge);
+        // let scaleFrom = 0.8;
+        // let scaleTo = 1;
+        let overallScale = 0.85;
+        let scaleFrom = 1.05 * overallScale;
+        let scaleTo = 0.8 * overallScale;
+        let dt = 140;
+        badge.setScale(scaleFrom);
+        let posiAmplitude = 30;
+        let randomOffsetX = Math.random() * posiAmplitude * 2 - posiAmplitude;
+        let randomOffsetY = Math.random() * posiAmplitude * 2 - posiAmplitude;
+        posi.x += randomOffsetX;
+        posi.y += randomOffsetY;
+        badge.setPosition(posi.x, posi.y);
+        let rtAmplitude = 35 / 180 * Math.PI;
+        let randomRt = Math.random() * rtAmplitude * 2 - rtAmplitude;
+        badge.setRotation(randomRt);
+        let tw = this.scene.tweens.add({
+            targets: badge,
+            //x: '+=1',
+            // scale: scaleTo,
+            scale: {
+                getStart: () => scaleFrom,
+                getEnd: () => scaleTo,
+                duration: dt
+            },
+            ease: 'Sine.easeIn'
+            // yoyo: true,
+            // duration: 600,            
+        });
+        let delayFade = this.scene.tweens.add({
+            targets: badge,
+            delay: 250,
+            alpha: 0,
+            duration: 400,
+            onComplete: () => {
+                badge.destroy();
+            }
+        });
     }
 }
 class EnemyHpBar extends Wrapper {
@@ -2736,7 +2912,7 @@ class EnemyImage extends Enemy {
     constructor(scene, enemyManager, posi, lblStyle, config) {
         super(scene, enemyManager, posi, lblStyle, config);
     }
-    getMainImage() {
+    getMainTransform() {
         if (this.textAsImage) {
             return this.textAsImage;
         }
@@ -4761,7 +4937,7 @@ class Hud extends Wrapper {
     showScoreGainEffect(inc, enemy) {
         let posi = MakePoint2(enemy.inner.x, enemy.inner.y);
         if (enemy.config.enemyType == EnemyType.TextWithImage) {
-            posi.y += enemy.getMainImage().y;
+            posi.y += enemy.getMainTransform().y;
         }
         else {
             posi.y -= 75;
@@ -4775,14 +4951,14 @@ class Hud extends Wrapper {
         // this.inner.add(lbl);
         let parentContainer = this.scene.midContainder;
         parentContainer.add(lbl);
-        let dt = 1800;
+        let dt = 3500;
         let tw = this.scene.tweens.add({
             targets: lbl,
             y: '-= 30',
             alpha: {
                 getStart: () => 1,
                 getEnd: () => 0,
-                duration: dt
+                duration: dt,
             },
             onComplete: () => {
                 lbl.destroy();
@@ -5867,7 +6043,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             for (let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if (e.isSensative()) {
-                    e.damageInner(dpsSum * dt, badInfos[0].title);
+                    e.damageInner(dpsSum * dt, badInfos[0].title, false);
                 }
             }
         }
@@ -5877,7 +6053,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             for (let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if (!e.isSensative()) {
-                    e.damageInner(dpsSum * dt, turnInfos[0].title);
+                    e.damageInner(dpsSum * dt, turnInfos[0].title, false);
                 }
             }
         }

@@ -511,7 +511,7 @@ class EnemyManager {
 
         // filter the duplicate labels
         // var seen = {};
-        // ar = ar.filter(item => {
+        // ar = ar.filter(item => {x
         //     return seen.hasOwnProperty(item.name) ? false : (seen[item.name] = true);
         // });
 

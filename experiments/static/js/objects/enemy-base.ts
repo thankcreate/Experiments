@@ -31,7 +31,7 @@ interface EnemyConfig {
 
 class Enemy {
 
-    scene: Phaser.Scene;
+    scene: Scene1;
     inner: Phaser.GameObjects.Container; 
     parentContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;
@@ -109,6 +109,8 @@ class Enemy {
 
     update(time, dt) {        
         this.checkIfReachEnd();
+        this.checkIfNeedShowAutoBadBadge(time, dt);
+        this.checkIfNeedAutoTurn(time, dt);
         if(this.healthIndicator)        
             this.healthIndicator.update(time, dt);
 
@@ -253,15 +255,22 @@ class Enemy {
         // console.debug(this.lbl + " sim: " + val + "   damaged by: " + ret.damage);
 
         // Handle health
-        this.damageInner(ret.damage, input);
+        this.damageInner(ret.damage, input, true);
         return ret;
     }
 
-    damageInner(dmg: number, input: string) {
+
+    hasBeenDamagedByTurn: boolean = false;
+    damageInner(dmg: number, input: string, fromPlayer: boolean) {
         this.health -= dmg;
         
         this.health = Math.max(0, this.health);
-        
+
+        this.checkIfNeedChangeAlphaByTurn(input);
+
+        if(fromPlayer)
+            this.checkIfNeedShowBadBadge(dmg, input);
+            
         if(this.healthIndicator)
             this.healthIndicator.damagedTo(this.health);
 
@@ -273,8 +282,28 @@ class Enemy {
             let sc = this.scene as Scene1;
             if(sc.needFeedback)
                 this.playHurtAnimation();
+        }        
+    }
+
+    checkIfNeedChangeAlphaByTurn(input: string) {
+        if(this.hasBeenDamagedByTurn || isReservedTurnKeyword(input)) {
+            this.hasBeenDamagedByTurn = true;
+            this.updateAlphaByHealth();
         }
     }
+
+    updateAlphaByHealth() {
+        (this.getMainTransform() as any).alpha = this.health / this.maxHealth;
+    }
+
+    checkIfNeedShowBadBadge(dmg: number, input: string) {
+        if(dmg > 0 && this.isSensative())
+            this.showBadgeEffect();
+        else if(dmg > 0 && !this.isSensative()) {
+            this.showTurnEffect(true);
+        }
+    }
+
 
     updateHealthBarDisplay() {
         if(this.hpBar) {
@@ -334,7 +363,180 @@ class Enemy {
 
     }
 
-    
+    getMainTransform() : Phaser.GameObjects.Components.Transform {
+        return this.inner;
+    }
+
+    lastAutoBadge = -1000;
+    autoBadgeIndex = 0;
+    checkIfNeedShowAutoBadBadge(time, dt) {
+        if(!this.isSensative())
+            return;
+        if(this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {            
+            if(time - this.lastAutoBadge > autoBadgeInterval) {                
+                let avi = [];
+                for(let i in badInfos) {
+                    if(badInfos[i].consumed) {
+                        avi.push(i);
+                    }
+                }
+                if(avi.length == 0)
+                    return;
+                    
+                this.showBadgeEffect(avi[this.autoBadgeIndex % avi.length]);
+
+                this.autoBadgeIndex++;
+                this.lastAutoBadge = time;
+            }
+        }
+    }
+
+    lastAutoTurn = -1000;    
+
+    checkIfNeedAutoTurn(time, dt) {
+        if(this.isSensative())
+            return;
+        
+        if(this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {            
+            if(time - this.lastAutoTurn > autoTurnInterval) {                
+                if(!getAutoTurnInfo().consumed) 
+                    return;
+
+                this.showTurnEffect(false);                
+                this.lastAutoTurn = time;
+            }
+        }    
+    }
+
+    loopMagic: PhImage;
+    showTurnEffect(fromPlayer: boolean) {
+        let posi = MakePoint(this.getMainTransform());
+        // posi.x += this.inner.x;
+        // posi.y += this.inner.y;
+        posi.x += 70;        
+        posi.y -= 70;
+
+        let magic;
+        if(fromPlayer) {
+            magic = this.scene.add.image(posi.x, posi.y, 'magic');
+
+            // let posiAmplitude = 20;
+            // let randomOffsetX = Math.random() * posiAmplitude * 2 - posiAmplitude;
+            // let randomOffsetY = Math.random() * posiAmplitude * 2 - posiAmplitude;
+            // posi.x += randomOffsetX;
+            // posi.y += randomOffsetY;
+            // magic.setPosition(posi.x, posi.y);
+        }
+        else {
+            if(notSet(this.loopMagic)) {
+                this.loopMagic = this.scene.add.image(posi.x, posi.y, 'magic');                
+            } 
+            magic = this.loopMagic;
+        }
+
+
+            
+        magic.setOrigin(23 / 49, 81 / 86);
+        // this.scene.midContainder.add(magic);
+        this.inner.add(magic);
+
+        let scale = 0.8;
+        
+        let fromRt = -30 / 180 * Math.PI;
+        let toRt = -60 / 180 * Math.PI;
+        
+        let rtDt = 250;
+
+        magic.setRotation(fromRt);        
+        magic.setScale(scale);
+        magic.alpha = 1;
+
+        let rt = this.scene.add.tween({
+            targets: magic,
+            rotation: toRt,
+            duration: rtDt,
+            yoyo: true,
+            ease: 'Sine.easeOut',
+            // onYoyo: () =>{
+            //     this.updateAlphaByHealth()
+            // }
+        })
+
+        if(fromPlayer) {
+            let fadeDelay = 400;
+            let fade = this.scene.add.tween({            
+                targets: magic,
+                delay: fadeDelay,
+                alpha: 0,
+                duration: rtDt * 2 - fadeDelay,     
+                onComplete: ()=>{
+                    magic.destroy();
+                }     
+            })
+        }
+    }
+
+    showBadgeEffect(idx?) {        
+        let posi = MakePoint(this.getMainTransform());
+        posi.x += this.inner.x;
+        posi.y += this.inner.y;
+        posi.y += 8;        
+
+        if(notSet(idx)) {
+            idx = 0;
+        }
+
+        let resID = getBadgeResID(idx);
+
+        let badge = this.scene.add.image(0, 0,  resID);
+        this.scene.midContainder.add(badge);
+
+        // let scaleFrom = 0.8;
+        // let scaleTo = 1;
+        
+        let overallScale = 0.85;
+        let scaleFrom = 1.05 * overallScale;
+        let scaleTo = 0.8 * overallScale;
+
+        let dt = 140;
+        badge.setScale(scaleFrom);
+
+        let posiAmplitude = 30;
+        let randomOffsetX = Math.random() * posiAmplitude * 2 - posiAmplitude;
+        let randomOffsetY = Math.random() * posiAmplitude * 2 - posiAmplitude;
+        posi.x += randomOffsetX;
+        posi.y += randomOffsetY;
+        badge.setPosition(posi.x, posi.y);
+
+        let rtAmplitude = 35 / 180 * Math.PI;
+        let randomRt = Math.random() * rtAmplitude * 2 - rtAmplitude
+        badge.setRotation(randomRt);
+
+        let tw = this.scene.tweens.add({
+            targets: badge,
+            //x: '+=1',
+            // scale: scaleTo,
+            scale: {
+                getStart: () => scaleFrom,
+                getEnd: () => scaleTo,
+                duration: dt                
+            },
+            ease: 'Sine.easeIn'
+            // yoyo: true,
+            // duration: 600,            
+            
+        });
+
+        let delayFade = this.scene.tweens.add({
+            targets: badge,
+            delay: 250,
+            alpha: 0,
+            duration: 400,
+            onComplete: ()=>{
+                badge.destroy();
+            }
+        });
+    }
 }
 
 

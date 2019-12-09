@@ -72,7 +72,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             for(let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if(e.isSensative()) {
-                    e.damageInner(dpsSum * dt, badInfos[0].title);
+                    e.damageInner(dpsSum * dt, badInfos[0].title, false);
                 }
             }
         }
@@ -83,7 +83,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             for(let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if(!e.isSensative()) {
-                    e.damageInner(dpsSum * dt, turnInfos[0].title);
+                    e.damageInner(dpsSum * dt, turnInfos[0].title, false);
                 }
             }
         }

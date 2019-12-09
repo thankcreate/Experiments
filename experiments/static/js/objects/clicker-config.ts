@@ -19,6 +19,11 @@ let propInfos = [
     {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!"}
 ]   
 
+function getBadgeResID(i) {
+    let resId = 'badge_' + badInfos[i].title.toLowerCase(); 
+    return resId;
+}
+
 function getAutoTypeInfo() {
     return propInfos[1];
 }
@@ -37,9 +42,12 @@ function getNormalFreq() {
 
 
 
-let initScore = 10000;
+let initScore = 100000;
 let baseScore = 100;
 let normalFreq1 = 4;
+
+let autoBadgeInterval = 400;
+let autoTurnInterval = 1000;
 
 
 for(let i = 0; i < badInfos.length; i++) {

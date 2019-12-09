@@ -8,7 +8,7 @@ class EnemyImage extends Enemy {
         super(scene, enemyManager, posi, lblStyle, config);       
     }
 
-    getMainImage() : Phaser.GameObjects.Components.Transform{
+    getMainTransform() : Phaser.GameObjects.Components.Transform{
         if(this.textAsImage) {
             return this.textAsImage;
         }

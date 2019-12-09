@@ -319,7 +319,7 @@ class Hud extends Wrapper<PhText> {
 
         let posi = MakePoint2(enemy.inner.x, enemy.inner.y);
         if(enemy.config.enemyType == EnemyType.TextWithImage) {
-            posi.y += (enemy as EnemyImage).getMainImage().y;
+            posi.y += (enemy as EnemyImage).getMainTransform().y;
         }
         else {
             posi.y -= 75;
@@ -338,21 +338,21 @@ class Hud extends Wrapper<PhText> {
         // this.inner.add(lbl);
         let parentContainer = (this.scene as Scene1).midContainder;
         parentContainer.add(lbl);
-        let dt = 1800;
+        let dt = 3500;
 
         let tw = this.scene.tweens.add({
             targets: lbl,            
             y: '-= 30',
-            alpha: {
+            alpha: {                
                 getStart: () => 1,
                 getEnd: () => 0,
-                duration: dt
+                duration: dt,                
             },
             onComplete: ()=>{
                 lbl.destroy();
             },
             duration: dt
-        });
+        });        
     }
 
     refreshScore() {

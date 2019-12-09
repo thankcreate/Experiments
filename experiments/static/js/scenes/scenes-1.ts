@@ -32,6 +32,8 @@ class Scene1 extends BaseScene {
     labels;
     lblStyl;
 
+    
+
     /**
      * container is aligned to the center of canvas
      */

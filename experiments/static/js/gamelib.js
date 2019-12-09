@@ -3108,11 +3108,29 @@ class EnemyManager {
         this.strategies.set(SpawnStrategyType.ClickerGame, new SpawnStrategyClickerGame(this, {}));
     }
     ;
+    getNewStrategyByType(type) {
+        if (type == SpawnStrategyType.SpawnOnEliminatedAndReachCore) {
+            return new SpawnStrategyOnEliminatedAndReachCore(this);
+        }
+        else if (type == SpawnStrategyType.FlowTheory) {
+            return new SpawnStrategyFlowTheory(this);
+        }
+        else if (type == SpawnStrategyType.RandomFlow) {
+            return new RandomFlow(this);
+        }
+        else if (type == SpawnStrategyType.None) {
+            return new SpawnStrategy(this, SpawnStrategyType.None, {});
+        }
+        else if (type == SpawnStrategyType.ClickerGame) {
+            return new SpawnStrategyClickerGame(this, {});
+        }
+    }
     startSpawnStrategy(strategy, config) {
         if (this.curStrategy)
             this.curStrategy.onExit();
         this.curStrategyID = strategy;
-        this.curStrategy = this.strategies.get(strategy);
+        // this.curStrategy = this.strategies.get(strategy);
+        this.curStrategy = this.getNewStrategyByType(strategy);
         this.curStrategy.updateConfig(config);
         if (this.curStrategy)
             this.curStrategy.onEnter();
@@ -3575,8 +3593,9 @@ class EnemyManager {
     freezeAllEnemies() {
         if (this.autoSpawnTween)
             this.autoSpawnTween.pause();
-        this.curStrategy.pause();
-        this.startSpawnStrategy(SpawnStrategyType.None);
+        if (this.curStrategy)
+            this.curStrategy.pause();
+        // this.startSpawnStrategy(SpawnStrategyType.None);
         this.enemies.forEach(element => {
             element.freeze();
         });

@@ -107,18 +107,55 @@ class PlayerInputText {
     /**
      * @returns true if need to forward the operation to auto mode
      */
-    handleAutoContentKeyPress(): boolean {
-        if(!this.inAutoForceMode)
-            return false;
-
-        let curLen = this.text.text.length;
-        let allLen = this.autoText.length;
-
-        if(curLen < allLen) {
-            this.text.setText(this.autoText.substr(0, curLen + 1));
+    handleAutoContentKeyPress(input: string): boolean {
+        if(this.inAutoForceMode){
+            let curLen = this.text.text.length;
+            let allLen = this.autoText.length;
+    
+            if(curLen < allLen) {
+                this.text.setText(this.autoText.substr(0, curLen + 1));
+            }
+            return true;
         }
+        else if(getTurnInfo().consumed) {
+            let bad = badInfos[0].title;
+            let turn = turnInfos[0].title;
 
-        return true;
+            if(this.text.text.length == 0) {
+                if(input.toLowerCase() == bad.charAt(0).toLowerCase()) {
+                    return false;
+                }
+                else {
+                    this.text.setText(turn.charAt(0).toUpperCase());
+                    return true;
+                }
+            }
+            else {
+                
+                let curLen = this.text.text.length;
+                if(bad.indexOf(this.text.text) >=0)  {
+                    if(curLen == bad.length) {
+                        return true;
+                    }
+                    else {
+                        this.text.setText(bad.substr(0, curLen + 1));
+                        return true;
+                    }
+                }
+                else if(turn.indexOf(this.text.text) >= 0) {
+                    if(curLen == turn.length) {
+                        return true;
+                    }
+                    else {
+                        this.text.setText(turn.substr(0, curLen + 1));
+                        return true;
+                    }
+                }
+            }
+        }
+        else {
+            return false;
+        }         
     }
 
 
@@ -147,19 +184,24 @@ class PlayerInputText {
             return;
         }
 
-        if(this.handleAutoContentKeyPress()) 
-            return;
+        var codeS = String.fromCharCode(code);
+        if(this.handleAutoContentKeyPress(codeS))  {
 
-        //console.log(this.text.displayHeight);
-        if (t.length < this.maxCount ) {
-        // if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
-        // if (t.length < this.maxCount ) {
-            var codeS = String.fromCharCode(code);
-            if (t.length == 0)
-                codeS = codeS.toUpperCase();
-            t += codeS;
         }
-        this.text.setText(t);
+        else {
+            //console.log(this.text.displayHeight);
+            if (t.length < this.maxCount ) {
+                // if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
+                // if (t.length < this.maxCount ) {                    
+                    if (t.length == 0)
+                        codeS = codeS.toUpperCase();
+                    t += codeS;
+                }
+            this.text.setText(t);
+        }
+            
+
+      
 
         // if height exceeded 2 rows,set the content back to before
         let height = this.text.displayHeight;

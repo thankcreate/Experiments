@@ -120,6 +120,14 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.spawnNormal();
         this.spawnNormal();
         this.startLoopCreateNormal();
+
+        this.sc1().centerObject.centerProgres.fullEvent.on(()=>{
+            this.create();
+        })
+    }
+
+    create() {
+        this.spawnNormal();
     }
 
 
@@ -178,6 +186,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             }            
             else {
                 this.normalNormalCount++;
+                // if(this.normalNormalCount >= 1) {
+                //     this.sc1().normalGameFsm.event('WARN');
+                // }
             }
         }  
         else if(clickerType == ClickerType.BadFromNormal)  {
@@ -197,7 +208,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     getAwardForNormal() : number {
-        return 1 - this.normalNormalCount;
+        return -100 - this.normalNormalCount;
     }
 
     enemyEliminated(enemy: Enemy, damagedBy: string) {
@@ -217,8 +228,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     inputSubmitted(input: string) {
         if(input == getCreateKeyword()) {
-            
+            this.sc1().centerObject.centerProgres.addProgress(1);
         }
     }
-
 }

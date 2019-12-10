@@ -298,7 +298,7 @@ class Scene1 extends BaseScene {
         this.overlayContainer.setPosition(w / 2, h / 2);
 
         this.enemyManager.update(time, dt);
-        this.centerObject.update();
+        this.centerObject.update(time, dt);
         this.hud.update(time, dt);
 
         // this.checkDuckVolumn();

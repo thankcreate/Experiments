@@ -23,9 +23,12 @@ type FigureConfig = {
     itemCount?: number
 
     roundRadius?: number
+    radius?: number
 
     btns?: string[]
-
+    startAngle?: number
+    endAngle?: number
+    antiClockwise?: boolean
 }
 
 /**
@@ -144,6 +147,45 @@ class Rect extends Figure {
         }
     }
 }
+
+
+class Arc extends Figure {
+
+    handleConfig(config: FigureConfig) {
+        super.handleConfig(config);
+
+        if (notSet(config.lineWidth)) config.lineWidth = 4;
+        if (notSet(config.lineColor)) config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha)) config.lineAlpha = 1;
+
+        if (notSet(config.fillColor)) config.fillColor = 0xffffff;
+        if (notSet(config.fillColor)) config.fillAlpha = 1;
+        
+        if (notSet(config.radius)) config.radius = 100;
+        if (notSet(config.startAngle)) config.startAngle = 0;
+        if (notSet(config.endAngle)) config.endAngle = Math.PI / 2;
+        if (notSet(config.antiClockwise)) config.antiClockwise = false;
+    }
+
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+
+        graphics.clear();
+
+        // Some times even if lineWidth == 0 && width == 0
+        // There is still a tiny line
+        // So we need to double check that if the width == 0,
+        // we don't draw anything
+        if (config.width === 0)
+            return;
+
+        graphics.arc(0, 0, config.radius, config.startAngle, config.endAngle, config.antiClockwise);
+        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+        graphics.stroke();
+    }
+}
+
 
 
 class Dialog extends Figure {

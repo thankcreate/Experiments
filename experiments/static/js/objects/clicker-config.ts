@@ -26,7 +26,7 @@ let propInfos = [
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
         warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
         },
-    {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
+    {title: "Auto\nTurn", consumed: false, price: 4500, size: 22, desc: "Automatically Turn Non-404 words into 404"},
     {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short'}
 ]   
 
@@ -53,9 +53,9 @@ function getNormalFreq() {
 
 
 
-let initScore = 100000;
+let initScore = 100;
 let baseScore = 100;
-let normalFreq1 = 4;
+let normalFreq1 = 10;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;

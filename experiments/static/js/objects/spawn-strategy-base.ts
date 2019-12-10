@@ -22,6 +22,10 @@ class SpawnStrategy {
 
     needHandleRewardExclusively: boolean = false;
 
+    sc1() : Scene1{
+        return this.enemyManager.scene;
+    }
+
     constructor(manager: EnemyManager, type: SpawnStrategyType, config: SpawnStrategyConfig) {        
         
         this.config = this.getInitConfig();

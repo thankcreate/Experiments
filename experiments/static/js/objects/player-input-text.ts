@@ -120,9 +120,13 @@ class PlayerInputText {
         else if(getTurnInfo().consumed) {
             let bad = badInfos[0].title;
             let turn = turnInfos[0].title;
+            let create = getCreateKeyword();
 
             if(this.text.text.length == 0) {
                 if(input.toLowerCase() == bad.charAt(0).toLowerCase()) {
+                    return false;
+                }
+                else if(input.toLowerCase() == create.charAt(0).toLowerCase()) {
                     return false;
                 }
                 else {
@@ -131,7 +135,6 @@ class PlayerInputText {
                 }
             }
             else {
-                
                 let curLen = this.text.text.length;
                 if(bad.indexOf(this.text.text) >=0)  {
                     if(curLen == bad.length) {
@@ -148,6 +151,15 @@ class PlayerInputText {
                     }
                     else {
                         this.text.setText(turn.substr(0, curLen + 1));
+                        return true;
+                    }
+                }
+                else if(create.indexOf(this.text.text) >= 0) {
+                    if(curLen == create.length) {
+                        return true;
+                    }
+                    else {
+                        this.text.setText(create.substr(0, curLen + 1));
                         return true;
                     }
                 }

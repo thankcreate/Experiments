@@ -55,6 +55,8 @@ class CenterObject {
     btnMode0: Button;
     btnMode1: Button;
 
+    centerProgres: CenterProgress;
+
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -87,6 +89,8 @@ class CenterObject {
 
         btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);        
         this.btnMode1 = btn;
+
+        this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
     }
 
     graph: PhGraphics;
@@ -128,7 +132,7 @@ class CenterObject {
         return this.getDesignWidth() * 0.65;
     }
 
-    update() {
+    update(time, dt) {
         let pointer = this.scene.input.activePointer;
 
         this.text.setText([
@@ -137,6 +141,10 @@ class CenterObject {
             'isDown: ' + pointer.isDown,
             'rightButtonDown: ' + pointer.rightButtonDown()
         ]);
+
+        if(this.centerProgres) {
+            this.centerProgres.update(time, dt);
+        }
     }
 
     frame: number = 0;

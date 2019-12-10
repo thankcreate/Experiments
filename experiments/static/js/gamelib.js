@@ -306,7 +306,7 @@ class Scene1 extends BaseScene {
         this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
-        this.centerObject.update();
+        this.centerObject.update(time, dt);
         this.hud.update(time, dt);
         // this.checkDuckVolumn();
     }
@@ -1192,6 +1192,7 @@ class Scene1L3 extends Scene1 {
 class Scene1L4 extends Scene1 {
     constructor() {
         super('Scene1L4');
+        this.hasWarnKey = 'HasWarn';
     }
     loadAudio() {
         super.loadAudio();
@@ -1221,10 +1222,12 @@ class Scene1L4 extends Scene1 {
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
+        this.initWarn();
+        this.initStateIdle();
         this.updateObjects.push(this.normalGameFsm);
     }
     needShowEcoAboutAtStartup() {
-        return true;
+        return false;
     }
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
@@ -1250,6 +1253,9 @@ class Scene1L4 extends Scene1 {
             // // this.needFeedback = true;
             // this.enemyManager.setNextNeedSensitiveAlways(true);     
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.ClickerGame);
+            // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
+            //     s.event('WARN') ;
+            // }            
         })
             .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
@@ -1257,7 +1263,30 @@ class Scene1L4 extends Scene1 {
             this.hud.showContainerRight();
         })
             .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
-            .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true);
+            .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
+            .addFinishAction();
+    }
+    initStateIdle() {
+        let state = this.normalGameFsm.getState("Idle");
+        state.setOnEnter(s => {
+        });
+        state.setOnUpdate(s => {
+            if (this.getCurClickerStrategy().normalNormalCount >= 1 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
+                this.normalGameFsm.setVar(this.hasWarnKey, true);
+                s.event('WARN');
+            }
+        });
+    }
+    getCurClickerStrategy() {
+        return this.enemyManager.curStrategy;
+    }
+    initWarn() {
+        let state = this.normalGameFsm.getState("Warn");
+        state.setOnEnter(s => {
+        })
+            .addSubtitleAction(this.subtitle, "Can't you read? ", true)
+            .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
+            .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000);
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -1902,6 +1931,8 @@ class Bubble extends Wrapper {
         this.inner.setVisible(false);
     }
 }
+class ButtonGroup extends Wrapper {
+}
 /**
  * When you want to deactive a button \
  * Just call setEnable(false) \
@@ -2133,6 +2164,7 @@ class CenterObject {
         this.btnMode0 = btn;
         btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);
         this.btnMode1 = btn;
+        this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
     }
     playerInputChanged(inputControl) {
         let percent = inputControl.text.width / this.getTextMaxWidth();
@@ -2164,7 +2196,7 @@ class CenterObject {
     getTextMaxWidth() {
         return this.getDesignWidth() * 0.65;
     }
-    update() {
+    update(time, dt) {
         let pointer = this.scene.input.activePointer;
         this.text.setText([
             'x: ' + pointer.worldX,
@@ -2172,6 +2204,9 @@ class CenterObject {
             'isDown: ' + pointer.isDown,
             'rightButtonDown: ' + pointer.rightButtonDown()
         ]);
+        if (this.centerProgres) {
+            this.centerProgres.update(time, dt);
+        }
     }
     prepareToGame() {
         this.playerInputText.prepareToGame();
@@ -2198,6 +2233,78 @@ class CenterObject {
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
     }
 }
+class CenterProgress extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.arcOffset = -Math.PI / 2;
+        /**
+         * progress is normalized as [0, 1]
+         */
+        this.progress = 0;
+        this.progressDisplayed = 0;
+        this.fullEvent = new TypedEvent();
+        this.lastTimeProgressDisplayed = -1;
+        this.radius = 115;
+        this.curVal = 0;
+        this.maxVal = 10;
+        this.progress = this.curVal / this.maxVal;
+        //let ac = this.scene.add.arc(x, y, radius, 0, Math.pi, false, 0x000000, 1);
+        this.circle = new Arc(this.scene, this.inner, 0, 0, {
+            radius: this.radius,
+            startAngle: 0 + this.arcOffset,
+            endAngle: Math.PI / 2 + this.arcOffset,
+            antiClockwise: false,
+            lineWidth: 12,
+        });
+    }
+    addProgress(val, delay, duration) {
+        if (notSet(delay))
+            delay = 0;
+        if (notSet(duration))
+            duration = 100;
+        this.curVal += val;
+        this.curVal = clamp(this.curVal, 0, this.maxVal);
+        this.progress = this.curVal / this.maxVal;
+        let to = this.progress;
+        // console.log(to);
+        if (this.resetTw) {
+            this.resetTw.stop();
+        }
+        if (val > 0) {
+            this.addTw = this.scene.add.tween({
+                delay: delay,
+                targets: this,
+                progressDisplayed: to,
+                duration: duration,
+            });
+        }
+        else {
+            this.resetTw = this.scene.add.tween({
+                delay: delay,
+                targets: this,
+                progressDisplayed: to,
+                duration: duration,
+            });
+        }
+        if (this.progress == 1) {
+            this.full();
+        }
+    }
+    full() {
+        this.fullEvent.emit(this);
+        this.addProgress(-this.maxVal, 500, 1000);
+    }
+    update(time, dt) {
+        this.updateProgressDisplay();
+    }
+    updateProgressDisplay() {
+        if (this.progressDisplayed == this.lastTimeProgressDisplayed)
+            return;
+        this.circle.config.endAngle = Math.PI * 2 * this.progressDisplayed + this.arcOffset;
+        this.circle.drawGraphics();
+        this.lastTimeProgressDisplayed = this.progressDisplayed;
+    }
+}
 let badInfos = [
     { title: "Bad", size: 36, desc: "", damage: 1, cost: 0, consumed: false },
     { title: "Evil", size: 34, desc: "", damage: 3, cost: 300, consumed: false },
@@ -2222,7 +2329,7 @@ let propInfos = [
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
         warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
     },
-    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "Auto\nTurn", consumed: false, price: 4500, size: 22, desc: "Automatically Turn Non-404 words into 404" },
     { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short' }
 ];
 function getBadgeResID(i) {
@@ -2241,9 +2348,9 @@ function getAutoTurnInfo() {
 function getNormalFreq() {
     return normalFreq1;
 }
-let initScore = 100000;
+let initScore = 100;
 let baseScore = 100;
-let normalFreq1 = 4;
+let normalFreq1 = 10;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 for (let i = 0; i < badInfos.length; i++) {
@@ -3809,6 +3916,43 @@ class Rect extends Figure {
         }
     }
 }
+class Arc extends Figure {
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.lineWidth))
+            config.lineWidth = 4;
+        if (notSet(config.lineColor))
+            config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha))
+            config.lineAlpha = 1;
+        if (notSet(config.fillColor))
+            config.fillColor = 0xffffff;
+        if (notSet(config.fillColor))
+            config.fillAlpha = 1;
+        if (notSet(config.radius))
+            config.radius = 100;
+        if (notSet(config.startAngle))
+            config.startAngle = 0;
+        if (notSet(config.endAngle))
+            config.endAngle = Math.PI / 2;
+        if (notSet(config.antiClockwise))
+            config.antiClockwise = false;
+    }
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+        graphics.clear();
+        // Some times even if lineWidth == 0 && width == 0
+        // There is still a tiny line
+        // So we need to double check that if the width == 0,
+        // we don't draw anything
+        if (config.width === 0)
+            return;
+        graphics.arc(0, 0, config.radius, config.startAngle, config.endAngle, config.antiClockwise);
+        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+        graphics.stroke();
+    }
+}
 class Dialog extends Figure {
     constructor(scene, parentContainer, x, y, config) {
         super(scene, parentContainer, x, y, config);
@@ -4667,6 +4811,11 @@ var normal_1_4 = {
     initial: "Default",
     events: [
         { name: 'START', from: 'Default', to: 'Start' },
+        { name: 'FINISHED', from: 'Start', to: 'Idle' },
+        { name: 'WARN', from: 'Idle', to: 'Warn' }
+    ],
+    states: [
+        { name: 'Idle', color: 'Green' }
     ]
 };
 farray.push(normal_1_4);
@@ -5555,8 +5704,12 @@ class PlayerInputText {
         else if (getTurnInfo().consumed) {
             let bad = badInfos[0].title;
             let turn = turnInfos[0].title;
+            let create = getCreateKeyword();
             if (this.text.text.length == 0) {
                 if (input.toLowerCase() == bad.charAt(0).toLowerCase()) {
+                    return false;
+                }
+                else if (input.toLowerCase() == create.charAt(0).toLowerCase()) {
                     return false;
                 }
                 else {
@@ -5581,6 +5734,15 @@ class PlayerInputText {
                     }
                     else {
                         this.text.setText(turn.substr(0, curLen + 1));
+                        return true;
+                    }
+                }
+                else if (create.indexOf(this.text.text) >= 0) {
+                    if (curLen == create.length) {
+                        return true;
+                    }
+                    else {
+                        this.text.setText(create.substr(0, curLen + 1));
                         return true;
                     }
                 }
@@ -6102,6 +6264,9 @@ class SpawnStrategy {
         this.type = type;
         this.updateConfig(config);
     }
+    sc1() {
+        return this.enemyManager.scene;
+    }
     getInitConfig() {
         return {};
     }
@@ -6389,6 +6554,12 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.spawnNormal();
         this.spawnNormal();
         this.startLoopCreateNormal();
+        this.sc1().centerObject.centerProgres.fullEvent.on(() => {
+            this.create();
+        });
+    }
+    create() {
+        this.spawnNormal();
     }
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;
@@ -6434,6 +6605,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             }
             else {
                 this.normalNormalCount++;
+                // if(this.normalNormalCount >= 1) {
+                //     this.sc1().normalGameFsm.event('WARN');
+                // }
             }
         }
         else if (clickerType == ClickerType.BadFromNormal) {
@@ -6447,7 +6621,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return sc;
     }
     getAwardForNormal() {
-        return 1 - this.normalNormalCount;
+        return -100 - this.normalNormalCount;
     }
     enemyEliminated(enemy, damagedBy) {
         let clickerType = enemy.clickerType;
@@ -6465,6 +6639,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     inputSubmitted(input) {
         if (input == getCreateKeyword()) {
+            this.sc1().centerObject.centerProgres.addProgress(1);
         }
     }
 }

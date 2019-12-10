@@ -10,7 +10,7 @@ interface SpawnStrategyConfig {
 var gEnemyID = 0
 class EnemyManager {
 
-    scene: BaseScene;
+    scene: Scene1;
     inner: Phaser.GameObjects.Container; // main scene container
 
     interval;

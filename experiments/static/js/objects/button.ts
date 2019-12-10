@@ -1,3 +1,7 @@
+class ButtonGroup extends Wrapper<PhText> {
+    
+}
+
 /**
  * When you want to deactive a button \
  * Just call setEnable(false) \

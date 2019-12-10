@@ -5062,13 +5062,13 @@ class Hud extends Wrapper {
     }
     createMenuRight() {
         // tool menu right
-        this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400);
-        this.inner.add(this.toolMenuContainerRight);
+        // this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
+        this.toolMenuContainerRight = new ButtonGroup(this.scene, this.inner, getLogicWidth() - 75, 400, null);
         // this.hideContainerRight(false);
         let startY = 0;
         let intervalY = 100;
         for (let i = 0; i < propInfos.length; i++) {
-            let btn = new PropButton(this.scene, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i].title, 75, 75, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i].title, 75, 75, false);
             btn.text.setFontSize(propInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
@@ -5085,7 +5085,7 @@ class Hud extends Wrapper {
             // btn.promptImg.setVisible(false);
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price, propInfos[i].warning);
-                this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.x - 70, btn.inner.y + this.toolMenuContainerRight.y);
+                this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
                 this.popupBubbleRight.show();
             });
             btn.fakeZone.on('pointerout', () => {
@@ -5126,8 +5126,8 @@ class Hud extends Wrapper {
             this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());
         });
         // bubble
-        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
-        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.y;
+        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.inner.x - 70;
+        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.inner.y;
         this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, true);
         this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);
         this.popupBubbleRight.hide();
@@ -5140,12 +5140,12 @@ class Hud extends Wrapper {
         let frameTopPadding = 60;
         let frameBottonPadding = 15;
         // tool menu left
-        this.toolMenuContainerLeft = this.scene.add.container(75, 360);
-        this.inner.add(this.toolMenuContainerLeft);
+        // this.toolMenuContainerLeft = this.scene.add.container(75, 360); 
+        this.toolMenuContainerLeft = new ButtonGroup(this.scene, this.inner, 75, 360, null);
         this.hideContainerLeft(false);
         let bkgWidth = btnWidth + frameBtnGap * 2;
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
-        let bkg = new Rect(this.scene, this.toolMenuContainerLeft, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
+        let bkg = new Rect(this.scene, this.toolMenuContainerLeft.inner, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
             fillColor: 0xFFFFFF,
             // lineColor: 0x222222,
             lineWidth: 6,
@@ -5161,7 +5161,7 @@ class Hud extends Wrapper {
         let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
-            let btn = new PropButton(this.scene, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
             btn.text.setFontSize(badInfos[i].size);
             btn.text.y -= 10;
             btn.needHandOnHover = true;
@@ -5177,7 +5177,7 @@ class Hud extends Wrapper {
             btn.priceTag = badInfos[i].cost;
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleLeft.setText(btn.tag);
-                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.x + 70, btn.inner.y + this.toolMenuContainerLeft.y);
+                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
                 this.popupBubbleLeft.show();
             });
             btn.fakeZone.on('pointerout', () => {
@@ -5188,8 +5188,8 @@ class Hud extends Wrapper {
             });
         }
         // bubble
-        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.x + 70;
-        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.y;
+        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.inner.x + 70;
+        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.inner.y;
         this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);
         this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);
         this.popupBubbleLeft.hide();
@@ -5322,23 +5322,23 @@ class Hud extends Wrapper {
         // showContainerRight();
     }
     showContainerRight() {
-        this.toolMenuContainerRight.setVisible(true);
+        this.toolMenuContainerRight.inner.setVisible(true);
         if (this.toolMenuContainerRightIsShown)
             return;
         this.toolMenuContainerRightIsShown = true;
         this.scene.tweens.add({
-            targets: this.toolMenuContainerRight,
+            targets: this.toolMenuContainerRight.inner,
             x: "-= 150",
             duration: 1000,
         });
     }
     showContainerLeft() {
-        this.toolMenuContainerLeft.setVisible(true);
+        this.toolMenuContainerLeft.inner.setVisible(true);
         if (this.toolMenuContainerLeftIsShown)
             return;
         this.toolMenuContainerLeftIsShown = true;
         this.scene.tweens.add({
-            targets: this.toolMenuContainerLeft,
+            targets: this.toolMenuContainerLeft.inner,
             x: "+= 150",
             duration: 1000,
         });
@@ -5372,14 +5372,14 @@ class Hud extends Wrapper {
         this.toolMenuContainerRightIsShown = false;
         if (needAnimation) {
             this.scene.tweens.add({
-                targets: this.toolMenuContainerRight,
+                targets: this.toolMenuContainerRight.inner,
                 x: "+= 150",
                 duration: 1000,
             });
         }
         else {
-            this.toolMenuContainerRight.x += 150;
-            this.toolMenuContainerRight.setVisible(false);
+            this.toolMenuContainerRight.inner.x += 150;
+            this.toolMenuContainerRight.inner.setVisible(false);
         }
     }
     hideContainerLeft(needAnimation = true) {
@@ -5388,14 +5388,14 @@ class Hud extends Wrapper {
         this.toolMenuContainerLeftIsShown = false;
         if (needAnimation) {
             this.scene.tweens.add({
-                targets: this.toolMenuContainerLeft,
+                targets: this.toolMenuContainerLeft.inner,
                 x: "-= 150",
                 duration: 1000,
             });
         }
         else {
-            this.toolMenuContainerLeft.x -= 150;
-            this.toolMenuContainerLeft.setVisible(false);
+            this.toolMenuContainerLeft.inner.x -= 150;
+            this.toolMenuContainerLeft.inner.setVisible(false);
         }
     }
 }

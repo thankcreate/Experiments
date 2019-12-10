@@ -187,6 +187,7 @@ class Scene1 extends BaseScene {
         this.load.image('rounded_btn', 'assets/rounded_with_title_btn_90_10.png');
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.image('popup_bubble_left', 'assets/popup_bubble_left.png');
+        this.load.image('popup_bubble_bottom', 'assets/popup_bubble_bottom.png');
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
@@ -1890,11 +1891,33 @@ function sayHi() {
     console.log("Hi, I'm tron");
 }
 class Bubble extends Wrapper {
-    constructor(scene, parentContainer, x, y, isRight) {
+    constructor(scene, parentContainer, x, y, dir) {
         super(scene, parentContainer, x, y, null);
         this.gapBetweenTextAndWarningText = 6;
-        let img = this.scene.add.image(0, 0, isRight ? 'popup_bubble' : 'popup_bubble_left');
-        img.setOrigin(isRight ? 1 : 0, 46 / 229);
+        let imgRes = "";
+        let originX = 0;
+        let originy = 0;
+        let textX = 0;
+        let textY = 0;
+        if (dir == Dir.Bottom) {
+            imgRes = 'popup_bubble_bottom';
+        }
+        else if (dir == Dir.Left) {
+            imgRes = 'popup_bubble_left';
+            originX = 0;
+            originy = 46 / 229;
+            textX = 40;
+            textY = -26;
+        }
+        else if (dir == Dir.Right) {
+            imgRes = 'popup_bubble';
+            originX = 1;
+            originy = 46 / 229;
+            textX = -442;
+            textY = -26;
+        }
+        let img = this.scene.add.image(0, 0, imgRes);
+        img.setOrigin(originX, originy);
         this.applyTarget(img);
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
@@ -1902,7 +1925,7 @@ class Bubble extends Wrapper {
         let cc = "You can just type in 'B' instead of 'BAD' for short";
         let wordWrapthWidt = 400;
         // main text
-        this.text = this.scene.add.text(isRight ? -442 : 40, -26, cc, style).setOrigin(0, 0);
+        this.text = this.scene.add.text(textX, textY, cc, style).setOrigin(0, 0);
         this.text.setWordWrapWidth(wordWrapthWidt);
         this.inner.add(this.text);
         // warning text
@@ -2306,12 +2329,12 @@ class CenterProgress extends Wrapper {
     }
 }
 let badInfos = [
-    { title: "Bad", size: 36, desc: "", damage: 1, cost: 0, consumed: false },
-    { title: "Evil", size: 34, desc: "", damage: 3, cost: 300, consumed: false },
-    { title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false },
-    { title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false },
-    { title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false },
-    { title: "Shameful", size: 18, desc: "", damage: 20, cost: 30000, consumed: false },
+    { title: "Bad", size: 36, desc: "", damage: 1, price: 0, consumed: false },
+    { title: "Evil", size: 34, desc: "", damage: 3, price: 300, consumed: false },
+    { title: "Guilty", size: 28, desc: "", damage: 5, price: 1000, consumed: false },
+    { title: "Vicious", size: 24, desc: "", damage: 8, price: 3000, consumed: false },
+    { title: "Immoral", size: 20, desc: "", damage: 12, price: 10000, consumed: false },
+    { title: "Shameful", size: 18, desc: "", damage: 20, price: 30000, consumed: false },
 ];
 let turnInfos = [
     { title: "Turn", damage: 1 },
@@ -2358,7 +2381,7 @@ let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.cost;
+    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.price;
 }
 function isReservedBadKeyword(inputWord) {
     if (notSet(inputWord))
@@ -5073,21 +5096,9 @@ class Hud extends Wrapper {
         let startY = 0;
         let intervalY = 100;
         for (let i = 0; i < propInfos.length; i++) {
-            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i].title, 75, 75, false);
-            btn.text.setFontSize(propInfos[i].size);
-            btn.text.y -= 10;
-            btn.needHandOnHover = true;
-            btn.needInOutAutoAnimation = false;
-            let priceStyle = getDefaultTextStyle();
-            priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, propInfos[i].price + '', priceStyle).setOrigin(0.5);
-            btn.inner.add(priceLbl);
-            btn.priceLbl = priceLbl;
-            btn.priceTag = propInfos[i].price;
+            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i], 75, 75, false);
             this.rightBtns.push(btn);
-            btn.tag = propInfos[i].desc;
             btn.addPromptImg(Dir.Right);
-            // btn.promptImg.setVisible(false);
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price, propInfos[i].warning);
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
@@ -5133,7 +5144,7 @@ class Hud extends Wrapper {
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.inner.x - 70;
         let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.inner.y;
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, true);
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);
         this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);
         this.popupBubbleRight.hide();
     }
@@ -5166,20 +5177,12 @@ class Hud extends Wrapper {
         let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
-            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i].title, 75, 75, false);
-            btn.text.setFontSize(badInfos[i].size);
-            btn.text.y -= 10;
-            btn.needHandOnHover = true;
-            btn.needInOutAutoAnimation = false;
-            let priceStyle = getDefaultTextStyle();
-            priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : badInfos[i].cost + '', priceStyle).setOrigin(0.5);
-            btn.inner.add(priceLbl);
-            btn.priceLbl = priceLbl;
+            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], 75, 75, false);
+            if (i == 0) {
+                btn.priceLbl.text = "-";
+            }
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
-            btn.tag = badInfos[i].desc;
-            btn.priceTag = badInfos[i].cost;
             btn.fakeZone.on('pointerover', () => {
                 this.popupBubbleLeft.setText(btn.tag);
                 this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
@@ -5195,25 +5198,22 @@ class Hud extends Wrapper {
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.inner.x + 70;
         let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.inner.y;
-        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);
+        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);
         this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);
         this.popupBubbleLeft.hide();
     }
     createMenuBottom() {
         let info = hpPropInfos[0];
-        let btn = new PropButton(this.scene, this.hp.inner, this, 0, 0, 'rounded_btn', info.title, 75, 75, false);
+        let btn = new PropButton(this.scene, this.hp.inner, this, 0, 0, 'rounded_btn', info, 75, 75, false);
         btn.inner.setScale(0.8, 0.8);
         btn.inner.x += this.hp.barWidth + 60;
         btn.inner.y -= 30;
-        btn.text.setFontSize(info.size);
-        btn.text.y -= 10;
-        btn.needHandOnHover = true;
-        btn.needInOutAutoAnimation = false;
-        let priceStyle = getDefaultTextStyle();
-        priceStyle.fontSize = '22px';
-        let priceLbl = this.scene.add.text(0, 30, info.price + "", priceStyle).setOrigin(0.5);
-        btn.inner.add(priceLbl);
-        btn.priceLbl = priceLbl;
+        // bubble
+        let bubbleX = btn.inner.x;
+        let bubbleY = btn.inner.y;
+        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);
+        this.popupBubbleBottom.inner.setPosition(bubbleX, bubbleY);
+        this.popupBubbleBottom.hide();
     }
     getCurrentStrongestKeyword() {
         let i = 0;
@@ -6019,8 +6019,8 @@ class PlayerInputText {
     }
 }
 class PropButton extends Button {
-    constructor(scene, parentContainer, hd, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
-        super(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY);
+    constructor(scene, parentContainer, hd, x, y, imgKey, info, width, height, debug, fakeOriginX, fakeOriginY) {
+        super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
         this.purchased = false;
         this.purchasedEvent = new TypedEvent();
         this.needConfirmEvent = new TypedEvent();
@@ -6028,7 +6028,19 @@ class PropButton extends Button {
          * Some props need to pop up and dialog to confirm whether to buy
          */
         this.needConfirm = false;
+        this.info = info;
         this.hud = hd;
+        this.text.setFontSize(info.size);
+        this.text.y -= 10;
+        this.needHandOnHover = true;
+        this.needInOutAutoAnimation = false;
+        let priceStyle = getDefaultTextStyle();
+        priceStyle.fontSize = '22px';
+        let priceLbl = this.scene.add.text(0, 30, info.price + "", priceStyle).setOrigin(0.5);
+        this.inner.add(priceLbl);
+        this.priceLbl = priceLbl;
+        this.tag = info.desc;
+        this.priceTag = info.price;
         this.clickedEvent.on(btn1 => {
             let btn = btn1;
             if (!btn.purchased && this.hud.score >= btn.priceTag) {

@@ -3,12 +3,34 @@ class Bubble extends Wrapper<PhImage> {
     text: PhText;
     warningText: PhText;
     gapBetweenTextAndWarningText = 6;
-    constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, isRight: boolean) {
+    constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, dir: Dir) {
         super(scene, parentContainer, x, y, null);
 
+        let imgRes = "";
+        let originX = 0;
+        let originy = 0;
+        let textX = 0;
+        let textY = 0;
+        if(dir == Dir.Bottom) {
+            imgRes = 'popup_bubble_bottom'
+        }
+        else if(dir == Dir.Left) {
+            imgRes = 'popup_bubble_left'
+            originX = 0;
+            originy = 46 / 229;
+            textX = 40;
+            textY = -26;
+        }
+        else if(dir == Dir.Right) {
+            imgRes = 'popup_bubble'
+            originX = 1;
+            originy = 46 / 229;
+            textX = -442;
+            textY = -26;
+        }
 
-        let img = this.scene.add.image(0, 0, isRight ? 'popup_bubble' : 'popup_bubble_left');
-        img.setOrigin(isRight ? 1 : 0, 46 / 229);
+        let img = this.scene.add.image(0, 0, imgRes);
+        img.setOrigin(originX, originy);
         this.applyTarget(img);
 
         let style = getDefaultTextStyle();
@@ -19,7 +41,7 @@ class Bubble extends Wrapper<PhImage> {
 
         let wordWrapthWidt = 400;
         // main text
-        this.text = this.scene.add.text(isRight ? -442 : 40, -26, cc, style).setOrigin(0, 0);
+        this.text = this.scene.add.text(textX, textY, cc, style).setOrigin(0, 0);
         this.text.setWordWrapWidth(wordWrapthWidt);        
         this.inner.add(this.text);
 

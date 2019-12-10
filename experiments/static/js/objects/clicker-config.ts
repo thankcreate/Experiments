@@ -1,10 +1,17 @@
+interface PropInfo {
+    title: string,
+    size: number,
+    desc: string,
+    price: number
+}
+
 let badInfos = [
-    {title: "Bad", size: 36, desc: "", damage: 1, cost: 0, consumed: false},
-    {title: "Evil", size: 34, desc: "", damage: 3, cost: 300, consumed: false},
-    {title: "Guilty", size: 28, desc: "", damage: 5, cost: 1000, consumed: false},
-    {title: "Vicious", size: 24, desc: "", damage: 8, cost: 3000, consumed: false},
-    {title: "Immoral", size: 20, desc: "", damage: 12, cost: 10000, consumed: false},
-    {title: "Shameful", size: 18, desc: "", damage: 20, cost: 30000, consumed: false},
+    {title: "Bad", size: 36, desc: "", damage: 1, price: 0, consumed: false},
+    {title: "Evil", size: 34, desc: "", damage: 3, price: 300, consumed: false},
+    {title: "Guilty", size: 28, desc: "", damage: 5, price: 1000, consumed: false},
+    {title: "Vicious", size: 24, desc: "", damage: 8, price: 3000, consumed: false},
+    {title: "Immoral", size: 20, desc: "", damage: 12, price: 10000, consumed: false},
+    {title: "Shameful", size: 18, desc: "", damage: 20, price: 30000, consumed: false},
 ]
 
 let turnInfos = [
@@ -68,7 +75,7 @@ let autoTurnInterval = 1000;
 
 for(let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.cost;
+    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.price;
 }
 
 

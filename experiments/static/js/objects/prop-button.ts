@@ -17,15 +17,30 @@ class PropButton extends Button {
      */
     needConfirm: boolean = false;
   
-
+    info: PropInfo;
     constructor (scene: BaseScene, parentContainer: PhContainer, hd: Hud,
         x: number, y: number,
-        imgKey: string, title: string,
+        imgKey: string, info: PropInfo,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {        
         
-        super(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY);
+        super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
+        this.info = info;
         this.hud = hd;
-        
+
+        this.text.setFontSize(info.size);
+        this.text.y -= 10;
+        this.needHandOnHover = true;
+        this.needInOutAutoAnimation = false;
+
+        let priceStyle = getDefaultTextStyle();
+        priceStyle.fontSize = '22px';
+        let priceLbl = this.scene.add.text(0, 30, info.price + "",  priceStyle).setOrigin(0.5);
+        this.inner.add(priceLbl);
+        this.priceLbl = priceLbl;
+
+        this.tag = info.desc;
+        this.priceTag = info.price;
+
         this.clickedEvent.on(btn1=>{    
             let btn = btn1 as PropButton;          
             if(!btn.purchased && this.hud.score >= btn.priceTag) {

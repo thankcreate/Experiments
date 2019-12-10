@@ -33,8 +33,9 @@ class Hud extends Wrapper<PhText> {
     leftBtns: PropButton[] = [];
        
     
-    popupBubbleRight :Bubble;
-    popupBubbleLeft:Bubble;
+    popupBubbleRight: Bubble;
+    popupBubbleLeft: Bubble;
+    popupBubbleBottom: Bubble;
 
     infoPanel: ClickerInfoPanel;
 
@@ -83,23 +84,10 @@ class Hud extends Wrapper<PhText> {
         
         for(let i = 0; i < propInfos.length; i++) {            
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this, 0, startY + intervalY * i,
-                 'rounded_btn', propInfos[i].title, 75,75, false);        
-            btn.text.setFontSize(propInfos[i].size);
-            btn.text.y -= 10;
-            btn.needHandOnHover = true;
-            btn.needInOutAutoAnimation = false;
-
-            let priceStyle = getDefaultTextStyle();
-            priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, propInfos[i].price + '',  priceStyle).setOrigin(0.5);
-            btn.inner.add(priceLbl);
-            btn.priceLbl = priceLbl;
-            btn.priceTag = propInfos[i].price;
-            this.rightBtns.push(btn);
-            
-            btn.tag = propInfos[i].desc;
-            btn.addPromptImg(Dir.Right);
-            // btn.promptImg.setVisible(false);
+                 'rounded_btn', propInfos[i], 75,75, false);        
+           
+            this.rightBtns.push(btn);                        
+            btn.addPromptImg(Dir.Right);            
 
             btn.fakeZone.on('pointerover', ()=>{            
                 this.popupBubbleRight.setText(btn.tag + "\nCost: " + propInfos[i].price, (propInfos[i] as any).warning);                         
@@ -158,7 +146,7 @@ class Hud extends Wrapper<PhText> {
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.inner.x - 70;    
         let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.inner.y;
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, true);        
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);        
         this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);        
         this.popupBubbleRight.hide();
     }
@@ -202,22 +190,14 @@ class Hud extends Wrapper<PhText> {
         
         for(let i = 0; i < badInfos.length; i++) {            
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this, 0, startY + intervalY * i,
-                'rounded_btn', badInfos[i].title, 75,75, false);        
-            btn.text.setFontSize(badInfos[i].size);
-            btn.text.y -= 10;
-            btn.needHandOnHover = true;
-            btn.needInOutAutoAnimation = false;
+                'rounded_btn', badInfos[i], 75,75, false);        
 
-            let priceStyle = getDefaultTextStyle();
-            priceStyle.fontSize = '22px';
-            let priceLbl = this.scene.add.text(0, 30, i == 0 ? '✓' : badInfos[i].cost + '',  priceStyle).setOrigin(0.5);
-            btn.inner.add(priceLbl);
-            btn.priceLbl = priceLbl;
+            if(i == 0) {
+                btn.priceLbl.text = "-";
+            }
 
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
-            btn.tag = badInfos[i].desc;
-            btn.priceTag = badInfos[i].cost;
 
             btn.fakeZone.on('pointerover', ()=>{            
                 this.popupBubbleLeft.setText(btn.tag);                         
@@ -237,7 +217,7 @@ class Hud extends Wrapper<PhText> {
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.inner.x + 70;    
         let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.inner.y;
-        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);        
+        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);        
         this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);        
         this.popupBubbleLeft.hide();
     }
@@ -245,23 +225,20 @@ class Hud extends Wrapper<PhText> {
     createMenuBottom() {
         let info = hpPropInfos[0];
         let btn = new PropButton(this.scene, this.hp.inner, this, 0, 0,
-            'rounded_btn', info.title, 75,75, false);        
+            'rounded_btn', info, 75,75, false);        
         btn.inner.setScale(0.8, 0.8);
 
         btn.inner.x += this.hp.barWidth + 60;
         btn.inner.y -= 30;
+        
+        // bubble
+        let bubbleX = btn.inner.x;
+        let bubbleY = btn.inner.y;
 
-        btn.text.setFontSize(info.size);
-        btn.text.y -= 10;
-        btn.needHandOnHover = true;
-        btn.needInOutAutoAnimation = false;
-
-        let priceStyle = getDefaultTextStyle();
-        priceStyle.fontSize = '22px';
-        let priceLbl = this.scene.add.text(0, 30, info.price + "",  priceStyle).setOrigin(0.5);
-        btn.inner.add(priceLbl);
-        btn.priceLbl = priceLbl;
-
+        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);        
+        this.popupBubbleBottom.inner.setPosition(bubbleX, bubbleY);        
+        this.popupBubbleBottom.hide();
+        
     }
 
     getCurrentStrongestKeyword() : number{        

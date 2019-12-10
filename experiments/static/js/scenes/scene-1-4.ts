@@ -1,10 +1,21 @@
 class Scene1L4 extends Scene1 {
 
     upgrade1: Button;
+    
+    openTurn: Phaser.Sound.BaseSound;
 
     constructor() {
         super('Scene1L4');
     }
+
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
+    
 
     getNormalGameFsm(): IFsmData {
         return normal_1_4;

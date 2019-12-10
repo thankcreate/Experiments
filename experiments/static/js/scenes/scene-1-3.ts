@@ -14,6 +14,10 @@ class Scene1L3 extends Scene1 {
 
     needToDestroyBeforeShowSensitive = 5;
 
+    
+    bgm: Phaser.Sound.BaseSound;
+    
+
     constructor() {
         super('Scene1L3');
     }
@@ -27,7 +31,13 @@ class Scene1L3 extends Scene1 {
         super.preload();           
     }
     
-    
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm']
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
     
     create() {
         super.create();

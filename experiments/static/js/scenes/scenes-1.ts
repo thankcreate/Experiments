@@ -94,9 +94,7 @@ class Scene1 extends BaseScene {
     sfxMatches: Phaser.Sound.BaseSound[] = [];
     sfxFail : Phaser.Sound.BaseSound;
 
-    bgm: Phaser.Sound.BaseSound;
     
-    openTurn: Phaser.Sound.BaseSound;
     
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {        
@@ -152,11 +150,12 @@ class Scene1 extends BaseScene {
     loadAudio() {
         let audioLoadConfig = {
             sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
-            sfx_fail: ["assets/audio/Fail.wav", "sfxFail"],
-            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm'],
-            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
+            sfx_fail: ["assets/audio/Fail.wav", "sfxFail"],            
         };
-        
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
+
+    loadAudioWithConfig(audioLoadConfig) {
         for(let i in audioLoadConfig) {
             this.load.audio(i, audioLoadConfig[i][0]);
         }
@@ -167,8 +166,7 @@ class Scene1 extends BaseScene {
                 this[audioLoadConfig[arg1][1]] = this.sound.add(arg1);
             }
         });
-        this.load.start();
-           
+        this.load.start();   
     }
 
     create() {

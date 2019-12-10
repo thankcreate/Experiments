@@ -15,9 +15,7 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 This current demo is only at progress 10% at most. 
 `
 
-var cautionDefault = `Once purchased this item, you can no longer do semantic word matching.
-
-All you can input will be limited to "Turn" and "Bad"
+var cautionDefault = `Once purchased this item, you can no longer do semantic word matching. All you can input will be limited to "Turn" and "Bad"
 
 Click "OK" to confirm
 `

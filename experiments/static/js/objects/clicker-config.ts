@@ -15,9 +15,14 @@ let createInfos = [
     {title: "Create", damage: 1},
 ]
 
+
 function getCreateKeyword(): string {
     return createInfos[0].title;
 }
+
+let hpPropInfos = [
+    {title: '+HP', consumed: false, price: 100, size: 36, desc: 'Restore you HP a little bit'},
+]
 
 let propInfos = [
     {title: "B**", consumed: false, price: 300, size: 40, desc: 'You can just type in "B" instead of "BAD" for short'},            

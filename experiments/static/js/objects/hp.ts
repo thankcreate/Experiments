@@ -54,6 +54,7 @@ class HP extends Wrapper<PhText> {
         this.applyTarget(title);
     } 
 
+
     setTitle(val: string) {
         this.wrappedObject.text = val;
     }

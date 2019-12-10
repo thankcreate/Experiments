@@ -61,8 +61,10 @@ class Hud extends Wrapper<PhText> {
         this.inner.add(this.comboHitText);
         this.comboHitText.setVisible(false);
 
+        // TODO: Should only add when in 1-4
         this.createMenuRight();
         this.createMenuLeft();
+        this.createMenuBottom();
 
         this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
     }
@@ -238,6 +240,28 @@ class Hud extends Wrapper<PhText> {
         this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, false);        
         this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);        
         this.popupBubbleLeft.hide();
+    }
+
+    createMenuBottom() {
+        let info = hpPropInfos[0];
+        let btn = new PropButton(this.scene, this.hp.inner, this, 0, 0,
+            'rounded_btn', info.title, 75,75, false);        
+        btn.inner.setScale(0.8, 0.8);
+
+        btn.inner.x += this.hp.barWidth + 60;
+        btn.inner.y -= 30;
+
+        btn.text.setFontSize(info.size);
+        btn.text.y -= 10;
+        btn.needHandOnHover = true;
+        btn.needInOutAutoAnimation = false;
+
+        let priceStyle = getDefaultTextStyle();
+        priceStyle.fontSize = '22px';
+        let priceLbl = this.scene.add.text(0, 30, info.price + "",  priceStyle).setOrigin(0.5);
+        btn.inner.add(priceLbl);
+        btn.priceLbl = priceLbl;
+
     }
 
     getCurrentStrongestKeyword() : number{        

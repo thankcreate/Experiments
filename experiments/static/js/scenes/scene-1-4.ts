@@ -1,7 +1,7 @@
 class Scene1L4 extends Scene1 {
 
     upgrade1: Button;
-    
+
     openTurn: Phaser.Sound.BaseSound;
 
     constructor() {
@@ -14,11 +14,14 @@ class Scene1L4 extends Scene1 {
             bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
         };
         this.loadAudioWithConfig(audioLoadConfig);
-    }
-    
+    }    
 
     getNormalGameFsm(): IFsmData {
         return normal_1_4;
+    }
+
+    playOpenTurnBgm() {
+        this.playAsBgm(this.openTurn);
     }
     
     create() {

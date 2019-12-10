@@ -32,7 +32,11 @@ class Scene1 extends BaseScene {
     labels;
     lblStyl;
 
-    
+    /**
+     * The bgm is not necessarily loaded here
+     * It's just a reference to the active bgm
+     */
+    bgm: Phaser.Sound.BaseSound;
 
     /**
      * container is aligned to the center of canvas
@@ -716,6 +720,9 @@ class Scene1 extends BaseScene {
         this.entryPoint = ep;
     }
 
-    
+    playAsBgm(sound: PhSound) {
+        this.bgm = sound;
+        this.bgm.play();
+    }
 }
 

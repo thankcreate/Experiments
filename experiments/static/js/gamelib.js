@@ -205,9 +205,10 @@ class Scene1 extends BaseScene {
         let audioLoadConfig = {
             sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
             sfx_fail: ["assets/audio/Fail.wav", "sfxFail"],
-            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm'],
-            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
         };
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
+    loadAudioWithConfig(audioLoadConfig) {
         for (let i in audioLoadConfig) {
             this.load.audio(i, audioLoadConfig[i][0]);
         }
@@ -652,6 +653,10 @@ class Scene1 extends BaseScene {
     setEntryPoint(ep) {
         this.entryPoint = ep;
     }
+    playAsBgm(sound) {
+        this.bgm = sound;
+        this.bgm.play();
+    }
 }
 class Scene1L1 extends Scene1 {
     constructor() {
@@ -955,6 +960,13 @@ class Scene1L3 extends Scene1 {
     preload() {
         super.preload();
     }
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgmSeperateWays']
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
     create() {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
@@ -1097,7 +1109,7 @@ class Scene1L3 extends Scene1 {
         });
         state.addAction(s => {
             this.needFeedback = true;
-            this.bgm.play();
+            this.playAsBgm(this.bgmSeperateWays);
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
         })
             // .addDelayAction(this, 2000)
@@ -1181,8 +1193,18 @@ class Scene1L4 extends Scene1 {
     constructor() {
         super('Scene1L4');
     }
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
     getNormalGameFsm() {
         return normal_1_4;
+    }
+    playOpenTurnBgm() {
+        this.playAsBgm(this.openTurn);
     }
     create() {
         super.create();
@@ -4894,7 +4916,7 @@ class Hud extends Wrapper {
         this.rightBtns[2].purchasedEvent.on(btn => {
             this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
             getTurnInfo().consumed = true;
-            this.scene.openTurn.play();
+            this.scene.playOpenTurnBgm();
         });
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
@@ -5221,9 +5243,7 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 
 This current demo is only at progress 10% at most. 
 `;
-var cautionDefault = `Once purchased this item, you can no longer do semantic word matching.
-
-All you can input will be limited to "Turn" and "Bad"
+var cautionDefault = `Once purchased this item, you can no longer do semantic word matching. All you can input will be limited to "Turn" and "Bad"
 
 Click "OK" to confirm
 `;

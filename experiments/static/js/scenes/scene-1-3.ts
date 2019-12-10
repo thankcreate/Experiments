@@ -15,7 +15,7 @@ class Scene1L3 extends Scene1 {
     needToDestroyBeforeShowSensitive = 5;
 
     
-    bgm: Phaser.Sound.BaseSound;
+    bgmSeperateWays: Phaser.Sound.BaseSound;
     
 
     constructor() {
@@ -34,7 +34,7 @@ class Scene1L3 extends Scene1 {
     loadAudio() {
         super.loadAudio();
         let audioLoadConfig = {
-            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgm']
+            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgmSeperateWays']
         };
         this.loadAudioWithConfig(audioLoadConfig);
     }
@@ -225,7 +225,7 @@ class Scene1L3 extends Scene1 {
         state.addAction(s=>{
             
             this.needFeedback = true;
-            this.bgm.play();
+            this.playAsBgm(this.bgmSeperateWays);
             
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
         })

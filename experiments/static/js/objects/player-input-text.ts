@@ -26,7 +26,7 @@ class PlayerInputText {
 
     canAcceptInput: boolean = false;
     autoText: string;
-    inAutoForceMode: boolean = false;
+    inForceMode: boolean = false;
 
     constructor(scene: PhScene, container: PhContainer, centerObject: CenterObject, dummyTitle: string) {
         this.scene = scene;
@@ -100,7 +100,7 @@ class PlayerInputText {
 
     setAutoContent(autoText) {
         this.text.setText("");
-        this.inAutoForceMode = true;
+        this.inForceMode = true;
         this.autoText = autoText;
     }
 
@@ -108,7 +108,7 @@ class PlayerInputText {
      * @returns true if need to forward the operation to auto mode
      */
     handleAutoContentKeyPress(input: string): boolean {
-        if(this.inAutoForceMode){
+        if(this.inForceMode){
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
     
@@ -242,7 +242,7 @@ class PlayerInputText {
         // console.log(event);
 
         // if in autoMode, only continue when length matches and input is ENTER
-        if(this.inAutoForceMode) {
+        if(this.inForceMode) {
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
 
@@ -250,7 +250,7 @@ class PlayerInputText {
                 return;
             }
             else {
-                this.inAutoForceMode = false;
+                this.inForceMode = false;
             }
         }
 
@@ -278,7 +278,7 @@ class PlayerInputText {
     }
 
     textChanged() {
-        this.checkIfNeedAutoComplete();
+        this.checkIfNeedAutoCompletePrompt();
         this.changedEvent.emit(this);
     }
 
@@ -301,7 +301,7 @@ class PlayerInputText {
     }
 
     // B** -> Bad
-    checkIfNeedAutoComplete() {
+    checkIfNeedAutoCompletePrompt() {
         this.underlieText.text = '';
         if(this.text.text.length == 0)
             return;

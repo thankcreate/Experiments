@@ -11,15 +11,23 @@ let turnInfos = [
     {title: "Turn", damage: 1},
 ]
 
+let createInfos = [
+    {title: "Create", damage: 1},
+]
+
+function getCreateKeyword(): string {
+    return createInfos[0].title;
+}
+
 let propInfos = [
-    {title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short"},            
+    {title: "B**", consumed: false, price: 300, size: 40, desc: 'You can just type in "B" instead of "BAD" for short'},            
     {title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
     {title: "T**", consumed: false, price: 2500, size: 30, 
-        desc: "Turn NON-404 words into 404.\nYou can just type in 'T' for short",
+        desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
         warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
         },
-    {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-404 words into 404"},
-    {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!"}
+    {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
+    {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short'}
 ]   
 
 function getBadgeResID(i) {
@@ -85,5 +93,5 @@ function isReservedTurnKeyword(inputWord: string) : boolean {
 }
 
 function isReservedKeyword(inputWord: string) : boolean {
-    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord);
+    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord) || inputWord == getCreateKeyword();
 }

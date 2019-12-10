@@ -185,6 +185,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
     }
 
+    
+
     enemyReachedCore(enemy: Enemy) {     
         this.enemyDisappear(enemy, null);
     }
@@ -212,4 +214,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
         this.enemyDisappear(enemy, damagedBy);
     }
+
+    inputSubmitted(input: string) {
+        if(input == getCreateKeyword()) {
+            
+        }
+    }
+
 }

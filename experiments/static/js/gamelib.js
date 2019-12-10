@@ -1353,6 +1353,9 @@ class Wrapper {
         }
         this.init();
     }
+    sc1() {
+        return this.scene;
+    }
     init() {
     }
     applyTarget(target) {
@@ -2206,15 +2209,21 @@ let badInfos = [
 let turnInfos = [
     { title: "Turn", damage: 1 },
 ];
+let createInfos = [
+    { title: "Create", damage: 1 },
+];
+function getCreateKeyword() {
+    return createInfos[0].title;
+}
 let propInfos = [
-    { title: "B**", consumed: false, price: 300, size: 40, desc: "You can just type in 'B' instead of 'BAD' for short" },
+    { title: "B**", consumed: false, price: 300, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
     { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
     { title: "T**", consumed: false, price: 2500, size: 30,
-        desc: "Turn NON-404 words into 404.\nYou can just type in 'T' for short",
+        desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
         warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
     },
-    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn NON-404 words into 404" },
-    { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: "Create a new word!" }
+    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -2266,7 +2275,7 @@ function isReservedTurnKeyword(inputWord) {
     return foundKeyword;
 }
 function isReservedKeyword(inputWord) {
-    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord);
+    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord) || inputWord == getCreateKeyword();
 }
 var s_infoPanelWidth = 450;
 class ClickerInfoPanel extends Wrapper {
@@ -2323,7 +2332,7 @@ class ClickerInfoPanel extends Wrapper {
     refreahDisplay() {
         this.lblDpsFor404.setText("DPS (404): " + this.valDpsFor404);
         this.lblAwardFor404.setText("Award (404): " + this.valAwardFor404);
-        this.lblAwardForNormal.setText("Award (Normal): " + this.valAwardForNormal);
+        this.lblAwardForNormal.setText("Award (Non-404): " + this.valAwardForNormal);
     }
 }
 class Died extends Wrapper {
@@ -3429,6 +3438,9 @@ class EnemyManager {
     sendInputToServer(inputWord) {
         if (notSet(this.enemies) || this.enemies.length == 0)
             return;
+        if (this.curStrategy) {
+            this.curStrategy.inputSubmitted(inputWord);
+        }
         let offline = this.isOfflineHandle(inputWord);
         if (offline) {
             this.sendInputToServerOffline(inputWord);
@@ -4946,7 +4958,7 @@ class Hud extends Wrapper {
         this.rightBtns[2].needConfirm = true;
         this.rightBtns[2].purchasedEvent.on(btn => {
             let sc = this.scene;
-            sc.centerObject.playerInputText.addAutoKeywords('Turn');
+            sc.centerObject.playerInputText.addAutoKeywords(turnInfos[0].title);
             getTurnInfo().consumed = true;
             this.scene.playOpenTurnBgm();
             let rt = this.scene.add.tween({
@@ -4959,6 +4971,10 @@ class Hud extends Wrapper {
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
             getAutoTurnInfo().consumed = true;
+        });
+        // Create a new world
+        this.rightBtns[4].purchasedEvent.on(btn => {
+            this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());
         });
         // bubble
         let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.x - 70;
@@ -5463,7 +5479,7 @@ class PlayerInputText {
         this.gap = 4;
         this.gapTitle = 6;
         this.canAcceptInput = false;
-        this.inAutoForceMode = false;
+        this.inForceMode = false;
         this.keyReleased = true;
         this.avaiAutoKeywords = [];
         this.inBeat = true;
@@ -5521,14 +5537,14 @@ class PlayerInputText {
     }
     setAutoContent(autoText) {
         this.text.setText("");
-        this.inAutoForceMode = true;
+        this.inForceMode = true;
         this.autoText = autoText;
     }
     /**
      * @returns true if need to forward the operation to auto mode
      */
     handleAutoContentKeyPress(input) {
-        if (this.inAutoForceMode) {
+        if (this.inForceMode) {
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
             if (curLen < allLen) {
@@ -5631,14 +5647,14 @@ class PlayerInputText {
         // console.log('keydown:' + code);
         // console.log(event);
         // if in autoMode, only continue when length matches and input is ENTER
-        if (this.inAutoForceMode) {
+        if (this.inForceMode) {
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
             if (curLen != allLen || code != Phaser.Input.Keyboard.KeyCodes.ENTER) {
                 return;
             }
             else {
-                this.inAutoForceMode = false;
+                this.inForceMode = false;
             }
         }
         if (code == Phaser.Input.Keyboard.KeyCodes.BACKSPACE /* backspace */
@@ -5659,7 +5675,7 @@ class PlayerInputText {
         this.textChanged();
     }
     textChanged() {
-        this.checkIfNeedAutoComplete();
+        this.checkIfNeedAutoCompletePrompt();
         this.changedEvent.emit(this);
     }
     addAutoKeywords(val) {
@@ -5676,7 +5692,7 @@ class PlayerInputText {
         // }      
     }
     // B** -> Bad
-    checkIfNeedAutoComplete() {
+    checkIfNeedAutoCompletePrompt() {
         this.underlieText.text = '';
         if (this.text.text.length == 0)
             return;
@@ -6108,6 +6124,8 @@ class SpawnStrategy {
     }
     onUpdate(time, dt) {
     }
+    inputSubmitted(input) {
+    }
     enemyReachedCore(enemy) {
     }
     enemyEliminated(enemy, damagedBy) {
@@ -6444,6 +6462,10 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             }
         }
         this.enemyDisappear(enemy, damagedBy);
+    }
+    inputSubmitted(input) {
+        if (input == getCreateKeyword()) {
+        }
     }
 }
 class SpeechManager {

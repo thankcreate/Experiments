@@ -64,6 +64,10 @@ class SpawnStrategy {
 
     }
 
+    inputSubmitted(input: string) {
+        
+    }
+
     enemyReachedCore(enemy: Enemy) {        
     }
 

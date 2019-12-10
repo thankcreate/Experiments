@@ -416,6 +416,10 @@ class EnemyManager {
         if(notSet(this.enemies) || this.enemies.length == 0)
             return;
         
+        if(this.curStrategy) {
+            this.curStrategy.inputSubmitted(inputWord);
+        }
+        
         let offline = this.isOfflineHandle(inputWord);
 
         if(offline) {

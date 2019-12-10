@@ -130,7 +130,7 @@ class Hud extends Wrapper<PhText> {
         this.rightBtns[2].needConfirm = true;
         this.rightBtns[2].purchasedEvent.on(btn=>{    
             let sc = (this.scene as Scene1);
-            sc.centerObject.playerInputText.addAutoKeywords('Turn');
+            sc.centerObject.playerInputText.addAutoKeywords(turnInfos[0].title);
             getTurnInfo().consumed = true;            
             (this.scene as Scene1L4).playOpenTurnBgm();
 
@@ -146,6 +146,11 @@ class Hud extends Wrapper<PhText> {
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn=>{      
             getAutoTurnInfo().consumed = true;
+        });
+
+        // Create a new world
+        this.rightBtns[4].purchasedEvent.on(btn=>{
+            this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());            
         });
         
         // bubble

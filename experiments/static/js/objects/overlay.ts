@@ -20,6 +20,24 @@ var cautionDefault = `Once purchased this item, you can no longer do semantic wo
 Click "OK" to confirm
 `
 
+var economicTitle = `Hi Economists!📈`
+var economicAbout = `This is the 4th level of my thesis game, so we need a little bit context here.
+
+There are 2 types of enemies:
+
+• 404: which is just 404
+• Non-404: words like "Flower", "Dog"
+
+You should input semantically related words to damage enemies:
+
+• 404: only the input "Bad" is considered as related
+• Non-404: type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+
+If the enemies reach the center circle, you will lose your HP.
+
+⚠️Caution: You can only get scores💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE score💰.
+`
+
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper<PhText> {
@@ -169,6 +187,13 @@ class Overlay extends Wrapper<PhText> {
         this.show();
         this.inGameDialog.show();
         return this.inGameDialog;
+    }
+
+    showEcnomicDialog() : Dialog {
+        this.uniDialog.setContent(economicAbout, economicTitle);
+        this.show();
+        this.uniDialog.show();
+        return this.uniDialog;
     }
     
 

@@ -42,7 +42,7 @@ class EnemyImage extends Enemy {
         y+= this.gap;
 
         // title
-        if(!this.isSensative()) 
+        if(this.needTitle()) 
         {
             this.text = this.scene.add.text((lb.x + rb.x) / 2, y, this.config.label, this.lblStyle);
             this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;        
@@ -62,7 +62,7 @@ class EnemyImage extends Enemy {
         
     
 
-        // textAsImage
+        // text404 As Image
         if(this.isSensative()) 
         {
             let textAsImageStyle = getDefaultTextStyle();
@@ -89,7 +89,7 @@ class EnemyImage extends Enemy {
         if(!this.config.needChange) {
             this.figure.stopChange();
         }
-        this.checkIfDontNeedLabel();
+        // this.checkIfDontNeedLabel();
         this.checkIfNeedRotate();
         this.checkIfNeedShake();
         this.checkIfNeedFlicker();
@@ -141,6 +141,17 @@ class EnemyImage extends Enemy {
         });
     }
 
+
+    needTitle() :boolean {
+        if(this.isSensative())
+            return false;
+
+        if(this.config.enemyType == EnemyType.TextWithImage || this.config.showLabel == true) {
+            return true;
+        }
+
+        return false;
+    }
 
     checkIfDontNeedLabel() {
         if(this.config.enemyType == EnemyType.TextWithImage || this.config.showLabel == true) {

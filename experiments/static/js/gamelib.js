@@ -655,7 +655,7 @@ class Scene1 extends BaseScene {
     }
     playAsBgm(sound) {
         this.bgm = sound;
-        this.bgm.play();
+        this.bgm.play(null, { loop: true });
     }
 }
 class Scene1L1 extends Scene1 {
@@ -1223,10 +1223,25 @@ class Scene1L4 extends Scene1 {
         this.initStStart();
         this.updateObjects.push(this.normalGameFsm);
     }
+    needShowEcoAboutAtStartup() {
+        return true;
+    }
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
-        state.addDelayAction(this, 500)
-            .addEventAction("START");
+        state
+            .addDelayAction(this, 500)
+            .addAction(s => {
+            if (this.needShowEcoAboutAtStartup()) {
+                let dialog = this.overlay.showEcnomicDialog();
+                dialog.singleUseClosedEvent.on(() => {
+                    s.event('START');
+                });
+            }
+            else {
+                s.event('START');
+            }
+        });
+        // .addEventAction("START");
     }
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
@@ -2299,8 +2314,10 @@ class ClickerInfoPanel extends Wrapper {
                     dps += badInfos[i].damage;
             }
             this.valDpsFor404 = dps;
-            this.valAwardFor404 = em.curStrategy.getAwardFor404();
-            this.valAwardForNormal = em.curStrategy.getAwardForNormal();
+            if (em.curStrategy) {
+                this.valAwardFor404 = em.curStrategy.getAwardFor404();
+                this.valAwardForNormal = em.curStrategy.getAwardForNormal();
+            }
         }
     }
     refreahDisplay() {
@@ -2529,6 +2546,8 @@ class Enemy {
         // init in inheritance
     }
     update(time, dt) {
+        if (this.enemyManager.isPaused)
+            return;
         this.checkIfReachEnd();
         this.checkIfNeedShowAutoBadBadge(time, dt);
         this.checkIfNeedAutoTurn(time, dt);
@@ -2987,7 +3006,7 @@ class EnemyImage extends Enemy {
         this.lblStyle.fontSize = gameplayConfig.defaultImageTitleSize;
         y += this.gap;
         // title
-        if (!this.isSensative()) {
+        if (this.needTitle()) {
             this.text = this.scene.add.text((lb.x + rb.x) / 2, y, this.config.label, this.lblStyle);
             this.inputAngle = Math.atan2(this.initPosi.y, this.initPosi.x) * 180 / Math.PI;
             this.text.setOrigin(0.5, 0);
@@ -3000,7 +3019,7 @@ class EnemyImage extends Enemy {
             lc.x -= 4;
             this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
         }
-        // textAsImage
+        // text404 As Image
         if (this.isSensative()) {
             let textAsImageStyle = getDefaultTextStyle();
             textAsImageStyle.fontSize = '120px';
@@ -3021,7 +3040,7 @@ class EnemyImage extends Enemy {
         if (!this.config.needChange) {
             this.figure.stopChange();
         }
-        this.checkIfDontNeedLabel();
+        // this.checkIfDontNeedLabel();
         this.checkIfNeedRotate();
         this.checkIfNeedShake();
         this.checkIfNeedFlicker();
@@ -3063,6 +3082,14 @@ class EnemyImage extends Enemy {
             yoyo: true,
             duration: 300,
         });
+    }
+    needTitle() {
+        if (this.isSensative())
+            return false;
+        if (this.config.enemyType == EnemyType.TextWithImage || this.config.showLabel == true) {
+            return true;
+        }
+        return false;
     }
     checkIfDontNeedLabel() {
         if (this.config.enemyType == EnemyType.TextWithImage || this.config.showLabel == true) {
@@ -3109,6 +3136,7 @@ class EnemyManager {
         this.enemyEliminatedEvent = new TypedEvent();
         this.enemySpawnedEvent = new TypedEvent();
         this.strategies = new Map();
+        this.isPaused = false;
         this.nextNeedSensitvieOneShot = false;
         this.nextNeedSensitiveAlways = false;
         this.sensetiveDuration = 100000;
@@ -3148,6 +3176,7 @@ class EnemyManager {
         }
     }
     startSpawnStrategy(strategy, config) {
+        this.isPaused = false;
         if (this.curStrategy)
             this.curStrategy.onExit();
         this.curStrategyID = strategy;
@@ -3613,6 +3642,7 @@ class EnemyManager {
     }
     // This is mostly used when died
     freezeAllEnemies() {
+        this.isPaused = true;
         if (this.autoSpawnTween)
             this.autoSpawnTween.pause();
         if (this.curStrategy)
@@ -3623,6 +3653,7 @@ class EnemyManager {
         });
     }
     unFreezeAllEnemies() {
+        this.isPaused = false;
         this.curStrategy.unPause();
         this.enemies.forEach(element => {
             element.unFreeze();
@@ -4914,9 +4945,16 @@ class Hud extends Wrapper {
         // Turn 
         this.rightBtns[2].needConfirm = true;
         this.rightBtns[2].purchasedEvent.on(btn => {
-            this.scene.centerObject.playerInputText.addAutoKeywords('Turn');
+            let sc = this.scene;
+            sc.centerObject.playerInputText.addAutoKeywords('Turn');
             getTurnInfo().consumed = true;
             this.scene.playOpenTurnBgm();
+            let rt = this.scene.add.tween({
+                targets: [sc.dwitterBKG.inner],
+                rotation: '+=' + -Math.PI * 2,
+                duration: 60000,
+                loop: -1,
+            });
         });
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
@@ -5247,6 +5285,23 @@ var cautionDefault = `Once purchased this item, you can no longer do semantic wo
 
 Click "OK" to confirm
 `;
+var economicTitle = `Hi Economists!📈`;
+var economicAbout = `This is the 4th level of my thesis game, so we need a little bit context here.
+
+There are 2 types of enemies:
+
+• 404: which is just 404
+• Non-404: words like "Flower", "Dog"
+
+You should input semantically related words to damage enemies:
+
+• 404: only the input "Bad" is considered as related
+• Non-404: type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+
+If the enemies reach the center circle, you will lose your HP.
+
+⚠️Caution: You can only get scores💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE score💰.
+`;
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper {
@@ -5364,6 +5419,12 @@ class Overlay extends Wrapper {
         this.show();
         this.inGameDialog.show();
         return this.inGameDialog;
+    }
+    showEcnomicDialog() {
+        this.uniDialog.setContent(economicAbout, economicTitle);
+        this.show();
+        this.uniDialog.show();
+        return this.uniDialog;
     }
     showLeaderBoardDialog() {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
@@ -6187,7 +6248,7 @@ class RandomFlow extends SpawnStrategyFlowTheory {
     }
     spawn() {
         let config = this.config;
-        let tempConfig = { type: EnemyType.Image, health: config.health, duration: config.enemyDuration };
+        let tempConfig = { enemyType: EnemyType.Image, health: config.health, duration: config.enemyDuration };
         tempConfig.rotation = 0;
         tempConfig.needChange = true;
         // // default

@@ -44,6 +44,9 @@ class EnemyManager {
     curStrategyID : SpawnStrategyType;
     strategies: Map<SpawnStrategyType, SpawnStrategy> = new Map();;
     
+
+    isPaused: boolean = false;
+
     constructor(scene, parentContainer) {
         this.scene = scene;
         this.inner = this.scene.add.container(0, 0);
@@ -91,6 +94,8 @@ class EnemyManager {
     
 
     startSpawnStrategy(strategy: SpawnStrategyType, config?:SpawnStrategyConfig) {       
+        this.isPaused = false;
+
         if(this.curStrategy)
             this.curStrategy.onExit();
 
@@ -665,6 +670,7 @@ class EnemyManager {
 
     // This is mostly used when died
     freezeAllEnemies() {
+        this.isPaused = true;
         if(this.autoSpawnTween)
             this.autoSpawnTween.pause();
     
@@ -678,6 +684,7 @@ class EnemyManager {
     }
 
     unFreezeAllEnemies() {
+        this.isPaused = false;
         this.curStrategy.unPause();
         this.enemies.forEach(element => {
             element.unFreeze();

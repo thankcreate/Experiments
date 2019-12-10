@@ -108,6 +108,9 @@ class Enemy {
     }
 
     update(time, dt) {        
+        if(this.enemyManager.isPaused)
+            return;
+
         this.checkIfReachEnd();
         this.checkIfNeedShowAutoBadBadge(time, dt);
         this.checkIfNeedAutoTurn(time, dt);

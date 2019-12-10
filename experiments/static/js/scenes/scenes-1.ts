@@ -722,7 +722,7 @@ class Scene1 extends BaseScene {
 
     playAsBgm(sound: PhSound) {
         this.bgm = sound;
-        this.bgm.play();
+        this.bgm.play(null, {loop: true});        
     }
 }
 

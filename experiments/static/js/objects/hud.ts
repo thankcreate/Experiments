@@ -129,9 +129,18 @@ class Hud extends Wrapper<PhText> {
         // Turn 
         this.rightBtns[2].needConfirm = true;
         this.rightBtns[2].purchasedEvent.on(btn=>{    
-            (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Turn');
+            let sc = (this.scene as Scene1);
+            sc.centerObject.playerInputText.addAutoKeywords('Turn');
             getTurnInfo().consumed = true;            
             (this.scene as Scene1L4).playOpenTurnBgm();
+
+            let rt = this.scene.add.tween({
+                targets: [sc.dwitterBKG.inner],
+                rotation: '+=' + -Math.PI * 2,
+                duration: 60000,
+                loop: -1,
+            })
+            
         });
 
         // Auto Turn 

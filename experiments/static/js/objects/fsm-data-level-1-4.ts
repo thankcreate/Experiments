@@ -5,7 +5,7 @@ var normal_1_4 = {
     name: 'Normal_1_4',
     initial: "Default",
     events: [
-        {name: 'START', from:'Default', to: 'Start'},        
+        {name: 'START', from:'Default', to: 'Start'},                
     ]
 }
 

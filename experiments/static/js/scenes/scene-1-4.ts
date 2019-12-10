@@ -47,11 +47,25 @@ class Scene1L4 extends Scene1 {
         this.updateObjects.push(this.normalGameFsm);
     }
 
-    
+    needShowEcoAboutAtStartup() : boolean {
+        return true;
+    }
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
-        state.addDelayAction(this, 500)
-            .addEventAction("START");
+        state
+            .addDelayAction(this, 500)
+            .addAction(s=>{
+                if(this.needShowEcoAboutAtStartup()) {
+                    let dialog = this.overlay.showEcnomicDialog();
+                    dialog.singleUseClosedEvent.on(()=>{
+                        s.event('START');
+                    });
+                }
+                else {
+                    s.event('START');
+                }
+            })
+            // .addEventAction("START");
 
     }
 

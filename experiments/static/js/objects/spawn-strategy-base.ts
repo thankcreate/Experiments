@@ -259,7 +259,7 @@ class RandomFlow extends SpawnStrategyFlowTheory {
     spawn() {
         let config = this.config;
         
-        let tempConfig:any | EnemyConfig = {type: EnemyType.Image, health:config.health, duration: config.enemyDuration};
+        let tempConfig:any | EnemyConfig = {enemyType: EnemyType.Image, health:config.health, duration: config.enemyDuration};
         
         tempConfig.rotation =  0
         tempConfig.needChange = true;

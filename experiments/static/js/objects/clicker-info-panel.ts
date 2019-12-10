@@ -69,8 +69,10 @@ class ClickerInfoPanel extends Wrapper<PhText> {
             }
             this.valDpsFor404 = dps;
 
-            this.valAwardFor404 = (em.curStrategy as SpawnStrategyClickerGame).getAwardFor404();
-            this.valAwardForNormal = (em.curStrategy as SpawnStrategyClickerGame).getAwardForNormal();
+            if(em.curStrategy) {
+                this.valAwardFor404 = (em.curStrategy as SpawnStrategyClickerGame).getAwardFor404();
+                this.valAwardForNormal = (em.curStrategy as SpawnStrategyClickerGame).getAwardForNormal();
+            }            
         }        
     }
 

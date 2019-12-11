@@ -64,7 +64,7 @@ class HP extends Wrapper<PhText> {
             return;
 
         this.currHealth -= val;
-        this.currHealth = Math.max(0, this.currHealth);
+        this.currHealth = clamp(this.currHealth, 0, this.maxHealth);
 
         let perc = this.currHealth / this.maxHealth;
         let newProgressWidth = perc * this.progressMaxWidth;        

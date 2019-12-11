@@ -170,6 +170,9 @@ class PlayerInputText {
         }         
     }
 
+    handleHotkey(c: string) : boolean{
+        return (this.scene as Scene1).hud.handleHotkey(c);        
+    }
 
     // keypress to handle all the valid characters
     keypress(event) {
@@ -197,7 +200,10 @@ class PlayerInputText {
         }
 
         var codeS = String.fromCharCode(code);
-        if(this.handleAutoContentKeyPress(codeS))  {
+        if(this.handleHotkey(codeS)) {
+            return;
+        }
+        else if(this.handleAutoContentKeyPress(codeS))  {
 
         }
         else {

@@ -1896,28 +1896,32 @@ class Bubble extends Wrapper {
         this.gapBetweenTextAndWarningText = 6;
         let imgRes = "";
         let originX = 0;
-        let originy = 0;
+        let originY = 0;
         let textX = 0;
         let textY = 0;
         if (dir == Dir.Bottom) {
             imgRes = 'popup_bubble_bottom';
+            originX = 55 / 439;
+            originY = 1;
+            textX = -31;
+            textY = -230;
         }
         else if (dir == Dir.Left) {
             imgRes = 'popup_bubble_left';
             originX = 0;
-            originy = 46 / 229;
+            originY = 46 / 229;
             textX = 40;
             textY = -26;
         }
         else if (dir == Dir.Right) {
             imgRes = 'popup_bubble';
             originX = 1;
-            originy = 46 / 229;
+            originY = 46 / 229;
             textX = -442;
             textY = -26;
         }
         let img = this.scene.add.image(0, 0, imgRes);
-        img.setOrigin(originX, originy);
+        img.setOrigin(originX, originY);
         this.applyTarget(img);
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
@@ -2328,6 +2332,12 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
+let initScore = 100;
+let baseScore = 100;
+let normalFreq1 = 10;
+let autoBadgeInterval = 400;
+let autoTurnInterval = 1000;
+let hpRegFactor = 4;
 let badInfos = [
     { title: "Bad", size: 36, desc: "", damage: 1, price: 0, consumed: false },
     { title: "Evil", size: 34, desc: "", damage: 3, price: 300, consumed: false },
@@ -2346,7 +2356,7 @@ function getCreateKeyword() {
     return createInfos[0].title;
 }
 let hpPropInfos = [
-    { title: '+HP', consumed: false, price: 100, size: 36, desc: 'Restore you HP a little bit' },
+    { title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: '1' },
 ];
 let propInfos = [
     { title: "B**", consumed: false, price: 300, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
@@ -2374,14 +2384,19 @@ function getAutoTurnInfo() {
 function getNormalFreq() {
     return normalFreq1;
 }
-let initScore = 100;
-let baseScore = 100;
-let normalFreq1 = 10;
-let autoBadgeInterval = 400;
-let autoTurnInterval = 1000;
+function getCreatePropInfo() {
+    return propInfos[4];
+}
 for (let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.price;
+    item.desc = '"' + item.title + '"' + "\nDPS to 404: " + item.damage + "\nPrice: " + item.price;
+}
+for (let i = 0; i < hpPropInfos.length; i++) {
+    let item = hpPropInfos[i];
+    item.desc = "+HP"
+        + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
+        + "\nPrice: " + item.price
+        + "\n\nHotkey: " + item.hotkey;
 }
 function isReservedBadKeyword(inputWord) {
     if (notSet(inputWord))
@@ -5035,7 +5050,7 @@ class HP extends Wrapper {
         if (this.currHealth <= 0)
             return;
         this.currHealth -= val;
-        this.currHealth = Math.max(0, this.currHealth);
+        this.currHealth = clamp(this.currHealth, 0, this.maxHealth);
         let perc = this.currHealth / this.maxHealth;
         let newProgressWidth = perc * this.progressMaxWidth;
         this.innerProgress.setSize(newProgressWidth);
@@ -5066,6 +5081,8 @@ class Hud extends Wrapper {
         this.rightBtns = [];
         this.toolMenuContainerLeftIsShown = true;
         this.leftBtns = [];
+        this.fixedHotkeyMap = new Map();
+        this.dynamicHotkeyMap = new Map();
         let hpBottom = 36;
         let hpLeft = 36;
         this.hp = new HP(scene, this.inner, hpLeft, phaserConfig.scale.height - hpBottom);
@@ -5205,15 +5222,45 @@ class Hud extends Wrapper {
     createMenuBottom() {
         let info = hpPropInfos[0];
         let btn = new PropButton(this.scene, this.hp.inner, this, 0, 0, 'rounded_btn', info, 75, 75, false);
+        this.buyHpBtn = btn;
         btn.inner.setScale(0.8, 0.8);
         btn.inner.x += this.hp.barWidth + 60;
         btn.inner.y -= 30;
+        btn.allowMultipleConsume = true;
+        if (info.hotkey) {
+            this.fixedHotkeyMap.set(info.hotkey, btn);
+        }
+        btn.fakeZone.on('pointerover', () => {
+            this.popupBubbleBottom.setText(btn.tag);
+            console.log(btn.inner.x + btn.parentContainer.x + " " + btn.inner.y + btn.parentContainer.y);
+            this.popupBubbleBottom.setPosition(btn.inner.x + btn.parentContainer.x, btn.inner.y + btn.parentContainer.y - 40);
+            this.popupBubbleBottom.show();
+        });
+        btn.fakeZone.on('pointerout', () => {
+            this.popupBubbleBottom.hide();
+        });
+        let scale = btn.inner.scale;
+        btn.purchasedEvent.on(btn => {
+            hpPropInfos[0].consumed = true;
+            this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 0.8,
+                duration: 40,
+            });
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 1,
+                duration: 90,
+            });
+            timeline.play();
+        });
         // bubble
-        let bubbleX = btn.inner.x;
-        let bubbleY = btn.inner.y;
         this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);
-        this.popupBubbleBottom.inner.setPosition(bubbleX, bubbleY);
+        this.popupBubbleBottom.inner.setPosition(0, 0);
         this.popupBubbleBottom.hide();
+        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
     }
     getCurrentStrongestKeyword() {
         let i = 0;
@@ -5225,14 +5272,24 @@ class Hud extends Wrapper {
         return i - 1;
     }
     refreshMenuBtnState() {
-        // let currentStrongest = this.getCurrentStrongestKeyword();
-        for (let i = 0; i < badInfos.length; i++) {
-            let btn = this.leftBtns[i];
-            btn.refreshState();
+        // The idx here is to keep a record of how many btns are available,
+        // so that I can assign a hotkey
+        let idx = 0;
+        this.dynamicHotkeyMap.clear();
+        if (this.leftBtns) {
+            for (let i = 0; i < badInfos.length; i++) {
+                let btn = this.leftBtns[i];
+                btn.refreshState();
+            }
         }
-        for (let i = 0; i < this.rightBtns.length; i++) {
-            let btn = this.rightBtns[i];
-            btn.refreshState();
+        if (this.rightBtns) {
+            for (let i = 0; i < this.rightBtns.length; i++) {
+                let btn = this.rightBtns[i];
+                btn.refreshState();
+            }
+        }
+        if (this.buyHpBtn) {
+            this.buyHpBtn.refreshState();
         }
     }
     addCombo() {
@@ -5418,6 +5475,13 @@ class Hud extends Wrapper {
             this.toolMenuContainerLeft.inner.x -= 150;
             this.toolMenuContainerLeft.inner.setVisible(false);
         }
+    }
+    handleHotkey(c) {
+        if (this.fixedHotkeyMap && this.fixedHotkeyMap.has(c)) {
+            this.fixedHotkeyMap.get(c).click();
+            return true;
+        }
+        return false;
     }
 }
 class LeaderboardManager {
@@ -5773,6 +5837,9 @@ class PlayerInputText {
             return false;
         }
     }
+    handleHotkey(c) {
+        return this.scene.hud.handleHotkey(c);
+    }
     // keypress to handle all the valid characters
     keypress(event) {
         let oriText = this.text.text;
@@ -5790,7 +5857,10 @@ class PlayerInputText {
             return;
         }
         var codeS = String.fromCharCode(code);
-        if (this.handleAutoContentKeyPress(codeS)) {
+        if (this.handleHotkey(codeS)) {
+            return;
+        }
+        else if (this.handleAutoContentKeyPress(codeS)) {
         }
         else {
             //console.log(this.text.displayHeight);
@@ -6028,6 +6098,7 @@ class PropButton extends Button {
          * Some props need to pop up and dialog to confirm whether to buy
          */
         this.needConfirm = false;
+        this.allowMultipleConsume = false;
         this.info = info;
         this.hud = hd;
         this.text.setFontSize(info.size);
@@ -6043,7 +6114,7 @@ class PropButton extends Button {
         this.priceTag = info.price;
         this.clickedEvent.on(btn1 => {
             let btn = btn1;
-            if (!btn.purchased && this.hud.score >= btn.priceTag) {
+            if ((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
                 if (this.needConfirm) {
                     let dialog = this.scene.overlay.showTurnCautionDialog();
                     this.scene.enemyManager.freezeAllEnemies();
@@ -6068,7 +6139,8 @@ class PropButton extends Button {
     doPurchased() {
         this.purchased = true;
         this.hud.addScore(-this.priceTag);
-        this.purchasedMark.setVisible(true);
+        if (!this.allowMultipleConsume)
+            this.purchasedMark.setVisible(true);
         this.purchasedEvent.emit(this);
     }
     /**
@@ -6092,6 +6164,10 @@ class PropButton extends Button {
                 loop: -1,
             });
         }
+        let style = getDefaultTextStyle();
+        style.fontSize = '20px';
+        style.fill = '#ff0000';
+        let hotKeyText = this.scene.add.text(0, 0, "Hotkey: 1", style);
     }
     setPurchased(val) {
         this.purchased = val;
@@ -6109,7 +6185,7 @@ class PropButton extends Button {
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
     refreshState() {
-        if (this.purchased) {
+        if (this.purchased && !this.allowMultipleConsume) {
             this.inner.alpha = 1;
             this.canClick = false;
             if (this.promptImg) {
@@ -6130,6 +6206,7 @@ class PropButton extends Button {
                 this.promptImg.setVisible(false);
             }
         }
+        return this.canClick;
     }
 }
 var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
@@ -6671,7 +6748,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.enemyDisappear(enemy, damagedBy);
     }
     inputSubmitted(input) {
-        if (input == getCreateKeyword()) {
+        if (getCreatePropInfo().consumed && input == getCreateKeyword()) {
             this.sc1().centerObject.centerProgres.addProgress(1);
         }
     }

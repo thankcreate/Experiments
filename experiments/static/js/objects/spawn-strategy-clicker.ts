@@ -227,7 +227,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     inputSubmitted(input: string) {
-        if(input == getCreateKeyword()) {
+        if(getCreatePropInfo().consumed && input == getCreateKeyword()) {
             this.sc1().centerObject.centerProgres.addProgress(1);
         }
     }

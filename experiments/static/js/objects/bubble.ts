@@ -8,29 +8,33 @@ class Bubble extends Wrapper<PhImage> {
 
         let imgRes = "";
         let originX = 0;
-        let originy = 0;
+        let originY = 0;
         let textX = 0;
         let textY = 0;
         if(dir == Dir.Bottom) {
             imgRes = 'popup_bubble_bottom'
+            originX = 55 / 439;
+            originY = 1;
+            textX = -31;
+            textY = -230;
         }
         else if(dir == Dir.Left) {
             imgRes = 'popup_bubble_left'
             originX = 0;
-            originy = 46 / 229;
+            originY = 46 / 229;
             textX = 40;
             textY = -26;
         }
         else if(dir == Dir.Right) {
             imgRes = 'popup_bubble'
             originX = 1;
-            originy = 46 / 229;
+            originY = 46 / 229;
             textX = -442;
             textY = -26;
         }
 
         let img = this.scene.add.image(0, 0, imgRes);
-        img.setOrigin(originX, originy);
+        img.setOrigin(originX, originY);
         this.applyTarget(img);
 
         let style = getDefaultTextStyle();

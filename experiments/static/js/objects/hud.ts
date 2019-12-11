@@ -31,6 +31,8 @@ class Hud extends Wrapper<PhText> {
     toolMenuContainerLeft: ButtonGroup;
     toolMenuContainerLeftIsShown: boolean = true;
     leftBtns: PropButton[] = [];
+
+    buyHpBtn: PropButton;
        
     
     popupBubbleRight: Bubble;
@@ -39,6 +41,8 @@ class Hud extends Wrapper<PhText> {
 
     infoPanel: ClickerInfoPanel;
 
+    fixedHotkeyMap: Map<string, PropButton> = new Map();
+    dynamicHotkeyMap: Map<string, PropButton> = new Map();
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
@@ -223,22 +227,59 @@ class Hud extends Wrapper<PhText> {
     }
 
     createMenuBottom() {
-        let info = hpPropInfos[0];
+        let info = hpPropInfos[0];        
         let btn = new PropButton(this.scene, this.hp.inner, this, 0, 0,
             'rounded_btn', info, 75,75, false);        
-        btn.inner.setScale(0.8, 0.8);
+        this.buyHpBtn = btn;
+        btn.inner.setScale(0.8, 0.8);        
 
         btn.inner.x += this.hp.barWidth + 60;
         btn.inner.y -= 30;
+
+        btn.allowMultipleConsume = true;
+        if(info.hotkey) {
+            this.fixedHotkeyMap.set(info.hotkey, btn);
+        }
+
+        btn.fakeZone.on('pointerover', ()=>{            
+            this.popupBubbleBottom.setText(btn.tag);           
+            console.log(btn.inner.x + btn.parentContainer.x + " " + btn.inner.y + btn.parentContainer.y )              
+            this.popupBubbleBottom.setPosition(
+                btn.inner.x + btn.parentContainer.x, 
+                btn.inner.y + btn.parentContainer.y - 40);
+            this.popupBubbleBottom.show();                
+        });
+
+        btn.fakeZone.on('pointerout', () =>{
+            this.popupBubbleBottom.hide();
+        });          
+
+        let scale = btn.inner.scale;
+        btn.purchasedEvent.on(btn=>{
+            hpPropInfos[0].consumed = true;            
+            this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
+
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 0.8,
+                duration: 40,
+            });
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 1,
+                duration: 90,
+            });
+            timeline.play();
+        });    
         
         // bubble
-        let bubbleX = btn.inner.x;
-        let bubbleY = btn.inner.y;
 
         this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);        
-        this.popupBubbleBottom.inner.setPosition(bubbleX, bubbleY);        
+        this.popupBubbleBottom.inner.setPosition(0, 0)        
         this.popupBubbleBottom.hide();
         
+        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
     }
 
     getCurrentStrongestKeyword() : number{        
@@ -251,16 +292,27 @@ class Hud extends Wrapper<PhText> {
         return i - 1;
     }
 
-    refreshMenuBtnState() {
-        // let currentStrongest = this.getCurrentStrongestKeyword();
-        for(let i = 0; i < badInfos.length; i++) {
-            let btn = this.leftBtns[i];     
-            btn.refreshState();
-        }
+    refreshMenuBtnState() {     
+        // The idx here is to keep a record of how many btns are available,
+        // so that I can assign a hotkey
+        let idx = 0;           
+        if(this.leftBtns) {
+            for(let i = 0; i < badInfos.length; i++) {
+                let btn = this.leftBtns[i];     
+                btn.refreshState();
+            }
+        }        
 
-        for(let i = 0; i < this.rightBtns.length; i++) {
-            let btn = this.rightBtns[i];           
-            btn.refreshState();
+        if(this.rightBtns) {
+            for(let i = 0; i < this.rightBtns.length; i++) {
+                let btn = this.rightBtns[i];           
+                btn.refreshState();
+            }
+        }
+        
+
+        if(this.buyHpBtn) {
+            this.buyHpBtn.refreshState();
         }
     }
 
@@ -495,5 +547,15 @@ class Hud extends Wrapper<PhText> {
             this.toolMenuContainerLeft.inner.setVisible(false);
         }
         
+    }
+
+
+
+    handleHotkey(c: string) : boolean{                    
+        if(this.fixedHotkeyMap && this.fixedHotkeyMap.has(c)) {
+            this.fixedHotkeyMap.get(c).click();
+            return true;
+        }
+        return false;
     }
 }

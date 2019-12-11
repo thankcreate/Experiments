@@ -5,6 +5,16 @@ interface PropInfo {
     price: number
 }
 
+
+let initScore = 100;
+let baseScore = 100;
+let normalFreq1 = 10;
+
+let autoBadgeInterval = 400;
+let autoTurnInterval = 1000;
+
+let hpRegFactor = 4;
+
 let badInfos = [
     {title: "Bad", size: 36, desc: "", damage: 1, price: 0, consumed: false},
     {title: "Evil", size: 34, desc: "", damage: 3, price: 300, consumed: false},
@@ -28,7 +38,7 @@ function getCreateKeyword(): string {
 }
 
 let hpPropInfos = [
-    {title: '+HP', consumed: false, price: 100, size: 36, desc: 'Restore you HP a little bit'},
+    {title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: '1'},
 ]
 
 let propInfos = [
@@ -63,20 +73,27 @@ function getNormalFreq() {
     return normalFreq1;
 }
 
+function getCreatePropInfo() {
+    return propInfos[4];
+}
 
 
-let initScore = 100;
-let baseScore = 100;
-let normalFreq1 = 10;
-
-let autoBadgeInterval = 400;
-let autoTurnInterval = 1000;
 
 
 for(let i = 0; i < badInfos.length; i++) {
     let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDPS: " + item.damage + "\nCost: " + item.price;
+    item.desc = '"' + item.title + '"' + "\nDPS to 404: " + item.damage + "\nPrice: " + item.price;
 }
+
+for(let i = 0; i < hpPropInfos.length; i++) {
+    let item = hpPropInfos[i];
+    item.desc = "+HP"
+        + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
+        + "\nPrice: " + item.price
+        + "\n\nHotkey: " + item.hotkey;        
+}
+
+
 
 
 function isReservedBadKeyword(inputWord: string) : boolean {

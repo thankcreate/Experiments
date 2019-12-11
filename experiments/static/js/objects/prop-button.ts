@@ -16,6 +16,9 @@ class PropButton extends Button {
      * Some props need to pop up and dialog to confirm whether to buy
      */
     needConfirm: boolean = false;
+
+
+    allowMultipleConsume: boolean = false;
   
     info: PropInfo;
     constructor (scene: BaseScene, parentContainer: PhContainer, hd: Hud,
@@ -43,7 +46,7 @@ class PropButton extends Button {
 
         this.clickedEvent.on(btn1=>{    
             let btn = btn1 as PropButton;          
-            if(!btn.purchased && this.hud.score >= btn.priceTag) {
+            if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
                 if(this.needConfirm) {
                     let dialog = (this.scene as Scene1).overlay.showTurnCautionDialog();
                     (this.scene as Scene1).enemyManager.freezeAllEnemies();
@@ -72,10 +75,15 @@ class PropButton extends Button {
 
     doPurchased() {
         this.purchased = true;
-        this.hud.addScore(-this.priceTag);                                   
-        this.purchasedMark.setVisible(true);
+        this.hud.addScore(-this.priceTag);     
+        
+        if(!this.allowMultipleConsume)                              
+            this.purchasedMark.setVisible(true);
+        
         this.purchasedEvent.emit(this);
     }
+
+    hotkeyPrompt: PhText;
 
     /**
      * Dir means the button location. 
@@ -102,6 +110,11 @@ class PropButton extends Button {
                 loop: -1,
             });
         }
+
+        let style = getDefaultTextStyle();
+        style.fontSize = '20px';
+        style.fill = '#ff0000';        
+        let hotKeyText = this.scene.add.text(0, 0, "Hotkey: 1", style);        
       
     }
             
@@ -123,8 +136,8 @@ class PropButton extends Button {
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
 
-    refreshState() {
-        if(this.purchased) {
+    refreshState() : boolean {
+        if(this.purchased && !this.allowMultipleConsume) {
             this.inner.alpha = 1;
             this.canClick = false;
 
@@ -147,5 +160,7 @@ class PropButton extends Button {
                 this.promptImg.setVisible(false);
             }  
         }         
+
+        return this.canClick;
     }
 }

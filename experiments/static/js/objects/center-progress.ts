@@ -42,6 +42,10 @@ class CenterProgress extends Wrapper<PhText> {
         }); 
     }
 
+    reset() {
+        this.addProgress(-this.curVal, 0);
+    }
+
     addProgress(val: number, delay?: number, duration?: number) {       
         if(notSet(delay)) delay = 0;
         if(notSet(duration)) duration = 100;

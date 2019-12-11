@@ -113,13 +113,13 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     spawnNormal(): Enemy {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({health:health, duration: 70000, clickerType: ClickerType.Normal});
+        let ene = this.enemyManager.spawn({health:health, label: 'Snorkel', duration: 70000, clickerType: ClickerType.Normal});
         return ene;
     }
 
     resetConsumed() {
         for(let i in propInfos)  {
-            badInfos[i].consumed = false;
+            propInfos[i].consumed = false;
         }
 
         for(let i in badInfos)  {
@@ -127,8 +127,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
 
         for(let i in hpPropInfos)  {
-            badInfos[i].consumed = false;
+            hpPropInfos[i].consumed = false;
         }
+
+        this.sc1().centerObject.playerInputText.clearAutoKeywords();
+        this.sc1().centerObject.centerProgres.reset();
     }
     
     onEnter(){
@@ -165,19 +168,19 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     create() {
         let e = this.spawnNormal();
-        // let scale = e.inner.scale;
-        // let timeline = this.enemyManager.scene.tweens.createTimeline(null);
-        // timeline.add({
-        //     targets: e.inner,
-        //     scale: scale * 2,
-        //     duration: 250,
-        // });
-        // timeline.add({
-        //     targets: e.inner,
-        //     scale: scale * 1,
-        //     duration: 150,
-        // });
-        // timeline.play();
+        let scale = e.inner.scale;
+        let timeline = this.enemyManager.scene.tweens.createTimeline(null);
+        timeline.add({
+            targets: e.inner,
+            scale: scale * 2,
+            duration: 250,
+        });
+        timeline.add({
+            targets: e.inner,
+            scale: scale * 1,
+            duration: 150,
+        });
+        timeline.play();
     }
 
 

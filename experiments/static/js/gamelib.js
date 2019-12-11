@@ -2326,6 +2326,9 @@ class CenterProgress extends Wrapper {
             lineWidth: 12,
         });
     }
+    reset() {
+        this.addProgress(-this.curVal, 0);
+    }
     addProgress(val, delay, duration) {
         if (notSet(delay))
             delay = 0;
@@ -2376,13 +2379,13 @@ class CenterProgress extends Wrapper {
 }
 let initScore = 1000000;
 let baseScore = 100;
-let normalFreq1 = 30000;
+let normalFreq1 = 1000;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
 let initNormalHealth = 100;
 let init404Health = 100;
-let initNormalCount = 2;
+let initNormalCount = 0;
 let init404Count = 1;
 let initCreateStep = 1;
 let initCreateMax = 3;
@@ -2988,7 +2991,12 @@ class Enemy {
         }
     }
     showTurnEffect(fromPlayer) {
+        let mt = this.getMainTransform();
         let posi = MakePoint(this.getMainTransform());
+        if (posi.x == 0 && posi.y == 0) {
+            return;
+        }
+        // console.log(posi.x + " " + posi.y);
         // posi.x += this.inner.x;
         // posi.y += this.inner.y;
         posi.x += 70;
@@ -6082,6 +6090,9 @@ class PlayerInputText {
         this.checkIfNeedAutoCompletePrompt();
         this.changedEvent.emit(this);
     }
+    clearAutoKeywords() {
+        this.avaiAutoKeywords = [];
+    }
     addAutoKeywords(val) {
         this.avaiAutoKeywords.push(val);
     }
@@ -6869,19 +6880,21 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     spawnNormal() {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({ health: health, duration: 70000, clickerType: ClickerType.Normal });
+        let ene = this.enemyManager.spawn({ health: health, label: 'Snorkel', duration: 70000, clickerType: ClickerType.Normal });
         return ene;
     }
     resetConsumed() {
         for (let i in propInfos) {
-            badInfos[i].consumed = false;
+            propInfos[i].consumed = false;
         }
         for (let i in badInfos) {
             badInfos[i].consumed = false;
         }
         for (let i in hpPropInfos) {
-            badInfos[i].consumed = false;
+            hpPropInfos[i].consumed = false;
         }
+        this.sc1().centerObject.playerInputText.clearAutoKeywords();
+        this.sc1().centerObject.centerProgres.reset();
     }
     onEnter() {
         this.resetConsumed();
@@ -6908,19 +6921,19 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     create() {
         let e = this.spawnNormal();
-        // let scale = e.inner.scale;
-        // let timeline = this.enemyManager.scene.tweens.createTimeline(null);
-        // timeline.add({
-        //     targets: e.inner,
-        //     scale: scale * 2,
-        //     duration: 250,
-        // });
-        // timeline.add({
-        //     targets: e.inner,
-        //     scale: scale * 1,
-        //     duration: 150,
-        // });
-        // timeline.play();
+        let scale = e.inner.scale;
+        let timeline = this.enemyManager.scene.tweens.createTimeline(null);
+        timeline.add({
+            targets: e.inner,
+            scale: scale * 2,
+            duration: 250,
+        });
+        timeline.add({
+            targets: e.inner,
+            scale: scale * 1,
+            duration: 150,
+        });
+        timeline.play();
     }
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;

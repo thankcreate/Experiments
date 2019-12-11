@@ -8,7 +8,7 @@ interface PropInfo {
 
 let initScore = 1000000;
 let baseScore = 100;
-let normalFreq1 = 30000;
+let normalFreq1 = 1000;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
@@ -19,7 +19,7 @@ let hpRegFactor = 4;
 let initNormalHealth = 100;
 let init404Health = 100;
 
-let initNormalCount = 2;
+let initNormalCount = 0;
 let init404Count =1;
 
 let initCreateStep = 1;

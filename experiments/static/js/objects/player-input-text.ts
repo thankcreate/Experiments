@@ -303,6 +303,9 @@ class PlayerInputText {
     
     avaiAutoKeywords: string[] = [];
 
+    clearAutoKeywords() {
+        this.avaiAutoKeywords = [];
+    }
     addAutoKeywords(val: string) {
         this.avaiAutoKeywords.push(val);
     }

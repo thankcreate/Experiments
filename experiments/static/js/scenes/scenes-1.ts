@@ -236,13 +236,19 @@ class Scene1 extends BaseScene {
         this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
         this.pauseLayer.hide();
 
-        // Died layer
-        this.died = new Died(this, this.container, 0, 0);
-        this.died.hide();
+
 
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
+
+        // Died layer
+        this.died = new Died(this, this.overlayContainer, 0, 0);
+        this.died.hide();
+
+        // Overlay Dialogs
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
+
+
         
 
 
@@ -753,6 +759,6 @@ class Scene1 extends BaseScene {
         this.pauseCounter = 0;
     }
 
-    
+
 }
 

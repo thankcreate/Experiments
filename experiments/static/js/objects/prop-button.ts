@@ -23,6 +23,14 @@ class PropButton extends Button {
     info: PropInfo;
     group: ButtonGroup;
     hovered: boolean;
+
+
+    /**
+     * For shake usage
+     * Only init once at the first time of the click shake
+     */
+    shakeScale;
+
     constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
         x: number, y: number,
         imgKey: string, info: PropInfo,
@@ -58,18 +66,20 @@ class PropButton extends Button {
             this.hovered = false;
         });
 
-
+        
         this.purchasedEvent.on(btn=>{
-            let scale = btn.inner.scale;
+            if(notSet(this.shakeScale)){
+                this.shakeScale = this.inner.scale;
+            }            
             let timeline = this.scene.tweens.createTimeline(null);
             timeline.add({
                 targets: btn.inner,
-                scale: scale * 0.8,
+                scale: this.shakeScale * 0.8,
                 duration: 40,
             });
             timeline.add({
                 targets: btn.inner,
-                scale: scale * 1,
+                scale: this.shakeScale * 1,
                 duration: 90,
             });
             timeline.play();

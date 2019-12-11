@@ -21,17 +21,17 @@ Click "OK" to confirm
 `
 
 var economicTitle = `Hi Economists!📈`
-var economicAbout = `This is the 4th level of my thesis game, so we need a little bit context here.
+var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
 
 There are 2 types of enemies:
 
-• 404: which is just 404
-• Non-404: words like "Flower", "Dog"
+• 404: Which is just 404
+• Non-404: General words like "Flower", "Dog"
 
 You should input semantically related words to damage enemies:
 
-• 404: only the input "Bad" is considered as related
-• Non-404: type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+• 404: Only the input "Bad" is considered as related
+• Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
 
 If the enemies reach the center circle, you will lose your HP.
 

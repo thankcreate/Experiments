@@ -71,7 +71,8 @@ class Hud extends Wrapper<PhText> {
         this.createMenuLeft();
         this.createMenuBottom();
 
-        this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
+        if(getCurLevelIndex() ==4 ) 
+            this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
     }
 
 
@@ -381,7 +382,9 @@ class Hud extends Wrapper<PhText> {
             
         }
         this.refreshMenuBtnState();
-        this.infoPanel.update(time, dt);
+
+        if(this.infoPanel)
+            this.infoPanel.update(time, dt);
     }
 
     resetCombo() {

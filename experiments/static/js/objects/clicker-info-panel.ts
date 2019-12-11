@@ -77,8 +77,8 @@ class ClickerInfoPanel extends Wrapper<PhText> {
     }
 
     refreahDisplay() {
-        this.lblDpsFor404.setText("DPS (404): " + this.valDpsFor404);
-        this.lblAwardFor404.setText("Award (404): " + this.valAwardFor404);
+        this.lblDpsFor404.setText("DPS (404): "  + this.valDpsFor404);
+        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '')+ this.valAwardFor404);
         this.lblAwardForNormal.setText("Award (Non-404): " + this.valAwardForNormal);
     }
 }

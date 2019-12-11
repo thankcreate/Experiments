@@ -8,12 +8,19 @@ interface PropInfo {
 
 let initScore = 10000;
 let baseScore = 100;
-let normalFreq1 = 4;
+let normalFreq1 = 10000;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 
 let hpRegFactor = 4;
+
+
+let initNormalHealth = 100;
+let init404Health = 100;
+
+let initNormalCount = 10;
+let init404Count = 0;
 
 let badInfos = [
     {title: "Bad", size: 36, desc: "Bad is bad", damage: 1, price: 0, consumed: false},

@@ -21,6 +21,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     normalTurnedCount = 0;
     respawnAfterKilledThreshould: number = 9999;
 
+    
+    curBadHealth: number = init404Health;
+
     getInitConfig() : SpawnStrategyConfig {
         return {
             healthMin: 3,
@@ -40,7 +43,6 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return ene;
     }
 
-    curBadHealth: number = 2;
     incAndGetBadHealth() :number {
         if(this.badEliminatedCount < 4) {
             this.curBadHealth = ++this.curBadHealth;
@@ -106,7 +108,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     getNormalHelath() : number {
-        return this.normalTurnedCount + 3;
+        return this.normalTurnedCount + initNormalHealth;
     }
 
     spawnNormal(): Enemy {
@@ -138,16 +140,27 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.normalNormalCount = 0;
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould  = 9999;
+        this.curBadHealth = init404Health;
         
 
-        this.spawnBad();        
-        this.spawnNormal();
-        this.spawnNormal();
+        this.firstSpawn();
+        
         this.startLoopCreateNormal();
 
         this.sc1().centerObject.centerProgres.fullEvent.on(()=>{
             this.create();
         })
+    }
+
+
+    firstSpawn() {
+        for(let i = 0; i < init404Count;i++) {
+            this.spawnBad();        
+        }
+
+        for(let i = 0; i< initNormalCount; i++) {
+            this.spawnNormal();
+        }
     }
 
     create() {

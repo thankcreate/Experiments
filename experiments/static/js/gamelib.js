@@ -242,11 +242,12 @@ class Scene1 extends BaseScene {
         // Pause Layer
         this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
         this.pauseLayer.hide();
-        // Died layer
-        this.died = new Died(this, this.container, 0, 0);
-        this.died.hide();
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
+        // Died layer
+        this.died = new Died(this, this.overlayContainer, 0, 0);
+        this.died.hide();
+        // Overlay Dialogs
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
         // Footer click event bind        
         this.ui.footer.badges[0].clickedEvent.on(() => {
@@ -2375,10 +2376,14 @@ class CenterProgress extends Wrapper {
 }
 let initScore = 10000;
 let baseScore = 100;
-let normalFreq1 = 4;
+let normalFreq1 = 10000;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
+let initNormalHealth = 100;
+let init404Health = 100;
+let initNormalCount = 10;
+let init404Count = 0;
 let badInfos = [
     { title: "Bad", size: 36, desc: "Bad is bad", damage: 1, price: 0, consumed: false },
     { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, price: 300, consumed: false },
@@ -2520,7 +2525,7 @@ class ClickerInfoPanel extends Wrapper {
     }
     refreahDisplay() {
         this.lblDpsFor404.setText("DPS (404): " + this.valDpsFor404);
-        this.lblAwardFor404.setText("Award (404): " + this.valAwardFor404);
+        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '') + this.valAwardFor404);
         this.lblAwardForNormal.setText("Award (Non-404): " + this.valAwardForNormal);
     }
 }
@@ -2980,6 +2985,7 @@ class Enemy {
         }
     }
     showTurnEffect(fromPlayer) {
+        return;
         let posi = MakePoint(this.getMainTransform());
         // posi.x += this.inner.x;
         // posi.y += this.inner.y;
@@ -5149,7 +5155,8 @@ class Hud extends Wrapper {
         this.createMenuRight();
         this.createMenuLeft();
         this.createMenuBottom();
-        this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
+        if (getCurLevelIndex() == 4)
+            this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
     }
     createMenuRight() {
         // tool menu right
@@ -5389,7 +5396,8 @@ class Hud extends Wrapper {
             }
         }
         this.refreshMenuBtnState();
-        this.infoPanel.update(time, dt);
+        if (this.infoPanel)
+            this.infoPanel.update(time, dt);
     }
     resetCombo() {
         this.comboHitText.setVisible(false);
@@ -5619,17 +5627,17 @@ var cautionDefault = `Once purchased this item, you can no longer do semantic wo
 Click "OK" to confirm
 `;
 var economicTitle = `Hi Economists!📈`;
-var economicAbout = `This is the 4th level of my thesis game, so we need a little bit context here.
+var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
 
 There are 2 types of enemies:
 
-• 404: which is just 404
-• Non-404: words like "Flower", "Dog"
+• 404: Which is just 404
+• Non-404: General words like "Flower", "Dog"
 
 You should input semantically related words to damage enemies:
 
-• 404: only the input "Bad" is considered as related
-• Non-404: type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+• 404: Only the input "Bad" is considered as related
+• Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
 
 If the enemies reach the center circle, you will lose your HP.
 
@@ -6251,16 +6259,18 @@ class PropButton extends Button {
             this.hovered = false;
         });
         this.purchasedEvent.on(btn => {
-            let scale = btn.inner.scale;
+            if (notSet(this.shakeScale)) {
+                this.shakeScale = this.inner.scale;
+            }
             let timeline = this.scene.tweens.createTimeline(null);
             timeline.add({
                 targets: btn.inner,
-                scale: scale * 0.8,
+                scale: this.shakeScale * 0.8,
                 duration: 40,
             });
             timeline.add({
                 targets: btn.inner,
-                scale: scale * 1,
+                scale: this.shakeScale * 1,
                 duration: 90,
             });
             timeline.play();
@@ -6765,7 +6775,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.normalNormalCount = 0;
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould = 9999;
-        this.curBadHealth = 2;
+        this.curBadHealth = init404Health;
         this.lastAutoTypeTime = -1;
         this.autoTypeInterval = 1 * 1000;
         this.lastAutoTurnTime = -1;
@@ -6838,7 +6848,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         // }
     }
     getNormalHelath() {
-        return this.normalTurnedCount + 3;
+        return this.normalTurnedCount + initNormalHealth;
     }
     spawnNormal() {
         let health = this.getNormalHelath();
@@ -6864,13 +6874,20 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.normalNormalCount = 0;
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould = 9999;
-        this.spawnBad();
-        this.spawnNormal();
-        this.spawnNormal();
+        this.curBadHealth = init404Health;
+        this.firstSpawn();
         this.startLoopCreateNormal();
         this.sc1().centerObject.centerProgres.fullEvent.on(() => {
             this.create();
         });
+    }
+    firstSpawn() {
+        for (let i = 0; i < init404Count; i++) {
+            this.spawnBad();
+        }
+        for (let i = 0; i < initNormalCount; i++) {
+            this.spawnNormal();
+        }
     }
     create() {
         this.spawnNormal();

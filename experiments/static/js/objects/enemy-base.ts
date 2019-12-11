@@ -419,6 +419,7 @@ class Enemy {
 
     loopMagic: PhImage;
     showTurnEffect(fromPlayer: boolean) {
+        return ;
         let posi = MakePoint(this.getMainTransform());
         // posi.x += this.inner.x;
         // posi.y += this.inner.y;

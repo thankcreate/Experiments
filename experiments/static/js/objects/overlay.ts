@@ -35,7 +35,7 @@ You should input semantically related words to damage enemies:
 
 If the enemies reach the center circle, you will lose your HP.
 
-⚠️Caution: You can only get scores💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE score💰.
+Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
 `
 
 // The wrapped PhText is only for the fact the Wrapper must have a T

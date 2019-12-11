@@ -109,39 +109,10 @@ class Controller extends BaseScene {
         // this.myInput = new MyInput(this);
     }
 
-
-    parseUrl(url: string) : object{
-        var result = {};
-
-        let spR = url.split("?");
-        if(url.split("?").length <= 1)
-            return result;
-
-        var query = url.split("?")[1];
-        var queryArr = query.split("&");
-        queryArr.forEach(function(item){            
-            var value = item.split("=")[1];
-            var key = item.split("=")[0];
-            
-            result[key] = value;
-        });
-        return result;
-    }
-
-    getCurLevelIndex() : number{
-        let path = window.location.href;
-        let params = this.parseUrl(path);
-        let index = 1;
-        if(params['level'] != null) {
-            index = parseInt(params['level']);
-        }
-        return index;
-    }
-
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
         // this.scene.launch('Scene1L2');      
-        let index = this.getCurLevelIndex();        
+        let index = getCurLevelIndex();        
         this.scene.launch('Scene1L' + index);      
     }
 

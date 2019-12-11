@@ -1,3 +1,48 @@
+function parseUrl(url: string) : object{
+    var result = {};
+
+    let spR = url.split("?");
+    if(url.split("?").length <= 1)
+        return result;
+
+    var query = url.split("?")[1];
+    var queryArr = query.split("&");
+    queryArr.forEach(function(item){            
+        var value = item.split("=")[1];
+        var key = item.split("=")[0];
+        
+        result[key] = value;
+    });
+    return result;
+}
+
+
+
+
+function getUrlParams() {
+    let path = window.location.href;
+    let params = parseUrl(path);
+    return params;
+}
+
+function getCurLevelIndex() : number{        
+    let params = getUrlParams();
+    let index = 1;
+    if(params['level'] != null) {
+        index = parseInt(params['level']);
+    }
+    return index;
+}
+
+function isEconomicSpecialEdition() : boolean {
+    let params = getUrlParams();
+    let index = 1;
+    if(params['eco'] != null) {
+        return true;
+    }
+    return false;
+}
+
 function distance(a, b) {
     let diffX = b.x - a.x;
     let diffY = b.y - a.y;
@@ -339,3 +384,4 @@ function setCookie(key: string, value: any) {
 function getCookie(key: string) : any {
     return ($ as any).cookie(key);
 }
+

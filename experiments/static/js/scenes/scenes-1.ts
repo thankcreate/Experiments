@@ -752,5 +752,7 @@ class Scene1 extends BaseScene {
     gamePlayStarted() {
         this.pauseCounter = 0;
     }
+
+    
 }
 

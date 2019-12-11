@@ -49,6 +49,10 @@ class Scene1L4 extends Scene1 {
     }
 
     needShowEcoAboutAtStartup() : boolean {
+        if(isEconomicSpecialEdition()) {
+            return true;
+        }
+        
         return false;
     }
     initStNormalDefault() {

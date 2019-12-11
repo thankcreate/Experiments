@@ -83,33 +83,10 @@ class Controller extends BaseScene {
         });
         // this.myInput = new MyInput(this);
     }
-    parseUrl(url) {
-        var result = {};
-        let spR = url.split("?");
-        if (url.split("?").length <= 1)
-            return result;
-        var query = url.split("?")[1];
-        var queryArr = query.split("&");
-        queryArr.forEach(function (item) {
-            var value = item.split("=")[1];
-            var key = item.split("=")[0];
-            result[key] = value;
-        });
-        return result;
-    }
-    getCurLevelIndex() {
-        let path = window.location.href;
-        let params = this.parseUrl(path);
-        let index = 1;
-        if (params['level'] != null) {
-            index = parseInt(params['level']);
-        }
-        return index;
-    }
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
         // this.scene.launch('Scene1L2');      
-        let index = this.getCurLevelIndex();
+        let index = getCurLevelIndex();
         this.scene.launch('Scene1L' + index);
     }
     playSpeechInController(text, timeOut = 4000) {
@@ -1250,6 +1227,9 @@ class Scene1L4 extends Scene1 {
         this.updateObjects.push(this.normalGameFsm);
     }
     needShowEcoAboutAtStartup() {
+        if (isEconomicSpecialEdition()) {
+            return true;
+        }
         return false;
     }
     initStNormalDefault() {
@@ -1632,6 +1612,41 @@ function testSpeechAPI2() {
         console.log('haha ririr');
     };
     oReq.send(dataStr);
+}
+function parseUrl(url) {
+    var result = {};
+    let spR = url.split("?");
+    if (url.split("?").length <= 1)
+        return result;
+    var query = url.split("?")[1];
+    var queryArr = query.split("&");
+    queryArr.forEach(function (item) {
+        var value = item.split("=")[1];
+        var key = item.split("=")[0];
+        result[key] = value;
+    });
+    return result;
+}
+function getUrlParams() {
+    let path = window.location.href;
+    let params = parseUrl(path);
+    return params;
+}
+function getCurLevelIndex() {
+    let params = getUrlParams();
+    let index = 1;
+    if (params['level'] != null) {
+        index = parseInt(params['level']);
+    }
+    return index;
+}
+function isEconomicSpecialEdition() {
+    let params = getUrlParams();
+    let index = 1;
+    if (params['eco'] != null) {
+        return true;
+    }
+    return false;
 }
 function distance(a, b) {
     let diffX = b.x - a.x;
@@ -5618,7 +5633,7 @@ You should input semantically related words to damage enemies:
 
 If the enemies reach the center circle, you will lose your HP.
 
-⚠️Caution: You can only get scores💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE score💰.
+Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
 `;
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object

@@ -164,7 +164,20 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     create() {
-        this.spawnNormal();
+        let e = this.spawnNormal();
+        // let scale = e.inner.scale;
+        // let timeline = this.enemyManager.scene.tweens.createTimeline(null);
+        // timeline.add({
+        //     targets: e.inner,
+        //     scale: scale * 2,
+        //     duration: 250,
+        // });
+        // timeline.add({
+        //     targets: e.inner,
+        //     scale: scale * 1,
+        //     duration: 150,
+        // });
+        // timeline.play();
     }
 
 
@@ -265,7 +278,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     inputSubmitted(input: string) {
         if(getCreatePropInfo().consumed && input == getCreateKeyword()) {
-            this.sc1().centerObject.centerProgres.addProgress(1);
+            this.sc1().centerObject.centerProgres.addProgress(initCreateStep);
         }
     }
 }

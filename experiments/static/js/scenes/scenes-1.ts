@@ -607,7 +607,7 @@ class Scene1 extends BaseScene {
 
             // Back
             s.autoOn($(document), 'keydown', e => {
-                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
+                if (!this.overlay.isInShow() && e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BACK_TO_HOME");   // <-------------
                 }
             });

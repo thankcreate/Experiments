@@ -6,9 +6,9 @@ interface PropInfo {
 }
 
 
-let initScore = 10000;
+let initScore = 1000000;
 let baseScore = 100;
-let normalFreq1 = 10000;
+let normalFreq1 = 30000;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
@@ -19,11 +19,14 @@ let hpRegFactor = 4;
 let initNormalHealth = 100;
 let init404Health = 100;
 
-let initNormalCount = 10;
-let init404Count = 0;
+let initNormalCount = 2;
+let init404Count =1;
+
+let initCreateStep = 1;
+let initCreateMax = 3;
 
 let badInfos = [
-    {title: "Bad", size: 36, desc: "Bad is bad", damage: 1, price: 0, consumed: false},
+    {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, price: 0, consumed: false},
     {title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, price: 300, consumed: false},
     {title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, price: 1000, consumed: false},
     {title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, price: 3000, consumed: false},

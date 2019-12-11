@@ -29,14 +29,14 @@ class CenterProgress extends Wrapper<PhText> {
         this.radius = 115;
 
         this.curVal = 0;
-        this.maxVal = 10;
+        this.maxVal = initCreateMax;
         this.progress =  this.curVal / this.maxVal;
         
         //let ac = this.scene.add.arc(x, y, radius, 0, Math.pi, false, 0x000000, 1);
         this.circle = new Arc(this.scene, this.inner, 0, 0, {
             radius: this.radius,
             startAngle: 0 + this.arcOffset, 
-            endAngle: Math.PI / 2 + this.arcOffset,
+            endAngle: 1 + this.arcOffset,
             antiClockwise: false,
             lineWidth: 12,
         }); 

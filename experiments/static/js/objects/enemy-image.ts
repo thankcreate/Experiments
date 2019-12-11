@@ -57,7 +57,9 @@ class EnemyImage extends Enemy {
             let lc = this.text.getLeftCenter();
             lc.x -= gameplayConfig.healthIndicatorWidth / 2;
             lc.x -= 4;
-            this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);    
+            
+            if(this.healthIndicator)
+                this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);    
         }      
         
     
@@ -77,6 +79,8 @@ class EnemyImage extends Enemy {
             this.figure.inner.setVisible(false);
             this.textAsImage = textAsImage;
         }
+
+        //this.figure.inner.setVisible(false);
 
         let hpBarPosi = MakePoint2(0,0);
         hpBarPosi.x = lb.x;

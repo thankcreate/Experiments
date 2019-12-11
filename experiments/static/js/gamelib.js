@@ -529,7 +529,7 @@ class Scene1 extends BaseScene {
             this.gamePlayStarted();
             // Back
             s.autoOn($(document), 'keydown', e => {
-                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
+                if (!this.overlay.isInShow() && e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BACK_TO_HOME"); // <-------------
                 }
             });
@@ -2315,13 +2315,13 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = -1;
         this.radius = 115;
         this.curVal = 0;
-        this.maxVal = 10;
+        this.maxVal = initCreateMax;
         this.progress = this.curVal / this.maxVal;
         //let ac = this.scene.add.arc(x, y, radius, 0, Math.pi, false, 0x000000, 1);
         this.circle = new Arc(this.scene, this.inner, 0, 0, {
             radius: this.radius,
             startAngle: 0 + this.arcOffset,
-            endAngle: Math.PI / 2 + this.arcOffset,
+            endAngle: 1 + this.arcOffset,
             antiClockwise: false,
             lineWidth: 12,
         });
@@ -2374,18 +2374,20 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 10000;
+let initScore = 1000000;
 let baseScore = 100;
-let normalFreq1 = 10000;
+let normalFreq1 = 30000;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
 let initNormalHealth = 100;
 let init404Health = 100;
-let initNormalCount = 10;
-let init404Count = 0;
+let initNormalCount = 2;
+let init404Count = 1;
+let initCreateStep = 1;
+let initCreateMax = 3;
 let badInfos = [
-    { title: "Bad", size: 36, desc: "Bad is bad", damage: 1, price: 0, consumed: false },
+    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, price: 0, consumed: false },
     { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, price: 300, consumed: false },
     { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, price: 1000, consumed: false },
     { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, price: 3000, consumed: false },
@@ -2754,8 +2756,8 @@ class Enemy {
         this.checkIfReachEnd();
         this.checkIfNeedShowAutoBadBadge(time, dt);
         this.checkIfNeedAutoTurn(time, dt);
-        if (this.healthIndicator)
-            this.healthIndicator.update(time, dt);
+        // if(this.healthIndicator)        
+        //     this.healthIndicator.update(time, dt);
         // this.updateHealthBarDisplay();
     }
     checkIfReachEnd() {
@@ -2879,9 +2881,10 @@ class Enemy {
         this.health = Math.max(0, this.health);
         this.checkIfNeedChangeAlphaByTurn(input);
         if (fromPlayer)
-            this.checkIfNeedShowBadBadge(dmg, input);
-        if (this.healthIndicator)
-            this.healthIndicator.damagedTo(this.health);
+            this.checkIfNeedShowWidget(dmg, input);
+        // Health indicator not used any more
+        // if(this.healthIndicator)
+        //     this.healthIndicator.damagedTo(this.health);
         this.updateHealthBarDisplay();
         if (this.health <= 0) {
             this.eliminated(input);
@@ -2901,7 +2904,7 @@ class Enemy {
     updateAlphaByHealth() {
         this.getMainTransform().alpha = this.health / this.maxHealth;
     }
-    checkIfNeedShowBadBadge(dmg, input) {
+    checkIfNeedShowWidget(dmg, input) {
         if (dmg > 0 && this.isSensative())
             this.showBadgeEffect();
         else if (dmg > 0 && !this.isSensative() && isReservedTurnKeyword(input)) {
@@ -2985,7 +2988,6 @@ class Enemy {
         }
     }
     showTurnEffect(fromPlayer) {
-        return;
         let posi = MakePoint(this.getMainTransform());
         // posi.x += this.inner.x;
         // posi.y += this.inner.y;
@@ -3221,7 +3223,8 @@ class EnemyImage extends Enemy {
             let lc = this.text.getLeftCenter();
             lc.x -= gameplayConfig.healthIndicatorWidth / 2;
             lc.x -= 4;
-            this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
+            if (this.healthIndicator)
+                this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
         }
         // text404 As Image
         if (this.isSensative()) {
@@ -3235,6 +3238,7 @@ class EnemyImage extends Enemy {
             this.figure.inner.setVisible(false);
             this.textAsImage = textAsImage;
         }
+        //this.figure.inner.setVisible(false);
         let hpBarPosi = MakePoint2(0, 0);
         hpBarPosi.x = lb.x;
         hpBarPosi.y = y;
@@ -4081,6 +4085,19 @@ class Dialog extends Figure {
         this.cancelBtn.needHandOnHover = true;
         this.cancelBtn.ignoreOverlay = true;
         this.calcUiPosi();
+        $(document).on('keydown', e => {
+            if (this.inner.visible) {
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ENTER
+                    || e.keyCode == Phaser.Input.Keyboard.KeyCodes.SPACE) {
+                    if (this.okBtn)
+                        this.okBtn.click();
+                }
+                // else if(e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
+                //     if(this.cancelBtn)
+                //         this.cancelBtn.click();
+                // }
+            }
+        });
     }
     getOkBtnTitle() {
         if (this.config.btns && this.config.btns[0]) {
@@ -5624,7 +5641,7 @@ This current demo is only at progress 10% at most.
 `;
 var cautionDefault = `Once purchased this item, you can no longer do semantic word matching. All you can input will be limited to "Turn" and "Bad"
 
-Click "OK" to confirm
+Click "OK"(or press "Enter") to confirm
 `;
 var economicTitle = `Hi Economists!📈`;
 var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
@@ -6890,7 +6907,20 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
     }
     create() {
-        this.spawnNormal();
+        let e = this.spawnNormal();
+        // let scale = e.inner.scale;
+        // let timeline = this.enemyManager.scene.tweens.createTimeline(null);
+        // timeline.add({
+        //     targets: e.inner,
+        //     scale: scale * 2,
+        //     duration: 250,
+        // });
+        // timeline.add({
+        //     targets: e.inner,
+        //     scale: scale * 1,
+        //     duration: 150,
+        // });
+        // timeline.play();
     }
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;
@@ -6970,7 +7000,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     inputSubmitted(input) {
         if (getCreatePropInfo().consumed && input == getCreateKeyword()) {
-            this.sc1().centerObject.centerProgres.addProgress(1);
+            this.sc1().centerObject.centerProgres.addProgress(initCreateStep);
         }
     }
 }

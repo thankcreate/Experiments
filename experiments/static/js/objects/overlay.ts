@@ -17,7 +17,7 @@ This current demo is only at progress 10% at most.
 
 var cautionDefault = `Once purchased this item, you can no longer do semantic word matching. All you can input will be limited to "Turn" and "Bad"
 
-Click "OK" to confirm
+Click "OK"(or press "Enter") to confirm
 `
 
 var economicTitle = `Hi Economists!📈`

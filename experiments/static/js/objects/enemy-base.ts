@@ -114,8 +114,10 @@ class Enemy {
         this.checkIfReachEnd();
         this.checkIfNeedShowAutoBadBadge(time, dt);
         this.checkIfNeedAutoTurn(time, dt);
-        if(this.healthIndicator)        
-            this.healthIndicator.update(time, dt);
+
+
+        // if(this.healthIndicator)        
+        //     this.healthIndicator.update(time, dt);
 
         // this.updateHealthBarDisplay();
     }
@@ -278,10 +280,11 @@ class Enemy {
         this.checkIfNeedChangeAlphaByTurn(input);
 
         if(fromPlayer)
-            this.checkIfNeedShowBadBadge(dmg, input);
+            this.checkIfNeedShowWidget(dmg, input);
             
-        if(this.healthIndicator)
-            this.healthIndicator.damagedTo(this.health);
+        // Health indicator not used any more
+        // if(this.healthIndicator)
+        //     this.healthIndicator.damagedTo(this.health);
 
         this.updateHealthBarDisplay()
         if (this.health <= 0) {
@@ -301,11 +304,11 @@ class Enemy {
         }
     }
 
-    updateAlphaByHealth() {
+    updateAlphaByHealth() {        
         (this.getMainTransform() as any).alpha = this.health / this.maxHealth;
     }
 
-    checkIfNeedShowBadBadge(dmg: number, input: string) {
+    checkIfNeedShowWidget(dmg: number, input: string) {
         if(dmg > 0 && this.isSensative())
             this.showBadgeEffect();
         else if(dmg > 0 && !this.isSensative() && isReservedTurnKeyword(input)) {
@@ -314,7 +317,7 @@ class Enemy {
     }
 
 
-    updateHealthBarDisplay() {
+    updateHealthBarDisplay() {        
         if(this.hpBar) {
             this.hpBar.updateDisplay(this.health, this.maxHealth);
         }
@@ -418,8 +421,7 @@ class Enemy {
     }
 
     loopMagic: PhImage;
-    showTurnEffect(fromPlayer: boolean) {
-        return ;
+    showTurnEffect(fromPlayer: boolean) {        
         let posi = MakePoint(this.getMainTransform());
         // posi.x += this.inner.x;
         // posi.y += this.inner.y;

@@ -244,6 +244,20 @@ class Dialog extends Figure {
         this.cancelBtn.ignoreOverlay = true;
 
         this.calcUiPosi();
+
+        $(document).on('keydown', e => {
+            if (this.inner.visible) {
+                if(e.keyCode == Phaser.Input.Keyboard.KeyCodes.ENTER
+                    || e.keyCode == Phaser.Input.Keyboard.KeyCodes.SPACE) {
+                    if(this.okBtn)
+                        this.okBtn.click();
+                }
+                // else if(e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
+                //     if(this.cancelBtn)
+                //         this.cancelBtn.click();
+                // }
+            }
+        })
     }
 
     getOkBtnTitle() {

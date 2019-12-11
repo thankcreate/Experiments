@@ -6,7 +6,7 @@ interface PropInfo {
 }
 
 
-let initScore = 100;
+let initScore = 100000;
 let baseScore = 100;
 let normalFreq1 = 10;
 
@@ -16,12 +16,12 @@ let autoTurnInterval = 1000;
 let hpRegFactor = 4;
 
 let badInfos = [
-    {title: "Bad", size: 36, desc: "", damage: 1, price: 0, consumed: false},
-    {title: "Evil", size: 34, desc: "", damage: 3, price: 300, consumed: false},
-    {title: "Guilty", size: 28, desc: "", damage: 5, price: 1000, consumed: false},
-    {title: "Vicious", size: 24, desc: "", damage: 8, price: 3000, consumed: false},
-    {title: "Immoral", size: 20, desc: "", damage: 12, price: 10000, consumed: false},
-    {title: "Shameful", size: 18, desc: "", damage: 20, price: 30000, consumed: false},
+    {title: "Bad", size: 36, desc: "Bad is bad", damage: 1, price: 0, consumed: false},
+    {title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, price: 300, consumed: false},
+    {title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, price: 1000, consumed: false},
+    {title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, price: 3000, consumed: false},
+    {title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, price: 10000, consumed: false},
+    {title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, price: 30000, consumed: false},
 ]
 
 let turnInfos = [
@@ -38,7 +38,7 @@ function getCreateKeyword(): string {
 }
 
 let hpPropInfos = [
-    {title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: '1'},
+    {title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: ['+','=']},
 ]
 
 let propInfos = [
@@ -80,17 +80,17 @@ function getCreatePropInfo() {
 
 
 
-for(let i = 0; i < badInfos.length; i++) {
-    let item = badInfos[i];
-    item.desc = '"' + item.title + '"' + "\nDPS to 404: " + item.damage + "\nPrice: " + item.price;
-}
+// for(let i = 0; i < badInfos.length; i++) {
+//     let item = badInfos[i];
+//     item.desc = '"' + item.title + '"' + "\nDPS to 404: " + item.damage + "\nPrice: " + item.price;
+// }
 
 for(let i = 0; i < hpPropInfos.length; i++) {
     let item = hpPropInfos[i];
     item.desc = "+HP"
         + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
         + "\nPrice: " + item.price
-        + "\n\nHotkey: " + item.hotkey;        
+        + '\n\nHotkey: "' + item.hotkey[0] + '"';        
 }
 
 

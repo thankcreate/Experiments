@@ -114,8 +114,32 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         let ene = this.enemyManager.spawn({health:health, duration: 70000, clickerType: ClickerType.Normal});
         return ene;
     }
+
+    resetConsumed() {
+        for(let i in propInfos)  {
+            badInfos[i].consumed = false;
+        }
+
+        for(let i in badInfos)  {
+            badInfos[i].consumed = false;
+        }
+
+        for(let i in hpPropInfos)  {
+            badInfos[i].consumed = false;
+        }
+    }
     
     onEnter(){
+        this.resetConsumed();
+        this.sc1().hud.resetPropBtns();
+
+        this.badCount = 0;
+        this.badEliminatedCount = 0;
+        this.normalNormalCount = 0;
+        this.normalTurnedCount = 0;
+        this.respawnAfterKilledThreshould  = 9999;
+        
+
         this.spawnBad();        
         this.spawnNormal();
         this.spawnNormal();

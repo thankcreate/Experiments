@@ -1,5 +1,5 @@
 class ButtonGroup extends Wrapper<PhText> {
-    
+    isShown = false;
 }
 
 /**
@@ -30,7 +30,7 @@ class Button {
     inTween: PhTween;
     outTween: PhTween;
 
-    tag: string;
+    desc: string;
     // auto scale
     needInOutAutoAnimation: boolean = true;    
 

@@ -5,7 +5,7 @@ class PropButton extends Button {
     purchased: boolean = false;
 
     hud: Hud;
-    promptImg: PhImage;
+    promptImg: ImageWrapper;
 
     purchasedEvent: TypedEvent<PropButton> = new TypedEvent();
     needConfirmEvent: TypedEvent<PropButton> = new TypedEvent();
@@ -21,12 +21,14 @@ class PropButton extends Button {
     allowMultipleConsume: boolean = false;
   
     info: PropInfo;
-    constructor (scene: BaseScene, parentContainer: PhContainer, hd: Hud,
+    group: ButtonGroup;
+    constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
         x: number, y: number,
         imgKey: string, info: PropInfo,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {        
         
         super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
+        this.group = group;
         this.info = info;
         this.hud = hd;
 
@@ -41,7 +43,7 @@ class PropButton extends Button {
         this.inner.add(priceLbl);
         this.priceLbl = priceLbl;
 
-        this.tag = info.desc;
+        this.desc = info.desc;
         this.priceTag = info.price;
 
         this.clickedEvent.on(btn1=>{    
@@ -95,15 +97,15 @@ class PropButton extends Button {
         
         if(dir == Dir.Left || dir == Dir.Right) {
             let isLeft = dir == Dir.Left;            
-            this.promptImg = this.scene.add.image(0, 0, isLeft ? 'arrow_rev' : 'arrow');
-            this.inner.add(this.promptImg);
+            let img = this.scene.add.image(0, 0, isLeft ? 'arrow_rev' : 'arrow');
+            this.promptImg = new ImageWrapperClass(this.scene, this.inner, 0, 0, img);            
             
-            this.promptImg.x += isLeft ?  40 : -40;
-            this.promptImg.setOrigin(isLeft ? 0 : 1, 0.5);
+            this.promptImg.inner.x += isLeft ?  40 : -40;
+            img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
 
             this.scene.tweens.add({
-                targets: this.promptImg,
+                targets: this.promptImg.inner,
                 x:  isLeft ? +60 : -60,
                 yoyo: true,
                 duration: 250,
@@ -111,11 +113,35 @@ class PropButton extends Button {
             });
         }
 
+
+        let textOriginX = 0;
+        let textOriginY = 0;
+        let textX = 0;        
+        if(dir == Dir.Left) {
+            textOriginX = 0;
+            textOriginY = 0;
+            textX = 52;
+        }
+        else if(dir == Dir.Right) {
+            textOriginX = 1;
+            textOriginY = 0;
+            textX = -52;
+        }
+
         let style = getDefaultTextStyle();
-        style.fontSize = '20px';
+        let size = 24;
+        style.fontSize = size + 'px';
         style.fill = '#ff0000';        
-        let hotKeyText = this.scene.add.text(0, 0, "Hotkey: 1", style);        
-      
+        this.hotkeyPrompt = this.scene.add.text(textX, -40, "Hotkey: 1", style).setOrigin(textOriginX, textOriginY);
+        this.promptImg.inner.add(this.hotkeyPrompt);
+    }
+
+    hotkey: string;
+    setHotKey(val: string) {
+        if(this.hotkeyPrompt) {
+            this.hotkey = val;
+            this.hotkeyPrompt.text = 'Hotkey: "'+ val + '"';
+        }
     }
             
 
@@ -133,6 +159,9 @@ class PropButton extends Button {
      * We don't want to show a prompt img beside the 'Bad'
      */
     canBePurchased() : boolean {
+        if(this.group && !this.group.isShown) {
+            return false;
+        }
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
 
@@ -142,12 +171,12 @@ class PropButton extends Button {
             this.canClick = false;
 
             if(this.promptImg) {
-                this.promptImg.setVisible(false);
+                this.promptImg.inner.setVisible(false);
             }
         }
         else if(this.canBePurchased()){
             if(this.promptImg) {
-                this.promptImg.setVisible(true);
+                this.promptImg.inner.setVisible(true);
             }
             this.inner.alpha = 1;
             this.canClick = true;          
@@ -157,7 +186,7 @@ class PropButton extends Button {
             this.canClick = false;
             
             if(this.promptImg) {                    
-                this.promptImg.setVisible(false);
+                this.promptImg.inner.setVisible(false);
             }  
         }         
 

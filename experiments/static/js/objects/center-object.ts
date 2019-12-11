@@ -57,6 +57,7 @@ class CenterObject {
 
     centerProgres: CenterProgress;
 
+
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
         this.scene = scene;
         this.parentContainer = parentContainer;
@@ -91,9 +92,13 @@ class CenterObject {
         this.btnMode1 = btn;
 
         this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
+
+        
     }
 
     graph: PhGraphics;
+
+
 
 
     playerInputChanged(inputControl: PlayerInputText) {

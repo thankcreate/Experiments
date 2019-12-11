@@ -27,7 +27,7 @@ class EnemyManager {
     enemyRunDuration;
     spawnRadius;
 
-
+    accTime = 0;
     /**
      * At first, it's call spawn history,\
      * but later on, I think I should also add the time info
@@ -135,10 +135,12 @@ class EnemyManager {
             value.reset();
         })
     }
-
+    
+    
     stopSpawnAndClear() {
         this.stopAutoSpawn();
 
+        this.accTime = 0;
         this.resetAllStrateges();
         this.curStrategy = null;
 
@@ -302,7 +304,10 @@ class EnemyManager {
 
 
     update(time, dt) {
-        
+        if(!this.isPaused)
+            this.accTime += dt * 1000;
+        // console.log(time, this.accTime, time - this.accTime);
+
         // dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
@@ -312,7 +317,7 @@ class EnemyManager {
         }
 
         if(this.curStrategy)
-            this.curStrategy.onUpdate(time, dt);
+            this.curStrategy.onUpdate(this.accTime, dt);
 
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);

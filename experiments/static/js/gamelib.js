@@ -163,6 +163,7 @@ class Scene1 extends BaseScene {
         this.counters = new Map();
         this.playerName = "";
         this.sfxMatches = [];
+        this.pauseCounter = 0;
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
@@ -261,6 +262,9 @@ class Scene1 extends BaseScene {
         this.hud = new Hud(this, this.abContainer, 0, 0);
         this.ui = new UI(this, this.abContainer, 0, 0);
         this.ui.hud = this.hud;
+        // Pause Layer
+        this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
+        this.pauseLayer.hide();
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
         this.died.hide();
@@ -544,6 +548,7 @@ class Scene1 extends BaseScene {
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
             this.backBtn.setEnable(true, true);
+            this.gamePlayStarted();
             // Back
             s.autoOn($(document), 'keydown', e => {
                 if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
@@ -657,6 +662,23 @@ class Scene1 extends BaseScene {
     playAsBgm(sound) {
         this.bgm = sound;
         this.bgm.play(null, { loop: true });
+    }
+    pause() {
+        this.pauseCounter++;
+        if (this.pauseCounter == 1) {
+            this.pauseLayer.show();
+            this.enemyManager.freezeAllEnemies();
+        }
+    }
+    unPause() {
+        this.pauseCounter--;
+        if (this.pauseCounter == 0) {
+            this.pauseLayer.hide();
+            this.enemyManager.unFreezeAllEnemies();
+        }
+    }
+    gamePlayStarted() {
+        this.pauseCounter = 0;
     }
 }
 class Scene1L1 extends Scene1 {
@@ -2336,9 +2358,9 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 100000;
+let initScore = 10000;
 let baseScore = 100;
-let normalFreq1 = 10;
+let normalFreq1 = 4;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
@@ -3286,6 +3308,7 @@ class EnemyImage extends Enemy {
 var gEnemyID = 0;
 class EnemyManager {
     constructor(scene, parentContainer) {
+        this.accTime = 0;
         /**
          * At first, it's call spawn history,\
          * but later on, I think I should also add the time info
@@ -3373,6 +3396,7 @@ class EnemyManager {
     }
     stopSpawnAndClear() {
         this.stopAutoSpawn();
+        this.accTime = 0;
         this.resetAllStrateges();
         this.curStrategy = null;
         // Must iterate from back
@@ -3504,6 +3528,9 @@ class EnemyManager {
         }
     }
     update(time, dt) {
+        if (!this.isPaused)
+            this.accTime += dt * 1000;
+        // console.log(time, this.accTime, time - this.accTime);
         // dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
@@ -3511,7 +3538,7 @@ class EnemyManager {
             this.enemies[i].update(time, dt);
         }
         if (this.curStrategy)
-            this.curStrategy.onUpdate(time, dt);
+            this.curStrategy.onUpdate(this.accTime, dt);
         // console.log("Enemy count:" + this.enemies.length);
         // console.log("Children count: " + this.container.getAll().length);
     }
@@ -5117,7 +5144,7 @@ class Hud extends Wrapper {
         let startY = 0;
         let intervalY = 100;
         for (let i = 0; i < propInfos.length; i++) {
-            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i], 75, 75, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i], 100, 100, false);
             this.rightBtns.push(btn);
             btn.addPromptImg(Dir.Right);
             btn.fakeZone.on('pointerover', () => {
@@ -5200,7 +5227,7 @@ class Hud extends Wrapper {
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
             let info = badInfos[i];
-            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], 75, 75, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], 100, 100, false);
             if (i == 0) {
                 btn.priceLbl.text = "-";
             }
@@ -5252,18 +5279,18 @@ class Hud extends Wrapper {
         btn.purchasedEvent.on(btn => {
             hpPropInfos[0].consumed = true;
             this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
-            let timeline = this.scene.tweens.createTimeline(null);
-            timeline.add({
-                targets: btn.inner,
-                scale: scale * 0.8,
-                duration: 40,
-            });
-            timeline.add({
-                targets: btn.inner,
-                scale: scale * 1,
-                duration: 90,
-            });
-            timeline.play();
+            // let timeline = this.scene.tweens.createTimeline(null);
+            // timeline.add({
+            //     targets: btn.inner,
+            //     scale: scale * 0.8,
+            //     duration: 40,
+            // });
+            // timeline.add({
+            //     targets: btn.inner,
+            //     scale: scale * 1,
+            //     duration: 90,
+            // });
+            // timeline.play();
         });
         // bubble
         this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);
@@ -5599,6 +5626,7 @@ class Overlay extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.inShow = false;
+        this.inner.alpha = 0;
         let width = getLogicWidth();
         let height = phaserConfig.scale.height;
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
@@ -5725,7 +5753,6 @@ class Overlay extends Wrapper {
     show() {
         this.inShow = true;
         this.inner.setVisible(true);
-        this.inner.alpha = 0;
         this.inTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: 1,
@@ -5735,12 +5762,55 @@ class Overlay extends Wrapper {
     hide() {
         this.inShow = false;
         this.inner.setVisible(false);
+        this.inner.alpha = 0;
         if (this.inTween) {
             this.inTween.stop();
         }
     }
     isInShow() {
         return this.inShow;
+    }
+}
+class PauseLayer extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        // Big banner
+        this.bkg = new Rect(this.scene, this.inner, 0, 0, {
+            originX: 0.5,
+            originY: 0.5,
+            width: 3000,
+            height: 2000,
+            fillColor: 0x000000,
+            fillAlpha: 0.7,
+            lineColor: 0x000000,
+            lineAlpha: 0,
+        });
+        // Title
+        let style = getDefaultTextStyle();
+        style.fill = '#ffffff';
+        style.fontSize = '100px';
+        this.title = this.scene.add.text(0, 0, "Paused", style).setOrigin(0.5).setAlign('center');
+        this.inner.add(this.title);
+    }
+    hide() {
+        this.inner.setVisible(false);
+        if (this.tw)
+            this.tw.stop();
+        this.tw = this.scene.tweens.add({
+            targets: this.inner,
+            alpha: 0,
+            duration: 150,
+        });
+    }
+    show() {
+        this.inner.setVisible(true);
+        if (this.tw)
+            this.tw.stop();
+        this.tw = this.scene.tweens.add({
+            targets: this.inner,
+            alpha: 1,
+            duration: 80,
+        });
     }
 }
 class PlayerInputText {
@@ -6123,6 +6193,9 @@ class PlayerInputText {
         this.canAcceptInput = val;
     }
     getCanAcceptInput() {
+        if (this.scene.enemyManager.isPaused) {
+            return false;
+        }
         return this.canAcceptInput;
     }
     isInBeat() {
@@ -6154,17 +6227,42 @@ class PropButton extends Button {
         this.priceLbl = priceLbl;
         this.desc = info.desc;
         this.priceTag = info.price;
+        this.fakeZone.on('pointerover', () => {
+            this.scene.pause();
+            this.hovered = true;
+        });
+        this.fakeZone.on('pointerout', () => {
+            this.scene.unPause();
+            this.hovered = false;
+        });
+        this.purchasedEvent.on(btn => {
+            let scale = btn.inner.scale;
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 0.8,
+                duration: 40,
+            });
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 1,
+                duration: 90,
+            });
+            timeline.play();
+        });
         this.clickedEvent.on(btn1 => {
             let btn = btn1;
             if ((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
                 if (this.needConfirm) {
                     let dialog = this.scene.overlay.showTurnCautionDialog();
-                    this.scene.enemyManager.freezeAllEnemies();
+                    // (this.scene as Scene1).enemyManager.freezeAllEnemies();
+                    this.scene.pause();
                     dialog.singleUseConfirmEvent.on(() => {
                         this.doPurchased();
                     });
                     dialog.singleUseClosedEvent.on(() => {
-                        this.scene.enemyManager.unFreezeAllEnemies();
+                        // (this.scene as Scene1).enemyManager.unFreezeAllEnemies();
+                        this.scene.unPause();
                     });
                 }
                 else {
@@ -6250,6 +6348,9 @@ class PropButton extends Button {
         }
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
+    /**
+     * Refresh if can click
+     */
     refreshState() {
         if (this.purchased && !this.allowMultipleConsume) {
             this.inner.alpha = 1;
@@ -6260,7 +6361,11 @@ class PropButton extends Button {
         }
         else if (this.canBePurchased()) {
             if (this.promptImg) {
-                this.promptImg.inner.setVisible(true);
+                if (this.hovered)
+                    this.promptImg.inner.setVisible(false);
+                else {
+                    this.promptImg.inner.setVisible(true);
+                }
             }
             this.inner.alpha = 1;
             this.canClick = true;

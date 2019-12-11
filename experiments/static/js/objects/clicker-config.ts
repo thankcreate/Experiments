@@ -6,9 +6,9 @@ interface PropInfo {
 }
 
 
-let initScore = 100000;
+let initScore = 10000;
 let baseScore = 100;
-let normalFreq1 = 10;
+let normalFreq1 = 4;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;

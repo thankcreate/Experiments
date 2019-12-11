@@ -175,7 +175,7 @@ class PlayerInputText {
     }
 
     // keypress to handle all the valid characters
-    keypress(event) {
+    keypress(event) {       
 
         let oriText = this.text.text;
         this.keyPressEvent.emit(event);
@@ -491,6 +491,10 @@ class PlayerInputText {
     }
 
     getCanAcceptInput(): boolean {
+        if((this.scene as Scene1).enemyManager.isPaused) {
+            return false;
+        }
+
         return this.canAcceptInput;
     }
 

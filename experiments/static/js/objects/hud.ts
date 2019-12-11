@@ -88,7 +88,7 @@ class Hud extends Wrapper<PhText> {
         
         for(let i = 0; i < propInfos.length; i++) {            
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
-                 'rounded_btn', propInfos[i], 75,75, false);        
+                 'rounded_btn', propInfos[i], 100,100, false);        
            
             this.rightBtns.push(btn);                        
             btn.addPromptImg(Dir.Right);            
@@ -96,11 +96,11 @@ class Hud extends Wrapper<PhText> {
             btn.fakeZone.on('pointerover', ()=>{            
                 this.popupBubbleRight.setText(btn.desc + "\nPrice: " + propInfos[i].price, (propInfos[i] as any).warning);                         
                 this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
-                this.popupBubbleRight.show();                
+                this.popupBubbleRight.show();                       
             });
 
             btn.fakeZone.on('pointerout', () =>{
-                this.popupBubbleRight.hide();
+                this.popupBubbleRight.hide();                
             });
 
             
@@ -196,7 +196,7 @@ class Hud extends Wrapper<PhText> {
         for(let i = 0; i < badInfos.length; i++) {    
             let info = badInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i,
-                'rounded_btn', badInfos[i], 75,75, false);        
+                'rounded_btn', badInfos[i], 100,100, false);        
 
             if(i == 0) {
                 btn.priceLbl.text = "-";
@@ -266,18 +266,18 @@ class Hud extends Wrapper<PhText> {
             hpPropInfos[0].consumed = true;            
             this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
 
-            let timeline = this.scene.tweens.createTimeline(null);
-            timeline.add({
-                targets: btn.inner,
-                scale: scale * 0.8,
-                duration: 40,
-            });
-            timeline.add({
-                targets: btn.inner,
-                scale: scale * 1,
-                duration: 90,
-            });
-            timeline.play();
+            // let timeline = this.scene.tweens.createTimeline(null);
+            // timeline.add({
+            //     targets: btn.inner,
+            //     scale: scale * 0.8,
+            //     duration: 40,
+            // });
+            // timeline.add({
+            //     targets: btn.inner,
+            //     scale: scale * 1,
+            //     duration: 90,
+            // });
+            // timeline.play();
         });    
         
         // bubble

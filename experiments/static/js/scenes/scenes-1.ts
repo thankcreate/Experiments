@@ -81,6 +81,7 @@ class Scene1 extends BaseScene {
     hud: Hud;
     private _hp: HP;
     died: Died;
+    pauseLayer: PauseLayer;
 
     hpInitPosi: PhPoint;
 
@@ -231,6 +232,9 @@ class Scene1 extends BaseScene {
         this.ui = new UI(this, this.abContainer, 0, 0);
         this.ui.hud = this.hud;
 
+        // Pause Layer
+        this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
+        this.pauseLayer.hide();
 
         // Died layer
         this.died = new Died(this, this.container, 0, 0);
@@ -591,6 +595,8 @@ class Scene1 extends BaseScene {
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
             this.backBtn.setEnable(true, true);
+            
+            this.gamePlayStarted();
 
 
             // Back
@@ -724,6 +730,27 @@ class Scene1 extends BaseScene {
     playAsBgm(sound: PhSound) {
         this.bgm = sound;
         this.bgm.play(null, {loop: true});        
+    }
+        
+    pauseCounter = 0;
+    pause() {
+        this.pauseCounter++;
+        if(this.pauseCounter == 1) {
+            this.pauseLayer.show();
+            this.enemyManager.freezeAllEnemies();        
+        }        
+    }
+
+    unPause() {
+        this.pauseCounter--;
+        if(this.pauseCounter == 0) {
+            this.pauseLayer.hide();
+            this.enemyManager.unFreezeAllEnemies();
+        }        
+    }
+
+    gamePlayStarted() {
+        this.pauseCounter = 0;
     }
 }
 

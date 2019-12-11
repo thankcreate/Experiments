@@ -22,6 +22,7 @@ class PropButton extends Button {
   
     info: PropInfo;
     group: ButtonGroup;
+    hovered: boolean;
     constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
         x: number, y: number,
         imgKey: string, info: PropInfo,
@@ -46,19 +47,50 @@ class PropButton extends Button {
         this.desc = info.desc;
         this.priceTag = info.price;
 
+        this.fakeZone.on('pointerover', ()=>{            
+            (this.scene as Scene1).pause();    
+            this.hovered = true;       
+            
+        });
+
+        this.fakeZone.on('pointerout', () =>{
+            (this.scene as Scene1).unPause();
+            this.hovered = false;
+        });
+
+
+        this.purchasedEvent.on(btn=>{
+            let scale = btn.inner.scale;
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 0.8,
+                duration: 40,
+            });
+            timeline.add({
+                targets: btn.inner,
+                scale: scale * 1,
+                duration: 90,
+            });
+            timeline.play();
+        });    
+
+
         this.clickedEvent.on(btn1=>{    
             let btn = btn1 as PropButton;          
             if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
                 if(this.needConfirm) {
                     let dialog = (this.scene as Scene1).overlay.showTurnCautionDialog();
-                    (this.scene as Scene1).enemyManager.freezeAllEnemies();
+                    // (this.scene as Scene1).enemyManager.freezeAllEnemies();
+                    (this.scene as Scene1).pause();
 
                     dialog.singleUseConfirmEvent.on(() => {
                         this.doPurchased();
                     });                
 
                     dialog.singleUseClosedEvent.on(() => {
-                        (this.scene as Scene1).enemyManager.unFreezeAllEnemies();
+                        // (this.scene as Scene1).enemyManager.unFreezeAllEnemies();
+                        (this.scene as Scene1).unPause();
                     })
                 }
                 else {
@@ -74,6 +106,8 @@ class PropButton extends Button {
         this.purchasedMark.setPosition(markOffset, -markOffset);
         this.purchasedMark.setVisible(false);
     }
+
+    
 
     doPurchased() {
         this.purchased = true;
@@ -165,6 +199,9 @@ class PropButton extends Button {
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
 
+    /**
+     * Refresh if can click
+     */
     refreshState() : boolean {
         if(this.purchased && !this.allowMultipleConsume) {
             this.inner.alpha = 1;
@@ -176,7 +213,11 @@ class PropButton extends Button {
         }
         else if(this.canBePurchased()){
             if(this.promptImg) {
-                this.promptImg.inner.setVisible(true);
+                if(this.hovered)
+                    this.promptImg.inner.setVisible(false);
+                else{
+                    this.promptImg.inner.setVisible(true);
+                }
             }
             this.inner.alpha = 1;
             this.canClick = true;          

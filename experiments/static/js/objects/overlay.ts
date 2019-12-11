@@ -61,8 +61,12 @@ class Overlay extends Wrapper<PhText> {
 
     frontDark: Rect;
 
+    
+
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
+
+        this.inner.alpha = 0;
 
         let width = getLogicWidth();
         let height = phaserConfig.scale.height
@@ -87,6 +91,7 @@ class Overlay extends Wrapper<PhText> {
         this.inGameDialog.hide();
         this.leaderboardDialog.hide();
         this.hide();
+
     } 
 
     initUniDialog(){
@@ -208,7 +213,7 @@ class Overlay extends Wrapper<PhText> {
         this.inShow = true;
         this.inner.setVisible(true);
 
-        this.inner.alpha = 0;
+        
         this.inTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: 1,
@@ -219,7 +224,7 @@ class Overlay extends Wrapper<PhText> {
     hide() {
         this.inShow = false;
         this.inner.setVisible(false);
-
+        this.inner.alpha = 0;
         if(this.inTween) {
             this.inTween.stop();            
         }

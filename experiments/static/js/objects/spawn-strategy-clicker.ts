@@ -48,10 +48,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             this.curBadHealth = ++this.curBadHealth;
         }
         else {
-            this.curBadHealth *= 1.1;
+            this.curBadHealth *= health404IncreaseFactor;
             this.curBadHealth = Math.ceil(this.curBadHealth);            
         }
-
         
         return this.curBadHealth;
     }
@@ -133,6 +132,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
         for(let i in badInfos)  {
             badInfos[i].consumed = false;
+            badInfos[i].price =badInfos[i].basePrice;
+            badInfos[i].damage =badInfos[i].baseDamage;
         }
 
         for(let i in hpPropInfos)  {
@@ -265,7 +266,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     getAwardFor404() : number {
-        let sc = Math.floor(baseScore * Math.pow(1.1, this.badEliminatedCount));
+        let sc = getAwardFor404(this.badEliminatedCount);
+        
         return sc;
     }
 
@@ -283,6 +285,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             if(!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
                 (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
+            }
+            else {
+                
             }
         }
         this.enemyDisappear(enemy, damagedBy);

@@ -12,7 +12,7 @@ interface PropInfo {
 
 let initScore = 0;
 let baseScore = 100;
-let normalFreq1 = 1000;
+let normalFreq1 = 8;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
@@ -21,9 +21,9 @@ let hpRegFactor = 4;
 
 
 let initNormalHealth = 3;
-let init404Health = 3;
+let init404Health = 2;
 
-let initNormalCount = 0;
+let initNormalCount = 2;
 let init404Count =1;
 
 let initCreateStep = 1;
@@ -33,18 +33,46 @@ let initCreateMax = 3;
 let priceIncreaseFactor = 1.1;
 let damageIncraseFactor = 1.1;
 
+let award404IncreaseFactor = 1.05;
+let health404IncreaseFactor = 1.15;
+
+let basePrice = 100;
+let baseDamage = 1;
+let priceFactorBetweenInfo = 5;
+let damageFactorBetweenInfo = 4;
+
+
+
 let badInfos = [
-    {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamge: 1, price: 0, basePrice: 100, consumed: false},
-    {title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 1, price: 0,  basePrice: 300, consumed: false},
-    {title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 1, price: 0, basePrice: 1000, consumed: false},
-    {title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 1, price: 0, basePrice: 3000, consumed: false},
-    {title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 1, price: 0, basePrice: 10000, consumed: false},
-    {title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, bseDamage: 1, price: 0, basePrice: 30000, consumed: false},
+    {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false},
+    {title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 3, price: 0,  basePrice: 300, consumed: false},
+    {title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 5, price: 0, basePrice: 1000, consumed: false},
+    {title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 8, price: 0, basePrice: 3000, consumed: false},
+    {title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 12, price: 0, basePrice: 10000, consumed: false},
+    {title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, baseDamage: 20, price: 0, basePrice: 30000, consumed: false},
 ]
 
+for(let i = 0; i < badInfos.length; i++) {
+    badInfos[i].basePrice = basePrice * Math.pow(priceFactorBetweenInfo, i);
+    badInfos[i].baseDamage = baseDamage * Math.pow(damageFactorBetweenInfo, i);    
+}
+
+
+
 function getDamageBasedOnLevel(lvl: number, info: PropInfo)  {
-    let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);;
+    // let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
+    let ret = info.baseDamage * lvl;
     return ret;
+}
+
+function getPriceToLevel(lvl: number, info: PropInfo) {
+    let ret = info.basePrice * Math.pow(priceIncreaseFactor, lvl - 1);
+    return ret;
+}
+
+function getAwardFor404(count: number) {
+    let sc = Math.floor(baseScore * Math.pow(award404IncreaseFactor, count));
+    return sc;
 }
 
 let turnInfos = [
@@ -65,7 +93,7 @@ let hpPropInfos = [
 ]
 
 let propInfos = [
-    {title: "B**", consumed: false, price: 300, size: 40, desc: 'You can just type in "B" instead of "BAD" for short'},            
+    {title: "B**", consumed: false, price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short'},            
     {title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
     {title: "T**", consumed: false, price: 2500, size: 30, 
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',

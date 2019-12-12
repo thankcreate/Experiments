@@ -91,14 +91,16 @@ class Hud extends Wrapper<PhText> {
         let startY = 0;
         let intervalY = 100;
 
-        
+        let tempHotkey = ['7', '8', '9', '0', '-'];
         for(let i = 0; i < propInfos.length; i++) {       
             let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
                  'rounded_btn', info, false, 100, 100, false);        
-           
+
+            btn.addPromptImg(Dir.Right);      
+            btn.setHotKey(tempHotkey[i]);
             this.rightBtns.push(btn);                        
-            btn.addPromptImg(Dir.Right);            
+                  
 
             btn.bubble = this.popupBubbleRight;
             btn.bubbleAnchor = ()=>{
@@ -205,12 +207,14 @@ class Hud extends Wrapper<PhText> {
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i,
                 'rounded_btn', badInfos[i], true, 100, 105, false);        
 
+           
             if(i == 0) {
                 btn.priceLbl.text = "-";
             }
 
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
+            btn.setHotKey((i + 1) + "");
 
             btn.bubble = this.popupBubbleLeft;
             btn.bubbleAnchor = ()=> {
@@ -218,10 +222,22 @@ class Hud extends Wrapper<PhText> {
                     , btn.inner.y + this.toolMenuContainerLeft.inner.y);
             } 
             btn.bubbleContent = ()=>{
-                let ret = info.desc 
-                    + "\n\nCurrent DPS(404): " + myNum(info.damage) 
-                    + "\nNext DPS(404): " + myNum(btn.getNextDamage()) 
-                    + "\nPrice: " + myNum(info.price);
+                let ret = info.desc;
+                
+                let strategy = this.sc1().enemyManager.curStrategy as SpawnStrategyClickerGame;
+                let allDps = strategy.getDps404();
+
+                if(btn.curLevel == 0) {
+                    ret += "\n\nDPS(404):  " + myNum(info.damage) 
+                    + "\n\nPrice: " + myNum(info.price);
+                }
+                else {
+                    ret += "\n\nCurrent DPS(404):  " + myNum(info.damage) + "  (" + myNum(info.damage / allDps * 100)  + "% of all)"
+                    + "\nNext DPS(404):  " + myNum(btn.getNextDamage()) 
+                    + "\n\nUpgrade Price:  " + myNum(info.price);
+                }               
+
+                
                 return ret;
             }
         
@@ -309,17 +325,12 @@ class Hud extends Wrapper<PhText> {
     refreshMenuBtnState() {     
         // The idx here is to keep a record of how many btns are available,
         // so that I can assign a hotkey
-        let idx = 0;           
+        // let idx = 0;           
 
-        let allBtns = this.getAllPropBtns();
-        // let allBtns = this.rightBtns;        
+        let allBtns = this.getAllPropBtns();        
         for(let i in allBtns) {
             let btn = allBtns[i];
-            let canClick = btn.refreshState();
-            if(canClick) {
-                btn.setHotKey("" + (idx + 1));
-                idx ++;
-            }
+            let canClick = btn.refreshState();            
         }
     }
 

@@ -220,7 +220,7 @@ class PropButton extends Button {
 
     // Price for (curLevel) -> (curLevel + 1)
     getPrice():number {
-        let ret = this.info.basePrice * Math.pow(priceIncreaseFactor, this.curLevel);
+        let ret = getPriceToLevel(this.curLevel + 1, this.info);        
         return ret;
     }
 
@@ -257,13 +257,13 @@ class PropButton extends Button {
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
 
-            this.scene.tweens.add({
-                targets: this.promptImg.inner,
-                x:  isLeft ? +60 : -60,
-                yoyo: true,
-                duration: 250,
-                loop: -1,
-            });
+            // this.scene.tweens.add({
+            //     targets: this.promptImg.inner,
+            //     x:  isLeft ? +60 : -60,
+            //     yoyo: true,
+            //     duration: 250,
+            //     loop: -1,
+            // });
         }
 
 
@@ -333,8 +333,6 @@ class PropButton extends Button {
         // already purchased && can only be purchased once
         if(this.purchased && !(this.allowMultipleConsume || this.allowLevelUp)) {
             this.myTransparent(false);
-
-
             this.canClick = false;
 
             if(this.promptImg) {
@@ -355,7 +353,11 @@ class PropButton extends Button {
         }
         // can not buy
         else {   
-            this.myTransparent(true);
+            if(this.allowLevelUp && this.curLevel > 0)
+                this.myTransparent(false);
+            else
+                this.myTransparent(true);
+
             this.canClick = false;
             
             if(this.promptImg) {                    
@@ -368,7 +370,7 @@ class PropButton extends Button {
     myTransparent(tran: boolean) {
         this.image.alpha = tran ? 0.2 : 1;
         this.priceLbl.alpha = tran ? 0.2 : 1;
-        this.text.alpha = tran ? 0.2: 1;
+        // this.text.alpha = tran ? 0.2: 1;
     }
 
     updateBubbleInfo() {

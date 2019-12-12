@@ -1977,7 +1977,7 @@ class Bubble extends Wrapper {
         this.applyTarget(img);
         let style = getDefaultTextStyle();
         style.fill = '#FFFFFF';
-        style.fontSize = '26px';
+        style.fontSize = '24px';
         let cc = "You can just type in 'B' instead of 'BAD' for short";
         let wordWrapthWidt = 400;
         // main text
@@ -2395,30 +2395,48 @@ class CenterProgress extends Wrapper {
 }
 let initScore = 0;
 let baseScore = 100;
-let normalFreq1 = 1000;
+let normalFreq1 = 8;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
 let initNormalHealth = 3;
-let init404Health = 3;
-let initNormalCount = 0;
+let init404Health = 2;
+let initNormalCount = 2;
 let init404Count = 1;
 let initCreateStep = 1;
 let initCreateMax = 3;
 let priceIncreaseFactor = 1.1;
 let damageIncraseFactor = 1.1;
+let award404IncreaseFactor = 1.05;
+let health404IncreaseFactor = 1.15;
+let basePrice = 100;
+let baseDamage = 1;
+let priceFactorBetweenInfo = 5;
+let damageFactorBetweenInfo = 4;
 let badInfos = [
-    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamge: 1, price: 0, basePrice: 100, consumed: false },
-    { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 1, price: 0, basePrice: 300, consumed: false },
-    { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 1, price: 0, basePrice: 1000, consumed: false },
-    { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 1, price: 0, basePrice: 3000, consumed: false },
-    { title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 1, price: 0, basePrice: 10000, consumed: false },
-    { title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, bseDamage: 1, price: 0, basePrice: 30000, consumed: false },
+    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false },
+    { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 3, price: 0, basePrice: 300, consumed: false },
+    { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 5, price: 0, basePrice: 1000, consumed: false },
+    { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 8, price: 0, basePrice: 3000, consumed: false },
+    { title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 12, price: 0, basePrice: 10000, consumed: false },
+    { title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, baseDamage: 20, price: 0, basePrice: 30000, consumed: false },
 ];
+for (let i = 0; i < badInfos.length; i++) {
+    badInfos[i].basePrice = basePrice * Math.pow(priceFactorBetweenInfo, i);
+    badInfos[i].baseDamage = baseDamage * Math.pow(damageFactorBetweenInfo, i);
+}
 function getDamageBasedOnLevel(lvl, info) {
-    let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
-    ;
+    // let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
+    let ret = info.baseDamage * lvl;
     return ret;
+}
+function getPriceToLevel(lvl, info) {
+    let ret = info.basePrice * Math.pow(priceIncreaseFactor, lvl - 1);
+    return ret;
+}
+function getAwardFor404(count) {
+    let sc = Math.floor(baseScore * Math.pow(award404IncreaseFactor, count));
+    return sc;
 }
 let turnInfos = [
     { title: "Turn", damage: 1 },
@@ -2433,7 +2451,7 @@ let hpPropInfos = [
     { title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: ['+', '='] },
 ];
 let propInfos = [
-    { title: "B**", consumed: false, price: 300, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
+    { title: "B**", consumed: false, price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
     { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
     { title: "T**", consumed: false, price: 2500, size: 30,
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
@@ -5213,11 +5231,13 @@ class Hud extends Wrapper {
         this.popupBubbleRight.hide();
         let startY = 0;
         let intervalY = 100;
+        let tempHotkey = ['7', '8', '9', '0', '-'];
         for (let i = 0; i < propInfos.length; i++) {
             let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', info, false, 100, 100, false);
-            this.rightBtns.push(btn);
             btn.addPromptImg(Dir.Right);
+            btn.setHotKey(tempHotkey[i]);
+            this.rightBtns.push(btn);
             btn.bubble = this.popupBubbleRight;
             btn.bubbleAnchor = () => {
                 return MakePoint2(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
@@ -5301,15 +5321,24 @@ class Hud extends Wrapper {
             }
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
+            btn.setHotKey((i + 1) + "");
             btn.bubble = this.popupBubbleLeft;
             btn.bubbleAnchor = () => {
                 return MakePoint2(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
             };
             btn.bubbleContent = () => {
-                let ret = info.desc
-                    + "\n\nCurrent DPS(404): " + myNum(info.damage)
-                    + "\nNext DPS(404): " + myNum(btn.getNextDamage())
-                    + "\nPrice: " + myNum(info.price);
+                let ret = info.desc;
+                let strategy = this.sc1().enemyManager.curStrategy;
+                let allDps = strategy.getDps404();
+                if (btn.curLevel == 0) {
+                    ret += "\n\nDPS(404):  " + myNum(info.damage)
+                        + "\n\nPrice: " + myNum(info.price);
+                }
+                else {
+                    ret += "\n\nCurrent DPS(404):  " + myNum(info.damage) + "  (" + myNum(info.damage / allDps * 100) + "% of all)"
+                        + "\nNext DPS(404):  " + myNum(btn.getNextDamage())
+                        + "\n\nUpgrade Price:  " + myNum(info.price);
+                }
                 return ret;
             };
             btn.purchasedEvent.on(btn => {
@@ -5379,16 +5408,11 @@ class Hud extends Wrapper {
     refreshMenuBtnState() {
         // The idx here is to keep a record of how many btns are available,
         // so that I can assign a hotkey
-        let idx = 0;
+        // let idx = 0;           
         let allBtns = this.getAllPropBtns();
-        // let allBtns = this.rightBtns;        
         for (let i in allBtns) {
             let btn = allBtns[i];
             let canClick = btn.refreshState();
-            if (canClick) {
-                btn.setHotKey("" + (idx + 1));
-                idx++;
-            }
         }
     }
     addCombo() {
@@ -6404,7 +6428,7 @@ class PropButton extends Button {
     }
     // Price for (curLevel) -> (curLevel + 1)
     getPrice() {
-        let ret = this.info.basePrice * Math.pow(priceIncreaseFactor, this.curLevel);
+        let ret = getPriceToLevel(this.curLevel + 1, this.info);
         return ret;
     }
     refreshPriceLabel() {
@@ -6430,13 +6454,13 @@ class PropButton extends Button {
             this.promptImg.inner.x += isLeft ? 40 : -40;
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
-            this.scene.tweens.add({
-                targets: this.promptImg.inner,
-                x: isLeft ? +60 : -60,
-                yoyo: true,
-                duration: 250,
-                loop: -1,
-            });
+            // this.scene.tweens.add({
+            //     targets: this.promptImg.inner,
+            //     x:  isLeft ? +60 : -60,
+            //     yoyo: true,
+            //     duration: 250,
+            //     loop: -1,
+            // });
         }
         let textOriginX = 0;
         let textOriginY = 0;
@@ -6513,7 +6537,10 @@ class PropButton extends Button {
         }
         // can not buy
         else {
-            this.myTransparent(true);
+            if (this.allowLevelUp && this.curLevel > 0)
+                this.myTransparent(false);
+            else
+                this.myTransparent(true);
             this.canClick = false;
             if (this.promptImg) {
                 this.promptImg.inner.setVisible(false);
@@ -6524,7 +6551,7 @@ class PropButton extends Button {
     myTransparent(tran) {
         this.image.alpha = tran ? 0.2 : 1;
         this.priceLbl.alpha = tran ? 0.2 : 1;
-        this.text.alpha = tran ? 0.2 : 1;
+        // this.text.alpha = tran ? 0.2: 1;
     }
     updateBubbleInfo() {
         if (this.hovered && this.bubble && this.bubbleContent)
@@ -6929,7 +6956,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             this.curBadHealth = ++this.curBadHealth;
         }
         else {
-            this.curBadHealth *= 1.1;
+            this.curBadHealth *= health404IncreaseFactor;
             this.curBadHealth = Math.ceil(this.curBadHealth);
         }
         return this.curBadHealth;
@@ -6993,6 +7020,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
         for (let i in badInfos) {
             badInfos[i].consumed = false;
+            badInfos[i].price = badInfos[i].basePrice;
+            badInfos[i].damage = badInfos[i].baseDamage;
         }
         for (let i in hpPropInfos) {
             hpPropInfos[i].consumed = false;
@@ -7095,7 +7124,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.enemyDisappear(enemy, null);
     }
     getAwardFor404() {
-        let sc = Math.floor(baseScore * Math.pow(1.1, this.badEliminatedCount));
+        let sc = getAwardFor404(this.badEliminatedCount);
         return sc;
     }
     getAwardForNormal() {
@@ -7111,6 +7140,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             if (!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
                 this.enemyManager.scene.hud.addScore(sc, enemy);
+            }
+            else {
             }
         }
         this.enemyDisappear(enemy, damagedBy);

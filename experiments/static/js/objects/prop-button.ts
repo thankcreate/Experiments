@@ -257,13 +257,16 @@ class PropButton extends Button {
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
 
-            // this.scene.tweens.add({
-            //     targets: this.promptImg.inner,
-            //     x:  isLeft ? +60 : -60,
-            //     yoyo: true,
-            //     duration: 250,
-            //     loop: -1,
-            // });
+            if(this.needConsiderHP) {
+                this.scene.tweens.add({
+                    targets: this.promptImg.inner,
+                    x:  isLeft ? +60 : -60,
+                    yoyo: true,
+                    duration: 250,
+                    loop: -1,
+                });
+            }
+            
         }
 
 
@@ -322,6 +325,7 @@ class PropButton extends Button {
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
 
+    needConsiderHP: boolean = false;
     /**
      * Refresh if can click
      */
@@ -345,7 +349,17 @@ class PropButton extends Button {
                 if(this.hovered)
                     this.promptImg.inner.setVisible(false);
                 else{
-                    this.promptImg.inner.setVisible(true);
+                    if(this.needConsiderHP) {
+                        if((this.scene as Scene1).hud.hp.currHealth <= (this.scene as Scene1).hud.hp.maxHealth / 2) {
+                            this.promptImg.inner.setVisible(true);    
+                        }
+                        else {
+                            this.promptImg.inner.setVisible(false);    
+                        }
+                    }
+                    else {
+                        this.promptImg.inner.setVisible(true);
+                    }                    
                 }
             }
             this.myTransparent(false);        

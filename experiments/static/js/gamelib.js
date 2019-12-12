@@ -5381,6 +5381,7 @@ class Hud extends Wrapper {
         let info = hpPropInfos[0];
         let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0, 'rounded_btn', info, false, 75, 75, false);
         this.buyHpBtn = btn;
+        btn.needConsiderHP = true;
         btn.inner.setScale(0.8, 0.8);
         btn.inner.x += this.hp.barWidth + 60;
         btn.inner.y -= 30;
@@ -5397,6 +5398,8 @@ class Hud extends Wrapper {
         btn.bubbleContent = () => {
             return info.desc;
         };
+        btn.addPromptImg(Dir.Left);
+        btn.setHotKey('+');
         let scale = btn.inner.scale;
         btn.purchasedEvent.on(btn => {
             hpPropInfos[0].consumed = true;
@@ -6328,6 +6331,7 @@ class PropButton extends Button {
         this.allowMultipleConsume = false;
         this.allowLevelUp = false;
         this.curLevel = 0;
+        this.needConsiderHP = false;
         this.allowLevelUp = canLevelUp;
         this.group = group;
         this.info = info;
@@ -6488,13 +6492,15 @@ class PropButton extends Button {
             this.promptImg.inner.x += isLeft ? 40 : -40;
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
-            // this.scene.tweens.add({
-            //     targets: this.promptImg.inner,
-            //     x:  isLeft ? +60 : -60,
-            //     yoyo: true,
-            //     duration: 250,
-            //     loop: -1,
-            // });
+            if (this.needConsiderHP) {
+                this.scene.tweens.add({
+                    targets: this.promptImg.inner,
+                    x: isLeft ? +60 : -60,
+                    yoyo: true,
+                    duration: 250,
+                    loop: -1,
+                });
+            }
         }
         let textOriginX = 0;
         let textOriginY = 0;
@@ -6563,7 +6569,17 @@ class PropButton extends Button {
                 if (this.hovered)
                     this.promptImg.inner.setVisible(false);
                 else {
-                    this.promptImg.inner.setVisible(true);
+                    if (this.needConsiderHP) {
+                        if (this.scene.hud.hp.currHealth <= this.scene.hud.hp.maxHealth / 2) {
+                            this.promptImg.inner.setVisible(true);
+                        }
+                        else {
+                            this.promptImg.inner.setVisible(false);
+                        }
+                    }
+                    else {
+                        this.promptImg.inner.setVisible(true);
+                    }
                 }
             }
             this.myTransparent(false);

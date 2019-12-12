@@ -279,6 +279,7 @@ class Hud extends Wrapper<PhText> {
         let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0,
             'rounded_btn', info, false, 75,75, false);        
         this.buyHpBtn = btn;
+        btn.needConsiderHP = true;
         btn.inner.setScale(0.8, 0.8);        
 
         btn.inner.x += this.hp.barWidth + 60;
@@ -300,6 +301,10 @@ class Hud extends Wrapper<PhText> {
         btn.bubbleContent = ()=>{
            return info.desc;
         }
+
+
+        btn.addPromptImg(Dir.Left);
+        btn.setHotKey('+');
 
         let scale = btn.inner.scale;
         btn.purchasedEvent.on(btn=>{

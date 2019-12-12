@@ -6,12 +6,8 @@
  * If something needs to be facein/fadeout in the animation, we need 
  * include them in the array in the 'show' and 'hide' functions
  */
-
-
-
 class Hud extends Wrapper<PhText> {
-
-
+    
     hp: HP;
     scoreText: PhText;    
     score = 0;
@@ -151,7 +147,7 @@ class Hud extends Wrapper<PhText> {
         this.rightBtns[2].bubbleContent = ()=>{
             let info = this.rightBtns[3].info;
             return info.desc 
-                + '\n\nDamage per "Turn": 1'
+                + '\n\nTurn value to Non-404 per "Turn": 1'
                 + "\n\nPrice: " + myNum(info.price);
         } 
 

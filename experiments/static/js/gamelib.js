@@ -403,6 +403,7 @@ class Scene1 extends BaseScene {
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
                 this.playerName = word;
+                setCookie('name', word);
                 resolve(word);
             });
         })
@@ -659,8 +660,14 @@ class Scene1 extends BaseScene {
     }
     gamePlayStarted() {
         this.pauseCounter = 0;
+        if (this.playerName.length == 0) {
+            this.playerName = getCookie('name');
+        }
     }
     gamePlayExit() {
+    }
+    getUserName() {
+        return getCookie('name');
     }
 }
 class Scene1L1 extends Scene1 {
@@ -1191,6 +1198,9 @@ class Scene1L3 extends Scene1 {
             .addSubtitleAction(this.subtitle, "I think I said we should stop here.\nWhat are you waiting for? Bye!", false)
             .addAction(s => {
             this.backBtn.clickedEvent.emit(this.backBtn);
+            setTimeout(() => {
+                window.location.replace(window.location.origin + "?level=4&eco=1");
+            }, 2000);
         });
     }
 }
@@ -1229,6 +1239,7 @@ class Scene1L4 extends Scene1 {
         this.initStStart();
         this.initWarn();
         this.initStateIdle();
+        this.initStMock();
         this.updateObjects.push(this.normalGameFsm);
     }
     needShowEcoAboutAtStartup() {
@@ -1264,11 +1275,12 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
+            this.hud.showContainerRight();
         })
-            .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
+            .addSubtitleAction(this.subtitle, this.getUserName() + ", seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .addAction(s => {
-            this.hud.showContainerRight();
+            //this.hud.showContainerRight();            
         })
             .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
             .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
@@ -1279,7 +1291,7 @@ class Scene1L4 extends Scene1 {
         state.setOnEnter(s => {
         });
         state.setOnUpdate(s => {
-            if (this.getCurClickerStrategy().normalNormalCount >= 1 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
+            if (this.getCurClickerStrategy().normalNormalCount >= 2 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
                 this.normalGameFsm.setVar(this.hasWarnKey, true);
                 s.event('WARN');
             }
@@ -1294,7 +1306,8 @@ class Scene1L4 extends Scene1 {
         })
             .addSubtitleAction(this.subtitle, "Can't you read? ", true)
             .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
-            .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000);
+            .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000)
+            .addFinishAction();
     }
     gamePlayStarted() {
         super.gamePlayStarted();
@@ -1303,6 +1316,19 @@ class Scene1L4 extends Scene1 {
     gamePlayExit() {
         super.gamePlayExit();
         this.hud.infoPanel.inner.setVisible(false);
+    }
+    initStMock() {
+        let state = this.normalGameFsm.getState("Mock");
+        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? Do you think this is fun?", true);
+        state.addSubtitleAction(this.subtitle, "Finally, I got to know who created those words, and 4O4s!", true);
+        state.addSubtitleAction(this.subtitle, "It's just you! \n" + this.getUserName() + "!", true);
+        state.addSubtitleAction(this.subtitle, "I know what you are thinking", true);
+        state.addSubtitleAction(this.subtitle, "You think that it is me who put the 'create' button here, right?", true);
+        state.addSubtitleAction(this.subtitle, "But I put it there, doesn't mean you have the right to use it", true);
+        state.addSubtitleAction(this.subtitle, "You think this is just my stupid procedural rhetoric, so it's all my fault, right?", true);
+        state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
+        state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
+        state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is done!", false);
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -2409,7 +2435,7 @@ let baseScore = 100;
 let normalFreq1 = 7;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
-let hpRegFactor = 4;
+let hpRegFactor = 3;
 let initNormalHealth = 3;
 let init404Health = 2;
 let initNormalCount = 2;
@@ -2466,11 +2492,11 @@ let hpPropInfos = [
 let propInfos = [
     { title: "B**", consumed: false, price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
     { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "T**", consumed: false, price: 2500, size: 30,
+    { title: "T**", consumed: false, price: 2000, size: 30,
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
-    { title: "Auto\nTurn", consumed: false, price: 10000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "The\nCreator", consumed: false, price: 15000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -4979,7 +5005,9 @@ var normal_1_4 = {
     events: [
         { name: 'START', from: 'Default', to: 'Start' },
         { name: 'FINISHED', from: 'Start', to: 'Idle' },
-        { name: 'WARN', from: 'Idle', to: 'Warn' }
+        { name: 'WARN', from: 'Idle', to: 'Warn' },
+        { name: 'FINISHED', from: 'Warn', to: 'Idle' },
+        { name: 'MOCK', from: 'Idle', to: 'Mock' }
     ],
     states: [
         { name: 'Idle', color: 'Green' }
@@ -5288,7 +5316,7 @@ class Hud extends Wrapper {
         this.rightBtns[2].bubbleContent = () => {
             let info = this.rightBtns[3].info;
             return info.desc
-                + '\n\nDamage per "Turn": 1'
+                + '\n\nTurn value to Non-404 per "Turn": 1'
                 + "\n\nPrice: " + myNum(info.price);
         };
         // Auto Turn 
@@ -5721,7 +5749,7 @@ You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't elim
 
 You will lose HP if the enemies reach the center circle, but you can buy your HP back.
 
-Caution: You can only get 💰 by eliminating 404s
+Caution: You can only get 💰 by eliminating 404s. The award of non-404 is negative.
 `;
 // var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
 // There are 2 types of enemies:
@@ -6983,6 +7011,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.autoTypeInterval = 1 * 1000;
         this.autoTurnInterval = 1 * 1000;
         this.curBadHealth = init404Health;
+        this.creatCount = 0;
         this.needHandleRewardExclusively = true;
     }
     getInitConfig() {
@@ -7086,6 +7115,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     onEnter() {
         this.resetConsumed();
         this.sc1().hud.resetPropBtns();
+        this.creatCount = 0;
         this.badCount = 0;
         this.badEliminatedCount = 0;
         this.normalNormalCount = 0;
@@ -7109,6 +7139,10 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
     }
     create() {
+        this.creatCount++;
+        if (this.creatCount == 6) {
+            this.sc1().normalGameFsm.event('MOCK');
+        }
         let e = this.spawnNormal();
         let scale = e.inner.scale;
         let timeline = this.enemyManager.scene.tweens.createTimeline(null);

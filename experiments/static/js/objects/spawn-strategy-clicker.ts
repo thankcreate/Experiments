@@ -159,6 +159,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.resetConsumed();
         this.sc1().hud.resetPropBtns();
 
+        this.creatCount = 0;
         this.badCount = 0;
         this.badEliminatedCount = 0;
         this.normalNormalCount = 0;
@@ -189,7 +190,13 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
     }
 
+    creatCount = 0;
     create() {
+        this.creatCount++;
+
+        if(this.creatCount == 6) {
+            this.sc1().normalGameFsm.event('MOCK');
+        }
         let e = this.spawnNormal();
         let scale = e.inner.scale;
         let timeline = this.enemyManager.scene.tweens.createTimeline(null);

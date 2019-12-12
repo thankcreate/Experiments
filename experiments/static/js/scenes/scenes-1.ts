@@ -454,6 +454,7 @@ class Scene1 extends BaseScene {
                 s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
                 s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
                     this.playerName = word;
+                    setCookie('name', word);
                     resolve(word);
                 });
             })
@@ -759,10 +760,17 @@ class Scene1 extends BaseScene {
 
     gamePlayStarted() {
         this.pauseCounter = 0;
+        if(this.playerName.length == 0) {
+            this.playerName = getCookie('name');
+        }
     }
 
     gamePlayExit() {
 
+    }
+
+    getUserName() {
+        return getCookie('name');
     }
 }
 

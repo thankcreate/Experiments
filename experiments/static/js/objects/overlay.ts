@@ -32,7 +32,7 @@ You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't elim
 
 You will lose HP if the enemies reach the center circle, but you can buy your HP back.
 
-Caution: You can only get 💰 by eliminating 404s
+Caution: You can only get 💰 by eliminating 404s. The award of non-404 is negative.
 `
 // var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
 

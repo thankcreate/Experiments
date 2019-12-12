@@ -310,6 +310,9 @@ class Scene1L3 extends Scene1 {
             .addSubtitleAction(this.subtitle, "I think I said we should stop here.\nWhat are you waiting for? Bye!", false)
             .addAction(s=>{
                 this.backBtn.clickedEvent.emit(this.backBtn);
+                setTimeout(()=>{
+                    window.location.replace(window.location.origin + "?level=4&eco=1");
+                }, 2000);
             })
     }
 }

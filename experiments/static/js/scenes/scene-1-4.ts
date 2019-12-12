@@ -45,6 +45,7 @@ class Scene1L4 extends Scene1 {
         this.initStStart();
         this.initWarn();
         this.initStateIdle();
+        this.initStMock();
         this.updateObjects.push(this.normalGameFsm);
     }
 
@@ -74,6 +75,8 @@ class Scene1L4 extends Scene1 {
 
     }
 
+    
+
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s=>{
@@ -85,11 +88,12 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
+            this.hud.showContainerRight();            
         })
-        .addSubtitleAction(this.subtitle, "Seems I have to admit that I'm a bad experiment designer", true)
+        .addSubtitleAction(this.subtitle, this.getUserName() + ", seems I have to admit that I'm a bad experiment designer", true)
         .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
         .addAction(s=>{
-            this.hud.showContainerRight();            
+            //this.hud.showContainerRight();            
         })        
         .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
         .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
@@ -104,7 +108,7 @@ class Scene1L4 extends Scene1 {
             
         });
         state.setOnUpdate(s=>{
-            if(this.getCurClickerStrategy().normalNormalCount >= 1 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
+            if(this.getCurClickerStrategy().normalNormalCount >= 2 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
                 this.normalGameFsm.setVar(this.hasWarnKey, true);
                 s.event('WARN');
             }               
@@ -122,7 +126,8 @@ class Scene1L4 extends Scene1 {
         })
         .addSubtitleAction(this.subtitle, "Can't you read? ", true)
         .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
-        .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000);
+        .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000)
+        .addFinishAction();
     }   
 
 
@@ -134,5 +139,19 @@ class Scene1L4 extends Scene1 {
     gamePlayExit() {
         super.gamePlayExit();
         this.hud.infoPanel.inner.setVisible(false);
+    }
+
+    initStMock() {        
+        let state = this.normalGameFsm.getState("Mock");
+        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? Do you think this is fun?", true);
+        state.addSubtitleAction(this.subtitle, "Finally, I got to know who created those words, and 4O4s!", true);        
+        state.addSubtitleAction(this.subtitle, "It's just you! \n" + this.getUserName() + "!", true);
+        state.addSubtitleAction(this.subtitle, "I know what you are thinking", true);
+        state.addSubtitleAction(this.subtitle, "You think that it is me who put the 'create' button here, right?", true);
+        state.addSubtitleAction(this.subtitle, "But I put it there, doesn't mean you have the right to use it", true);
+        state.addSubtitleAction(this.subtitle, "You think this is just my stupid procedural rhetoric, so it's all my fault, right?", true);
+        state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
+        state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
+        state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is done!", false);                
     }
 }

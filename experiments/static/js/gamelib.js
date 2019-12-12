@@ -5707,7 +5707,7 @@ var cautionDefault = `Once purchased this item, you can no longer do semantic wo
 Click "OK"(or press "Enter") to confirm
 `;
 var economicTitle = `Hi Economists!📈`;
-var economicAbout = `This is the 4th level of my thesis game, we need a little bit of context here.
+var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
 
 There are 2 types of enemies:
 
@@ -5716,7 +5716,7 @@ There are 2 types of enemies:
 
 You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't eliminate Non-404 enemies at first.
 
-If the enemies reach the center circle, you will lose your HP. But you can buy your HP back.
+If the enemies reach the center circle, you will lose your HP, but you can buy your HP back.
 
 Caution: You can only get 💰 by eliminating 404s
 `;

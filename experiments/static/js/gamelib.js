@@ -5434,6 +5434,9 @@ class Hud extends Wrapper {
             hpPropInfos[0].consumed = true;
             this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
         });
+        if (getCurLevelIndex() != 4) {
+            btn.setEnable(false, false);
+        }
     }
     getCurrentStrongestKeyword() {
         let i = 0;
@@ -6521,15 +6524,15 @@ class PropButton extends Button {
             this.promptImg.inner.x += isLeft ? 40 : -40;
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
-            if (this.needConsiderHP) {
-                this.scene.tweens.add({
-                    targets: this.promptImg.inner,
-                    x: isLeft ? +60 : -60,
-                    yoyo: true,
-                    duration: 250,
-                    loop: -1,
-                });
-            }
+            //if(this.needConsiderHP) {
+            this.scene.tweens.add({
+                targets: this.promptImg.inner,
+                x: isLeft ? +60 : -60,
+                yoyo: true,
+                duration: 250,
+                loop: -1,
+            });
+            //}
         }
         let textOriginX = 0;
         let textOriginY = 0;

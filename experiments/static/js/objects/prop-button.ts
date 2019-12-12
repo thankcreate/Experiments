@@ -257,7 +257,7 @@ class PropButton extends Button {
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
 
-            if(this.needConsiderHP) {
+            //if(this.needConsiderHP) {
                 this.scene.tweens.add({
                     targets: this.promptImg.inner,
                     x:  isLeft ? +60 : -60,
@@ -265,7 +265,7 @@ class PropButton extends Button {
                     duration: 250,
                     loop: -1,
                 });
-            }
+            //}
             
         }
 

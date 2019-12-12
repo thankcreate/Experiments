@@ -307,6 +307,10 @@ class Hud extends Wrapper<PhText> {
             hpPropInfos[0].consumed = true;            
             this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
         });    
+
+        if(getCurLevelIndex() != 4) {
+            btn.setEnable(false, false);
+        }
         
     }
 
@@ -598,7 +602,8 @@ class Hud extends Wrapper<PhText> {
 
 
 
-    handleHotkey(c: string) : boolean{                    
+    handleHotkey(c: string) : boolean{     
+                    
         if(this.fixedHotkeyMap && this.fixedHotkeyMap.has(c)) {
             this.fixedHotkeyMap.get(c).click();
             return true;

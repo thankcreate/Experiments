@@ -212,8 +212,10 @@ class Button {
             $("body").css('cursor','pointer');
         }
 
-        if(this.image)
+        if(this.image) {
             this.image.alpha = 0.55;
+        }
+            
     }
 
     pointerout() {
@@ -239,9 +241,11 @@ class Button {
         if(this.needHandOnHover) {
             $("body").css('cursor','default');
         }
-
-        if(this.image)
+        
+        if(this.image) {
             this.image.alpha = 1;
+        }
+            
     }
 
     setToHoverChangeTextMode(hoverText: string) {

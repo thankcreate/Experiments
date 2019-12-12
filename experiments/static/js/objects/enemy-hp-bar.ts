@@ -81,7 +81,7 @@ class EnemyHpBar extends Wrapper<PhText> {
         
         let curHpShown = Math.ceil(curHp);
         let maxHpShown = Math.ceil(maxHp);
-        this.centerText.text = curHpShown + " / " + maxHpShown;
+        this.centerText.text = myNum(curHpShown) + " / " + myNum(maxHpShown);
     }
 
     /**

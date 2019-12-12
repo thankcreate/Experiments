@@ -63,14 +63,23 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     autoTurnInterval = 1 * 1000;
 
 
-    typerAutoDamage(time ,dt) {
-        // auto damage to 404
-        if(badInfos[0].consumed) {            
-            let dpsSum = 0;
+    getDps404(): number {
+        let dpsSum = 0;
+        if(badInfos[0].consumed) {                        
             for(let i = 0; i < badInfos.length; i++) {
                 if(badInfos[i].consumed)
                     dpsSum += badInfos[i].damage;
             }
+        }
+        return dpsSum;
+    }
+
+
+    typerAutoDamage(time ,dt) {
+        // auto damage to 404
+        if(badInfos[0].consumed) {            
+            let dpsSum = this.getDps404();
+            
             for(let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if(e.isSensative()) {

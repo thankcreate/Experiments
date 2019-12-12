@@ -23,14 +23,14 @@ class Bubble extends Wrapper<PhImage> {
             originX = 0;
             originY = 46 / 229;
             textX = 40;
-            textY = -26;
+            textY = -30;
         }
         else if(dir == Dir.Right) {
             imgRes = 'popup_bubble'
             originX = 1;
             originY = 46 / 229;
             textX = -442;
-            textY = -26;
+            textY = -30;
         }
 
         let img = this.scene.add.image(0, 0, imgRes);

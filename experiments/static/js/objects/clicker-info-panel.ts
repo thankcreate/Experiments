@@ -62,23 +62,18 @@ class ClickerInfoPanel extends Wrapper<PhText> {
         let sc = (this.scene as Scene1);
         let em = sc.enemyManager;
         if(em.curStrategyID == SpawnStrategyType.ClickerGame) {
-            let dps = 0;         
-            for(let i = 0; i < badInfos.length; i++) {
-                if(badInfos[i].consumed)
-                    dps += badInfos[i].damage;
-            }
-            this.valDpsFor404 = dps;
-
             if(em.curStrategy) {
-                this.valAwardFor404 = (em.curStrategy as SpawnStrategyClickerGame).getAwardFor404();
-                this.valAwardForNormal = (em.curStrategy as SpawnStrategyClickerGame).getAwardForNormal();
+                let strategy = (em.curStrategy as SpawnStrategyClickerGame);
+                this.valDpsFor404 = strategy.getDps404();
+                this.valAwardFor404 = strategy.getAwardFor404();
+                this.valAwardForNormal = strategy.getAwardForNormal();
             }            
         }        
     }
 
     refreahDisplay() {
-        this.lblDpsFor404.setText("DPS (404): "  + this.valDpsFor404);
-        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '')+ this.valAwardFor404);
-        this.lblAwardForNormal.setText("Award (Non-404): " + this.valAwardForNormal);
+        this.lblDpsFor404.setText("DPS (404): "  + myNum(this.valDpsFor404));
+        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '')+ myNum(this.valAwardFor404));
+        this.lblAwardForNormal.setText("Award (Non-404): " + myNum(this.valAwardForNormal));
     }
 }

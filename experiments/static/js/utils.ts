@@ -16,7 +16,19 @@ function parseUrl(url: string) : object{
     return result;
 }
 
-
+function myNum(val: number): string {
+    let ab = Math.ceil(Math.abs(val));
+    let sign = "" + (val < 0 ? '-' : '');
+    let body = "" + ab;
+    if(ab > 10000000) {
+        body = Math.ceil(ab / 1000000) + ' M'
+    }
+    else if(ab >= 10000)
+        body = Math.ceil(ab / 1000) + ' K'
+    else 
+        body = ab + "";
+    return sign + body;
+}
 
 
 function getUrlParams() {

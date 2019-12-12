@@ -82,29 +82,32 @@ class Hud extends Wrapper<PhText> {
         this.toolMenuContainerRight = new ButtonGroup(this.scene, this.inner, getLogicWidth() - 75, 400, null);        
         this.hideContainerRight(false);
 
+        // bubble
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);        
+        this.popupBubbleRight.inner.setPosition(0, 0);        
+        this.popupBubbleRight.hide();
+
              
         let startY = 0;
         let intervalY = 100;
 
         
-        for(let i = 0; i < propInfos.length; i++) {            
+        for(let i = 0; i < propInfos.length; i++) {       
+            let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
-                 'rounded_btn', propInfos[i], 100,100, false);        
+                 'rounded_btn', info, false, 100, 100, false);        
            
             this.rightBtns.push(btn);                        
             btn.addPromptImg(Dir.Right);            
 
-            btn.fakeZone.on('pointerover', ()=>{            
-                this.popupBubbleRight.setText(btn.desc + "\nPrice: " + propInfos[i].price, (propInfos[i] as any).warning);                         
-                this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
-                this.popupBubbleRight.show();                       
-            });
-
-            btn.fakeZone.on('pointerout', () =>{
-                this.popupBubbleRight.hide();                
-            });
-
-            
+            btn.bubble = this.popupBubbleRight;
+            btn.bubbleAnchor = ()=>{
+                return MakePoint2(btn.inner.x + this.toolMenuContainerRight.inner.x - 70
+                    , btn.inner.y + this.toolMenuContainerRight.inner.y);
+            }         
+            btn.bubbleContent = ()=>{
+                return info.desc + "\n\nPrice: " + myNum(info.price);
+            } 
         }
         
         // 'Bad' Btn click
@@ -115,8 +118,8 @@ class Hud extends Wrapper<PhText> {
         // 'Auto'
         this.rightBtns[1].purchasedEvent.on(btn=>{    
             badInfos[0].consumed = true;
-            this.showContainerLeft();
-            this.leftBtns[0].setPurchased(true);
+            this.showContainerLeft();            
+            this.leftBtns[0].doPurchased();
             getAutoTypeInfo().consumed = true;
 
         });
@@ -149,12 +152,7 @@ class Hud extends Wrapper<PhText> {
             this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());            
         });
         
-        // bubble
-        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.inner.x - 70;    
-        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.inner.y;
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);        
-        this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);        
-        this.popupBubbleRight.hide();
+        
     }
 
 
@@ -162,17 +160,25 @@ class Hud extends Wrapper<PhText> {
 
         let btnWidth = 90;
         let startY = 0;
-        let intervalY = 100;
+        let intervalY = 105;
 
         let frameBtnGap = 15;
         let frameTopPadding = 60;
         let frameBottonPadding = 15;
+
+        
 
 
         // tool menu left
         // this.toolMenuContainerLeft = this.scene.add.container(75, 360); 
         this.toolMenuContainerLeft = new ButtonGroup(this.scene, this.inner, 75, 360, null)        
         this.hideContainerLeft(false);
+
+         // bubble
+         this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);        
+         this.popupBubbleLeft.inner.setPosition(0, 0);        
+         this.popupBubbleLeft.hide();
+
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
@@ -197,7 +203,7 @@ class Hud extends Wrapper<PhText> {
         for(let i = 0; i < badInfos.length; i++) {    
             let info = badInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i,
-                'rounded_btn', badInfos[i], 100,100, false);        
+                'rounded_btn', badInfos[i], true, 100, 105, false);        
 
             if(i == 0) {
                 btn.priceLbl.text = "-";
@@ -206,36 +212,37 @@ class Hud extends Wrapper<PhText> {
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
 
-            btn.fakeZone.on('pointerover', ()=>{            
-                // this.popupBubbleLeft.setText(btn.desc);                         
-                this.popupBubbleLeft.setText(
-                    info.desc + "\n\nDPS(404): " + info.damage + "\nPrice: " + info.price                    
-                    , null);        
-                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
-                this.popupBubbleLeft.show();                
-            });
-
-            btn.fakeZone.on('pointerout', () =>{
-                this.popupBubbleLeft.hide();
-            });          
-
+            btn.bubble = this.popupBubbleLeft;
+            btn.bubbleAnchor = ()=> {
+                return MakePoint2(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70
+                    , btn.inner.y + this.toolMenuContainerLeft.inner.y);
+            } 
+            btn.bubbleContent = ()=>{
+                let ret = info.desc 
+                    + "\n\nCurrent DPS(404): " + myNum(info.damage) 
+                    + "\nNext DPS(404): " + myNum(btn.getNextDamage()) 
+                    + "\nPrice: " + myNum(info.price);
+                return ret;
+            }
+        
             btn.purchasedEvent.on(btn=>{
                 badInfos[i].consumed = true;
             });        
         }
 
-        // bubble
-        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.inner.x + 70;    
-        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.inner.y;
-        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);        
-        this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);        
-        this.popupBubbleLeft.hide();
+       
     }
 
     createMenuBottom() {
+        // bubble
+        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);        
+        this.popupBubbleBottom.inner.setPosition(0, 0)        
+        this.popupBubbleBottom.hide();        
+        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
+
         let info = hpPropInfos[0];        
         let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0,
-            'rounded_btn', info, 75,75, false);        
+            'rounded_btn', info, false, 75,75, false);        
         this.buyHpBtn = btn;
         btn.inner.setScale(0.8, 0.8);        
 
@@ -249,45 +256,22 @@ class Hud extends Wrapper<PhText> {
             }
         }
 
-        btn.fakeZone.on('pointerover', ()=>{            
-            this.popupBubbleBottom.setText(btn.desc);           
-            console.log(btn.inner.x + btn.parentContainer.x + " " + btn.inner.y + btn.parentContainer.y )              
-            this.popupBubbleBottom.setPosition(
+        btn.bubble = this.popupBubbleBottom;
+        btn.bubbleAnchor = ()=> {
+            return MakePoint2(
                 btn.inner.x + btn.parentContainer.x, 
                 btn.inner.y + btn.parentContainer.y - 40);
-            this.popupBubbleBottom.show();                
-        });
-
-        btn.fakeZone.on('pointerout', () =>{
-            this.popupBubbleBottom.hide();
-        });          
+        } 
+        btn.bubbleContent = ()=>{
+           return info.desc;
+        }
 
         let scale = btn.inner.scale;
         btn.purchasedEvent.on(btn=>{
             hpPropInfos[0].consumed = true;            
             this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
-
-            // let timeline = this.scene.tweens.createTimeline(null);
-            // timeline.add({
-            //     targets: btn.inner,
-            //     scale: scale * 0.8,
-            //     duration: 40,
-            // });
-            // timeline.add({
-            //     targets: btn.inner,
-            //     scale: scale * 1,
-            //     duration: 90,
-            // });
-            // timeline.play();
         });    
         
-        // bubble
-
-        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);        
-        this.popupBubbleBottom.inner.setPosition(0, 0)        
-        this.popupBubbleBottom.hide();
-        
-        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
     }
 
     getCurrentStrongestKeyword() : number{        
@@ -328,6 +312,7 @@ class Hud extends Wrapper<PhText> {
         let idx = 0;           
 
         let allBtns = this.getAllPropBtns();
+        // let allBtns = this.rightBtns;        
         for(let i in allBtns) {
             let btn = allBtns[i];
             let canClick = btn.refreshState();
@@ -421,7 +406,7 @@ class Hud extends Wrapper<PhText> {
         let style = getDefaultTextStyle();
         style.fontSize = '40px';
         style.fill = inc > 0 ? style.fill : '#ff0000';
-        let str = (inc >= 0 ? '+' : '-') + ' $: ' + Math.abs(inc);
+        let str = (inc >= 0 ? '+' : '-') + ' $: ' + myNum(Math.abs(inc));
         let lbl = this.scene.add.text(posi.x, posi.y, str, style);
 
         lbl.setOrigin(0.5, 0.5);
@@ -448,7 +433,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     refreshScore() {
-        this.scoreText.text = "$core: " + this.score;
+        this.scoreText.text = "$core: " + myNum(this.score);
     }
 
     reset() {

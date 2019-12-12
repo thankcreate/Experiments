@@ -170,6 +170,7 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
         this.load.image('purchased_mark', "assets/purchased_mark.png");
+        this.load.image('level_mark', "assets/level_mark.png");
         this.load.image('magic', 'assets/magic.png');
         this.preloadBadges();
     }
@@ -1628,6 +1629,19 @@ function parseUrl(url) {
     });
     return result;
 }
+function myNum(val) {
+    let ab = Math.ceil(Math.abs(val));
+    let sign = "" + (val < 0 ? '-' : '');
+    let body = "" + ab;
+    if (ab > 10000000) {
+        body = Math.ceil(ab / 1000000) + ' M';
+    }
+    else if (ab >= 10000)
+        body = Math.ceil(ab / 1000) + ' K';
+    else
+        body = ab + "";
+    return sign + body;
+}
 function getUrlParams() {
     let path = window.location.href;
     let params = parseUrl(path);
@@ -1949,14 +1963,14 @@ class Bubble extends Wrapper {
             originX = 0;
             originY = 46 / 229;
             textX = 40;
-            textY = -26;
+            textY = -30;
         }
         else if (dir == Dir.Right) {
             imgRes = 'popup_bubble';
             originX = 1;
             originY = 46 / 229;
             textX = -442;
-            textY = -26;
+            textY = -30;
         }
         let img = this.scene.add.image(0, 0, imgRes);
         img.setOrigin(originX, originY);
@@ -2154,8 +2168,9 @@ class Button {
         if (this.needHandOnHover) {
             $("body").css('cursor', 'pointer');
         }
-        if (this.image)
+        if (this.image) {
             this.image.alpha = 0.55;
+        }
     }
     pointerout() {
         // Not like pointer in, I don't know if I need to double check like this
@@ -2176,8 +2191,9 @@ class Button {
         if (this.needHandOnHover) {
             $("body").css('cursor', 'default');
         }
-        if (this.image)
+        if (this.image) {
             this.image.alpha = 1;
+        }
     }
     setToHoverChangeTextMode(hoverText) {
         this.hoverTitle = hoverText;
@@ -2377,26 +2393,33 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 1000000;
+let initScore = 0;
 let baseScore = 100;
 let normalFreq1 = 1000;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
-let initNormalHealth = 100;
-let init404Health = 100;
+let initNormalHealth = 3;
+let init404Health = 3;
 let initNormalCount = 0;
 let init404Count = 1;
 let initCreateStep = 1;
 let initCreateMax = 3;
+let priceIncreaseFactor = 1.1;
+let damageIncraseFactor = 1.1;
 let badInfos = [
-    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, price: 0, consumed: false },
-    { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, price: 300, consumed: false },
-    { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, price: 1000, consumed: false },
-    { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, price: 3000, consumed: false },
-    { title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, price: 10000, consumed: false },
-    { title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, price: 30000, consumed: false },
+    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamge: 1, price: 0, basePrice: 100, consumed: false },
+    { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 1, price: 0, basePrice: 300, consumed: false },
+    { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 1, price: 0, basePrice: 1000, consumed: false },
+    { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 1, price: 0, basePrice: 3000, consumed: false },
+    { title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 1, price: 0, basePrice: 10000, consumed: false },
+    { title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, bseDamage: 1, price: 0, basePrice: 30000, consumed: false },
 ];
+function getDamageBasedOnLevel(lvl, info) {
+    let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
+    ;
+    return ret;
+}
 let turnInfos = [
     { title: "Turn", damage: 1 },
 ];
@@ -2516,22 +2539,18 @@ class ClickerInfoPanel extends Wrapper {
         let sc = this.scene;
         let em = sc.enemyManager;
         if (em.curStrategyID == SpawnStrategyType.ClickerGame) {
-            let dps = 0;
-            for (let i = 0; i < badInfos.length; i++) {
-                if (badInfos[i].consumed)
-                    dps += badInfos[i].damage;
-            }
-            this.valDpsFor404 = dps;
             if (em.curStrategy) {
-                this.valAwardFor404 = em.curStrategy.getAwardFor404();
-                this.valAwardForNormal = em.curStrategy.getAwardForNormal();
+                let strategy = em.curStrategy;
+                this.valDpsFor404 = strategy.getDps404();
+                this.valAwardFor404 = strategy.getAwardFor404();
+                this.valAwardForNormal = strategy.getAwardForNormal();
             }
         }
     }
     refreahDisplay() {
-        this.lblDpsFor404.setText("DPS (404): " + this.valDpsFor404);
-        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '') + this.valAwardFor404);
-        this.lblAwardForNormal.setText("Award (Non-404): " + this.valAwardForNormal);
+        this.lblDpsFor404.setText("DPS (404): " + myNum(this.valDpsFor404));
+        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '') + myNum(this.valAwardFor404));
+        this.lblAwardForNormal.setText("Award (Non-404): " + myNum(this.valAwardForNormal));
     }
 }
 class Died extends Wrapper {
@@ -3156,7 +3175,7 @@ class EnemyHpBar extends Wrapper {
     refreshCenterText(curHp, maxHp) {
         let curHpShown = Math.ceil(curHp);
         let maxHpShown = Math.ceil(maxHp);
-        this.centerText.text = curHpShown + " / " + maxHpShown;
+        this.centerText.text = myNum(curHpShown) + " / " + myNum(maxHpShown);
     }
     /**
      * Called by EnemyBase
@@ -5188,20 +5207,24 @@ class Hud extends Wrapper {
         // this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
         this.toolMenuContainerRight = new ButtonGroup(this.scene, this.inner, getLogicWidth() - 75, 400, null);
         this.hideContainerRight(false);
+        // bubble
+        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);
+        this.popupBubbleRight.inner.setPosition(0, 0);
+        this.popupBubbleRight.hide();
         let startY = 0;
         let intervalY = 100;
         for (let i = 0; i < propInfos.length; i++) {
-            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', propInfos[i], 100, 100, false);
+            let info = propInfos[i];
+            let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', info, false, 100, 100, false);
             this.rightBtns.push(btn);
             btn.addPromptImg(Dir.Right);
-            btn.fakeZone.on('pointerover', () => {
-                this.popupBubbleRight.setText(btn.desc + "\nPrice: " + propInfos[i].price, propInfos[i].warning);
-                this.popupBubbleRight.setPosition(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
-                this.popupBubbleRight.show();
-            });
-            btn.fakeZone.on('pointerout', () => {
-                this.popupBubbleRight.hide();
-            });
+            btn.bubble = this.popupBubbleRight;
+            btn.bubbleAnchor = () => {
+                return MakePoint2(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
+            };
+            btn.bubbleContent = () => {
+                return info.desc + "\n\nPrice: " + myNum(info.price);
+            };
         }
         // 'Bad' Btn click
         this.rightBtns[0].purchasedEvent.on(btn => {
@@ -5211,7 +5234,7 @@ class Hud extends Wrapper {
         this.rightBtns[1].purchasedEvent.on(btn => {
             badInfos[0].consumed = true;
             this.showContainerLeft();
-            this.leftBtns[0].setPurchased(true);
+            this.leftBtns[0].doPurchased();
             getAutoTypeInfo().consumed = true;
         });
         // Turn 
@@ -5237,17 +5260,11 @@ class Hud extends Wrapper {
             getCreatePropInfo().consumed = true;
             this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());
         });
-        // bubble
-        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerRight.inner.x - 70;
-        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerRight.inner.y;
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);
-        this.popupBubbleRight.inner.setPosition(bubbleX, bubbleY);
-        this.popupBubbleRight.hide();
     }
     createMenuLeft() {
         let btnWidth = 90;
         let startY = 0;
-        let intervalY = 100;
+        let intervalY = 105;
         let frameBtnGap = 15;
         let frameTopPadding = 60;
         let frameBottonPadding = 15;
@@ -5255,6 +5272,10 @@ class Hud extends Wrapper {
         // this.toolMenuContainerLeft = this.scene.add.container(75, 360); 
         this.toolMenuContainerLeft = new ButtonGroup(this.scene, this.inner, 75, 360, null);
         this.hideContainerLeft(false);
+        // bubble
+        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);
+        this.popupBubbleLeft.inner.setPosition(0, 0);
+        this.popupBubbleLeft.hide();
         let bkgWidth = btnWidth + frameBtnGap * 2;
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft.inner, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
@@ -5274,35 +5295,36 @@ class Hud extends Wrapper {
         this.toolMenuContainerLeft.add(title);
         for (let i = 0; i < badInfos.length; i++) {
             let info = badInfos[i];
-            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], 100, 100, false);
+            let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], true, 100, 105, false);
             if (i == 0) {
                 btn.priceLbl.text = "-";
             }
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
-            btn.fakeZone.on('pointerover', () => {
-                // this.popupBubbleLeft.setText(btn.desc);                         
-                this.popupBubbleLeft.setText(info.desc + "\n\nDPS(404): " + info.damage + "\nPrice: " + info.price, null);
-                this.popupBubbleLeft.setPosition(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
-                this.popupBubbleLeft.show();
-            });
-            btn.fakeZone.on('pointerout', () => {
-                this.popupBubbleLeft.hide();
-            });
+            btn.bubble = this.popupBubbleLeft;
+            btn.bubbleAnchor = () => {
+                return MakePoint2(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
+            };
+            btn.bubbleContent = () => {
+                let ret = info.desc
+                    + "\n\nCurrent DPS(404): " + myNum(info.damage)
+                    + "\nNext DPS(404): " + myNum(btn.getNextDamage())
+                    + "\nPrice: " + myNum(info.price);
+                return ret;
+            };
             btn.purchasedEvent.on(btn => {
                 badInfos[i].consumed = true;
             });
         }
-        // bubble
-        let bubbleX = this.rightBtns[0].inner.x + this.toolMenuContainerLeft.inner.x + 70;
-        let bubbleY = this.rightBtns[0].inner.y + this.toolMenuContainerLeft.inner.y;
-        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);
-        this.popupBubbleLeft.inner.setPosition(bubbleX, bubbleY);
-        this.popupBubbleLeft.hide();
     }
     createMenuBottom() {
+        // bubble
+        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);
+        this.popupBubbleBottom.inner.setPosition(0, 0);
+        this.popupBubbleBottom.hide();
+        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
         let info = hpPropInfos[0];
-        let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0, 'rounded_btn', info, 75, 75, false);
+        let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0, 'rounded_btn', info, false, 75, 75, false);
         this.buyHpBtn = btn;
         btn.inner.setScale(0.8, 0.8);
         btn.inner.x += this.hp.barWidth + 60;
@@ -5313,37 +5335,18 @@ class Hud extends Wrapper {
                 this.fixedHotkeyMap.set(info.hotkey[i], btn);
             }
         }
-        btn.fakeZone.on('pointerover', () => {
-            this.popupBubbleBottom.setText(btn.desc);
-            console.log(btn.inner.x + btn.parentContainer.x + " " + btn.inner.y + btn.parentContainer.y);
-            this.popupBubbleBottom.setPosition(btn.inner.x + btn.parentContainer.x, btn.inner.y + btn.parentContainer.y - 40);
-            this.popupBubbleBottom.show();
-        });
-        btn.fakeZone.on('pointerout', () => {
-            this.popupBubbleBottom.hide();
-        });
+        btn.bubble = this.popupBubbleBottom;
+        btn.bubbleAnchor = () => {
+            return MakePoint2(btn.inner.x + btn.parentContainer.x, btn.inner.y + btn.parentContainer.y - 40);
+        };
+        btn.bubbleContent = () => {
+            return info.desc;
+        };
         let scale = btn.inner.scale;
         btn.purchasedEvent.on(btn => {
             hpPropInfos[0].consumed = true;
             this.hp.damageBy(-this.hp.maxHealth / hpRegFactor);
-            // let timeline = this.scene.tweens.createTimeline(null);
-            // timeline.add({
-            //     targets: btn.inner,
-            //     scale: scale * 0.8,
-            //     duration: 40,
-            // });
-            // timeline.add({
-            //     targets: btn.inner,
-            //     scale: scale * 1,
-            //     duration: 90,
-            // });
-            // timeline.play();
         });
-        // bubble
-        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);
-        this.popupBubbleBottom.inner.setPosition(0, 0);
-        this.popupBubbleBottom.hide();
-        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
     }
     getCurrentStrongestKeyword() {
         let i = 0;
@@ -5378,6 +5381,7 @@ class Hud extends Wrapper {
         // so that I can assign a hotkey
         let idx = 0;
         let allBtns = this.getAllPropBtns();
+        // let allBtns = this.rightBtns;        
         for (let i in allBtns) {
             let btn = allBtns[i];
             let canClick = btn.refreshState();
@@ -5449,7 +5453,7 @@ class Hud extends Wrapper {
         let style = getDefaultTextStyle();
         style.fontSize = '40px';
         style.fill = inc > 0 ? style.fill : '#ff0000';
-        let str = (inc >= 0 ? '+' : '-') + ' $: ' + Math.abs(inc);
+        let str = (inc >= 0 ? '+' : '-') + ' $: ' + myNum(Math.abs(inc));
         let lbl = this.scene.add.text(posi.x, posi.y, str, style);
         lbl.setOrigin(0.5, 0.5);
         // this.inner.add(lbl);
@@ -5471,7 +5475,7 @@ class Hud extends Wrapper {
         });
     }
     refreshScore() {
-        this.scoreText.text = "$core: " + this.score;
+        this.scoreText.text = "$core: " + myNum(this.score);
     }
     reset() {
         this.score = initScore;
@@ -6254,7 +6258,7 @@ class PlayerInputText {
     }
 }
 class PropButton extends Button {
-    constructor(scene, parentContainer, group, hd, x, y, imgKey, info, width, height, debug, fakeOriginX, fakeOriginY) {
+    constructor(scene, parentContainer, group, hd, x, y, imgKey, info, canLevelUp, width, height, debug, fakeOriginX, fakeOriginY) {
         super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
         this.purchased = false;
         this.purchasedEvent = new TypedEvent();
@@ -6264,6 +6268,9 @@ class PropButton extends Button {
          */
         this.needConfirm = false;
         this.allowMultipleConsume = false;
+        this.allowLevelUp = false;
+        this.curLevel = 0;
+        this.allowLevelUp = canLevelUp;
         this.group = group;
         this.info = info;
         this.hud = hd;
@@ -6273,7 +6280,7 @@ class PropButton extends Button {
         this.needInOutAutoAnimation = false;
         let priceStyle = getDefaultTextStyle();
         priceStyle.fontSize = '22px';
-        let priceLbl = this.scene.add.text(0, 30, info.price + "", priceStyle).setOrigin(0.5);
+        let priceLbl = this.scene.add.text(0, 30, myNum(info.price) + "", priceStyle).setOrigin(0.5);
         this.inner.add(priceLbl);
         this.priceLbl = priceLbl;
         this.desc = info.desc;
@@ -6281,10 +6288,18 @@ class PropButton extends Button {
         this.fakeZone.on('pointerover', () => {
             this.scene.pause();
             this.hovered = true;
+            if (this.bubble) {
+                this.updateBubbleInfo();
+                this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
+                this.bubble.show();
+            }
         });
         this.fakeZone.on('pointerout', () => {
             this.scene.unPause();
             this.hovered = false;
+            if (this.bubble) {
+                this.bubble.hide();
+            }
         });
         this.purchasedEvent.on(btn => {
             if (notSet(this.shakeScale)) {
@@ -6305,7 +6320,8 @@ class PropButton extends Button {
         });
         this.clickedEvent.on(btn1 => {
             let btn = btn1;
-            if ((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
+            //if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
+            {
                 if (this.needConfirm) {
                     let dialog = this.scene.overlay.showTurnCautionDialog();
                     // (this.scene as Scene1).enemyManager.freezeAllEnemies();
@@ -6323,18 +6339,83 @@ class PropButton extends Button {
                 }
             }
         });
-        this.purchasedMark = this.scene.add.image(0, 0, 'purchased_mark');
-        this.inner.add(this.purchasedMark);
+        let markImg = this.scene.add.image(0, 0, canLevelUp ? 'level_mark' : 'purchased_mark');
+        this.purchasedMark = new ImageWrapperClass(this.scene, this.inner, 0, 0, markImg);
         let markOffset = 40;
-        this.purchasedMark.setPosition(markOffset, -markOffset);
-        this.purchasedMark.setVisible(false);
+        let poX = 0;
+        let poY = 0;
+        if (canLevelUp) {
+            poX = -40 + 15;
+            poY = -44;
+        }
+        else {
+            poX = 40;
+            poY = -40;
+        }
+        this.purchasedMark.inner.setPosition(poX, poY);
+        if (canLevelUp) {
+            this.purchasedMark.inner.setScale(0.9);
+            let st = getDefaultTextStyle();
+            st.fontSize = '22px';
+            st.fill = '#ffffff';
+            this.lvlLbl = this.scene.add.text(0, 0, 'Lv.1', st).setOrigin(0.5, 0.5);
+            this.purchasedMark.inner.add(this.lvlLbl);
+        }
+        this.purchasedMark.inner.setVisible(false);
+        if (canLevelUp)
+            this.updateInfo();
     }
     doPurchased() {
         this.purchased = true;
         this.hud.addScore(-this.priceTag);
-        if (!this.allowMultipleConsume)
-            this.purchasedMark.setVisible(true);
+        if (this.allowMultipleConsume) {
+        }
+        else if (this.allowLevelUp) {
+            this.purchasedMark.inner.setVisible(true);
+            this.levelUp();
+        }
+        else {
+            this.purchasedMark.inner.setVisible(true);
+        }
         this.purchasedEvent.emit(this);
+    }
+    levelUp() {
+        this.curLevel++;
+        this.updateInfo();
+        this.updateBubbleInfo();
+    }
+    updateInfo() {
+        this.info.damage = this.getCurDamage();
+        this.info.price = this.getPrice();
+        this.priceTag = this.info.price;
+        this.refreshLevelLabel();
+        this.refreshPriceLabel();
+    }
+    /**
+     * Damage for curLevel
+     */
+    getCurDamage() {
+        let ret = getDamageBasedOnLevel(this.curLevel, this.info);
+        return ret;
+    }
+    getNextDamage() {
+        let ret = getDamageBasedOnLevel(this.curLevel + 1, this.info);
+        return ret;
+    }
+    // Price for (curLevel) -> (curLevel + 1)
+    getPrice() {
+        let ret = this.info.basePrice * Math.pow(priceIncreaseFactor, this.curLevel);
+        return ret;
+    }
+    refreshPriceLabel() {
+        if (!this.priceLbl)
+            return;
+        this.priceLbl.text = myNum(this.info.price) + "";
+    }
+    refreshLevelLabel() {
+        if (!this.lvlLbl)
+            return;
+        this.lvlLbl.text = 'Lv.' + this.curLevel;
     }
     /**
      * Dir means the button location.
@@ -6374,8 +6455,9 @@ class PropButton extends Button {
         let size = 24;
         style.fontSize = size + 'px';
         style.fill = '#ff0000';
-        this.hotkeyPrompt = this.scene.add.text(textX, -40, "Hotkey: 1", style).setOrigin(textOriginX, textOriginY);
+        this.hotkeyPrompt = this.scene.add.text(textX, -40, "", style).setOrigin(textOriginX, textOriginY);
         this.promptImg.inner.add(this.hotkeyPrompt);
+        // this.hotkeyPrompt.setVisible(false);
     }
     setHotKey(val) {
         if (this.hotkeyPrompt) {
@@ -6385,7 +6467,7 @@ class PropButton extends Button {
     }
     setPurchased(val) {
         this.purchased = val;
-        this.purchasedMark.setVisible(val);
+        this.purchasedMark.inner.setVisible(val);
     }
     /**
      * Some prop button is purchased by some prerequisite condition.
@@ -6405,13 +6487,19 @@ class PropButton extends Button {
      * Refresh if can click
      */
     refreshState() {
-        if (this.purchased && !this.allowMultipleConsume) {
-            this.inner.alpha = 1;
+        if (this.text.text == 'Evil') {
+            let i = 1;
+            i++;
+        }
+        // already purchased && can only be purchased once
+        if (this.purchased && !(this.allowMultipleConsume || this.allowLevelUp)) {
+            this.myTransparent(false);
             this.canClick = false;
             if (this.promptImg) {
                 this.promptImg.inner.setVisible(false);
             }
         }
+        // can buy
         else if (this.canBePurchased()) {
             if (this.promptImg) {
                 if (this.hovered)
@@ -6420,17 +6508,27 @@ class PropButton extends Button {
                     this.promptImg.inner.setVisible(true);
                 }
             }
-            this.inner.alpha = 1;
+            this.myTransparent(false);
             this.canClick = true;
         }
+        // can not buy
         else {
-            this.inner.alpha = 0.2;
+            this.myTransparent(true);
             this.canClick = false;
             if (this.promptImg) {
                 this.promptImg.inner.setVisible(false);
             }
         }
         return this.canClick;
+    }
+    myTransparent(tran) {
+        this.image.alpha = tran ? 0.2 : 1;
+        this.priceLbl.alpha = tran ? 0.2 : 1;
+        this.text.alpha = tran ? 0.2 : 1;
+    }
+    updateBubbleInfo() {
+        if (this.hovered && this.bubble && this.bubbleContent)
+            this.bubble.setText(this.bubbleContent(), this.info.warning);
     }
 }
 var figureNames = ["aircraft carrier", "airplane", "alarm clock", "ambulance", "angel", "animal migration", "ant", "anvil", "apple", "arm", "asparagus", "axe", "backpack", "banana", "bandage", "barn", "baseball bat", "baseball", "basket", "basketball", "bat", "bathtub", "beach", "bear", "beard", "bed", "bee", "belt", "bench", "bicycle", "binoculars", "bird", "birthday cake", "blackberry", "blueberry", "book", "boomerang", "bottlecap", "bowtie", "bracelet", "brain", "bread", "bridge", "broccoli", "broom", "bucket", "bulldozer", "bus", "bush", "butterfly", "cactus", "cake", "calculator", "calendar", "camel", "camera", "camouflage", "campfire", "candle", "cannon", "canoe", "car", "carrot", "castle", "cat", "ceiling fan", "cell phone", "cello", "chair", "chandelier", "church", "circle", "clarinet", "clock", "cloud", "coffee cup", "compass", "computer", "cookie", "cooler", "couch", "cow", "crab", "crayon", "crocodile", "crown", "cruise ship", "cup", "diamond", "dishwasher", "diving board", "dog", "dolphin", "donut", "door", "dragon", "dresser", "drill", "drums", "duck", "dumbbell", "ear", "elbow", "elephant", "envelope", "eraser", "eye", "eyeglasses", "face", "fan", "feather", "fence", "finger", "fire hydrant", "fireplace", "firetruck", "fish", "flamingo", "flashlight", "flip flops", "floor lamp", "flower", "flying saucer", "foot", "fork", "frog", "frying pan", "garden hose", "garden", "giraffe", "goatee", "golf club", "grapes", "grass", "guitar", "hamburger", "hammer", "hand", "harp", "hat", "headphones", "hedgehog", "helicopter", "helmet", "hexagon", "hockey puck", "hockey stick", "horse", "hospital", "hot air balloon", "hot dog", "hot tub", "hourglass", "house plant", "house", "hurricane", "ice cream", "jacket", "jail", "kangaroo", "key", "keyboard", "knee", "knife", "ladder", "lantern", "laptop", "leaf", "leg", "light bulb", "lighter", "lighthouse", "lightning", "line", "lion", "lipstick", "lobster", "lollipop", "mailbox", "map", "marker", "matches", "megaphone", "mermaid", "microphone", "microwave", "monkey", "moon", "mosquito", "motorbike", "mountain", "mouse", "moustache", "mouth", "mug", "mushroom", "nail", "necklace", "nose", "ocean", "octagon", "octopus", "onion", "oven", "owl", "paint can", "paintbrush", "palm tree", "panda", "pants", "paper clip", "parachute", "parrot", "passport", "peanut", "pear", "peas", "pencil", "penguin", "piano", "pickup truck", "picture frame", "pig", "pillow", "pineapple", "pizza", "pliers", "police car", "pond", "pool", "popsicle", "postcard", "potato", "power outlet", "purse", "rabbit", "raccoon", "radio", "rain", "rainbow", "rake", "remote control", "rhinoceros", "rifle", "river", "roller coaster", "rollerskates", "sailboat", "sandwich", "saw", "saxophone", "school bus", "scissors", "scorpion", "screwdriver", "sea turtle", "see saw", "shark", "sheep", "shoe", "shorts", "shovel", "sink", "skateboard", "skull", "skyscraper", "sleeping bag", "smiley face", "snail", "snake", "snorkel", "snowflake", "snowman", "soccer ball", "sock", "speedboat", "spider", "spoon", "spreadsheet", "square", "squiggle", "squirrel", "stairs", "star", "steak", "stereo", "stethoscope", "stitches", "stop sign", "stove", "strawberry", "streetlight", "string bean", "submarine", "suitcase", "sun", "swan", "sweater", "swing set", "sword", "syringe", "t-shirt", "table", "teapot", "teddy-bear", "telephone", "television", "tennis racquet", "tent", "The Eiffel Tower", "The Great Wall of China", "The Mona Lisa", "tiger", "toaster", "toe", "toilet", "tooth", "toothbrush", "toothpaste", "tornado", "tractor", "traffic light", "train", "tree", "triangle", "trombone", "truck", "trumpet", "umbrella", "underwear", "van", "vase", "violin", "washing machine", "watermelon", "waterslide", "whale", "wheel", "windmill", "wine bottle", "wine glass", "wristwatch", "yoga", "zebra", "zigzag"];
@@ -6836,14 +6934,20 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
         return this.curBadHealth;
     }
-    typerAutoDamage(time, dt) {
-        // auto damage to 404
+    getDps404() {
+        let dpsSum = 0;
         if (badInfos[0].consumed) {
-            let dpsSum = 0;
             for (let i = 0; i < badInfos.length; i++) {
                 if (badInfos[i].consumed)
                     dpsSum += badInfos[i].damage;
             }
+        }
+        return dpsSum;
+    }
+    typerAutoDamage(time, dt) {
+        // auto damage to 404
+        if (badInfos[0].consumed) {
+            let dpsSum = this.getDps404();
             for (let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if (e.isSensative()) {

@@ -29,6 +29,9 @@ type FsmAction = (state?: FsmState, result?, resolve?, reject?) => void;
 type FromStateToStringFunc = (state: FsmState, result?: any) => string;
 
 
+type PosiGen = () => PhPoint;
+type StrGen = () => string;
+
 interface OnOffable{
     on(event: string | symbol, fn: Function)
     off(event: string | symbol, fn: Function)

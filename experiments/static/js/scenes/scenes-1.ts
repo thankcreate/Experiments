@@ -140,6 +140,7 @@ class Scene1 extends BaseScene {
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");        
 
         this.load.image('purchased_mark', "assets/purchased_mark.png")
+        this.load.image('level_mark', "assets/level_mark.png")
         this.load.image('magic', 'assets/magic.png');
 
         this.preloadBadges();        

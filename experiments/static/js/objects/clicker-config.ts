@@ -2,11 +2,15 @@ interface PropInfo {
     title: string,
     size: number,
     desc: string,
-    price: number
+    price: number,
+    damage?: number,
+    baseDamage?: number,
+    basePrice?: number,
+
 }
 
 
-let initScore = 1000000;
+let initScore = 0;
 let baseScore = 100;
 let normalFreq1 = 1000;
 
@@ -16,8 +20,8 @@ let autoTurnInterval = 1000;
 let hpRegFactor = 4;
 
 
-let initNormalHealth = 100;
-let init404Health = 100;
+let initNormalHealth = 3;
+let init404Health = 3;
 
 let initNormalCount = 0;
 let init404Count =1;
@@ -25,14 +29,23 @@ let init404Count =1;
 let initCreateStep = 1;
 let initCreateMax = 3;
 
+
+let priceIncreaseFactor = 1.1;
+let damageIncraseFactor = 1.1;
+
 let badInfos = [
-    {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, price: 0, consumed: false},
-    {title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, price: 300, consumed: false},
-    {title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, price: 1000, consumed: false},
-    {title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, price: 3000, consumed: false},
-    {title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, price: 10000, consumed: false},
-    {title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, price: 30000, consumed: false},
+    {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamge: 1, price: 0, basePrice: 100, consumed: false},
+    {title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 1, price: 0,  basePrice: 300, consumed: false},
+    {title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 1, price: 0, basePrice: 1000, consumed: false},
+    {title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 1, price: 0, basePrice: 3000, consumed: false},
+    {title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 1, price: 0, basePrice: 10000, consumed: false},
+    {title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, bseDamage: 1, price: 0, basePrice: 30000, consumed: false},
 ]
+
+function getDamageBasedOnLevel(lvl: number, info: PropInfo)  {
+    let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);;
+    return ret;
+}
 
 let turnInfos = [
     {title: "Turn", damage: 1},

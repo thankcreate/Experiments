@@ -10,7 +10,7 @@ class PropButton extends Button {
     purchasedEvent: TypedEvent<PropButton> = new TypedEvent();
     needConfirmEvent: TypedEvent<PropButton> = new TypedEvent();
 
-    purchasedMark: PhImage;
+    purchasedMark: ImageWrapper;
 
     /**
      * Some props need to pop up and dialog to confirm whether to buy
@@ -25,18 +25,31 @@ class PropButton extends Button {
     hovered: boolean;
 
 
+    lvlLbl: PhText;
+
     /**
      * For shake usage
      * Only init once at the first time of the click shake
      */
     shakeScale;
 
+    allowLevelUp: boolean = false;
+    curLevel = 0;
+
+
+
+    bubble: Bubble;
+    
+    bubbleAnchor: PosiGen;
+    bubbleContent: StrGen;
+
     constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
         x: number, y: number,
-        imgKey: string, info: PropInfo,
+        imgKey: string, info: PropInfo, canLevelUp:boolean,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {        
         
         super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
+        this.allowLevelUp = canLevelUp;
         this.group = group;
         this.info = info;
         this.hud = hd;
@@ -48,7 +61,7 @@ class PropButton extends Button {
 
         let priceStyle = getDefaultTextStyle();
         priceStyle.fontSize = '22px';
-        let priceLbl = this.scene.add.text(0, 30, info.price + "",  priceStyle).setOrigin(0.5);
+        let priceLbl = this.scene.add.text(0, 30, myNum(info.price) + "",  priceStyle).setOrigin(0.5);
         this.inner.add(priceLbl);
         this.priceLbl = priceLbl;
 
@@ -58,12 +71,22 @@ class PropButton extends Button {
         this.fakeZone.on('pointerover', ()=>{            
             (this.scene as Scene1).pause();    
             this.hovered = true;       
-            
+
+            if(this.bubble) {
+                this.updateBubbleInfo();
+                this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
+                this.bubble.show();
+            }
+                
         });
 
         this.fakeZone.on('pointerout', () =>{
             (this.scene as Scene1).unPause();
             this.hovered = false;
+            
+            if(this.bubble) {                
+                this.bubble.hide();
+            }
         });
 
         
@@ -88,7 +111,8 @@ class PropButton extends Button {
 
         this.clickedEvent.on(btn1=>{    
             let btn = btn1 as PropButton;          
-            if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
+            //if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
+            {
                 if(this.needConfirm) {
                     let dialog = (this.scene as Scene1).overlay.showTurnCautionDialog();
                     // (this.scene as Scene1).enemyManager.freezeAllEnemies();
@@ -110,11 +134,35 @@ class PropButton extends Button {
             }
         });
 
-        this.purchasedMark = this.scene.add.image(0, 0, 'purchased_mark');
-        this.inner.add(this.purchasedMark);
+        let markImg = this.scene.add.image(0, 0, canLevelUp ? 'level_mark' : 'purchased_mark');        
+        this.purchasedMark = new ImageWrapperClass(this.scene, this.inner, 0, 0,  markImg);        
         let markOffset = 40;
-        this.purchasedMark.setPosition(markOffset, -markOffset);
-        this.purchasedMark.setVisible(false);
+        let poX = 0;
+        let poY = 0;
+        if(canLevelUp) {
+            poX = - 40 + 15;
+            poY = -44;
+        }
+        else {
+            poX = 40;
+            poY = -40;
+        }
+
+        this.purchasedMark.inner.setPosition(poX, poY);        
+
+        if(canLevelUp) {
+            this.purchasedMark.inner.setScale(0.9);
+
+            let st = getDefaultTextStyle();
+            st.fontSize = '22px';
+            st.fill = '#ffffff';
+            this.lvlLbl = this.scene.add.text(0, 0, 'Lv.1', st).setOrigin(0.5, 0.5);
+            this.purchasedMark.inner.add(this.lvlLbl);
+        }        
+        this.purchasedMark.inner.setVisible(false);
+
+        if(canLevelUp)
+            this.updateInfo();
     }
 
     
@@ -123,10 +171,71 @@ class PropButton extends Button {
         this.purchased = true;
         this.hud.addScore(-this.priceTag);     
         
-        if(!this.allowMultipleConsume)                              
-            this.purchasedMark.setVisible(true);
+        if(this.allowMultipleConsume)  {
+            
+        }
+        else if(this.allowLevelUp) {
+            this.purchasedMark.inner.setVisible(true);
+            this.levelUp();
+        }
+        else {
+            this.purchasedMark.inner.setVisible(true);
+        }           
         
         this.purchasedEvent.emit(this);
+    }
+
+    levelUp() {
+        this.curLevel++;
+        this.updateInfo();
+        this.updateBubbleInfo();
+
+    }
+
+    updateInfo() {
+        this.info.damage = this.getCurDamage();
+
+        this.info.price = this.getPrice();
+
+        this.priceTag = this.info.price;
+
+        this.refreshLevelLabel();
+        this.refreshPriceLabel();
+    }
+
+    /**
+     * Damage for curLevel
+     */
+    getCurDamage() {
+        let ret = getDamageBasedOnLevel(this.curLevel, this.info);
+        return ret;
+    }
+
+    getNextDamage() {
+        let ret = getDamageBasedOnLevel(this.curLevel + 1, this.info);
+        return ret;
+    }
+
+
+
+    // Price for (curLevel) -> (curLevel + 1)
+    getPrice():number {
+        let ret = this.info.basePrice * Math.pow(priceIncreaseFactor, this.curLevel);
+        return ret;
+    }
+
+    refreshPriceLabel() {
+        if(!this.priceLbl) 
+            return;
+
+        this.priceLbl.text = myNum(this.info.price) + "";
+    }
+
+    refreshLevelLabel() {
+        if(!this.lvlLbl)
+            return;
+
+        this.lvlLbl.text = 'Lv.' + this.curLevel;
     }
 
     hotkeyPrompt: PhText;
@@ -176,10 +285,14 @@ class PropButton extends Button {
         let size = 24;
         style.fontSize = size + 'px';
         style.fill = '#ff0000';        
-        this.hotkeyPrompt = this.scene.add.text(textX, -40, "Hotkey: 1", style).setOrigin(textOriginX, textOriginY);
+                
+        this.hotkeyPrompt = this.scene.add.text(textX, -40, "", style).setOrigin(textOriginX, textOriginY);
         this.promptImg.inner.add(this.hotkeyPrompt);
+        // this.hotkeyPrompt.setVisible(false);
     }
 
+
+    // needHotKey = false;
     hotkey: string;
     setHotKey(val: string) {
         if(this.hotkeyPrompt) {
@@ -191,7 +304,7 @@ class PropButton extends Button {
 
     setPurchased(val: boolean) {
         this.purchased = val;
-        this.purchasedMark.setVisible(val);
+        this.purchasedMark.inner.setVisible(val);
     }
 
     /**
@@ -213,14 +326,22 @@ class PropButton extends Button {
      * Refresh if can click
      */
     refreshState() : boolean {
-        if(this.purchased && !this.allowMultipleConsume) {
-            this.inner.alpha = 1;
+        if(this.text.text == 'Evil') {
+            let i = 1;
+            i++;
+        }
+        // already purchased && can only be purchased once
+        if(this.purchased && !(this.allowMultipleConsume || this.allowLevelUp)) {
+            this.myTransparent(false);
+
+
             this.canClick = false;
 
             if(this.promptImg) {
                 this.promptImg.inner.setVisible(false);
             }
         }
+        // can buy
         else if(this.canBePurchased()){
             if(this.promptImg) {
                 if(this.hovered)
@@ -229,18 +350,29 @@ class PropButton extends Button {
                     this.promptImg.inner.setVisible(true);
                 }
             }
-            this.inner.alpha = 1;
+            this.myTransparent(false);        
             this.canClick = true;          
         }
+        // can not buy
         else {   
-            this.inner.alpha = 0.2;
+            this.myTransparent(true);
             this.canClick = false;
             
             if(this.promptImg) {                    
                 this.promptImg.inner.setVisible(false);
             }  
-        }         
-
+        }                 
         return this.canClick;
+    }
+
+    myTransparent(tran: boolean) {
+        this.image.alpha = tran ? 0.2 : 1;
+        this.priceLbl.alpha = tran ? 0.2 : 1;
+        this.text.alpha = tran ? 0.2: 1;
+    }
+
+    updateBubbleInfo() {
+        if(this.hovered && this.bubble && this.bubbleContent)        
+            this.bubble.setText(this.bubbleContent(), (this.info as any).warning);            
     }
 }

@@ -143,16 +143,17 @@ class Scene1L4 extends Scene1 {
 
     initStMock() {        
         let state = this.normalGameFsm.getState("Mock");
+        state.addDelayAction(this, 15000),
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? Do you think this is fun?", true);
         state.addSubtitleAction(this.subtitle, "Finally, I got to know who created those words, and 4O4s!", true);        
         state.addSubtitleAction(this.subtitle, "It's just you! \n" + this.getUserName() + "!", true);
         state.addSubtitleAction(this.subtitle, "I know what you are thinking", true);
-        state.addSubtitleAction(this.subtitle, "You think that it is me who put the 'create' button here, right?", true);
-        state.addSubtitleAction(this.subtitle, "But I put it there, doesn't mean you have the right to use it", true);
-        state.addSubtitleAction(this.subtitle, "You think this is just my stupid procedural rhetoric, so it's all my fault, right?", true);
+        state.addSubtitleAction(this.subtitle, "You think that it is me who put the 'Create' button here, right?", true);
+        state.addSubtitleAction(this.subtitle, "But I put it there, \n doesn't mean you have the right to use it", true);
+        state.addSubtitleAction(this.subtitle, "You think this is just my stupid procedural rhetoric,\n so it's all my fault, right?", true);
         state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
         state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
         state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is done!", false);                
-        state.addSubtitleAction(this.subtitle, "Voice from Tron: This is not joking, this is my current thesis progress. \n And thank you for playing!", false);         
+        state.addSubtitleAction(this.subtitle, "Voice from Tron: Hi, this is my current thesis progress. \n Thank you for playing!", false);         
     }
 }

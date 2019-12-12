@@ -124,4 +124,15 @@ class Scene1L4 extends Scene1 {
         .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
         .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000);
     }   
+
+
+    gamePlayStarted() {
+        super.gamePlayStarted();
+        this.hud.infoPanel.inner.setVisible(true);
+    }
+
+    gamePlayExit() {
+        super.gamePlayExit();
+        this.hud.infoPanel.inner.setVisible(false);
+    }
 }

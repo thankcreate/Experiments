@@ -71,8 +71,13 @@ class Hud extends Wrapper<PhText> {
         this.createMenuLeft();
         this.createMenuBottom();
 
-        if(getCurLevelIndex() ==4 ) 
+        if(getCurLevelIndex() == 4)  {
             this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
+            this.infoPanel.inner.setVisible(false);
+
+        }
+            
+            
     }
 
 
@@ -127,7 +132,8 @@ class Hud extends Wrapper<PhText> {
         });
 
         // Turn 
-        this.rightBtns[2].needConfirm = true;
+        
+        this.rightBtns[2].needConfirm = !isEconomicSpecialEdition();
         this.rightBtns[2].purchasedEvent.on(btn=>{    
             let sc = (this.scene as Scene1);
             sc.centerObject.playerInputText.addAutoKeywords(turnInfos[0].title);
@@ -142,11 +148,24 @@ class Hud extends Wrapper<PhText> {
             })
             
         });
+        this.rightBtns[2].bubbleContent = ()=>{
+            let info = this.rightBtns[3].info;
+            return info.desc 
+                + '\n\nDamage per "Turn": 1'
+                + "\n\nPrice: " + myNum(info.price);
+        } 
 
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn=>{      
             getAutoTurnInfo().consumed = true;
         });
+
+        this.rightBtns[3].bubbleContent = ()=>{
+            let info = this.rightBtns[3].info;
+            return info.desc 
+                + "\n\nDPS(Non-404): 1 / " + autoTurnDpsFactor + " of MaxHP"
+                + "\n\nPrice: " + myNum(info.price);
+        } 
 
         // Create a new world
         this.rightBtns[4].purchasedEvent.on(btn=>{
@@ -450,7 +469,7 @@ class Hud extends Wrapper<PhText> {
     reset() {
         this.score = initScore;        
         this.refreshScore();
-
+        this.hideContainerLeft();
         this.hp.reset();
     }
 

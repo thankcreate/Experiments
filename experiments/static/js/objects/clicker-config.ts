@@ -33,7 +33,7 @@ let initCreateMax = 3;
 let priceIncreaseFactor = 1.1;
 let damageIncraseFactor = 1.1;
 
-let award404IncreaseFactor = 1.05;
+let award404IncreaseFactor = 1.1;
 let health404IncreaseFactor = 1.15;
 
 let basePrice = 100;
@@ -41,7 +41,9 @@ let baseDamage = 1;
 let priceFactorBetweenInfo = 5;
 let damageFactorBetweenInfo = 4;
 
+let autoTurnDpsFactor = 10;
 
+let normalDuration = 35000;
 
 let badInfos = [
     {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false},
@@ -97,9 +99,9 @@ let propInfos = [
     {title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
     {title: "T**", consumed: false, price: 2500, size: 30, 
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
-        warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
+        //warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
         },
-    {title: "Auto\nTurn", consumed: false, price: 4500, size: 22, desc: "Automatically Turn Non-404 words into 404"},
+    {title: "Auto\nTurn", consumed: false, price: 10000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
     {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short'}
 ]   
 

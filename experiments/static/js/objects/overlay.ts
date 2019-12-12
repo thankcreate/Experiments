@@ -21,22 +21,35 @@ Click "OK"(or press "Enter") to confirm
 `
 
 var economicTitle = `Hi Economists!📈`
-var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
+var economicAbout = `This is the 4th level of my thesis game, we need a little bit of context here.
 
 There are 2 types of enemies:
 
 • 404: Which is just 404
 • Non-404: General words like "Flower", "Dog"
 
-You should input semantically related words to damage enemies:
+You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't eliminate Non-404 enemies at first.
 
-• 404: Only the input "Bad" is considered as related
-• Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+If the enemies reach the center circle, you will lose your HP. But you can buy your HP back.
 
-If the enemies reach the center circle, you will lose your HP.
-
-Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
+Caution: You can only get 💰 by eliminating 404s
 `
+// var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
+
+// There are 2 types of enemies:
+
+// • 404: Which is just 404
+// • Non-404: General words like "Flower", "Dog"
+
+// You should input semantically related words to damage enemies:
+
+// • 404: Only the input "Bad" is considered as related
+// • Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+
+// If the enemies reach the center circle, you will lose your HP.
+
+// Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
+// `
 
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object

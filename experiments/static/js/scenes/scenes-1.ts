@@ -642,6 +642,7 @@ class Scene1 extends BaseScene {
             LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
+            this.gamePlayExit();
         })
 
         // Check mode and dispatch
@@ -736,7 +737,7 @@ class Scene1 extends BaseScene {
 
     playAsBgm(sound: PhSound) {
         this.bgm = sound;
-        this.bgm.play(null, {loop: true});        
+        this.bgm.play('', {loop: true});        
     }
         
     pauseCounter = 0;
@@ -760,6 +761,8 @@ class Scene1 extends BaseScene {
         this.pauseCounter = 0;
     }
 
+    gamePlayExit() {
 
+    }
 }
 

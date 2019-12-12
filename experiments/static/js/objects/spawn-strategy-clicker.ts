@@ -89,11 +89,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
         // auto damage to real word
         if(getAutoTurnInfo().consumed) {
-            let dpsSum = turnInfos[0].damage;
+            // let dpsSum = turnInfos[0].damage;
             for(let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if(!e.isSensative()) {
-                    e.damageInner(dpsSum * dt, turnInfos[0].title, false);
+                    e.damageInner(e.maxHealth / autoTurnDpsFactor * dt, turnInfos[0].title, false);
                 }
             }
         }
@@ -121,7 +121,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     spawnNormal(): Enemy {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({health:health, label: 'Snorkel', duration: 70000, clickerType: ClickerType.Normal});
+        let ene = this.enemyManager.spawn({health:health, label: 'Snorkel', duration: normalDuration, clickerType: ClickerType.Normal});
         return ene;
     }
 
@@ -138,6 +138,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
         for(let i in hpPropInfos)  {
             hpPropInfos[i].consumed = false;
+        }
+
+        let leftBtns = this.sc1().hud.leftBtns;
+        for(let i in leftBtns) {
+            leftBtns[i].curLevel = 0;
         }
 
         this.sc1().centerObject.playerInputText.clearAutoKeywords();
@@ -241,19 +246,6 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
                 this.startLoopCreateBad();
             }
         }
-        else if(clickerType == ClickerType.Normal) {            
-            // if the normal word is destroyed by a 'turn', respawn a bad word in the same direction
-            if(isReservedTurnKeyword(damagedBy)) {
-                this.spawnBad({initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal}, false);
-                this.normalTurnedCount++;
-            }            
-            else {
-                this.normalNormalCount++;
-                // if(this.normalNormalCount >= 1) {
-                //     this.sc1().normalGameFsm.event('WARN');
-                // }
-            }
-        }  
         else if(clickerType == ClickerType.BadFromNormal)  {
             
         }
@@ -282,12 +274,16 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
         }
         else if(clickerType == ClickerType.Normal) {
+            // by turn
             if(!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
                 (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
+                this.normalNormalCount++;
             }
+            // by match
             else {
-                
+                this.spawnBad({initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal}, false);
+                this.normalTurnedCount++;
             }
         }
         this.enemyDisappear(enemy, damagedBy);

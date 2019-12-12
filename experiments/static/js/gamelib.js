@@ -559,6 +559,7 @@ class Scene1 extends BaseScene {
             LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
+            this.gamePlayExit();
         });
         // Check mode and dispatch
         state.addDelayAction(this, 1500)
@@ -640,7 +641,7 @@ class Scene1 extends BaseScene {
     }
     playAsBgm(sound) {
         this.bgm = sound;
-        this.bgm.play(null, { loop: true });
+        this.bgm.play('', { loop: true });
     }
     pause() {
         this.pauseCounter++;
@@ -658,6 +659,8 @@ class Scene1 extends BaseScene {
     }
     gamePlayStarted() {
         this.pauseCounter = 0;
+    }
+    gamePlayExit() {
     }
 }
 class Scene1L1 extends Scene1 {
@@ -1292,6 +1295,14 @@ class Scene1L4 extends Scene1 {
             .addSubtitleAction(this.subtitle, "Can't you read? ", true)
             .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
             .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000);
+    }
+    gamePlayStarted() {
+        super.gamePlayStarted();
+        this.hud.infoPanel.inner.setVisible(true);
+    }
+    gamePlayExit() {
+        super.gamePlayExit();
+        this.hud.infoPanel.inner.setVisible(false);
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
@@ -2407,12 +2418,14 @@ let initCreateStep = 1;
 let initCreateMax = 3;
 let priceIncreaseFactor = 1.1;
 let damageIncraseFactor = 1.1;
-let award404IncreaseFactor = 1.05;
+let award404IncreaseFactor = 1.1;
 let health404IncreaseFactor = 1.15;
 let basePrice = 100;
 let baseDamage = 1;
 let priceFactorBetweenInfo = 5;
 let damageFactorBetweenInfo = 4;
+let autoTurnDpsFactor = 10;
+let normalDuration = 35000;
 let badInfos = [
     { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false },
     { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 3, price: 0, basePrice: 300, consumed: false },
@@ -2455,9 +2468,8 @@ let propInfos = [
     { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
     { title: "T**", consumed: false, price: 2500, size: 30,
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
-        warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
     },
-    { title: "Auto\nTurn", consumed: false, price: 4500, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "Auto\nTurn", consumed: false, price: 10000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
     { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short' }
 ];
 function getBadgeResID(i) {
@@ -5217,8 +5229,10 @@ class Hud extends Wrapper {
         this.createMenuRight();
         this.createMenuLeft();
         this.createMenuBottom();
-        if (getCurLevelIndex() == 4)
+        if (getCurLevelIndex() == 4) {
             this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
+            this.infoPanel.inner.setVisible(false);
+        }
     }
     createMenuRight() {
         // tool menu right
@@ -5258,7 +5272,7 @@ class Hud extends Wrapper {
             getAutoTypeInfo().consumed = true;
         });
         // Turn 
-        this.rightBtns[2].needConfirm = true;
+        this.rightBtns[2].needConfirm = !isEconomicSpecialEdition();
         this.rightBtns[2].purchasedEvent.on(btn => {
             let sc = this.scene;
             sc.centerObject.playerInputText.addAutoKeywords(turnInfos[0].title);
@@ -5271,10 +5285,22 @@ class Hud extends Wrapper {
                 loop: -1,
             });
         });
+        this.rightBtns[2].bubbleContent = () => {
+            let info = this.rightBtns[3].info;
+            return info.desc
+                + '\n\nDamage per "Turn": 1'
+                + "\n\nPrice: " + myNum(info.price);
+        };
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
             getAutoTurnInfo().consumed = true;
         });
+        this.rightBtns[3].bubbleContent = () => {
+            let info = this.rightBtns[3].info;
+            return info.desc
+                + "\n\nDPS(Non-404): 1 / " + autoTurnDpsFactor + " of MaxHP"
+                + "\n\nPrice: " + myNum(info.price);
+        };
         // Create a new world
         this.rightBtns[4].purchasedEvent.on(btn => {
             getCreatePropInfo().consumed = true;
@@ -5504,6 +5530,7 @@ class Hud extends Wrapper {
     reset() {
         this.score = initScore;
         this.refreshScore();
+        this.hideContainerLeft();
         this.hp.reset();
     }
     show(mode) {
@@ -5680,22 +5707,29 @@ var cautionDefault = `Once purchased this item, you can no longer do semantic wo
 Click "OK"(or press "Enter") to confirm
 `;
 var economicTitle = `Hi Economists!📈`;
-var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
+var economicAbout = `This is the 4th level of my thesis game, we need a little bit of context here.
 
 There are 2 types of enemies:
 
 • 404: Which is just 404
 • Non-404: General words like "Flower", "Dog"
 
-You should input semantically related words to damage enemies:
+You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't eliminate Non-404 enemies at first.
 
-• 404: Only the input "Bad" is considered as related
-• Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+If the enemies reach the center circle, you will lose your HP. But you can buy your HP back.
 
-If the enemies reach the center circle, you will lose your HP.
-
-Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
+Caution: You can only get 💰 by eliminating 404s
 `;
+// var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
+// There are 2 types of enemies:
+// • 404: Which is just 404
+// • Non-404: General words like "Flower", "Dog"
+// You should input semantically related words to damage enemies:
+// • 404: Only the input "Bad" is considered as related
+// • Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
+// If the enemies reach the center circle, you will lose your HP.
+// Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
+// `
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 class Overlay extends Wrapper {
@@ -6984,11 +7018,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
         // auto damage to real word
         if (getAutoTurnInfo().consumed) {
-            let dpsSum = turnInfos[0].damage;
+            // let dpsSum = turnInfos[0].damage;
             for (let i in this.enemyManager.enemies) {
                 let e = this.enemyManager.enemies[i];
                 if (!e.isSensative()) {
-                    e.damageInner(dpsSum * dt, turnInfos[0].title, false);
+                    e.damageInner(e.maxHealth / autoTurnDpsFactor * dt, turnInfos[0].title, false);
                 }
             }
         }
@@ -7011,7 +7045,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     spawnNormal() {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({ health: health, label: 'Snorkel', duration: 70000, clickerType: ClickerType.Normal });
+        let ene = this.enemyManager.spawn({ health: health, label: 'Snorkel', duration: normalDuration, clickerType: ClickerType.Normal });
         return ene;
     }
     resetConsumed() {
@@ -7025,6 +7059,10 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         }
         for (let i in hpPropInfos) {
             hpPropInfos[i].consumed = false;
+        }
+        let leftBtns = this.sc1().hud.leftBtns;
+        for (let i in leftBtns) {
+            leftBtns[i].curLevel = 0;
         }
         this.sc1().centerObject.playerInputText.clearAutoKeywords();
         this.sc1().centerObject.centerProgres.reset();
@@ -7104,19 +7142,6 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
                 this.startLoopCreateBad();
             }
         }
-        else if (clickerType == ClickerType.Normal) {
-            // if the normal word is destroyed by a 'turn', respawn a bad word in the same direction
-            if (isReservedTurnKeyword(damagedBy)) {
-                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal }, false);
-                this.normalTurnedCount++;
-            }
-            else {
-                this.normalNormalCount++;
-                // if(this.normalNormalCount >= 1) {
-                //     this.sc1().normalGameFsm.event('WARN');
-                // }
-            }
-        }
         else if (clickerType == ClickerType.BadFromNormal) {
         }
     }
@@ -7137,11 +7162,16 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
             this.enemyManager.scene.hud.addScore(sc, enemy);
         }
         else if (clickerType == ClickerType.Normal) {
+            // by turn
             if (!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
                 this.enemyManager.scene.hud.addScore(sc, enemy);
+                this.normalNormalCount++;
             }
+            // by match
             else {
+                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal }, false);
+                this.normalTurnedCount++;
             }
         }
         this.enemyDisappear(enemy, damagedBy);

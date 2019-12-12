@@ -2404,7 +2404,7 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 100;
+let initScore = 0;
 let baseScore = 100;
 let normalFreq1 = 7;
 let autoBadgeInterval = 400;

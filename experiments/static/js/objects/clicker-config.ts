@@ -10,9 +10,9 @@ interface PropInfo {
 }
 
 
-let initScore = 0;
+let initScore = 100;
 let baseScore = 100;
-let normalFreq1 = 8;
+let normalFreq1 = 7;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
@@ -31,10 +31,9 @@ let initCreateMax = 3;
 
 
 let priceIncreaseFactor = 1.1;
-let damageIncraseFactor = 1.1;
 
 let award404IncreaseFactor = 1.1;
-let health404IncreaseFactor = 1.15;
+let health404IncreaseFactor = 1.2;
 
 let basePrice = 100;
 let baseDamage = 1;
@@ -44,6 +43,7 @@ let damageFactorBetweenInfo = 4;
 let autoTurnDpsFactor = 10;
 
 let normalDuration = 35000;
+// let normalDuration = 5000;
 
 let badInfos = [
     {title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false},
@@ -102,7 +102,7 @@ let propInfos = [
         //warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
         },
     {title: "Auto\nTurn", consumed: false, price: 10000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
-    {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short'}
+    {title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word!\nType in "C" for short'}
 ]   
 
 function getBadgeResID(i) {

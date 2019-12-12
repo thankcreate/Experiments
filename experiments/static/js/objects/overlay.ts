@@ -30,7 +30,7 @@ There are 2 types of enemies:
 
 You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't eliminate Non-404 enemies at first.
 
-If the enemies reach the center circle, you will lose your HP, but you can buy your HP back.
+You will lose HP if the enemies reach the center circle, but you can buy your HP back.
 
 Caution: You can only get 💰 by eliminating 404s
 `

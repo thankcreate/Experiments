@@ -2404,9 +2404,9 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 0;
+let initScore = 100;
 let baseScore = 100;
-let normalFreq1 = 8;
+let normalFreq1 = 7;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 4;
@@ -2417,15 +2417,15 @@ let init404Count = 1;
 let initCreateStep = 1;
 let initCreateMax = 3;
 let priceIncreaseFactor = 1.1;
-let damageIncraseFactor = 1.1;
 let award404IncreaseFactor = 1.1;
-let health404IncreaseFactor = 1.15;
+let health404IncreaseFactor = 1.2;
 let basePrice = 100;
 let baseDamage = 1;
 let priceFactorBetweenInfo = 5;
 let damageFactorBetweenInfo = 4;
 let autoTurnDpsFactor = 10;
 let normalDuration = 35000;
+// let normalDuration = 5000;
 let badInfos = [
     { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false },
     { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 3, price: 0, basePrice: 300, consumed: false },
@@ -2470,7 +2470,7 @@ let propInfos = [
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
     { title: "Auto\nTurn", consumed: false, price: 10000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word! Type in "C" for short' }
+    { title: "The\nCreator", consumed: false, price: 20000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -5716,7 +5716,7 @@ There are 2 types of enemies:
 
 You can eliminate 404 enemies by type in "BAD" and press 'Enter'. You can't eliminate Non-404 enemies at first.
 
-If the enemies reach the center circle, you will lose your HP, but you can buy your HP back.
+You will lose HP if the enemies reach the center circle, but you can buy your HP back.
 
 Caution: You can only get 💰 by eliminating 404s
 `;
@@ -6962,11 +6962,11 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.normalNormalCount = 0;
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould = 9999;
-        this.curBadHealth = init404Health;
         this.lastAutoTypeTime = -1;
-        this.autoTypeInterval = 1 * 1000;
         this.lastAutoTurnTime = -1;
+        this.autoTypeInterval = 1 * 1000;
         this.autoTurnInterval = 1 * 1000;
+        this.curBadHealth = init404Health;
         this.needHandleRewardExclusively = true;
     }
     getInitConfig() {
@@ -7045,7 +7045,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     spawnNormal() {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({ health: health, label: 'Snorkel', duration: normalDuration, clickerType: ClickerType.Normal });
+        let ene = this.enemyManager.spawn({ health: health, /* label: 'Snorkel', */ duration: normalDuration, clickerType: ClickerType.Normal });
         return ene;
     }
     resetConsumed() {
@@ -7076,6 +7076,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould = 9999;
         this.curBadHealth = init404Health;
+        this.lastAutoTypeTime = this.enemyManager.accTime - 1;
+        this.lastAutoTurnTime = this.enemyManager.accTime - 1;
         this.firstSpawn();
         this.startLoopCreateNormal();
         this.sc1().centerObject.centerProgres.fullEvent.on(() => {
@@ -7108,12 +7110,12 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;
-        this.lastNormalTime = this.enemyManager.scene.curTime;
+        this.lastNormalTime = this.enemyManager.accTime;
         this.freqNormal = normalFreq1 * 1000;
     }
     startLoopCreateBad() {
         this.needloopCeateBad = true;
-        this.last404Time = this.enemyManager.scene.curTime;
+        this.last404Time = this.enemyManager.accTime;
         this.freq404 = 6 * 1000;
     }
     onUpdate(time, dt) {

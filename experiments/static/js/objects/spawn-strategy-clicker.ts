@@ -22,6 +22,16 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     respawnAfterKilledThreshould: number = 9999;
 
     
+    lastAutoTypeTime = -1;    
+    lastAutoTurnTime = -1;
+
+
+    autoTypeInterval = 1 * 1000;
+    autoTurnInterval = 1 * 1000;
+
+
+
+
     curBadHealth: number = init404Health;
 
     getInitConfig() : SpawnStrategyConfig {
@@ -55,11 +65,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return this.curBadHealth;
     }
 
-    lastAutoTypeTime = -1;    
-    autoTypeInterval = 1 * 1000;
 
-    lastAutoTurnTime = -1;
-    autoTurnInterval = 1 * 1000;
 
 
     getDps404(): number {
@@ -121,7 +127,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
     spawnNormal(): Enemy {
         let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({health:health, label: 'Snorkel', duration: normalDuration, clickerType: ClickerType.Normal});
+        let ene = this.enemyManager.spawn({health:health,/* label: 'Snorkel', */ duration: normalDuration, clickerType: ClickerType.Normal});
         return ene;
     }
 
@@ -159,7 +165,9 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.normalTurnedCount = 0;
         this.respawnAfterKilledThreshould  = 9999;
         this.curBadHealth = init404Health;
-        
+
+        this.lastAutoTypeTime = this.enemyManager.accTime - 1;    
+        this.lastAutoTurnTime = this.enemyManager.accTime - 1;
 
         this.firstSpawn();
         
@@ -203,13 +211,13 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     startLoopCreateNormal() {
         this.needLoopCreateNormal = true;        
         
-        this.lastNormalTime = (this.enemyManager.scene as Scene1).curTime;        
+        this.lastNormalTime = this.enemyManager.accTime;        
         this.freqNormal = normalFreq1 * 1000;
     }
 
     startLoopCreateBad() {
         this.needloopCeateBad = true;
-        this.last404Time = (this.enemyManager.scene as Scene1).curTime;
+        this.last404Time = this.enemyManager.accTime;
         this.freq404 = 6 * 1000;
     }
 

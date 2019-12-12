@@ -1329,6 +1329,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
         state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
         state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is done!", false);
+        state.addSubtitleAction(this.subtitle, "Voice from Tron: This is not joking, this is my current thesis progress. \n And thank you for playing!", false);
     }
 }
 /// <reference path="scenes/scenes-1.ts" />

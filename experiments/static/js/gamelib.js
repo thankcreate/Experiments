@@ -1199,7 +1199,7 @@ class Scene1L3 extends Scene1 {
             .addAction(s => {
             this.backBtn.clickedEvent.emit(this.backBtn);
             setTimeout(() => {
-                window.location.replace(window.location.origin + "?level=4&eco=1");
+                window.location.replace(window.location.origin + "?level=4");
             }, 2000);
         });
     }
@@ -2498,7 +2498,7 @@ let propInfos = [
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
     { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, price: 15000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+    { title: "The\nCreator", consumed: false, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -5316,7 +5316,7 @@ class Hud extends Wrapper {
             });
         });
         this.rightBtns[2].bubbleContent = () => {
-            let info = this.rightBtns[3].info;
+            let info = this.rightBtns[2].info;
             return info.desc
                 + '\n\nTurn value to Non-404 per "Turn": 1'
                 + "\n\nPrice: " + myNum(info.price);

@@ -145,7 +145,7 @@ class Hud extends Wrapper<PhText> {
             
         });
         this.rightBtns[2].bubbleContent = ()=>{
-            let info = this.rightBtns[3].info;
+            let info = this.rightBtns[2].info;
             return info.desc 
                 + '\n\nTurn value to Non-404 per "Turn": 1'
                 + "\n\nPrice: " + myNum(info.price);

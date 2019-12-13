@@ -102,7 +102,7 @@ let propInfos = [
         //warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
         },
     {title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
-    {title: "The\nCreator", consumed: false, price: 15000, size: 22, desc: 'Create a new word!\nType in "C" for short'}
+    {title: "The\nCreator", consumed: false, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short'}
 ]   
 
 function getBadgeResID(i) {

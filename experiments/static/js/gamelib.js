@@ -362,6 +362,9 @@ class Scene1 extends BaseScene {
             this.dwitterBKG.toBlinkMode();
             LeaderboardManager.getInstance().updateInfo();
             let mainImage = this.centerObject.mainImage;
+            s.autoOn($(document), 'keypress', () => {
+                this.homeEnterInvoked(s);
+            });
             s.autoSafeInOutClick(mainImage, e => {
                 this.centerObject.playerInputText.showTitle();
                 this.dwitterBKG.toStaticMode();
@@ -369,17 +372,22 @@ class Scene1 extends BaseScene {
                 this.centerObject.playerInputText.hideTitle();
                 this.dwitterBKG.toBlinkMode();
             }, e => {
-                this.centerObject.playerInputText.changeTitleToChanged();
-                this.dwitterBKG.toStaticMode();
-                this.subtitle.stopMonologue();
-                let firstIn = this.firstIntoHome();
-                if (firstIn) {
-                    s.event('TO_FIRST_MEET');
-                }
-                else
-                    s.event('TO_SECOND_MEET');
+                this.homeEnterInvoked(s);
             });
         });
+    }
+    homeEnterInvoked(s) {
+        this.centerObject.playerInputText.changeTitleToChanged();
+        this.dwitterBKG.toStaticMode();
+        this.subtitle.stopMonologue();
+        // let firstIn = this.firstIntoHome();
+        let name = this.getUserName();
+        if (name) {
+            s.event('TO_SECOND_MEET');
+        }
+        else {
+            s.event('TO_FIRST_MEET');
+        }
     }
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
@@ -428,7 +436,9 @@ class Scene1 extends BaseScene {
     initStSecondMeet() {
         let state = this.mainFsm.getState("SecondMeet");
         state
-            .addSubtitleAction(this.subtitle, 'Want to play again?', true).finishImmediatly()
+            .addSubtitleAction(this.subtitle, s => {
+            return 'Welcome back! ' + this.getUserName() + '. \nWant to play again?';
+        }, false).finishImmediatly()
             .addFinishAction();
     }
     initStModeSelect() {
@@ -449,8 +459,9 @@ class Scene1 extends BaseScene {
         }).setBoolCondition(s => this.centerObject.inner.rotation !== 0)
             // Show Mode Select Buttons
             .addAction((s, result, resolve, reject) => {
-            this.centerObject.btnMode0.setEnable(true, true);
-            this.centerObject.btnMode1.setEnable(true, true);
+            this.centerObject.btnMode0.setEnable(true, false);
+            this.centerObject.btnMode1.setEnable(true, false);
+            this.centerObject.modeToggles.initFocus();
             s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
                 this.setMode(GameMode.Normal);
                 s.removeAutoRemoveListners(); // in case the player clicked both buttons quickly
@@ -2056,6 +2067,74 @@ class ButtonGroup extends Wrapper {
     }
 }
 /**
+ * Toggle groups is intended to handle the keyboard event
+ * of the button group
+ * However, since the name ButtonGroup is already used,
+ * we call it ToggleGroup.
+ * The difference is that, ButtonGroup contains a Phaser Layer in it while
+ * ToggleGroup is more focused on the keyboard event
+ */
+class ToggleGroup {
+    constructor(scene) {
+        this.index = 0;
+        this.active = false;
+        this.scene = scene;
+        this.buttons = [];
+        document.addEventListener('keydown', this.keydown.bind(this));
+    }
+    addButton(btn) {
+        btn.toggleGroup = this;
+        this.buttons.push(btn);
+    }
+    setKeyboardActive(active = true) {
+        this.index = 0;
+        this.active = active;
+        // this.focus(0);
+    }
+    initFocus() {
+        this.index = 0;
+        this.focus(0);
+        for (let i = 1; i < this.buttons.length; i++) {
+            this.unfocus(i);
+        }
+    }
+    unfocusExept(btn) {
+        for (let i in this.buttons) {
+            if (btn != this.buttons[i]) {
+                this.unfocus(i);
+            }
+        }
+    }
+    focus(i) {
+        this.buttons[i].pointerin();
+    }
+    unfocus(i) {
+        this.buttons[i].pointerout();
+    }
+    keydown(event) {
+        if (!this.active)
+            return;
+        if (!this.buttons || this.buttons.length == 0)
+            return;
+        var code = event.keyCode;
+        let oriI = this.index;
+        if (code == Phaser.Input.Keyboard.KeyCodes.DOWN || code == Phaser.Input.Keyboard.KeyCodes.RIGHT) {
+            this.index++;
+            this.index %= this.buttons.length;
+        }
+        else if (code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
+            this.index--;
+            this.index += this.buttons.length;
+            this.index %= this.buttons.length;
+        }
+        else {
+            return;
+        }
+        this.unfocus(oriI);
+        this.focus(this.index);
+    }
+}
+/**
  * When you want to deactive a button \
  * Just call setEnable(false) \
  * Don't set the visibility or activity of the inner objects directly
@@ -2070,7 +2149,7 @@ class Button {
      * @param target
      */
     constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
-        this.hoverState = 0; // 0:in 1:out
+        this.hoverState = 0; // 0:out 1:in
         this.prevDownState = 0; // 0: not down  1: down
         this.enable = true;
         // auto scale
@@ -2210,6 +2289,9 @@ class Button {
         if (this.image) {
             this.image.alpha = 0.55;
         }
+        if (this.toggleGroup) {
+            this.toggleGroup.unfocusExept(this);
+        }
     }
     pointerout() {
         // Not like pointer in, I don't know if I need to double check like this
@@ -2288,6 +2370,10 @@ class CenterObject {
         this.btnMode0 = btn;
         btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);
         this.btnMode1 = btn;
+        this.modeToggles = new ToggleGroup(this.scene);
+        this.modeToggles.addButton(this.btnMode0);
+        this.modeToggles.addButton(this.btnMode1);
+        this.modeToggles.setKeyboardActive();
         this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
     }
     playerInputChanged(inputControl) {

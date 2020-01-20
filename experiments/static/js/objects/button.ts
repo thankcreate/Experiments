@@ -2,6 +2,89 @@ class ButtonGroup extends Wrapper<PhText> {
     isShown = false;
 }
 
+
+/**
+ * Toggle groups is intended to handle the keyboard event 
+ * of the button group
+ * However, since the name ButtonGroup is already used,
+ * we call it ToggleGroup.
+ * The difference is that, ButtonGroup contains a Phaser Layer in it while
+ * ToggleGroup is more focused on the keyboard event
+ */
+class ToggleGroup {
+    scene: BaseScene
+    buttons: Button[]
+    index = 0
+
+    active = false;
+    constructor(scene: BaseScene) {
+        this.scene = scene;
+        this.buttons = [];
+        document.addEventListener('keydown', this.keydown.bind(this));
+    }
+
+    addButton(btn: Button) {
+        btn.toggleGroup = this;
+        this.buttons.push(btn);
+    }
+
+    setKeyboardActive(active: boolean = true) {        
+        this.index = 0;
+        this.active = active;
+        // this.focus(0);
+    }
+
+    initFocus() {
+        this.index = 0;
+        this.focus(0);
+        for(let i = 1; i < this.buttons.length; i++) {
+            this.unfocus(i);
+        }
+    }
+
+    unfocusExept(btn: Button) {
+        for(let i in this.buttons) {
+            if(btn != this.buttons[i]) {
+                this.unfocus(i);
+            }
+        }
+    }
+    
+    focus(i) {
+        this.buttons[i].pointerin();
+    }
+
+    unfocus(i) {
+        this.buttons[i].pointerout();
+    }
+
+    keydown(event) {
+        if(!this.active)
+            return;
+
+        if(!this.buttons || this.buttons.length == 0)
+            return;
+
+        var code = event.keyCode;
+        let oriI = this.index;
+
+        if(code == Phaser.Input.Keyboard.KeyCodes.DOWN || code == Phaser.Input.Keyboard.KeyCodes.RIGHT) {            
+            this.index++;
+            this.index %= this.buttons.length;        
+        }
+        else if(code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
+            this.index--;            
+            this.index += this.buttons.length;
+            this.index %= this.buttons.length;        
+        }
+        else {
+            return;
+        }
+        this.unfocus(oriI);
+        this.focus(this.index);        
+    }
+}
+
 /**
  * When you want to deactive a button \
  * Just call setEnable(false) \
@@ -20,9 +103,9 @@ class Button {
     fakeZone: PhImage;
     debugFrame: PhGraphics;
 
-    
+    toggleGroup: ToggleGroup;    
 
-    hoverState: number = 0; // 0:in 1:out
+    hoverState: number = 0; // 0:out 1:in
     prevDownState: number = 0; // 0: not down  1: down
 
     enable: boolean = true;
@@ -215,7 +298,10 @@ class Button {
         if(this.image) {
             this.image.alpha = 0.55;
         }
-            
+        
+        if(this.toggleGroup) {
+            this.toggleGroup.unfocusExept(this);
+        }
     }
 
     pointerout() {

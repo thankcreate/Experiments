@@ -405,6 +405,10 @@ class Scene1 extends BaseScene {
 
             let mainImage = this.centerObject.mainImage;
 
+            s.autoOn($(document), 'keypress', ()=>{
+                this.homeEnterInvoked(s);
+            });
+
             s.autoSafeInOutClick(mainImage,
                 e => {
                     this.centerObject.playerInputText.showTitle();
@@ -415,22 +419,29 @@ class Scene1 extends BaseScene {
                     this.dwitterBKG.toBlinkMode();
                 },
                 e => {
-                    this.centerObject.playerInputText.changeTitleToChanged();
-                    this.dwitterBKG.toStaticMode();
-                    this.subtitle.stopMonologue();
-
-
-                    let firstIn = this.firstIntoHome();
-                    if (firstIn) {
-                        s.event('TO_FIRST_MEET');
-                    }
-                    else
-                        s.event('TO_SECOND_MEET');
+                    this.homeEnterInvoked(s);
                 });
         });
     }
 
+    homeEnterInvoked(s: FsmState) {
+        this.centerObject.playerInputText.changeTitleToChanged();
+        this.dwitterBKG.toStaticMode();
+        this.subtitle.stopMonologue();
+
+
+        // let firstIn = this.firstIntoHome();
+        let name = this.getUserName();
+        if (name) {
+            s.event('TO_SECOND_MEET');
+        }
+        else {
+            s.event('TO_FIRST_MEET');
+        }
+    }
+
     initStFirstMeet() {
+        
         this.mainFsm.getState("FirstMeet")
             // .addSubtitleAction(this.subtitle, 'TronTron!', true)
             .addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
@@ -478,14 +489,15 @@ class Scene1 extends BaseScene {
             }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
 
-
             .addFinishAction();
     }
 
     initStSecondMeet() {
         let state = this.mainFsm.getState("SecondMeet");
         state
-            .addSubtitleAction(this.subtitle, 'Want to play again?', true).finishImmediatly()
+            .addSubtitleAction(this.subtitle, s=>{
+                return 'Welcome back! ' + this.getUserName() + '. \nWant to play again?';
+            }, false).finishImmediatly()
             .addFinishAction()
     }
 
@@ -510,8 +522,10 @@ class Scene1 extends BaseScene {
             }).setBoolCondition(s => this.centerObject.inner.rotation !== 0)
             // Show Mode Select Buttons
             .addAction((s: FsmState, result, resolve, reject) => {
-                this.centerObject.btnMode0.setEnable(true, true);
-                this.centerObject.btnMode1.setEnable(true, true);
+                this.centerObject.btnMode0.setEnable(true, false);
+                this.centerObject.btnMode1.setEnable(true, false);
+                this.centerObject.modeToggles.initFocus();
+
 
                 s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
                     this.setMode(GameMode.Normal);

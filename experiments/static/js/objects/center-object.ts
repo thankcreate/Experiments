@@ -91,10 +91,17 @@ class CenterObject {
         btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);        
         this.btnMode1 = btn;
 
+        this.modeToggles = new ToggleGroup(this.scene);
+        this.modeToggles.addButton(this.btnMode0);
+        this.modeToggles.addButton(this.btnMode1);
+        this.modeToggles.setKeyboardActive();
+
         this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
 
         
     }
+
+    modeToggles: ToggleGroup;
 
     graph: PhGraphics;
 

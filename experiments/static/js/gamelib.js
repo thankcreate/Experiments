@@ -568,6 +568,7 @@ class Scene1 extends BaseScene {
         });
         state.setOnExit(s => {
             this.normalGameFsm.stop();
+            this.zenFsm.stop();
             LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();

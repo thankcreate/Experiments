@@ -522,8 +522,8 @@ class Scene1 extends BaseScene {
             }).setBoolCondition(s => this.centerObject.inner.rotation !== 0)
             // Show Mode Select Buttons
             .addAction((s: FsmState, result, resolve, reject) => {
-                this.centerObject.btnMode0.setEnable(true, false);
-                this.centerObject.btnMode1.setEnable(true, false);
+                this.centerObject.btnMode0.setEnable(true, true);
+                this.centerObject.btnMode1.setEnable(true, true);
                 this.centerObject.modeToggles.initFocus();
 
 

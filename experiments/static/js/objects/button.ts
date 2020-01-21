@@ -42,6 +42,15 @@ class ToggleGroup {
         }
     }
 
+    updateIndexTo(btn: Button) {
+        for(let i = 0; i < this.buttons.length; i++) {
+            if(this.buttons[i] == btn) {
+                this.index = i;
+                break;
+            }
+        }
+    }
+
     unfocusExept(btn: Button) {
         for(let i in this.buttons) {
             if(btn != this.buttons[i]) {
@@ -51,11 +60,11 @@ class ToggleGroup {
     }
     
     focus(i) {
-        this.buttons[i].pointerin();
+        this.buttons[i].focus();
     }
 
     unfocus(i) {
-        this.buttons[i].pointerout();
+        this.buttons[i].unfocus();
     }
 
     keydown(event) {
@@ -68,20 +77,29 @@ class ToggleGroup {
         var code = event.keyCode;
         let oriI = this.index;
 
-        if(code == Phaser.Input.Keyboard.KeyCodes.DOWN || code == Phaser.Input.Keyboard.KeyCodes.RIGHT) {            
-            this.index++;
-            this.index %= this.buttons.length;        
+        if(code == Phaser.Input.Keyboard.KeyCodes.DOWN || code == Phaser.Input.Keyboard.KeyCodes.RIGHT 
+            || code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {                      
+            
+            if(code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
+                this.index--;            
+                this.index += this.buttons.length;
+                this.index %= this.buttons.length;  
+            }
+            else {
+                this.index++;
+                this.index %= this.buttons.length;        
+            }
+
+            this.unfocus(oriI);
+            this.focus(this.index);        
+        }        
+        else if(code == Phaser.Input.Keyboard.KeyCodes.ENTER || code == Phaser.Input.Keyboard.KeyCodes.SPACE) {
+            for(let i in this.buttons) {
+                if(this.buttons[i].focused) {
+                    this.buttons[i].click();
+                }
+            }
         }
-        else if(code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
-            this.index--;            
-            this.index += this.buttons.length;
-            this.index %= this.buttons.length;        
-        }
-        else {
-            return;
-        }
-        this.unfocus(oriI);
-        this.focus(this.index);        
     }
 }
 
@@ -112,6 +130,8 @@ class Button {
 
     inTween: PhTween;
     outTween: PhTween;
+
+    focused: boolean = false;
 
     desc: string;
     // auto scale
@@ -279,6 +299,11 @@ class Button {
             
         this.hoverState = 1;
 
+        this.focus();
+    }
+
+    
+    focus() {
         if(this.needInOutAutoAnimation) {            
             this.scene.tweens.add({
                 targets: this.animationTargets,
@@ -299,9 +324,14 @@ class Button {
             this.image.alpha = 0.55;
         }
         
-        if(this.toggleGroup) {
+        if(this.toggleGroup) {            
+            this.toggleGroup.updateIndexTo(this);
             this.toggleGroup.unfocusExept(this);
+            this.text.text = '>' + this.originalTitle + '  ';
         }
+
+
+        this.focused = true;
     }
 
     pointerout() {
@@ -312,6 +342,12 @@ class Button {
 
         this.hoverState = 0;
 
+        if(!this.toggleGroup) {
+            this.unfocus();            
+        }        
+    }
+
+    unfocus(){
         if(this.needInOutAutoAnimation) {
             this.scene.tweens.add({
                 targets: this.animationTargets,
@@ -331,7 +367,12 @@ class Button {
         if(this.image) {
             this.image.alpha = 1;
         }
-            
+
+        if(this.toggleGroup) {                        
+            this.text.text = this.originalTitle;
+        }
+
+        this.focused = false;
     }
 
     setToHoverChangeTextMode(hoverText: string) {

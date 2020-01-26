@@ -23,7 +23,7 @@ let hpRegFactor = 3;
 let initNormalHealth = 3;
 let init404Health = 2;
 
-let initNormalCount = 2;
+let initNormalCount = 0;
 let init404Count =1;
 
 let initCreateStep = 1;

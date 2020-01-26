@@ -172,7 +172,6 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
 
         this.firstSpawn();
         
-        this.startLoopCreateNormal();
 
         this.sc1().centerObject.centerProgres.fullEvent.on(()=>{
             this.create();
@@ -279,7 +278,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     getAwardForNormal() : number {
-        return -100 - this.normalNormalCount;
+        return +1;
+        // return -100 - this.normalNormalCount;
     }
 
     enemyEliminated(enemy: Enemy, damagedBy: string) {

@@ -393,9 +393,12 @@ class Scene1 extends BaseScene {
 
     initStHome() {
         let state = this.mainFsm.getState("Home");
+        state.setOnExit(s=>{
+            this.centerObject.playerInputText.pressAnyToStart.setVisible(false);
+        })
         state.setAsStartup().setOnEnter(s => {
             this.addCounter(Counter.IntoHome);
-
+            this.centerObject.playerInputText.pressAnyToStart.setVisible(true);
             this.subtitle.startMonologue();
             this.dwitterBKG.toBlinkMode();
             this.dwitterBKG.toBlinkMode();
@@ -428,7 +431,7 @@ class Scene1 extends BaseScene {
         this.centerObject.playerInputText.changeTitleToChanged();
         this.dwitterBKG.toStaticMode();
         this.subtitle.stopMonologue();
-
+        
 
         // let firstIn = this.firstIntoHome();
         let name = this.getUserName();

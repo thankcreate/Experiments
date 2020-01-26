@@ -12,6 +12,7 @@ class PlayerInputText {
     text: PhText;
     underlieText: PhText
 
+    pressAnyToStart: PhText;
     title: PhText; // dummy title
     titleSize = 24;
     titleStyle: TextStyle;
@@ -70,6 +71,29 @@ class PlayerInputText {
             dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         // this.title.setWordWrapWidth(1000);
         this.parentContainer.add(this.title);        
+
+        let pressStyle = {
+            fontSize: 18 + 'px',
+            fill: '#FFFFFF',
+            fontFamily: gameplayConfig.titleFontFamily
+        }
+        this.pressAnyToStart = this.scene.add.text(this.title.x, this.title.y, "Press any key to start", pressStyle)
+            .setAlpha(0.5)
+            .setOrigin(0, 1)
+            .setWordWrapWidth(this.getAvailableWidth(), true);
+        // this.pressAnyToStart.text = 'TO START PRESS ANY KEY';
+        // this.pressAnyToStart.text = 'To start\npress any key';
+
+        this.scene.tweens.add({
+            targets: this.pressAnyToStart,
+            alpha: 1,
+            yoyo: true,
+            duration: 800,
+            loopDelay: 1000,
+            loop: -1,
+        });
+        this.pressAnyToStart.text = 'Press any to start';
+        this.parentContainer.add(this.pressAnyToStart);        
 
         this.initAutoKeywords();
     }
@@ -427,6 +451,7 @@ class PlayerInputText {
             gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
         
         this.title.setText(toShowText);        
+        this.pressAnyToStart.setVisible(false);
 
         if (this.titleOut)
             this.titleOut.stop();
@@ -440,14 +465,18 @@ class PlayerInputText {
     titleOut: PhTween;
     hideTitle() {
         this.title.setText(gameplayConfig.titleOriginal);
+        this.pressAnyToStart.setVisible(true);
 
         if (this.titleIn)
             this.titleIn.stop();
 
+        // Since we have a 'Press any to start' label now
+        // make a exit transition hideout here will overlap with the 'Press any to start'
+        // Hence, we make the duration to be 1
         this.titleOut = this.scene.tweens.add({
             targets: this.title,
             alpha: 0,
-            duration: 250,
+            duration: 1,
         });
     }
 

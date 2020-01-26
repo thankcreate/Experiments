@@ -281,7 +281,7 @@ class Button {
             });
             timeline.add({
                 targets: this.animationTargets,
-                scale: 1.25,
+                scale: 1.16,
                 duration: 90,
             });
             timeline.play();
@@ -307,7 +307,7 @@ class Button {
         if(this.needInOutAutoAnimation) {            
             this.scene.tweens.add({
                 targets: this.animationTargets,
-                scale: 1.25,
+                scale: 1.16,
                 duration: 100,
             })
         }

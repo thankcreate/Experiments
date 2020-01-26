@@ -355,8 +355,12 @@ class Scene1 extends BaseScene {
     }
     initStHome() {
         let state = this.mainFsm.getState("Home");
+        state.setOnExit(s => {
+            this.centerObject.playerInputText.pressAnyToStart.setVisible(false);
+        });
         state.setAsStartup().setOnEnter(s => {
             this.addCounter(Counter.IntoHome);
+            this.centerObject.playerInputText.pressAnyToStart.setVisible(true);
             this.subtitle.startMonologue();
             this.dwitterBKG.toBlinkMode();
             this.dwitterBKG.toBlinkMode();
@@ -1289,13 +1293,16 @@ class Scene1L4 extends Scene1 {
             // }            
             this.hud.showContainerRight();
         })
-            .addSubtitleAction(this.subtitle, this.getUserName() + ", seems I have to admit that I'm a bad experiment designer", true)
+            .addSubtitleAction(this.subtitle, this.getUserName() + "!\n Seems I have to admit that I'm a bad experiment designer", true)
             .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .addAction(s => {
-            //this.hud.showContainerRight();            
+            this.hud.showContainerRight();
         })
             .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
             .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
+            .addAction(s => {
+            this.getCurClickerStrategy().startLoopCreateNormal();
+        })
             .addFinishAction();
     }
     initStateIdle() {
@@ -2276,7 +2283,7 @@ class Button {
             });
             timeline.add({
                 targets: this.animationTargets,
-                scale: 1.25,
+                scale: 1.16,
                 duration: 90,
             });
             timeline.play();
@@ -2296,7 +2303,7 @@ class Button {
         if (this.needInOutAutoAnimation) {
             this.scene.tweens.add({
                 targets: this.animationTargets,
-                scale: 1.25,
+                scale: 1.16,
                 duration: 100,
             });
         }
@@ -2558,7 +2565,7 @@ let autoTurnInterval = 1000;
 let hpRegFactor = 3;
 let initNormalHealth = 3;
 let init404Health = 2;
-let initNormalCount = 2;
+let initNormalCount = 0;
 let init404Count = 1;
 let initCreateStep = 1;
 let initCreateMax = 3;
@@ -6123,6 +6130,27 @@ class PlayerInputText {
         this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         // this.title.setWordWrapWidth(1000);
         this.parentContainer.add(this.title);
+        let pressStyle = {
+            fontSize: 18 + 'px',
+            fill: '#FFFFFF',
+            fontFamily: gameplayConfig.titleFontFamily
+        };
+        this.pressAnyToStart = this.scene.add.text(this.title.x, this.title.y, "Press any key to start", pressStyle)
+            .setAlpha(0.5)
+            .setOrigin(0, 1)
+            .setWordWrapWidth(this.getAvailableWidth(), true);
+        // this.pressAnyToStart.text = 'TO START PRESS ANY KEY';
+        // this.pressAnyToStart.text = 'To start\npress any key';
+        this.scene.tweens.add({
+            targets: this.pressAnyToStart,
+            alpha: 1,
+            yoyo: true,
+            duration: 800,
+            loopDelay: 1000,
+            loop: -1,
+        });
+        this.pressAnyToStart.text = 'Press any to start';
+        this.parentContainer.add(this.pressAnyToStart);
         this.initAutoKeywords();
     }
     /**
@@ -6407,6 +6435,7 @@ class PlayerInputText {
         let toShowText = showOriginal ?
             gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
         this.title.setText(toShowText);
+        this.pressAnyToStart.setVisible(false);
         if (this.titleOut)
             this.titleOut.stop();
         this.titleIn = this.scene.tweens.add({
@@ -6417,12 +6446,16 @@ class PlayerInputText {
     }
     hideTitle() {
         this.title.setText(gameplayConfig.titleOriginal);
+        this.pressAnyToStart.setVisible(true);
         if (this.titleIn)
             this.titleIn.stop();
+        // Since we have a 'Press any to start' label now
+        // make a exit transition hideout here will overlap with the 'Press any to start'
+        // Hence, we make the duration to be 1
         this.titleOut = this.scene.tweens.add({
             targets: this.title,
             alpha: 0,
-            duration: 250,
+            duration: 1,
         });
     }
     // If you want to force set a status of the title like set title.alpha = 0
@@ -7248,7 +7281,6 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         this.lastAutoTypeTime = this.enemyManager.accTime - 1;
         this.lastAutoTurnTime = this.enemyManager.accTime - 1;
         this.firstSpawn();
-        this.startLoopCreateNormal();
         this.sc1().centerObject.centerProgres.fullEvent.on(() => {
             this.create();
         });
@@ -7328,7 +7360,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return sc;
     }
     getAwardForNormal() {
-        return -100 - this.normalNormalCount;
+        return +1;
+        // return -100 - this.normalNormalCount;
     }
     enemyEliminated(enemy, damagedBy) {
         let clickerType = enemy.clickerType;

@@ -4130,6 +4130,14 @@ class EnemyText extends Enemy {
  * This class is created to solve the origin problem of PhGraphics
  */
 class Figure extends Wrapper {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        let graphics = this.scene.add.graphics();
+        this.applyTarget(graphics);
+        this.drawGraphics();
+        this.calcGraphicsPosition();
+    }
     handleConfig(config) {
         if (notSet(config))
             config = {};
@@ -4144,14 +4152,6 @@ class Figure extends Wrapper {
         if (notSet(config.btns))
             config.btns = ['OK'];
         this.config = config;
-    }
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, null);
-        this.handleConfig(config);
-        let graphics = this.scene.add.graphics();
-        this.applyTarget(graphics);
-        this.drawGraphics();
-        this.calcGraphicsPosition();
     }
     drawGraphics() {
         // To be implemented in inheritance
@@ -5817,14 +5817,14 @@ class Hud extends Wrapper {
     }
 }
 class LeaderboardManager {
+    constructor() {
+        this.updateInfo();
+    }
     static getInstance() {
         if (!LeaderboardManager.instance) {
             LeaderboardManager.instance = new LeaderboardManager();
         }
         return LeaderboardManager.instance;
-    }
-    constructor() {
-        this.updateInfo();
     }
     updateInfo() {
         let request = { count: 30 };

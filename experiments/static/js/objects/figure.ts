@@ -14,7 +14,8 @@ type FigureConfig = {
     padding?: number,
     title?: string,
     contentPadding?: number,
-    content?: string
+    content?: string,
+    topTitleGap?: number,
     titleContentGap?: number,
     contentBtnGap?: number
     btnToBottom?: number,

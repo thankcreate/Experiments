@@ -5,7 +5,7 @@
  */
 enum GameMode {
     Normal,
-    Zen,
+    Zen
 }
 
 /**
@@ -790,5 +790,9 @@ class Scene1 extends BaseScene {
     getUserName() {
         return getCookie('name');
     }
+
+    needHud() : boolean{
+        return true;
+    }    
 }
 

@@ -37,9 +37,26 @@ function getUrlParams() {
     return params;
 }
 
+
+function getCurrentLevelRaw() : string {
+    let params = getUrlParams();
+    let index = 1;
+    return params['level'];
+}
+
+/**
+ * If 'Paper' return -1,
+ * otherwise, return the given number
+ */
 function getCurLevelIndex() : number{        
     let params = getUrlParams();
     let index = 1;
+
+    let rawLevel = params['level'] as string;
+    if(rawLevel == 'Paper') {
+        return -1;
+    }
+
     if(params['level'] != null) {
         index = parseInt(params['level']);
     }

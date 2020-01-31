@@ -12,6 +12,9 @@ function getLogicWidth() {
     }
 }
 
+function getLogicHeight() {
+    return phaserConfig.scale.height;
+}
 
 function myResize(gm) {
     // console.log('width: ' + window.innerWidth);

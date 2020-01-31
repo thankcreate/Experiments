@@ -86,7 +86,7 @@ class Controller extends BaseScene {
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
         // this.scene.launch('Scene1L2');      
-        let index = getCurLevelIndex();
+        let index = getCurrentLevelRaw();
         this.scene.launch('Scene1L' + index);
     }
     playSpeechInController(text, timeOut = 4000) {
@@ -684,6 +684,9 @@ class Scene1 extends BaseScene {
     }
     getUserName() {
         return getCookie('name');
+    }
+    needHud() {
+        return true;
     }
 }
 class Scene1L1 extends Scene1 {
@@ -1353,11 +1356,77 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "Voice from Tron: Hi, this is my current thesis progress. \n Thank you for playing!", false);
     }
 }
+class Scene1LPaper extends Scene1 {
+    constructor() {
+        super('Scene1LPaper');
+    }
+    create() {
+        super.create();
+        this.createPaper();
+        this.addCounter(Counter.IntoHome, 1);
+        // this.initShake();
+        this.initNormalGameFsm();
+        // Get access to the camera!
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            var video = document.getElementById('video');
+            // Not adding `{ audio: true }` since we only want video now
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+                // video.src = window.URL.createObjectURL(stream);
+                video.srcObject = stream;
+                video.play();
+            });
+        }
+    }
+    createPaper() {
+        this.paper = new Paper(this, this.container, 0, getLogicHeight() / 2, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 0,
+            width: 1000,
+            height: 900,
+            title: 'Procedural Rhetoric',
+            topTitleGap: 30,
+            titleContentGap: 80,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
+            content: paperContent,
+        });
+        this.paper.hide();
+        this.paper.setOrigin(0.5, 1);
+    }
+    gamePlayExit() {
+        this.paper.hide();
+    }
+    initNormalGameFsm() {
+        this.initStNormalDefault();
+        this.initStStart();
+        this.updateObjects.push(this.normalGameFsm);
+    }
+    initStNormalDefault() {
+        let state = this.normalGameFsm.getState("Default");
+        state.addEventAction('START');
+    }
+    initStStart() {
+        let state = this.normalGameFsm.getState("Start");
+        state.addAction(s => {
+            this.paper.show();
+        });
+    }
+    getNormalGameFsm() {
+        return normal_1_paper;
+    }
+    needHud() {
+        return false;
+    }
+}
 /// <reference path="scenes/scenes-1.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-1-3.ts" />
 /// <reference path="scenes/scene-1-4.ts" />
+/// <reference path="scenes/scene-1-paper.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
@@ -1407,7 +1476,7 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1]
+    scene: [Controller, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -1545,6 +1614,9 @@ function getLogicWidth() {
     else {
         return phaserConfig.scale.minWidth;
     }
+}
+function getLogicHeight() {
+    return phaserConfig.scale.height;
 }
 function myResize(gm) {
     // console.log('width: ' + window.innerWidth);
@@ -1706,9 +1778,22 @@ function getUrlParams() {
     let params = parseUrl(path);
     return params;
 }
+function getCurrentLevelRaw() {
+    let params = getUrlParams();
+    let index = 1;
+    return params['level'];
+}
+/**
+ * If 'Paper' return -1,
+ * otherwise, return the given number
+ */
 function getCurLevelIndex() {
     let params = getUrlParams();
     let index = 1;
+    let rawLevel = params['level'];
+    if (rawLevel == 'Paper') {
+        return -1;
+    }
     if (params['level'] != null) {
         index = parseInt(params['level']);
     }
@@ -4131,14 +4216,6 @@ class EnemyText extends Enemy {
  * This class is created to solve the origin problem of PhGraphics
  */
 class Figure extends Wrapper {
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, null);
-        this.handleConfig(config);
-        let graphics = this.scene.add.graphics();
-        this.applyTarget(graphics);
-        this.drawGraphics();
-        this.calcGraphicsPosition();
-    }
     handleConfig(config) {
         if (notSet(config))
             config = {};
@@ -4153,6 +4230,14 @@ class Figure extends Wrapper {
         if (notSet(config.btns))
             config.btns = ['OK'];
         this.config = config;
+    }
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        let graphics = this.scene.add.graphics();
+        this.applyTarget(graphics);
+        this.drawGraphics();
+        this.calcGraphicsPosition();
     }
     drawGraphics() {
         // To be implemented in inheritance
@@ -5143,6 +5228,18 @@ var normal_1_4 = {
 };
 farray.push(normal_1_4);
 /// <reference path="fsm.ts" />
+var normal_1_paper = {
+    name: 'Normal_1_Papaer',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+    ],
+    states: [
+    // {name: 'Idle', color:'Green'}
+    ]
+};
+farray.push(normal_1_paper);
+/// <reference path="fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -5700,8 +5797,11 @@ class Hud extends Wrapper {
         let tg = [];
         if (mode === GameMode.Normal)
             tg = [this.hp.inner, this.scoreText];
-        else
+        else if (mode == GameMode.Zen)
             tg = [this.scoreText];
+        if (!this.scene.needHud()) {
+            tg = [];
+        }
         let dt = 1000;
         this.inTwenn = this.scene.tweens.add({
             targets: tg,
@@ -5743,6 +5843,9 @@ class Hud extends Wrapper {
             tg = [this.hp.inner, this.scoreText];
         else
             tg = [this.scoreText];
+        if (!this.scene.needHud()) {
+            tg = [];
+        }
         let dt = 1000;
         this.outTween = this.scene.tweens.add({
             targets: tg,
@@ -5818,14 +5921,14 @@ class Hud extends Wrapper {
     }
 }
 class LeaderboardManager {
-    constructor() {
-        this.updateInfo();
-    }
     static getInstance() {
         if (!LeaderboardManager.instance) {
             LeaderboardManager.instance = new LeaderboardManager();
         }
         return LeaderboardManager.instance;
+    }
+    constructor() {
+        this.updateInfo();
     }
     updateInfo() {
         let request = { count: 30 };
@@ -6041,6 +6144,76 @@ class Overlay extends Wrapper {
     }
     isInShow() {
         return this.inShow;
+    }
+}
+let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
+tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric
+entails persuasion—to change opinion or action. Following the contemporary model, procedural rhetoric entails expression—to convey ideas effectively. Procedural rhetoric is a sub-
+domain of procedural authorship; its arguments are made not through the construction of words or images, but through the authorship of rules of behavior, the construction of dy-
+namic models. In computation, those rules are authored in code, through the practice of programming.
+My rationale for suggesting a new rhetorical domain is very similar to the one that motivates visual rhetoricians. Just as photography, motion graphics, moving images, and illustra-
+tions have become pervasive in contemporary society, so have computer hardware, software, and video games. Just as visual rhetoricians argue that verbal and written rhetorics inade-
+quately account for the unique properties of the visual expression, so I argue that verbal, written, and visual rhetorics inadequately account for the unique properties of procedural
+expression. A theory of procedural rhetoric is needed to make commensurate judgments about the software systems we encounter everyday and to allow a more sophisticated proce-
+dural authorship with both persuasion and expression as its goal. As a high process intensity medium, video games can beneﬁt signiﬁcantly from a study of procedural rhetoric.
+Procedural rhetoric affords a new and promising way to make claims about how things work. As I argued earlier, video games do not simply distract or entertain with empty, meaningless
+content. Rather, video games can make claims about the world. But when they do so, they do it not with oral speech, nor in writing, nor even with images. Rather, video games
+make argument with processes. Procedural rhetoric is the practice of effective persuasion and expression using processes. Since assembling rules together to describe the function
+of systems produces procedural representation, assembling particular rules that suggest a particular function of a particular system characterizes procedural rhetoric.
+`;
+class Paper extends Figure {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, config);
+        this.othersContainer = this.scene.add.container(0, 0);
+        this.inner.add(this.othersContainer);
+        let width = config.width;
+        let height = config.height;
+        // title
+        this.fillTitle();
+        // content
+        this.fillContent();
+        // init scroll event
+        this.initScrollEvent();
+    }
+    initScrollEvent() {
+        this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+            this.othersContainer.y += deltaY * -0.5;
+        });
+    }
+    fillTitle() {
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let titleStyle = getDefaultTextStyle();
+        titleStyle.fontSize = "40px";
+        this.title = this.scene.add.text(width / 2, config.padding + 50 + config.topTitleGap, config.title, titleStyle).setOrigin(0.5).setAlign('center');
+        this.othersContainer.add(this.title);
+    }
+    fillContent() {
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let contentStyle = getDefaultTextStyle();
+        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
+        this.content.setFontSize(28);
+        this.content.setOrigin(0, 0).setAlign('left');
+        this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
+        this.othersContainer.add(this.content);
+    }
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+        graphics.clear();
+        graphics.fillStyle(config.fillColor, config.fillAlpha);
+        graphics.fillRect(0, 0, config.width, config.height);
+        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+        graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);
+    }
+    show() {
+        this.inner.setVisible(true);
+    }
+    hide() {
+        this.inner.setVisible(false);
     }
 }
 class PauseLayer extends Wrapper {

@@ -3,7 +3,7 @@ class UI extends Wrapper<PhText>{
     footer: Footer;
     leaderboardBtn: Button;
     
-    hud: Hud;        
+    hud: Hud;        // hp, score, etc...
     footerInitPosi: PhPoint;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {

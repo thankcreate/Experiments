@@ -483,9 +483,12 @@ class Hud extends Wrapper<PhText> {
         let tg = [];
         if(mode === GameMode.Normal)
             tg = [this.hp.inner, this.scoreText]
-        else
-            tg = [this.scoreText]
+        else if(mode == GameMode.Zen) 
+            tg = [this.scoreText]       
 
+        if(!(this.scene as Scene1).needHud()){
+            tg = [];
+        }
 
         let dt = 1000;
         this.inTwenn = this.scene.tweens.add({
@@ -537,6 +540,9 @@ class Hud extends Wrapper<PhText> {
         else
             tg = [this.scoreText]
 
+        if(!(this.scene as Scene1).needHud()){
+            tg = [];
+        }
             
         let dt = 1000;
         this.outTween = this.scene.tweens.add({

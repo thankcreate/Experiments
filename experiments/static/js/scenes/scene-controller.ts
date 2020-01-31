@@ -112,7 +112,7 @@ class Controller extends BaseScene {
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
         // this.scene.launch('Scene1L2');      
-        let index = getCurLevelIndex();        
+        let index = getCurrentLevelRaw();        
         this.scene.launch('Scene1L' + index);      
     }
 

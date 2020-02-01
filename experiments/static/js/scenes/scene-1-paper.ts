@@ -17,22 +17,24 @@ class Scene1LPaper extends Scene1 {
         this.initNormalGameFsm();              
     
         
-        // Get access to the camera!
-        if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            var video = document.getElementById('video') as any;
-            // Not adding `{ audio: true }` since we only want video now
-            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-                // video.src = window.URL.createObjectURL(stream);
-                video.srcObject = stream;
-                video.play();
-            });
-        }
+        this.initPaperButtonCallback();
+    }
+
+    initPaperButtonCallback() {
+        this.paper.continueBtn.clickedEvent.on(b=>{
+            if(this.paper.checkboxImg.getData('on')) {
+                this.normalGameFsm.event('CONTINUE');
+            }
+            else {
+                alert('You should confirm you have read the paper before continue');
+            }            
+        });
     }
 
     
 
     createPaper() {
-        this.paper = new Paper(this, this.container, 0, getLogicHeight() / 2, {
+        this.paper = new Paper(this, this.enemyManager, 0, getLogicHeight() / 2, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
             lineWidth: 6,
@@ -57,15 +59,19 @@ class Scene1LPaper extends Scene1 {
         this.paper.hide();
     }
     
-
+    confirmCount = 0;
     initNormalGameFsm() {        
         this.initStNormalDefault();
         this.initStStart();
+        this.initConfirm1();
         this.updateObjects.push(this.normalGameFsm);        
     }
     
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
+        state.addAction(s=>{
+            this.confirmCount = 0;
+        })
         state.addEventAction('START');
     }    
 
@@ -73,6 +79,27 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s=>{
             this.paper.show();
+
+                // Get access to the camera!
+            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                var video = document.getElementById('video') as any;
+                // Not adding `{ audio: true }` since we only want video now
+                navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                    // video.src = window.URL.createObjectURL(stream);
+                    video.srcObject = stream;
+                    //video.play();
+                });
+            }
+        });
+    }
+
+    initConfirm1() {
+        let state = this.normalGameFsm.getState('Confirm_1');
+        state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
+        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previouse performance, \n It should take you 30 seconds to complete the reading at least', false);        
+        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", false);
+        state.addAction(s=>{
+
         });
     }
     

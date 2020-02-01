@@ -44,6 +44,12 @@ class Scene1 extends BaseScene {
     container: PhContainer;
 
     /**
+     * subtitleContainer 
+     * aligned to the center
+     */
+    subtitleContainer: PhContainer;
+
+    /**
      * middle is also aligned to the center
      */
     midContainder: PhContainer;
@@ -134,6 +140,10 @@ class Scene1 extends BaseScene {
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.image('popup_bubble_left', 'assets/popup_bubble_left.png');
         this.load.image('popup_bubble_bottom', 'assets/popup_bubble_bottom.png');
+        this.load.image('checkbox_on', 'assets/checkbox_on.png');
+        this.load.image('checkbox_off', 'assets/checkbox_off.png');
+
+        this.load.image('rect_button', 'assets/rect_button.png');
         
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
@@ -184,6 +194,7 @@ class Scene1 extends BaseScene {
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
 
         this.container = this.add.container(400, 299);
+        this.subtitleContainer = this.add.container(400, 299);
         this.midContainder = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
 
@@ -212,7 +223,7 @@ class Scene1 extends BaseScene {
 
 
         // Subtitle
-        this.subtitle = new Subtitle(this, this.container, 0, 370);
+        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
 
 
         // Back button
@@ -306,6 +317,7 @@ class Scene1 extends BaseScene {
         var h = phaserConfig.scale.height;
 
         this.container.setPosition(w / 2, h / 2);
+        this.subtitleContainer.setPosition(w / 2, h / 2);
         this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
 

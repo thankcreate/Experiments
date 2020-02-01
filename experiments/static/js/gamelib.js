@@ -166,6 +166,9 @@ class Scene1 extends BaseScene {
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.image('popup_bubble_left', 'assets/popup_bubble_left.png');
         this.load.image('popup_bubble_bottom', 'assets/popup_bubble_bottom.png');
+        this.load.image('checkbox_on', 'assets/checkbox_on.png');
+        this.load.image('checkbox_off', 'assets/checkbox_off.png');
+        this.load.image('rect_button', 'assets/rect_button.png');
         this.load.audio("sfx_match_1", "assets/audio/Match_1.wav");
         this.load.audio("sfx_match_2", "assets/audio/Match_2.wav");
         this.load.audio("sfx_match_3", "assets/audio/Match_3.wav");
@@ -207,6 +210,7 @@ class Scene1 extends BaseScene {
         this.sfxMatches.push(this.sound.add("sfx_match_2"));
         this.sfxMatches.push(this.sound.add("sfx_match_3"));
         this.container = this.add.container(400, 299);
+        this.subtitleContainer = this.add.container(400, 299);
         this.midContainder = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         // Center cicle-like object
@@ -226,7 +230,7 @@ class Scene1 extends BaseScene {
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
         // Subtitle
-        this.subtitle = new Subtitle(this, this.container, 0, 370);
+        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
         // Back button
         this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
         this.backBtn.text.setColor('#000000');
@@ -287,6 +291,7 @@ class Scene1 extends BaseScene {
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
+        this.subtitleContainer.setPosition(w / 2, h / 2);
         this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
@@ -1359,6 +1364,7 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
+        this.confirmCount = 0;
     }
     create() {
         super.create();
@@ -1366,16 +1372,17 @@ class Scene1LPaper extends Scene1 {
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
-        // Get access to the camera!
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            var video = document.getElementById('video');
-            // Not adding `{ audio: true }` since we only want video now
-            navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
-                // video.src = window.URL.createObjectURL(stream);
-                video.srcObject = stream;
-                video.play();
-            });
-        }
+        this.initPaperButtonCallback();
+    }
+    initPaperButtonCallback() {
+        this.paper.continueBtn.clickedEvent.on(b => {
+            if (this.paper.checkboxImg.getData('on')) {
+                this.normalGameFsm.event('CONTINUE');
+            }
+            else {
+                alert('You should confirm you have read the paper before continue');
+            }
+        });
     }
     createPaper() {
         this.paper = new Paper(this, this.container, 0, getLogicHeight() / 2, {
@@ -1402,16 +1409,38 @@ class Scene1LPaper extends Scene1 {
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
+        this.initConfirm1();
         this.updateObjects.push(this.normalGameFsm);
     }
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
+        state.addAction(s => {
+            this.confirmCount = 0;
+        });
         state.addEventAction('START');
     }
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s => {
             this.paper.show();
+            // Get access to the camera!
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                var video = document.getElementById('video');
+                // Not adding `{ audio: true }` since we only want video now
+                navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+                    // video.src = window.URL.createObjectURL(stream);
+                    video.srcObject = stream;
+                    //video.play();
+                });
+            }
+        });
+    }
+    initConfirm1() {
+        let state = this.normalGameFsm.getState('Confirm_1');
+        state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
+        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previouse performance, \n It should take you 30 seconds to complete the reading at least', false);
+        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", false);
+        state.addAction(s => {
         });
     }
     getNormalGameFsm() {
@@ -5233,6 +5262,7 @@ var normal_1_paper = {
     initial: "Default",
     events: [
         { name: 'START', from: 'Default', to: 'Start' },
+        { name: 'CONTINUE', from: 'Start', to: 'Confirm_1' }
     ],
     states: [
     // {name: 'Idle', color:'Green'}
@@ -6172,6 +6202,8 @@ class Paper extends Figure {
         this.fillTitle();
         // content
         this.fillContent();
+        // toggle
+        this.fillToggle();
         // init scroll event
         this.initScrollEvent();
     }
@@ -6199,6 +6231,54 @@ class Paper extends Figure {
         this.content.setOrigin(0, 0).setAlign('left');
         this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
         this.othersContainer.add(this.content);
+    }
+    fillToggle() {
+        let config = this.config;
+        let contentY = this.content.getBottomLeft().y;
+        let padding = config.padding + config.contentPadding;
+        // checkbox
+        let checkboxImg = this.scene.add.image(padding, contentY + 100, 'checkbox_off');
+        checkboxImg.setInteractive();
+        checkboxImg.setOrigin(0, 0);
+        checkboxImg.setData('on', false);
+        checkboxImg.on('pointerup', () => {
+            this.checkboxClicked();
+        });
+        this.othersContainer.add(checkboxImg);
+        this.checkboxImg = checkboxImg;
+        // text
+        let stl = getDefaultTextStyle();
+        stl.fontSize = '26px';
+        let text = this.scene.add.text(checkboxImg.getBottomRight().x + 10, checkboxImg.getBottomRight().y - 5, 'Click to confirm you have completed the reading', stl);
+        text.setOrigin(0, 1);
+        text.setInteractive();
+        text.on('pointerup', () => {
+            this.checkboxClicked();
+        });
+        this.othersContainer.add(text);
+        // continue button
+        let checkboxY = checkboxImg.getBottomLeft().y;
+        let btn = new Button(this.scene, this.othersContainer, padding + 120, checkboxY + 40, null, '[Continue]');
+        btn.text.setColor('#000000');
+        btn.text.setFontSize(50);
+        btn.needHandOnHover = true;
+        btn.needInOutAutoAnimation = false;
+        this.continueBtn = btn;
+    }
+    /**
+     * The function 'checkboxClicked' handle both the event invoked
+     * from clicking on the checkbox and the following text
+     */
+    checkboxClicked() {
+        let checkboxImg = this.checkboxImg;
+        if (checkboxImg.getData('on')) {
+            checkboxImg.setTexture('checkbox_off');
+            checkboxImg.setData('on', false);
+        }
+        else {
+            checkboxImg.setTexture('checkbox_on');
+            checkboxImg.setData('on', true);
+        }
     }
     drawGraphics() {
         let graphics = this.wrappedObject;

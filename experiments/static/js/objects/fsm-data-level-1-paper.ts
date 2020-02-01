@@ -5,6 +5,7 @@ var normal_1_paper = {
     initial: "Default",
     events: [
         {name: 'START', from:'Default', to: 'Start'},
+        {name: 'CONTINUE', from:'Start', to:'Confirm_1'}
     ],
     states: [
         // {name: 'Idle', color:'Green'}

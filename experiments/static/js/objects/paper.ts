@@ -3,6 +3,7 @@ class Paper extends Figure {
     content: PhText;
 
     checkboxImg: PhImage;
+    checkboxDesc: PhText;
     continueBtn: Button;
 
     // updated when called setOrigin    
@@ -104,6 +105,7 @@ class Paper extends Figure {
             this.checkboxClicked();
         });
         this.othersContainer.add(text);        
+        this.checkboxDesc = text;
 
         // continue button
         let checkboxY = checkboxImg.getBottomLeft().y;

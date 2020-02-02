@@ -1364,11 +1364,16 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
+        this.COUNT_ALL_TIME = 30;
+        this.paperWidth = 1000;
+        this.paperHeight = 900;
         this.confirmCount = 0;
+        this.inCountDown = false;
     }
     create() {
         super.create();
         this.createPaper();
+        this.createCountdown();
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
@@ -1390,8 +1395,8 @@ class Scene1LPaper extends Scene1 {
             lineColor: 0x000000,
             lineWidth: 6,
             padding: 0,
-            width: 1000,
-            height: 900,
+            width: this.paperWidth,
+            height: this.paperHeight,
             title: 'Procedural Rhetoric',
             topTitleGap: 30,
             titleContentGap: 80,
@@ -1404,6 +1409,16 @@ class Scene1LPaper extends Scene1 {
         this.paper.setOrigin(0.5, 1);
         this.paper.updateDefaultY();
     }
+    createCountdown() {
+        let style = getDefaultTextStyle();
+        style.fontSize = '40px';
+        this.countDown = this.add.text(-this.paperWidth / 2 - 10, getLogicHeight() / 2 - this.paperHeight - 2, ' 00:30 ', style);
+        this.countDown.setColor('#ffffff');
+        this.countDown.setBackgroundColor('#000000');
+        this.countDown.setOrigin(1, 0);
+        this.container.add(this.countDown);
+        this.countDown.setVisible(false);
+    }
     gamePlayStarted() {
         super.gamePlayStarted();
         this.subtitle.wrappedObject.setBackgroundColor('#000000');
@@ -1414,6 +1429,7 @@ class Scene1LPaper extends Scene1 {
         this.subtitle.wrappedObject.setBackgroundColor('');
         this.subtitle.wrappedObject.setColor('#000000');
         this.paper.hide();
+        this.countDown.setVisible(false);
     }
     initNormalGameFsm() {
         this.initStNormalDefault();
@@ -1446,6 +1462,10 @@ class Scene1LPaper extends Scene1 {
     }
     initConfirm1() {
         let state = this.normalGameFsm.getState('Confirm_1');
+        state.setOnExit(s => {
+            clearInterval(this.countDownInterval);
+            this.inCountDown = false;
+        });
         state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performance,\n It should take you 30 seconds to complete the reading at least', false);
         state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", true, null, null, 2000);
@@ -1457,6 +1477,46 @@ class Scene1LPaper extends Scene1 {
             y: this.paper.defaultY,
             duration: 500,
         });
+        state.addAction(s => {
+            this.setCountDownLlb(this.COUNT_ALL_TIME);
+            this.remainingTime = this.COUNT_ALL_TIME;
+            this.countDown.setVisible(true);
+            this.inCountDown = true;
+            this.countDownInterval = setInterval(() => {
+                this.updateCountDown();
+            }, 1000);
+        });
+    }
+    setCountDownLlb(val) {
+        let twoDig = val + '';
+        if (val < 10) {
+            twoDig = '0' + val;
+        }
+        if (val == 0) {
+            twoDig = '00';
+        }
+        this.countDown.text = ' 00:' + twoDig + ' ';
+    }
+    update(time, dt) {
+        super.update(time, dt);
+        if (this.inCountDown) {
+            this.paper.checkboxImg.removeInteractive();
+            this.paper.checkboxDesc.removeInteractive();
+            this.paper.checkboxDesc.setAlpha(0.3);
+        }
+        else {
+            this.paper.checkboxImg.setInteractive();
+            this.paper.checkboxDesc.setInteractive();
+            this.paper.checkboxDesc.setAlpha(1);
+        }
+    }
+    updateCountDown() {
+        --this.remainingTime;
+        this.setCountDownLlb(this.remainingTime);
+        if (this.remainingTime == 0) {
+            this.inCountDown = false;
+            clearInterval(this.countDownInterval);
+        }
     }
     getNormalGameFsm() {
         return normal_1_paper;
@@ -6278,6 +6338,7 @@ class Paper extends Figure {
             this.checkboxClicked();
         });
         this.othersContainer.add(text);
+        this.checkboxDesc = text;
         // continue button
         let checkboxY = checkboxImg.getBottomLeft().y;
         let btn = new Button(this.scene, this.othersContainer, padding + 120, checkboxY + 40, null, '[Continue]');

@@ -12,6 +12,8 @@ class Scene1LPaper extends Scene1 {
     create() {
         super.create();
         this.createPaper();
+
+
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();              
@@ -33,8 +35,8 @@ class Scene1LPaper extends Scene1 {
 
     
 
-    createPaper() {
-        this.paper = new Paper(this, this.enemyManager, 0, getLogicHeight() / 2, {
+    createPaper() {        
+        this.paper = new Paper(this, this.container, 0, getLogicHeight() / 2, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
             lineWidth: 6,
@@ -53,9 +55,23 @@ class Scene1LPaper extends Scene1 {
 
         this.paper.hide();
         this.paper.setOrigin(0.5, 1);
+        this.paper.updateDefaultY();
+    }
+
+    
+    gamePlayStarted() {
+        super.gamePlayStarted();
+        this.subtitle.wrappedObject.setBackgroundColor('#000000');
+        this.subtitle.wrappedObject.setColor('#ffffff');
     }
 
     gamePlayExit() {
+        super.gamePlayExit();
+
+        
+        this.subtitle.wrappedObject.setBackgroundColor('');
+        this.subtitle.wrappedObject.setColor('#000000');
+
         this.paper.hide();
     }
     
@@ -96,10 +112,15 @@ class Scene1LPaper extends Scene1 {
     initConfirm1() {
         let state = this.normalGameFsm.getState('Confirm_1');
         state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
-        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previouse performance, \n It should take you 30 seconds to complete the reading at least', false);        
-        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", false);
+        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performance,\n It should take you 30 seconds to complete the reading at least', false);        
+        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", true, null, null, 2000);
         state.addAction(s=>{
-
+            this.paper.reset();
+        })
+        state.addTweenAction(this, {
+            targets: this.paper.othersContainer,
+            y: this.paper.defaultY,
+            duration: 500,
         });
     }
     

@@ -1402,8 +1402,17 @@ class Scene1LPaper extends Scene1 {
         });
         this.paper.hide();
         this.paper.setOrigin(0.5, 1);
+        this.paper.updateDefaultY();
+    }
+    gamePlayStarted() {
+        super.gamePlayStarted();
+        this.subtitle.wrappedObject.setBackgroundColor('#000000');
+        this.subtitle.wrappedObject.setColor('#ffffff');
     }
     gamePlayExit() {
+        super.gamePlayExit();
+        this.subtitle.wrappedObject.setBackgroundColor('');
+        this.subtitle.wrappedObject.setColor('#000000');
         this.paper.hide();
     }
     initNormalGameFsm() {
@@ -1438,9 +1447,15 @@ class Scene1LPaper extends Scene1 {
     initConfirm1() {
         let state = this.normalGameFsm.getState('Confirm_1');
         state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
-        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previouse performance, \n It should take you 30 seconds to complete the reading at least', false);
-        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", false);
+        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performance,\n It should take you 30 seconds to complete the reading at least', false);
+        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", true, null, null, 2000);
         state.addAction(s => {
+            this.paper.reset();
+        });
+        state.addTweenAction(this, {
+            targets: this.paper.othersContainer,
+            y: this.paper.defaultY,
+            duration: 500,
         });
     }
     getNormalGameFsm() {
@@ -6207,10 +6222,17 @@ class Paper extends Figure {
         // init scroll event
         this.initScrollEvent();
     }
+    updateDefaultY() {
+        this.defaultY = this.othersContainer.y;
+    }
     initScrollEvent() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
             this.othersContainer.y += deltaY * -0.5;
         });
+    }
+    reset() {
+        this.checkboxImg.setTexture('checkbox_off');
+        this.checkboxImg.setData('on', false);
     }
     fillTitle() {
         let config = this.config;

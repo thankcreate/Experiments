@@ -5,6 +5,9 @@ class Paper extends Figure {
     checkboxImg: PhImage;
     continueBtn: Button;
 
+    // updated when called setOrigin    
+    defaultY: number;
+
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, config: FigureConfig) {
         super(scene, parentContainer, x, y, config)
         this.othersContainer = this.scene.add.container(0, 0);
@@ -27,6 +30,10 @@ class Paper extends Figure {
         this.initScrollEvent();
     }
 
+    updateDefaultY() {
+        this.defaultY = this.othersContainer.y;
+    }
+
     initScrollEvent() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {            
             this.othersContainer.y += deltaY * -0.5;
@@ -34,7 +41,10 @@ class Paper extends Figure {
         });
     }
 
-    
+    reset() {
+        this.checkboxImg.setTexture('checkbox_off');
+        this.checkboxImg.setData('on', false);
+    }
 
     fillTitle() {
         let config = this.config;

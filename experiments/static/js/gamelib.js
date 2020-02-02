@@ -1364,20 +1364,36 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
-        this.COUNT_ALL_TIME = 30;
+        this.COUNT_ALL_TIME = 3;
         this.paperWidth = 1000;
         this.paperHeight = 900;
         this.confirmCount = 0;
+        this.camAllowed = false;
         this.inCountDown = false;
     }
     create() {
         super.create();
         this.createPaper();
         this.createCountdown();
+        this.createNextLevelBtn();
         this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
         this.initPaperButtonCallback();
+        // this.beginVideo();
+    }
+    createNextLevelBtn() {
+        let btn = new Button(this, this.abContainer, getLogicWidth() - 315, getLogicHeight() - 490, null, ' -> Next Experiment ');
+        btn.text.setFontSize(60);
+        btn.text.setBackgroundColor('#000000');
+        btn.text.setColor('#ffffff');
+        btn.needHandOnHover = true;
+        btn.needInOutAutoAnimation = false;
+        btn.setEnable(false, false);
+        this.nextLevelBtn = btn;
+        btn.clickedEvent.on(() => {
+            window.location.replace(window.location.origin + "?level=4");
+        });
     }
     initPaperButtonCallback() {
         this.paper.continueBtn.clickedEvent.on(b => {
@@ -1423,6 +1439,7 @@ class Scene1LPaper extends Scene1 {
         super.gamePlayStarted();
         this.subtitle.wrappedObject.setBackgroundColor('#000000');
         this.subtitle.wrappedObject.setColor('#ffffff');
+        this.paper.continueBtn.setEnable(true, false);
     }
     gamePlayExit() {
         super.gamePlayExit();
@@ -1430,11 +1447,14 @@ class Scene1LPaper extends Scene1 {
         this.subtitle.wrappedObject.setColor('#000000');
         this.paper.hide();
         this.countDown.setVisible(false);
+        this.hideVideo();
+        this.nextLevelBtn.setEnable(false, false);
     }
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
         this.initConfirm1();
+        this.initConfirm2();
         this.updateObjects.push(this.normalGameFsm);
     }
     initStNormalDefault() {
@@ -1448,23 +1468,48 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s => {
             this.paper.show();
-            // Get access to the camera!
+            // this.beginVideo();
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 var video = document.getElementById('video');
                 // Not adding `{ audio: true }` since we only want video now
-                navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+                navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
                     // video.src = window.URL.createObjectURL(stream);
                     video.srcObject = stream;
                     //video.play();
+                    this.camAllowed = true;
+                })
+                    .catch(e => {
+                    console.log(e);
+                    this.camAllowed = false;
                 });
             }
         });
+    }
+    beginVideo() {
+        // Get access to the camera!
+        // if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        //     var video = document.getElementById('video') as any;
+        //     // Not adding `{ audio: true }` since we only want video now
+        //     navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+        //         // video.src = window.URL.createObjectURL(stream);
+        //         video.srcObject = stream;
+        //         //video.play();
+        //     });
+        // }
+        if (this.camAllowed)
+            $('#video').css('display', 'inline');
+    }
+    hideVideo() {
+        $('#video').css('display', 'none');
     }
     initConfirm1() {
         let state = this.normalGameFsm.getState('Confirm_1');
         state.setOnExit(s => {
             clearInterval(this.countDownInterval);
             this.inCountDown = false;
+        });
+        state.addAction(s => {
+            this.paper.continueBtn.canClick = false;
         });
         state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performance,\n It should take you 30 seconds to complete the reading at least', false);
@@ -1485,6 +1530,29 @@ class Scene1LPaper extends Scene1 {
             this.countDownInterval = setInterval(() => {
                 this.updateCountDown();
             }, 1000);
+        })
+            .addAction(s => {
+        });
+    }
+    initConfirm2() {
+        let state = this.normalGameFsm.getState('Confirm_2');
+        state.addAction(() => {
+        })
+            .addSubtitleAction(this.subtitle, this.getUserName() + "! I can see you are still not reading carefully", false)
+            .addAction(() => {
+            this.beginVideo();
+        })
+            .addSubtitleAction(this.subtitle, "Look at you!", false)
+            .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)
+            .addSubtitleAction(this.subtitle, "You know, when my advisor Mitu told\n me to put a camera here to check and make sure you really learn, \nI thought it's needless", false, null, null, 2500)
+            .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
+            .addSubtitleAction(this.subtitle, "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
+            .addAction(() => {
+            this.nextLevelBtn.setEnable(true, true);
+            this.paper.continueBtn.setEnable(false, true);
+        })
+            .addSubtitleAction(this.subtitle, "Let's continue our experiment.\n We'll find a way to help you out!", true, null, null, 5000)
+            .addAction(s => {
         });
     }
     setCountDownLlb(val) {
@@ -1496,6 +1564,12 @@ class Scene1LPaper extends Scene1 {
             twoDig = '00';
         }
         this.countDown.text = ' 00:' + twoDig + ' ';
+        if (val > 0) {
+            this.paper.checkboxDesc.text = 'Click to confirm you have completed the reading (' + val + 's)';
+        }
+        else {
+            this.paper.checkboxDesc.text = 'Click to confirm you have completed the reading';
+        }
     }
     update(time, dt) {
         super.update(time, dt);
@@ -1515,6 +1589,7 @@ class Scene1LPaper extends Scene1 {
         this.setCountDownLlb(this.remainingTime);
         if (this.remainingTime == 0) {
             this.inCountDown = false;
+            this.paper.continueBtn.canClick = true;
             clearInterval(this.countDownInterval);
         }
     }
@@ -5337,7 +5412,8 @@ var normal_1_paper = {
     initial: "Default",
     events: [
         { name: 'START', from: 'Default', to: 'Start' },
-        { name: 'CONTINUE', from: 'Start', to: 'Confirm_1' }
+        { name: 'CONTINUE', from: 'Start', to: 'Confirm_1' },
+        { name: 'CONTINUE', from: 'Confirm_1', to: 'Confirm_2' }
     ],
     states: [
     // {name: 'Idle', color:'Green'}

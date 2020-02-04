@@ -1380,6 +1380,8 @@ class Scene1LPaper extends Scene1 {
         // this.initShake();
         this.initNormalGameFsm();
         this.initPaperButtonCallback();
+        initFace();
+        // $('#affdex_elements').css('display', 'inline');
         // this.beginVideo();
     }
     createNextLevelBtn() {
@@ -1468,6 +1470,7 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s => {
             this.paper.show();
+            detector.start();
             // this.beginVideo();
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 var video = document.getElementById('video');
@@ -1496,8 +1499,10 @@ class Scene1LPaper extends Scene1 {
         //         //video.play();
         //     });
         // }
-        if (this.camAllowed)
-            $('#video').css('display', 'inline');
+        if (this.camAllowed) {
+            // $('#video').css('display', 'inline');
+            $('#affdex_elements').css('display', 'inline');
+        }
     }
     hideVideo() {
         $('#video').css('display', 'none');
@@ -1544,7 +1549,7 @@ class Scene1LPaper extends Scene1 {
         })
             .addSubtitleAction(this.subtitle, "Look at you!", false)
             .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)
-            .addSubtitleAction(this.subtitle, "You know, when my advisor Mitu told\n me to put a camera here to check and make sure you really learn, \nI thought it's needless", false, null, null, 2500)
+            .addSubtitleAction(this.subtitle, "You know, when my advisor Mitu told\n me to put a camera here to check and make sure you really read, \nI thought it's needless", false, null, null, 2500)
             .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
             .addSubtitleAction(this.subtitle, "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
             .addAction(() => {

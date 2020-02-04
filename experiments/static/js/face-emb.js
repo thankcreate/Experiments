@@ -4,10 +4,10 @@ var detector;
 // Here we are adding those nodes a predefined div.
 
 
-$(function () {
+function initFace() {
     var divRoot = $("#affdex_elements")[0];
-    var width = 640;
-    var height = 480;
+    var width = 400;
+    var height = 300;
     var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
     //Construct a CameraDetector and specify the image width / height and face detector mode.
     detector = new affdex.CameraDetector(divRoot, width, height, faceMode);
@@ -23,9 +23,7 @@ $(function () {
         log('#logs', "The detector reports initialized");
         //Display canvas instead of video feed because we want to draw the feature points on it
         $("#face_video_canvas").css("display", "block");
-        $("#face_video").css("display", "none");
-
-        onQuestStart();
+        $("#face_video").css("display", "none");        
     });
 
     detector.addEventListener("onInitializeFailure", function () {
@@ -76,11 +74,11 @@ $(function () {
             // $('#emoji').html(faces[0].emojis.dominantEmoji);
             // log('#results', "Emoji: " + faces[0].emojis.dominantEmoji);
             if ($('#face_video_canvas')[0] != null) {
-                drawFeaturePoints(image, faces[0].featurePoints);
+                drawFeaturePoints(image, faces[0].featurePoints, timestamp);
             }
         }
     });
-});
+}
 
 var fixed = false;
 var spanDt = 0;
@@ -88,131 +86,29 @@ var spanDt2 = 0;
 var lastDt;
 var need = 2.5;
 function handle(exp, emo, ts) {
-    if (!lastDt)
-        lastDt = ts;
-
-    console.log("ts " + ts);
-    if (!fixed)
-        $('#emoji').html("😐");
-
-    if (stage == 0) {
-        if (!fixed && exp.smile > 10) {
-
-            spanDt += (ts - lastDt);
-
-            $('#emoji').html("😊");
-
-            if (spanDt > need) {
-                fixed = true;
-
-                setTimeout(() => {
-                    fixed = false;
-                    gotoState(++stage);
-                }, 1000);
-            }
-
-        }
-    }
-    else if (stage == 1) {
-        if (!fixed && emo.disgust > 10) {
-            spanDt2 += (ts - lastDt);
-
-            $('#emoji').html("😡");
-            if (spanDt2 > need) {
-                fixed = true;
-                setTimeout(() => {
-                    fixed = false;
-                    gotoState(++stage);
-                }, 1000);
-            }
-        }
-    }
-    else if (stage == 2) {
-        if (!fixed) {
-            
-
-            if (emo.disgust > 10) {
-                spanDt2 += (ts - lastDt);
-                $('#emoji').html("😡");
-                if (spanDt2 > need) {
-                   
-                    fixed = true;
-                    setTimeout(() => {
-                        gotoState(3);
-                    }, 1000);
-                }
-            }
-
-            if (exp.smile > 10) {
-                spanDt += (ts - lastDt);
-                $('#emoji').html("😊");
-
-                if (spanDt > need) {
-                    
-                    fixed = true;
-                    setTimeout(() => {
-                        gotoState(4);
-                    }, 1000);
-                }
-            }
-
-        }
-    }
-    lastDt = ts;
-}
-
-function gotoState(st) {
-    stage = st;
-    spanDt = 0;
-    spanDt2 = 0;
-    if (stage == 0) {
-        fixed = false;
-        $('#question').html("1. Our great country's GDP has grown by 25% this year<br/>(Your should be happy)");
-    }
-    else if (stage == 1) {
-        fixed = false;
-        $('#question').html("2. Our enemy has invaded our border<br/>(Your should be angry)");
-    }
-    else if (stage == 2) {
-        fixed = false;
-        $('#question').html("3. Our oil price has rised by 50%<br/>(How do you feel? Happy? Angry)");
-    }
-    else if (stage == 3) {
-        $('#question').html("You are dissatisfied with our great nation, huh?<br/>You are arrested!");
-        $('#emoji').html("👮");
-    }
-    else if (stage == 4) {
-        $('#question').html("You are proven to be a patriotic citizen");
-        $('#emoji').html("🏆");
-    }
+    
 }
 
 
 
 function log(node_name, msg) {
     // MediaKeySystemAccess.
-    $(node_name).append("<span>" + msg + "</span><br />")
-}
-
-function onStart() {
-    if (detector && !detector.isRunning) {
-        $("#logs").html("");
-        detector.start();
-    }
-    $('#start').css("display", "none");
-    // log('#logs', "Clicked the start button");
+    // $(node_name).append("<span>" + msg + "</span><br />")
 }
 
 
+// var lastT = -1;
 //Draw the detected facial feature points on the image
-function drawFeaturePoints(img, featurePoints) {
+function drawFeaturePoints(img, featurePoints, timestamp) {
+    
+    lastT = timestamp;
     var contxt = $('#face_video_canvas')[0].getContext('2d');
 
     var hRatio = contxt.canvas.width / img.width;
     var vRatio = contxt.canvas.height / img.height;
     var ratio = Math.min(hRatio, vRatio);
 
-    contxt.strokeStyle = "#FFFFFF";
+    contxt.strokeStyle = "#FF0000";
     for (var id in featurePoints) {
         contxt.beginPath();
         contxt.arc(featurePoints[id].x,
@@ -220,10 +116,4 @@ function drawFeaturePoints(img, featurePoints) {
         contxt.stroke();
 
     }
-}
-
-var stage = -1;
-function onQuestStart() {
-    gotoState(0);
-
 }

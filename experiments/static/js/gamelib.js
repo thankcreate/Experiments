@@ -151,6 +151,7 @@ class Scene1 extends BaseScene {
         return this.hud.hp;
     }
     preload() {
+        this.load.html('review_form', 'review-form.html');
         this.load.image('circle', 'assets/circle.png');
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('arrow_rev', 'assets/arrow_rev.png');
@@ -700,8 +701,8 @@ class Scene1L1 extends Scene1 {
     }
     create() {
         super.create();
-        console.log('print');
-        console.log(getCookie('name'));
+        // console.log('print');
+        // console.log(getCookie('name'));
         setCookie("name", "TronTron");
         this.initNormalGameFsm();
         this.initZenFsm();
@@ -1293,6 +1294,7 @@ class Scene1L4 extends Scene1 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
+            this.overlay.showReviewForm();
             // this.enemyManager.sensetiveDuration = 60000;
             // // this.needFeedback = true;
             // this.enemyManager.setNextNeedSensitiveAlways(true);     
@@ -6207,6 +6209,9 @@ class Overlay extends Wrapper {
         this.inGameDialog.hide();
         this.leaderboardDialog.hide();
         this.hide();
+        this.initForm();
+    }
+    initForm() {
     }
     initUniDialog() {
         this.uniDialog = new Dialog(this.scene, this.inner, 0, 0, {
@@ -6310,6 +6315,10 @@ class Overlay extends Wrapper {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
         this.show();
         this.leaderboardDialog.show();
+    }
+    showReviewForm() {
+        this.show();
+        $('#review-form').css('display', 'inline');
     }
     show() {
         this.inShow = true;

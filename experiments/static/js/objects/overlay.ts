@@ -74,6 +74,8 @@ class Overlay extends Wrapper<PhText> {
 
     frontDark: Rect;
 
+
+    reviewForm: PhDOM;
     
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
@@ -105,7 +107,12 @@ class Overlay extends Wrapper<PhText> {
         this.leaderboardDialog.hide();
         this.hide();
 
+        this.initForm();
+
     } 
+
+    initForm() {
+    }
 
     initUniDialog(){
         this.uniDialog =  new Dialog(this.scene, this.inner, 0, 0, {
@@ -219,6 +226,11 @@ class Overlay extends Wrapper<PhText> {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
         this.show();
         this.leaderboardDialog.show();
+    }
+
+    showReviewForm() {
+        this.show();
+        $('#review-form').css('display', 'inline');
     }
 
 

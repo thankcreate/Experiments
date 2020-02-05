@@ -61,6 +61,7 @@ var phaserConfig = {
     // backgroundColor: '#FFFFFF',
     backgroundColor: '#EEEEEE',
     // backgroundColor: '#E4E4E4',
+    
     scale: {
         // mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
         // autoCenter: Phaser.Scale.CENTER_VERTICALLY,

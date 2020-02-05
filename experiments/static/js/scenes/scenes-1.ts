@@ -125,6 +125,9 @@ class Scene1 extends BaseScene {
     }
 
     preload() {
+
+        this.load.html('review_form', 'review-form.html');
+
         this.load.image('circle', 'assets/circle.png');
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('arrow_rev', 'assets/arrow_rev.png');

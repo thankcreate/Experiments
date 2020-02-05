@@ -120,12 +120,12 @@ class Scene1LPaper extends Scene1 {
     }
     
     confirmCount = 0;
-    initNormalGameFsm() {        
+    initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
         this.initConfirm1();
         this.initConfirm2();
-        this.updateObjects.push(this.normalGameFsm);        
+        this.updateObjects.push(this.normalGameFsm);
     }
     
     initStNormalDefault() {

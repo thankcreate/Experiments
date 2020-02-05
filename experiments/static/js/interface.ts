@@ -18,6 +18,7 @@ type PhGO = Phaser.GameObjects.GameObject;
 type PhTimeEvent = Phaser.Time.TimerEvent;
 type Pany = Promise<any>;
 type PhSound = Phaser.Sound.BaseSound;
+type PhDOM = Phaser.GameObjects.DOMElement;
 
 
 type StateHandler = (state: FsmState) => void;

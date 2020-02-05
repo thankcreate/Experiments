@@ -6,8 +6,8 @@ class Scene1L1 extends Scene1 {
 
     create() {
         super.create();
-        console.log('print');
-        console.log(getCookie('name'));
+        // console.log('print');
+        // console.log(getCookie('name'));
         setCookie("name", "TronTron");
        
 

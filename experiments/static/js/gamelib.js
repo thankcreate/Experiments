@@ -151,7 +151,6 @@ class Scene1 extends BaseScene {
         return this.hud.hp;
     }
     preload() {
-        this.load.html('review_form', 'review-form.html');
         this.load.image('circle', 'assets/circle.png');
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('arrow_rev', 'assets/arrow_rev.png');
@@ -1255,6 +1254,7 @@ class Scene1L4 extends Scene1 {
         this.initNormalGameFsm();
         this.hp.initMaxHealth(10);
         this.createBtns();
+        this.overlay.showReviewForm();
     }
     createBtns() {
         // this.upgrade1 = new Button(this, )
@@ -1294,7 +1294,6 @@ class Scene1L4 extends Scene1 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
-            this.overlay.showReviewForm();
             // this.enemyManager.sensetiveDuration = 60000;
             // // this.needFeedback = true;
             // this.enemyManager.setNextNeedSensitiveAlways(true);     
@@ -1507,7 +1506,7 @@ class Scene1LPaper extends Scene1 {
         }
     }
     hideVideo() {
-        $('#video').css('display', 'none');
+        $('#affdex_elements').css('display', 'none');
     }
     initConfirm1() {
         let state = this.normalGameFsm.getState('Confirm_1');
@@ -6318,6 +6317,7 @@ class Overlay extends Wrapper {
     }
     showReviewForm() {
         this.show();
+        $('#overlay').css('display', 'inline');
         $('#review-form').css('display', 'inline');
     }
     show() {

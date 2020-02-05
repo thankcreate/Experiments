@@ -1,4 +1,7 @@
 #overlay {
+  /* display to none by default because the overlay
+   could block the scroll event sent to the phaser canvas*/
+  display:none;
   position: fixed;
   height: 100%;
   width: 100%;
@@ -6,8 +9,7 @@
   top: 0;
 }
 
-#review-form{
-  display:none;
+#review-form{ 
   position: absolute;
   right: auto;
   top: 50%;
@@ -15,13 +17,23 @@
   width: 100%;
 }
 
+.box-title {
+  color: #7f7f7f;
+  display: inline-block;  
+  font: 14px/1 sans-serif;    
+  text-decoration: none;
+  top: 5px;
+  transition: color .4s;
+}
+
 .login {
     background: #eceeee;
     border: 1px solid #42464b;
     border-radius: 6px;
-    height: 257px;
-    margin: 20px auto 0;
-    width: 298px;
+    /* height: 257px; */
+    margin: 0 auto 0;
+    width: 240px;
+    padding: 25px 29px 30px 29px;
   }
   .login h1 {
     background-image: linear-gradient(top, #f1f3f3, #d4dae0);
@@ -45,11 +57,34 @@
     box-sizing: border-box;
     color: #696969;
     height: 39px;
-    margin: 31px 0 0 29px;
-    padding-left: 37px;
+    margin: 4px 0 15px 0;
+    padding-left: 18px;
     transition: box-shadow 0.3s;
-    width: 240px;
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
   }
+
+  textarea
+  {
+    background: linear-gradient(top, #d6d7d7, #dee0e0);
+    border: 1px solid #a1a3a3;
+    border-radius: 4px;
+    box-shadow: 0 1px #fff;
+    box-sizing: border-box;
+    color: #696969;
+    height: 39px;
+    margin: 4px 0 15px 0;
+    padding: 10px 18px 10px 17px;
+    
+    transition: box-shadow 0.3s;
+    width: 100%;
+    height: 100px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+
+
   input[type="password"]:focus, input[type="text"]:focus {
     box-shadow: 0 0 4px 1px rgba(55, 166, 155, 0.3);
     outline: 0;
@@ -82,6 +117,7 @@
   .forgot {
     color: #7f7f7f;
     display: inline-block;
+    font-family: Arial, Helvetica, sans-serif;
     float: right;
     font: 12px/1 sans-serif;
     left: -19px;
@@ -90,6 +126,7 @@
     top: 5px;
     transition: color .4s;
   }
+
   .forgot:hover { color: #3b3b3b }
   input[type="submit"] {
     width:240px;
@@ -103,8 +140,8 @@
     text-transform:uppercase;
     text-align:center;
     text-shadow:1px 1px 0px #37a69b;
-    padding-top:6px;
-    margin: 29px 0 0 29px;
+    padding-top:6px;    
+    margin-top: 20px;
     position:relative;
     cursor:pointer;
     border: none;  

@@ -183,7 +183,7 @@ class Scene1LPaper extends Scene1 {
     }
 
     hideVideo() {
-        $('#video').css('display', 'none');
+        $('#affdex_elements').css('display', 'none');
     }
 
     countDownInterval: any;

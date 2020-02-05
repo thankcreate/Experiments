@@ -230,6 +230,7 @@ class Overlay extends Wrapper<PhText> {
 
     showReviewForm() {
         this.show();
+        $('#overlay').css('display', 'inline');
         $('#review-form').css('display', 'inline');
     }
 

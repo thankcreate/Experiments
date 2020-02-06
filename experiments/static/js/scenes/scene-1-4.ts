@@ -34,7 +34,7 @@ class Scene1L4 extends Scene1 {
         this.hp.initMaxHealth(10);
         this.createBtns();
 
-        this.overlay.showReviewForm();
+        // this.overlay.showReviewForm();
     }
 
     createBtns() {

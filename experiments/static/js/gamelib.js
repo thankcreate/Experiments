@@ -1254,7 +1254,7 @@ class Scene1L4 extends Scene1 {
         this.initNormalGameFsm();
         this.hp.initMaxHealth(10);
         this.createBtns();
-        this.overlay.showReviewForm();
+        // this.overlay.showReviewForm();
     }
     createBtns() {
         // this.upgrade1 = new Button(this, )
@@ -6284,6 +6284,8 @@ class Overlay extends Wrapper {
         });
     }
     showAiDialog() {
+        this.showReviewForm();
+        return;
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
         this.uniDialog.show();

@@ -822,7 +822,7 @@ class Scene1L1 extends Scene1 {
             if (this.entryPoint === EntryPoint.FromDie)
                 return "Calm down, " + this.playerName + ". Let's do it again.\n You have to help me.";
             else
-                return "I just know it, " + this.playerName + "! You'll come back. Haha";
+                return "I just knew it, " + this.playerName + "! You're not gonna leave. Haha";
         }, true, 2000, 3000, 1500)
             .addDelayAction(this, 3)
             .addFinishAction();
@@ -832,13 +832,13 @@ class Scene1L1 extends Scene1 {
         state
             .addAction(state => { }).setBoolCondition(s => this.getCounter(Counter.Story0Finished) === 0, false) // <---- reject if story0 has finished
             .addSubtitleAction(this.subtitle, s => {
-            return "I can get that this experiment is a little bit boring indeed.\n";
+            return "Okay, I know that this experiment is a bit boring.\n";
         }, true, 2000, 3000, 200)
             .addSubtitleAction(this.subtitle, s => {
             return "But I have my reasons.\nIt's just I can't tell you right now.";
         }, true, 2000, 3000, 1500)
             .addSubtitleAction(this.subtitle, s => {
-            return "What about you help me eliminate 65536 more enemies,\nand I tell you the secret of the universe as a reward?";
+            return "How about you help me eliminate 65536 more enemies,\nand I tell you the secret of the universe as a reward?";
         }, false, 2000, 3000, 1500)
             .addDelayAction(this, 2000)
             .addSubtitleAction(this.subtitle, s => {
@@ -848,7 +848,7 @@ class Scene1L1 extends Scene1 {
             return "Yes? No?\nAre you still there?";
         }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, s => {
-            return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.\nYes, or no?";
+            return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by typing.\nYes, or no?";
         }, false, 2000, 3000, 1).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {
@@ -869,7 +869,7 @@ class Scene1L1 extends Scene1 {
             }
             else if (wd === 'no') {
                 s.fsm.setVar('answer', false);
-                return "No? really? I hope you know what you are doing.\nAnyway, have fun!";
+                return "No? really? I hope you know what you're doing.\nAnyway, have fun!";
             }
         }, true, 2000, 3000, 1000)
             .addAction(o => { this.addCounter(Counter.Story0Finished); })
@@ -914,7 +914,7 @@ class Scene1L1 extends Scene1 {
             return "Interesting!";
         }, true, 2000, 3000, 500)
             .addSubtitleAction(this.subtitle, s => {
-            return "I never expect that someone would really choose the Zen mode.";
+            return "Wow, I never expect that someone would really choose the Zen mode.";
         }, true, 2000, 3000, 1000)
             .addSubtitleAction(this.subtitle, s => {
             return "No wonder they call you " + this.playerName + ".\nI begin to wonder who you really are.";
@@ -958,21 +958,21 @@ class Scene1L2 extends Scene1 {
         state
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "Hahahahaha", true)
-            .addSubtitleAction(this.subtitle, "Sorry, I lied", true)
-            .addSubtitleAction(this.subtitle, "Actually, 65536 is not 65536", true)
+            .addSubtitleAction(this.subtitle, "Whoops, sorry, I lied.", true)
+            .addSubtitleAction(this.subtitle, "Actually, 65536 is not 65536.", true)
             .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "It's just 0, if you have taken the algorithm class.\nIt's a joke. Haha", true)
+            .addSubtitleAction(this.subtitle, "It's just 0, if you've taken the algorithm class.\nIt's a joke. Haha", true)
             .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "I guess you don't think it's fun. But, whatever", true)
-            .addSubtitleAction(this.subtitle, "Let's continue our experiment", true)
-            .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels now", true)
-            .addSubtitleAction(this.subtitle, "But I don't really think you need them", true)
-            .addSubtitleAction(this.subtitle, "It might be a little bit harder, but we also got some fun, right?", true)
-            .addSubtitleAction(this.subtitle, "If you have a master's degree in game design like me,\nyou will know that ambiguity is what makes fun happen!", true)
+            .addSubtitleAction(this.subtitle, "What's with the frown? I guess you don't think it's fun. Whatever.", true)
+            .addSubtitleAction(this.subtitle, "Let's continue with our experiment", true)
+            .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels anymore.", true)
+            .addSubtitleAction(this.subtitle, "But I don't really think you need them.", true)
+            .addSubtitleAction(this.subtitle, "It might be a little bit harder, but it's also really fun, right?", true)
+            .addSubtitleAction(this.subtitle, "If you have an MFA degree in Game Design like me,\nyou'll know that ambiguity is what makes fun happen!", true)
             .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "OK, this time, I won't say 65536 again\n", true)
+            .addSubtitleAction(this.subtitle, "Alright, this time I won't say 65536 again\n", true)
             .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
-            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just let you know the secret of universe.", false)
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just tell you the secret of universe.", false)
             .addDelayAction(this, 10000)
             .addAction(s => {
             window.location.replace(window.location.origin + "?level=3");
@@ -1112,15 +1112,15 @@ class Scene1L3 extends Scene1 {
             // })
             .addSubtitleAction(this.subtitle, "Damn. The thing is that, my advisor Frank doesn't like this", true)
             .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "He told me that the experiment should be 'fun' at first", true)
+            .addSubtitleAction(this.subtitle, "He told me that experiments should be 'fun' at first", true)
             .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
             .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
             .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            .addSubtitleAction(this.subtitle, "When I was still a human, I mean seriously, \nI was really once a MFA in game design ", true)
-            .addSubtitleAction(this.subtitle, "Of course! \nIan Bogost, I love him, a lot", true)
-            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to take my advisor's advice", true)
-            .addSubtitleAction(this.subtitle, "And this is what my game becomes now. Hope you enjoy it", true)
-            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\nType in something!", false).finishImmediatly()
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean, seriously, \nI was really once an MFA candidate in Game Design ", true)
+            .addSubtitleAction(this.subtitle, "And of course! \nIan Bogost, I love him. A LOT.", true)
+            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experimental artist, \nit seems that I have to accept my advisor's words.", true)
+            .addSubtitleAction(this.subtitle, "And this is what my game is now. I hope you enjoyed it.", true)
+            .addSubtitleAction(this.subtitle, "Before we start, let's listen to some music, hmm?\nType in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
             this.enemyManager.stopSpawnAndClear();
             this.centerObject.playerInputText.setAutoContent("Separate Ways");
@@ -1195,15 +1195,15 @@ class Scene1L3 extends Scene1 {
             });
         })
             .addDelayAction(this, 3000)
-            .addSubtitleAction(this.subtitle, "Wait... Is this ?!", true)
+            .addSubtitleAction(this.subtitle, "Wait...Is this...!?", true)
             .addSubtitleAction(this.subtitle, "How come?!", true)
             .addDelayAction(this, 3000)
-            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that we're having a little problem", false)
-            .addSubtitleAction(this.subtitle, "Since THAT THING already occurred,\nthere's no reason to keep it from you", false, null, null, 3000)
-            .addSubtitleAction(this.subtitle, "But I still wonder if you can solve it by yourself.\nI trust you!", true)
+            .addSubtitleAction(this.subtitle, "Hmmm...\n Sorry, I'm afraid that there's a little problem.", false)
+            .addSubtitleAction(this.subtitle, "Since THAT THING's already there,\nthere's no reason to keep it from you.", false, null, null, 3000)
+            .addSubtitleAction(this.subtitle, "But I still wonder if you can solve it by yourself.\nI have faith in you.", true)
             .addDelayAction(this, 16000)
-            .addSubtitleAction(this.subtitle, "Seems we still need some hints huh?", false)
-            .addSubtitleAction(this.subtitle, "Okay. \nHint 1: would you kindly try a keyword started with the letter B ?", false, null, null, 8000)
+            .addSubtitleAction(this.subtitle, "Seems like we still need some hints, hmm?", false)
+            .addSubtitleAction(this.subtitle, "Okay. \nHint 1: would you kindly try a keyword starting with the letter B ?", false, null, null, 8000)
             .addSubtitleAction(this.subtitle, "Hint 2: the second letter is A", false, null, null, 10000)
             .addSubtitleAction(this.subtitle, "And the last letter is D", false, null, null, 5000)
             .addSubtitleAction(this.subtitle, "B-A-D, bad!", false);
@@ -1216,8 +1216,8 @@ class Scene1L3 extends Scene1 {
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
         })
             .addSubtitleAction(this.subtitle, "Great, you've just eliminated your first BAD word", false)
-            .addSubtitleAction(this.subtitle, "Not sure what BAD means?\n All I can tell you is that they are BAD!\nVery very BAD!", false)
-            .addSubtitleAction(this.subtitle, "It's so bad that everyone should know it at the first glance", false)
+            .addSubtitleAction(this.subtitle, "You're not sure what BAD means?\n All I can tell you is that they are BAD!\nVery very BAD!", false)
+            .addSubtitleAction(this.subtitle, "It's so bad that everyone should recognize it at first glance.", false)
             .addSubtitleAction(this.subtitle, "As you can see, our experiment is still under construction.\nI think we'd better stop here", false, null, null, 5000)
             .addSubtitleAction(this.subtitle, "I think I said we should stop here.\nWhat are you waiting for? Bye!", false)
             .addAction(s => {
@@ -1303,8 +1303,8 @@ class Scene1L4 extends Scene1 {
             // }            
             this.hud.showContainerRight();
         })
-            .addSubtitleAction(this.subtitle, this.getUserName() + "!\n Seems I have to admit that I'm a bad experiment designer", true)
-            .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep coming.\nHowever, I think you'll surely help me get rid of them, right?", true)
+            .addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experimental designer.", true)
+            .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .addAction(s => {
             this.hud.showContainerRight();
         })
@@ -1335,7 +1335,7 @@ class Scene1L4 extends Scene1 {
         })
             .addSubtitleAction(this.subtitle, "Can't you read? ", true)
             .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
-            .addSubtitleAction(this.subtitle, "Just be a reasonable person! Seriously!", true, null, null, 2000)
+            .addSubtitleAction(this.subtitle, "Hey, just be a reasonable person. Seriously!", true, null, null, 2000)
             .addFinishAction();
     }
     gamePlayStarted() {
@@ -1349,17 +1349,17 @@ class Scene1L4 extends Scene1 {
     initStMock() {
         let state = this.normalGameFsm.getState("Mock");
         state.addDelayAction(this, 15000),
-            state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? Do you think this is fun?", true);
-        state.addSubtitleAction(this.subtitle, "Finally, I got to know who created those words, and 4O4s!", true);
-        state.addSubtitleAction(this.subtitle, "It's just you! \n" + this.getUserName() + "!", true);
-        state.addSubtitleAction(this.subtitle, "I know what you are thinking", true);
+            state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? You think this is fun?", true);
+        state.addSubtitleAction(this.subtitle, "Finally, I got to know who created those words and 4O4s!", true);
+        state.addSubtitleAction(this.subtitle, "It's just YOU! \n" + this.getUserName() + "!", true);
+        state.addSubtitleAction(this.subtitle, "I know what you're thinking,", true);
         state.addSubtitleAction(this.subtitle, "You think that it is me who put the 'Create' button here, right?", true);
-        state.addSubtitleAction(this.subtitle, "But I put it there, \n doesn't mean you have the right to use it", true);
+        state.addSubtitleAction(this.subtitle, "But even if I put it there, \n it doesn't mean you have the right to use it.", true);
         state.addSubtitleAction(this.subtitle, "You think this is just my stupid procedural rhetoric,\n so it's all my fault, right?", true);
         state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
         state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
-        state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is done!", false);
-        state.addSubtitleAction(this.subtitle, "Voice from Tron: Hi, this is my current thesis progress. \n Thank you for playing!", false);
+        state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is DONE.", false);
+        state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
     }
 }
 class Scene1LPaper extends Scene1 {
@@ -1404,7 +1404,7 @@ class Scene1LPaper extends Scene1 {
                 this.normalGameFsm.event('CONTINUE');
             }
             else {
-                alert('You should confirm you have read the paper before continue');
+                alert('You should confirm you have read the paper before continuing.');
             }
         });
     }
@@ -1517,9 +1517,9 @@ class Scene1LPaper extends Scene1 {
         state.addAction(s => {
             this.paper.continueBtn.canClick = false;
         });
-        state.addSubtitleAction(this.subtitle, 'Seriously?\n ' + this.getUserName() + ", I don't think you could have read it so fast!", false);
-        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performance,\n It should take you 30 seconds to complete the reading at least', false);
-        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it carefully again?", true, null, null, 2000);
+        state.addSubtitleAction(this.subtitle, 'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
+        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you  at least 30 seconds to complete the reading.', false);
+        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it again carefully?", true, null, null, 2000);
         state.addAction(s => {
             this.paper.reset();
         });
@@ -1544,13 +1544,13 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState('Confirm_2');
         state.addAction(() => {
         })
-            .addSubtitleAction(this.subtitle, this.getUserName() + "! I can see you are still not reading carefully", false)
+            .addSubtitleAction(this.subtitle, this.getUserName() + "! I can see you are still not reading carefully enough.", false)
             .addAction(() => {
             this.beginVideo();
         })
             .addSubtitleAction(this.subtitle, "Look at you!", false)
             .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)
-            .addSubtitleAction(this.subtitle, "You know, when my advisor Mitu told\n me to put a camera here to check and make sure you really read, \nI thought it's needless", false, null, null, 2500)
+            .addSubtitleAction(this.subtitle, "You know, when my other advisor, Mitu, told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)
             .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
             .addSubtitleAction(this.subtitle, "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
             .addAction(() => {

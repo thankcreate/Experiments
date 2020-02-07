@@ -192,7 +192,7 @@ class Overlay extends Wrapper<PhText> {
 
 
     showAiDialog() {
-        this.showReviewForm();
+        this.showFormRating();
         return;
 
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
@@ -233,10 +233,16 @@ class Overlay extends Wrapper<PhText> {
         this.leaderboardDialog.show();
     }
 
-    showReviewForm() {
+    showFormRating() {
         this.show();
         $('#overlay').css('display', 'inline');
-        $('#review-form').css('display', 'inline');
+        $('#form-rating').css('visibility', 'visible');
+        $('#form-comment').css('visibility', 'hidden');
+
+        // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
+        setTimeout(() => {
+            $('#form-rating').addClass('anim-center');    
+        }, 50);        
     }
 
 
@@ -264,4 +270,16 @@ class Overlay extends Wrapper<PhText> {
     isInShow(): boolean {
         return this.inShow;
     }
+}
+
+function showFormComment() {
+    
+    $('#form-comment').css('visibility', 'visible');
+
+    // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
+    setTimeout(() => {
+        $('#form-rating').animate({opacity: '0'}, 400);    
+        $('#form-rating').addClass('anim-left-out');    
+        $('#form-comment').addClass('anim-center');    
+    }, 1);  
 }

@@ -4401,14 +4401,6 @@ class EnemyText extends Enemy {
  * This class is created to solve the origin problem of PhGraphics
  */
 class Figure extends Wrapper {
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, null);
-        this.handleConfig(config);
-        let graphics = this.scene.add.graphics();
-        this.applyTarget(graphics);
-        this.drawGraphics();
-        this.calcGraphicsPosition();
-    }
     handleConfig(config) {
         if (notSet(config))
             config = {};
@@ -4423,6 +4415,14 @@ class Figure extends Wrapper {
         if (notSet(config.btns))
             config.btns = ['OK'];
         this.config = config;
+    }
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        let graphics = this.scene.add.graphics();
+        this.applyTarget(graphics);
+        this.drawGraphics();
+        this.calcGraphicsPosition();
     }
     drawGraphics() {
         // To be implemented in inheritance
@@ -6108,14 +6108,14 @@ class Hud extends Wrapper {
     }
 }
 class LeaderboardManager {
-    constructor() {
-        this.updateInfo();
-    }
     static getInstance() {
         if (!LeaderboardManager.instance) {
             LeaderboardManager.instance = new LeaderboardManager();
         }
         return LeaderboardManager.instance;
+    }
+    constructor() {
+        this.updateInfo();
     }
     updateInfo() {
         let request = { count: 30 };
@@ -6285,7 +6285,7 @@ class Overlay extends Wrapper {
         });
     }
     showAiDialog() {
-        this.showReviewForm();
+        this.showFormRating();
         return;
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
@@ -6318,10 +6318,15 @@ class Overlay extends Wrapper {
         this.show();
         this.leaderboardDialog.show();
     }
-    showReviewForm() {
+    showFormRating() {
         this.show();
         $('#overlay').css('display', 'inline');
-        $('#review-form').css('display', 'inline');
+        $('#form-rating').css('visibility', 'visible');
+        $('#form-comment').css('visibility', 'hidden');
+        // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
+        setTimeout(() => {
+            $('#form-rating').addClass('anim-center');
+        }, 50);
     }
     show() {
         this.inShow = true;
@@ -6343,6 +6348,15 @@ class Overlay extends Wrapper {
     isInShow() {
         return this.inShow;
     }
+}
+function showFormComment() {
+    $('#form-comment').css('visibility', 'visible');
+    // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
+    setTimeout(() => {
+        $('#form-rating').animate({ opacity: '0' }, 400);
+        $('#form-rating').addClass('anim-left-out');
+        $('#form-comment').addClass('anim-center');
+    }, 1);
 }
 let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
 tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric

@@ -23,17 +23,22 @@
   font: 14px/1 sans-serif;    
   text-decoration: none;
   top: 5px;
-  transition: color .4s;
+  transition: color 0.8s;
 }
 
-.login {
+
+
+.login {  
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(50%, -50%) ;
     background: #eceeee;
     border: 1px solid #42464b;
-    border-radius: 6px;
-    /* height: 257px; */
-    margin: 0 auto 0;
+    border-radius: 6px;        
     width: 240px;
     padding: 25px 29px 30px 29px;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
   }
   .login h1 {
     background-image: linear-gradient(top, #f1f3f3, #d4dae0);
@@ -169,6 +174,18 @@
     box-shadow: inset 0px 1px 0px #2ab7ec, 0px 2px 0px 0px #31524d, 0px 5px 3px #999;
   }    
 
+  #form-rating {
+    transform: translate(-50%, 50%) ;
+  }
 
+  #form-comment{
+    transform: translate(50%, -50%) ;
+  }
 
-  
+  .anim-center{
+    -webkit-transform:translate(-50%,-50%) !important;
+  }
+
+  .anim-left-out{
+    -webkit-transform:translate(-150%,-50%) !important;
+  }

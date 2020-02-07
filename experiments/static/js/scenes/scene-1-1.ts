@@ -145,7 +145,7 @@ class Scene1L1 extends Scene1 {
                 if (this.entryPoint === EntryPoint.FromDie)
                     return "Calm down, " + this.playerName + ". Let's do it again.\n You have to help me."
                 else
-                    return "I just know it, " + this.playerName + "! You'll come back. Haha";
+                    return "I just knew it, " + this.playerName + "! You're not gonna leave. Haha";
             }, true, 2000, 3000, 1500)
             .addDelayAction(this, 3)
             .addFinishAction();
@@ -156,13 +156,13 @@ class Scene1L1 extends Scene1 {
         state
             .addAction(state => { }).setBoolCondition(s => this.getCounter(Counter.Story0Finished) === 0, false)  // <---- reject if story0 has finished
             .addSubtitleAction(this.subtitle, s => {
-                return "I can get that this experiment is a little bit boring indeed.\n"
+                return "Okay, I know that this experiment is a bit boring.\n"
             }, true, 2000, 3000, 200)
             .addSubtitleAction(this.subtitle, s => {
                 return "But I have my reasons.\nIt's just I can't tell you right now."
             }, true, 2000, 3000, 1500)
             .addSubtitleAction(this.subtitle, s => {
-                return "What about you help me eliminate 65536 more enemies,\nand I tell you the secret of the universe as a reward?"
+                return "How about you help me eliminate 65536 more enemies,\nand I tell you the secret of the universe as a reward?"
             }, false, 2000, 3000, 1500)
             .addDelayAction(this, 2000)
             .addSubtitleAction(this.subtitle, s => {
@@ -172,7 +172,7 @@ class Scene1L1 extends Scene1 {
                 return "Yes? No?\nAre you still there?"
             }, true, 2000, 3000, 300)
             .addSubtitleAction(this.subtitle, s => {
-                return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by the input you type in.\nYes, or no?"
+                return "Oh! Sorry, " + this.playerName + "! I forgot to say that you could\n just talk to me by typing.\nYes, or no?"
             }, false, 2000, 3000, 1).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
                 s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, o => {
@@ -193,7 +193,7 @@ class Scene1L1 extends Scene1 {
                 }
                 else if (wd === 'no') {
                     s.fsm.setVar('answer', false);
-                    return "No? really? I hope you know what you are doing.\nAnyway, have fun!"
+                    return "No? really? I hope you know what you're doing.\nAnyway, have fun!"
                 }
             }, true, 2000, 3000, 1000)
             .addAction(o => { this.addCounter(Counter.Story0Finished) })
@@ -245,7 +245,7 @@ class Scene1L1 extends Scene1 {
                 return "Interesting!"
             }, true, 2000, 3000, 500)
             .addSubtitleAction(this.subtitle, s => {
-                return "I never expect that someone would really choose the Zen mode."
+                return "Wow, I never expect that someone would really choose the Zen mode."
             }, true, 2000, 3000, 1000)
             .addSubtitleAction(this.subtitle, s => {
                 return "No wonder they call you " + this.playerName + ".\nI begin to wonder who you really are."

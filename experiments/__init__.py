@@ -21,6 +21,10 @@ def create_app(config_class=Config):
     from .leaderboard import bp as leaderboard_bp
     app.register_blueprint(leaderboard_bp)
 
+    from .review import bp as review_bp
+    app.register_blueprint(review_bp)
+
+
     return app
 
 from . import models

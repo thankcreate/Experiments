@@ -48,29 +48,29 @@
         <div id="form-rating" class="login">
             <div class='box-title'>UI</div>
             <div class="ratingControl">
-                <input type="radio" id="rating-5-1" name="rating" value="5">
+                <input type="radio" id="rating-5-1" name="rating-1" value="5">
                 <label class="ratingControl-stars ratingControl-stars--5" for="rating-5-1">5</label>
-                <input type="radio" id="rating-45-1" name="rating" value="4.5">
+                <input type="radio" id="rating-45-1" name="rating-1" value="4.5">
                 <label class="ratingControl-stars ratingControl-stars--45 ratingControl-stars--half"
                     for="rating-45-1">45</label>
-                <input type="radio" id="rating-4-1" name="rating" value="4">
+                <input type="radio" id="rating-4-1" name="rating-1" value="4">
                 <label class="ratingControl-stars ratingControl-stars--4" for="rating-4-1">4</label>
-                <input type="radio" id="rating-35-1" name="rating" value="3.5">
+                <input type="radio" id="rating-35-1" name="rating-1" value="3.5">
                 <label class="ratingControl-stars ratingControl-stars--35 ratingControl-stars--half"
                     for="rating-35-1">35</label>
-                <input type="radio" id="rating-3-1" name="rating" value="3">
+                <input type="radio" id="rating-3-1" name="rating-1" value="3">
                 <label class="ratingControl-stars ratingControl-stars--3" for="rating-3-1">3</label>
-                <input type="radio" id="rating-25-1" name="rating" value="2.5">
+                <input type="radio" id="rating-25-1" name="rating-1" value="2.5">
                 <label class="ratingControl-stars ratingControl-stars--25 ratingControl-stars--half"
                     for="rating-25-1">25</label>
-                <input type="radio" id="rating-2-1" name="rating" value="2">
+                <input type="radio" id="rating-2-1" name="rating-1" value="2">
                 <label class="ratingControl-stars ratingControl-stars--2" for="rating-2-1">2</label>
-                <input type="radio" id="rating-15-1" name="rating" value="1.5">
+                <input type="radio" id="rating-15-1" name="rating-1" value="1.5">
                 <label class="ratingControl-stars ratingControl-stars--15 ratingControl-stars--half"
                     for="rating-15-1">15</label>
-                <input type="radio" id="rating-1-1" name="rating" value="1">
+                <input type="radio" id="rating-1-1" name="rating-1" value="1">
                 <label class="ratingControl-stars ratingControl-stars--1" for="rating-1-1">1</label>
-                <input type="radio" id="rating-05-1" name="rating" value="0.5">
+                <input type="radio" id="rating-05-1" name="rating-1" value="0.5">
                 <label class="ratingControl-stars ratingControl-stars--05 ratingControl-stars--half"
                     for="rating-05-1">05</label>
             </div>
@@ -186,7 +186,11 @@
                 <label class="ratingControl-stars ratingControl-stars--05 ratingControl-stars--half"
                     for="rating-05-5">05</label>
             </div>
-            <input type="submit" value="Next" name="loginButton" onclick="showFormComment()">
+            
+            <div class='gap'></div>
+            
+            <div class='box-title' id='rating-error'>Please complete all categories</div>
+            <input type="submit" value="Next" name="loginButton" onclick="next()">
         </div>
             
       
@@ -197,8 +201,9 @@
 
             <div class='box-title'>Comment</div>
             <textarea type="text" placeholder="Good Game" id="comment" name="comment"></textarea>
-
-            <input type="submit" value="Submit" name="loginButton">
+            <div class='gap'></div>
+            <div class='box-title' id='comment-error'>Please say something</div>
+            <input type="submit" value="Submit" name="loginButton" onclick="commentsubmit()">
 
         </div>
 

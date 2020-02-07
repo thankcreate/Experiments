@@ -6321,8 +6321,8 @@ class Overlay extends Wrapper {
     showFormRating() {
         this.show();
         $('#overlay').css('display', 'inline');
-        $('#form-rating').css('visibility', 'visible');
-        $('#form-comment').css('visibility', 'hidden');
+        $('#form-rating').css('display', 'block');
+        $('#form-comment').css('display', 'none');
         // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
         setTimeout(() => {
             $('#form-rating').addClass('anim-center');
@@ -6349,9 +6349,54 @@ class Overlay extends Wrapper {
         return this.inShow;
     }
 }
-function showFormComment() {
-    $('#form-comment').css('visibility', 'visible');
-    // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
+function next() {
+    let count = 5;
+    let stars = [null, null, null, null, null];
+    for (let i = 1; i <= count; i++) {
+        let name = 'rating-' + i;
+        var radio1 = $("input[name='" + name + "']:checked").val();
+        stars[i - 1] = radio1;
+        console.log(i + " : " + radio1);
+    }
+    let notComplete = false;
+    for (let i in stars) {
+        if (stars[i] == null) {
+            notComplete = true;
+            break;
+        }
+    }
+    if (notComplete) {
+        $('#rating-error').css('display', 'block');
+        return;
+    }
+    else {
+        $('#rating-error').css('display', 'none');
+    }
+    // show comment dialog
+    $('#form-comment').css('display', 'block');
+    setTimeout(() => {
+        $('#form-rating').animate({ opacity: '0' }, 400, () => {
+            $('#form-rating').css('display', 'none');
+        });
+        $('#form-rating').addClass('anim-left-out');
+        $('#form-comment').addClass('anim-center');
+    }, 1);
+}
+function commentsubmit() {
+    let username = $('#username').val();
+    let comment = $('#comment').val();
+    let notComplete = false;
+    if (username.trim() == ''
+        || comment.trim() == '') {
+        notComplete = true;
+    }
+    if (notComplete) {
+        $('#comment-error').css('display', 'block');
+        return;
+    }
+    else {
+        $('#comment-error').css('display', 'none');
+    }
     setTimeout(() => {
         $('#form-rating').animate({ opacity: '0' }, 400);
         $('#form-rating').addClass('anim-left-out');

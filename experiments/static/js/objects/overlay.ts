@@ -236,8 +236,8 @@ class Overlay extends Wrapper<PhText> {
     showFormRating() {
         this.show();
         $('#overlay').css('display', 'inline');
-        $('#form-rating').css('visibility', 'visible');
-        $('#form-comment').css('visibility', 'hidden');
+        $('#form-rating').css('display', 'block');
+        $('#form-comment').css('display', 'none');
 
         // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
         setTimeout(() => {
@@ -272,14 +272,66 @@ class Overlay extends Wrapper<PhText> {
     }
 }
 
-function showFormComment() {
+function next() {
+    let count = 5;
+    let stars = [null, null, null, null, null];
+    for(let i = 1; i <= count; i++) {
+        let name = 'rating-' + i;
+        var radio1 = $("input[name='" + name + "']:checked").val();
+        stars[i - 1] = radio1;
+        console.log(i + " : "  + radio1);
+    }
     
-    $('#form-comment').css('visibility', 'visible');
+    let notComplete = false;
+    for(let i in stars) {
+        if(stars[i] == null) {
+            notComplete = true;
+            break;
+        }
+    }
 
-    // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
+    if(notComplete) {
+        $('#rating-error').css('display', 'block');
+        return;
+    }
+    else {
+        $('#rating-error').css('display', 'none');
+    }
+    
+    // show comment dialog
+
+    $('#form-comment').css('display', 'block');    
     setTimeout(() => {
-        $('#form-rating').animate({opacity: '0'}, 400);    
+        $('#form-rating').animate({opacity: '0'}, 400,()=>{
+            $('#form-rating').css('display', 'none');    
+        });    
         $('#form-rating').addClass('anim-left-out');    
         $('#form-comment').addClass('anim-center');    
     }, 1);  
 }
+
+function commentsubmit(){
+    let username = $('#username').val() as unknown as string;
+    let comment = $('#comment').val() as unknown as string;
+
+    let notComplete = false;
+    if(username.trim() == '' 
+    || comment.trim() == '') {
+        notComplete = true;
+    } 
+
+    if(notComplete) {
+        $('#comment-error').css('display', 'block');
+        return;
+    }
+    else {
+        $('#comment-error').css('display', 'none');
+    }
+
+    setTimeout(() => {
+        $('#form-rating').animate({opacity: '0'}, 400);    
+        $('#form-rating').addClass('anim-left-out');    
+        $('#form-comment').addClass('anim-center');    
+    }, 1); 
+}
+

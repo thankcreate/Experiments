@@ -31,6 +31,7 @@
     <script src="js/libs/phaser.js"></script>
     <script src="js/gamelib.js"></script>
     <script src="js/main.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
 </head>
 
@@ -207,8 +208,19 @@
 
         </div>
 
-        <iframe src="http://localhost/leaderboard"></iframe>
+        <div id='review-wall-container'>
+123
+        </div>
+
     </div>
+
+    <!-- Load React. -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+
+    <script type="text/babel" src="js/review-wall.js"></script>
+
 </body>
 
 </html>

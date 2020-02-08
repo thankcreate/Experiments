@@ -6412,6 +6412,7 @@ function submitReviewToServer() {
         .then(val => {
         // this.updateInfo();
         console.log('Suc to report review info');
+        console.log(val);
     }, err => {
         console.log('Failed to report review score');
     });

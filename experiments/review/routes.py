@@ -16,6 +16,38 @@ def showReview():
         title='Review'
         )
 
+@bp.route('/api/review', methods=['GET'])
+def get_review():       
+    
+    ct = request.args.get('count')
+    if not ct:
+        ct = 50  
+    
+    return get_review_inner(ct)
+
+def get_review_inner(ct):
+    if not ct:
+        ct = 50
+    
+    items = Review.query.order_by(Review.timestamp.desc()).limit(ct).all()
+    
+    response = jsonify([i.serialize for i in items])
+    return response
+
+@bp.route('/api/review', methods=['POST'])
+def post_review(): 
+    print('TronTron2' + request.get_data(as_text=True) , file=sys.stderr)
+
+    data = json.loads(request.get_data(as_text=True))    
+    name = data['name']
+    comment = data['comment']
+        
+    res = addReviewItemInner(name, comment)
+    if res:
+        return get_review_inner(50)
+    else:
+        return jsonify({'res': 'Error'})
+
 
 @bp.route('/review/add/',methods=['POST'])
 def addReviewItem():

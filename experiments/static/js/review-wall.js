@@ -29,9 +29,13 @@ class ReviewBlock extends React.Component {
 
     render() {
         return (
-            <div>
-                {this.props.item.username}
-                {this.props.item.comment}
+            <div className="review-block">
+                <div className="review-block-name">
+                    {this.props.item.username}
+                </div>
+                <div className='review-block-comment'>
+                    {this.props.item.comment}
+                </div>                
             </div>
         );
     }
@@ -52,18 +56,36 @@ class ReviewWall extends React.Component{
                 }
             ]
         }
+        this.refresh();
+    }
+
+    refresh() {
+        let request = {count: 50};
+        let pm = apiPromise('api/review', request, 'json', 'GET')
+            .then(
+                val => {
+                    this.setState({
+                        // reversed
+                        items: val.reverse()
+                    });
+                    console.log("React refresh suc"); 
+                },
+                err => {                    
+                    console.log('Failed to fetch review info');                    
+                });
+        return pm;
     }
 
     renderOne(i) {
         return (
-            <ReviewBlock item={this.state.items[i]} />
+            <ReviewBlock item={this.state.items[i]} key={i} />
         )
     }
 
 
     renderAll() {
         let res = [];
-        for(let i = 0; i < 2 ;i++) {
+        for(let i = 0; i < this.state.items.length ;i++) {
             res.push(this.renderOne(i));
         }
         return res;

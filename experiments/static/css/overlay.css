@@ -213,3 +213,14 @@ input[type="submit"]:active {
   color: red;
 }
 
+
+
+.review-block {
+  width: 200px;
+  min-height: 300px;
+  
+  display: inline-block;
+  background-color: white;
+
+  margin: 5px;
+}

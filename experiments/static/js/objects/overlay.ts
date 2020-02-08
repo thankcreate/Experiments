@@ -292,7 +292,7 @@ function next() {
 
     if(notComplete) {
         $('#rating-error').css('display', 'block');
-        return;
+        // return;
     }
     else {
         $('#rating-error').css('display', 'none');
@@ -329,9 +329,27 @@ function commentsubmit(){
     }
 
     setTimeout(() => {
-        $('#form-rating').animate({opacity: '0'}, 400);    
-        $('#form-rating').addClass('anim-left-out');    
-        $('#form-comment').addClass('anim-center');    
+        $('#form-comment').animate({opacity: '0'}, 400);    
+        $('#form-comment').addClass('anim-left-out');    
+        // $('#form-comment').addClass('anim-center');    
     }, 1); 
+
+    submitReviewToServer();
 }
 
+function submitReviewToServer() {    
+    let name = $('#username').val();
+    let comment =  $('#comment').val();
+
+    let request = {name: name, comment: comment};
+    let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
+        .then(
+            val => {
+                // this.updateInfo();
+                console.log('Suc to report review info');                    
+            },
+            err => {                    
+                console.log('Failed to report review score');                    
+            });
+    return pm;
+}

@@ -21,20 +21,66 @@ class LikeButton extends React.Component {
   }
 }
 
-const domContainer = document.querySelector('#review-wall-container');
-ReactDOM.render(e(LikeButton), domContainer);
+// const domContainer = document.querySelector('#review-wall-container');
+// ReactDOM.render(e(LikeButton), domContainer);
 
 
-// const name = 'Josh Perez';
-// const element = <h1>Hello, {name}</h1>;
+class ReviewBlock extends React.Component {
 
-// ReactDOM.render(
-//   '123213',
-//   document.getElementById('review-wall-container')
-// );
+    render() {
+        return (
+            <div>
+                {this.props.item.username}
+                {this.props.item.comment}
+            </div>
+        );
+    }
+}
+
+class ReviewWall extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {
+            items: [
+                {
+                    username: 'Haha',
+                    comment: 'Good game',
+                },
+                {
+                    username: 'TronTron',
+                    comment: 'Bad game',
+                }
+            ]
+        }
+    }
+
+    renderOne(i) {
+        return (
+            <ReviewBlock item={this.state.items[i]} />
+        )
+    }
+
+
+    renderAll() {
+        let res = [];
+        for(let i = 0; i < 2 ;i++) {
+            res.push(this.renderOne(i));
+        }
+        return res;
+    }
+
+
+    render() {    
+        return (
+            <div className="review-wall-container">
+                {this.renderAll()}
+            </div>
+        );
+    }
+}
 
 ReactDOM.render(
-    <h1>Hello, world!</h1>,
-    $('#review-wall-container')[0]
-    // document.getElementById('review-wall-container')
+   
+    <ReviewWall />,
+    $('#review-wall-container-root')[0]    
 );

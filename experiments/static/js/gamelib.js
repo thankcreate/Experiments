@@ -6367,7 +6367,7 @@ function next() {
     }
     if (notComplete) {
         $('#rating-error').css('display', 'block');
-        return;
+        // return;
     }
     else {
         $('#rating-error').css('display', 'none');
@@ -6398,10 +6398,24 @@ function commentsubmit() {
         $('#comment-error').css('display', 'none');
     }
     setTimeout(() => {
-        $('#form-rating').animate({ opacity: '0' }, 400);
-        $('#form-rating').addClass('anim-left-out');
-        $('#form-comment').addClass('anim-center');
+        $('#form-comment').animate({ opacity: '0' }, 400);
+        $('#form-comment').addClass('anim-left-out');
+        // $('#form-comment').addClass('anim-center');    
     }, 1);
+    submitReviewToServer();
+}
+function submitReviewToServer() {
+    let name = $('#username').val();
+    let comment = $('#comment').val();
+    let request = { name: name, comment: comment };
+    let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
+        .then(val => {
+        // this.updateInfo();
+        console.log('Suc to report review info');
+    }, err => {
+        console.log('Failed to report review score');
+    });
+    return pm;
 }
 let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
 tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric

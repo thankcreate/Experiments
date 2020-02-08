@@ -55,7 +55,7 @@ def addLeaderboardItemInner(name, score):
 def showLeaderboard():
     leaderboard = Leaderboard.query.order_by(Leaderboard.score.desc()).all()
 
-    return render_template("leaderboard/leaderboard.html", 
+    return render_template("leaderboard/leaderboard.jinja", 
         leaderboard=leaderboard, 
         title='Leaderboard'
         )

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+
+
+<form action="{{ url_for('review.addReviewItem') }}" method="post">
+  <div class="form-inline">
+    <input class="form-control" type="text" maxlength="100" name="name" placeholder="Name" autofocus>
+    <input class="form-control" maxlength="100" name="comment" placeholder="Comment">
+    <button class="btn btn-primary mb-2" type="submit">Add</button>
+    <button class="btn btn-primary mb-2" type="button"
+      onclick="location.href='{{ url_for('review.deleteReviewItemAll') }}'">Remove
+      All</button>
+  </div>
+</form>
+
+<br>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Comment</th>
+      <th scope="col">Operation</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in review %}
+    <tr>
+      <td>{{item.username}}</td>
+      <td>{{item.comment}}</td>
+      <td>
+        <a href="{{url_for('review.deleteReviewItem', item_id = item.id )}}">Delete
+        </a> 
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -6173,18 +6173,6 @@ You will lose HP if the enemies reach the center circle, but you can buy your HP
 
 Caution: You can only get 💰 by eliminating 404s. The award of non-404 is negative.
 `;
-// var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
-// There are 2 types of enemies:
-// • 404: Which is just 404
-// • Non-404: General words like "Flower", "Dog"
-// You should input semantically related words to damage enemies:
-// • 404: Only the input "Bad" is considered as related
-// • Non-404: Type in a related word. For example, you can type in "Spring" when you see "Flower", and you can type in "Cute" when you see "Dog"
-// If the enemies reach the center circle, you will lose your HP.
-// Caution: You can only get 💰 by eliminating 404s. Eliminating non-404s can only give you NEGATIVE 💰.
-// `
-// The wrapped PhText is only for the fact the Wrapper must have a T
-// We don't really use the wrapped object
 class Overlay extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
@@ -6327,6 +6315,8 @@ class Overlay extends Wrapper {
         setTimeout(() => {
             $('#form-rating').addClass('anim-center');
         }, 50);
+        // must be here
+        msReload();
     }
     show() {
         this.inShow = true;

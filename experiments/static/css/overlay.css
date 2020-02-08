@@ -217,10 +217,14 @@ input[type="submit"]:active {
 
 .review-block {
   width: 200px;
-  min-height: 300px;
-  
-  display: inline-block;
+  min-height: 200px;
+  float: left;
   background-color: white;
 
-  margin: 5px;
+  margin: 8px; 
+}
+
+.review-wall-container{  
+  width: 80%;
+  margin: 30px auto;
 }

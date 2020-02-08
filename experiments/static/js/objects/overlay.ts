@@ -55,6 +55,8 @@ Caution: You can only get 💰 by eliminating 404s. The award of non-404 is nega
 
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
+declare function msReload();
+
 class Overlay extends Wrapper<PhText> {
     
     bkg: Rect;
@@ -234,6 +236,8 @@ class Overlay extends Wrapper<PhText> {
     }
 
     showFormRating() {
+
+        
         this.show();
         $('#overlay').css('display', 'inline');
         $('#form-rating').css('display', 'block');
@@ -242,7 +246,10 @@ class Overlay extends Wrapper<PhText> {
         // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
         setTimeout(() => {
             $('#form-rating').addClass('anim-center');    
-        }, 50);        
+        }, 50);   
+        
+        // must be here
+        msReload();
     }
 
 

@@ -59,15 +59,24 @@ class ReviewWall extends React.Component{
         this.refresh();
     }
 
+    componentDidMount() {
+        console.log('componentDidMount');
+        msReload();
+    }
+
+    componentDidUpdate() {
+        console.log('componentDidUpdate');
+        msReload();
+    }
+
     refresh() {
         let request = {count: 50};
         let pm = apiPromise('api/review', request, 'json', 'GET')
             .then(
-                val => {
-                    this.setState({
-                        // reversed
+                val => {               
+                    this.setState({                        
                         items: val.reverse()
-                    });
+                    });                    
                     console.log("React refresh suc"); 
                 },
                 err => {                    
@@ -93,6 +102,7 @@ class ReviewWall extends React.Component{
 
 
     render() {    
+        console.log('123');
         return (
             <div className="review-wall-container">
                 {this.renderAll()}
@@ -106,3 +116,17 @@ ReactDOM.render(
     <ReviewWall />,
     $('#review-wall-container-root')[0]    
 );
+
+
+function msInit() {    
+    $('.review-wall-container').masonry({        
+        itemSelector: '.review-block',
+        // columnWidth: 210
+    });
+}
+msInit();
+
+function msReload() {
+    $('.review-wall-container').masonry('reloadItems');
+    $('.review-wall-container').masonry();
+}

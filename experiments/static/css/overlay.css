@@ -258,6 +258,7 @@ input[type="submit"]:active {
 
 
 .review-wall-container{  
+  visibility: hidden;
   width: 80%;
   margin: 30px auto;
 }

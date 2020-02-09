@@ -65,6 +65,7 @@ class ReviewBlock extends React.Component {
     }
 }
 
+var myRef;
 class ReviewWall extends React.Component{
     constructor(props) {
         super(props);
@@ -81,6 +82,7 @@ class ReviewWall extends React.Component{
             ]
         }
         this.refresh();
+        myRef= React.createRef();
     }
 
     componentDidMount() {
@@ -136,7 +138,7 @@ class ReviewWall extends React.Component{
     }
 }
 
-ReactDOM.render(
+let s_rw = ReactDOM.render(
    
     <ReviewWall />,
     $('#review-wall-container-root')[0]    

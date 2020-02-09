@@ -344,6 +344,7 @@ function commentsubmit(){
     submitReviewToServer();
 }
 
+declare var s_rw;
 function submitReviewToServer() {    
     let name = $('#username').val();
     let comment =  $('#comment').val();
@@ -355,9 +356,18 @@ function submitReviewToServer() {
                 // this.updateInfo();
                 console.log('Suc to report review info'); 
                 console.log(val); 
+                // return Promise.resolve(val);
             },
-            err => {                    
+            err => {       
                 console.log('Failed to report review score');                    
-            });
-    return pm;
+            }
+        )
+        .then(val=>{
+            $('.review-wall-container').css('visibility', 'visible');
+            s_rw.refresh();
+        })
+        
+
+    
+    
 }

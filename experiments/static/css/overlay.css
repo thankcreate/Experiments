@@ -216,12 +216,20 @@ input[type="submit"]:active {
 
 
 .review-block {
-  width: 200px;
+  width: 150px;
   min-height: 200px;
   float: left;
   background-color: white;
 
   margin: 8px; 
+
+  background: #eceeee;
+  border: 1px solid #5d6369;
+  border-radius: 10px;
+  padding: 15px 19px 20px 19px;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
 }
 
 .review-wall-container{  

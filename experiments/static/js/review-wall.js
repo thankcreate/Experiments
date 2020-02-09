@@ -30,12 +30,14 @@ class ReviewBlock extends React.Component {
     render() {
         return (
             <div className="review-block">
-                <div className="review-block-name">
-                    {this.props.item.username}
-                </div>
                 <div className='review-block-comment'>
                     {this.props.item.comment}
-                </div>                
+                </div> 
+                <div>
+                    <div className="review-block-name">
+                        {this.props.item.username}
+                    </div>
+                </div>
             </div>
         );
     }

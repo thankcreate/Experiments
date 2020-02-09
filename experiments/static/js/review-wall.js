@@ -27,15 +27,37 @@ class LikeButton extends React.Component {
 
 class ReviewBlock extends React.Component {
 
+    is404() {
+        return Math.random() < 0.5;
+    }
+
+
     render() {
-        return (
-            <div className="review-block">
+        let up =    
+            <div>
                 <div className='review-block-comment'>
                     {this.props.item.comment}
-                </div> 
-                <div>
+                </div>
+                <div className='review-block-time'>
+                    {moment(this.props.item.timestamp).fromNow()}
+                </div>
+            </div>         
+        
+        let up404 = 
+            <div className='review-block-404 tooltip'>
+                404
+                <span className="tooltiptext">The user has deleted their own comment</span>
+            </div>
+
+        return (
+            <div className="review-block">
+                <div className='review-block-up'>
+                    {this.is404() ? up404 : up} 
+                </div>
+                            
+                <div className="review-block-bottom">
                     <div className="review-block-name">
-                        {this.props.item.username}
+                        {this.props.item.username}                        
                     </div>
                 </div>
             </div>
@@ -80,6 +102,7 @@ class ReviewWall extends React.Component{
                         items: val.reverse()
                     });                    
                     console.log("React refresh suc"); 
+                    console.log(val); 
                 },
                 err => {                    
                     console.log('Failed to fetch review info');                    

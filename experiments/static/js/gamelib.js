@@ -6409,7 +6409,7 @@ function submitReviewToServer() {
     })
         .then(val => {
         $('.review-wall-container').css('visibility', 'visible');
-        s_rw.refresh();
+        // s_rw.refresh();
     });
 }
 let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-

@@ -87,6 +87,7 @@ class ReviewWall extends React.Component{
 
     componentDidMount() {
         console.log('componentDidMount');
+        msInit();
         msReload();
     }
 
@@ -104,7 +105,7 @@ class ReviewWall extends React.Component{
                         items: val.reverse()
                     });                    
                     console.log("React refresh suc"); 
-                    console.log(val); 
+                    // console.log(val.reverse()); 
                 },
                 err => {                    
                     console.log('Failed to fetch review info');                    
@@ -113,6 +114,7 @@ class ReviewWall extends React.Component{
     }
 
     renderOne(i) {
+        // console.log('render one ' + this.state.items[i].username);
         return (
             <ReviewBlock item={this.state.items[i]} key={i} />
         )
@@ -151,7 +153,7 @@ function msInit() {
         // columnWidth: 210
     });
 }
-msInit();
+
 
 function msReload() {
     $('.review-wall-container').masonry('reloadItems');

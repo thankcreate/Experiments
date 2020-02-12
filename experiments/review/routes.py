@@ -42,9 +42,9 @@ def post_review():
     name = data['name']
     comment = data['comment']
         
-    res = addReviewItemInner(name, comment)
-    if res:
-        return get_review_inner(50)
+    id = addReviewItemInner(name, comment)
+    if id:
+        return jsonify({'res': 'Suc', 'id': id}) 
     else:
         return jsonify({'res': 'Error'})
 
@@ -64,7 +64,7 @@ def addReviewItemInner(name, comment):
     item = Review(username=name, comment=comment)
     db.session.add(item)
     db.session.commit()
-    return True
+    return item.id
 
 
 @bp.route('/review/<int:item_id>/delete/', methods = ['GET','POST'])

@@ -421,6 +421,9 @@ class Scene1 extends BaseScene {
             let mainImage = this.centerObject.mainImage;
 
             s.autoOn($(document), 'keypress', ()=>{
+                if(this.overlay.inShow){
+                    return;
+                }
                 this.homeEnterInvoked(s);
             });
 

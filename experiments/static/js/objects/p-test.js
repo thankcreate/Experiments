@@ -23,6 +23,34 @@
 
 // firstRes('fuckyou');
 
+let chain = Promise.reject(1)
+.then(res => {
+    console.log(res);
+    return 2;
+},
+rej=>{
+    console.log(rej);
+    return 2;
+})
+.then(res =>{
+    console.log(res);
+},
+rej=>{
+    console.log(ref);
+}
+)
+.then(res => {
+    return new Promise((resolve, rej) => {
+        rej('just rej');
+    });
+})
+.then(res => {
+    console.log(res);
+})
+.catch(reason => {
+    console.log('catch here');
+});
+
 
 
 
@@ -221,17 +249,17 @@
 
 // cc = "haha"
 
-dic = {
-    cc: "123",
-    a: 1,
-}
-ds = [];
-// // console.log(JSON.stringify(dic))
+// dic = {
+//     cc: "123",
+//     a: 1,
+// }
+// ds = [];
+// // // console.log(JSON.stringify(dic))
 
 // let dd = dic;
 // dd.a = 1;
 // console.log(dic.a);
-console.log(typeof(ds));
+// console.log(typeof(ds));
 
 
 // if(dic.k) {

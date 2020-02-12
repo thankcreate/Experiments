@@ -354,20 +354,38 @@ function submitReviewToServer() {
         .then(
             val => {
                 // this.updateInfo();
-                console.log('Suc to report review info'); 
-                console.log(val); 
+                console.log('Suc to report review info111'); 
+                console.log('id is: ' + val.id);
+                return val.id;
+                // console.log(val.val);
+                // console.log(val); 
                 // return Promise.resolve(val);
             },
             err => {       
                 console.log('Failed to report review score');                    
             }
         )
-        .then(val=>{
-            $('.review-wall-container').css('visibility', 'visible');
-            // s_rw.refresh();
-        })
-        
+        .then(id=>{
+            showWall(id);
+            s_rw.refresh(id);
+        })            
+}
 
-    
-    
+
+
+/**
+ * 
+ */
+function showWall(id?: any) {
+    $('#overlay-with-scroll').css("pointer-events", "auto");
+    // $('.review-wall-container').css('visibility', 'visible');
+    $('.review-wall-container').css('display', 'block');
+}
+
+/**
+ * Not used now
+ */
+function isHtmlOverlayInShow() {
+    let ratingInShown = $('#overlay').css('display') != "none";
+    let wallInShown = $('.review-wall-container').css('visibility') != 'none';
 }

@@ -37,5 +37,6 @@ class Review(db.Model):
             'username': self.username,
             'comment': self.comment,
             'avatar': self.avatar,
-            'timestamp' : self.timestamp
+            'timestamp' : self.timestamp,
+            'id': self.id
         }

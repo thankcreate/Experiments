@@ -372,6 +372,9 @@ class Scene1 extends BaseScene {
             LeaderboardManager.getInstance().updateInfo();
             let mainImage = this.centerObject.mainImage;
             s.autoOn($(document), 'keypress', () => {
+                if (this.overlay.inShow) {
+                    return;
+                }
                 this.homeEnterInvoked(s);
             });
             s.autoSafeInOutClick(mainImage, e => {
@@ -6401,16 +6404,34 @@ function submitReviewToServer() {
     let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
         .then(val => {
         // this.updateInfo();
-        console.log('Suc to report review info');
-        console.log(val);
+        console.log('Suc to report review info111');
+        console.log('id is: ' + val.id);
+        return val.id;
+        // console.log(val.val);
+        // console.log(val); 
         // return Promise.resolve(val);
     }, err => {
         console.log('Failed to report review score');
     })
-        .then(val => {
-        $('.review-wall-container').css('visibility', 'visible');
-        // s_rw.refresh();
+        .then(id => {
+        showWall(id);
+        s_rw.refresh(id);
     });
+}
+/**
+ *
+ */
+function showWall(id) {
+    $('#overlay-with-scroll').css("pointer-events", "auto");
+    // $('.review-wall-container').css('visibility', 'visible');
+    $('.review-wall-container').css('display', 'block');
+}
+/**
+ * Not used now
+ */
+function isHtmlOverlayInShow() {
+    let ratingInShown = $('#overlay').css('display') != "none";
+    let wallInShown = $('.review-wall-container').css('visibility') != 'none';
 }
 let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
 tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric

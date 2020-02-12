@@ -39,7 +39,7 @@
 
 <body>
 
-    <div id="phaser-main" style="overflow: hidden; width: 100%; height: 100%;">
+    <div id="phaser-main" style="position: fixed; overflow: hidden; width: 100%; height: 100%;">
     </div>
     <div id="affdex_elements" height="300" width="400"></div>
     <video id="video" height="300" width="400" autoplay></video>
@@ -113,17 +113,17 @@
                 <label class="ratingControl-stars ratingControl-stars--45 ratingControl-stars--half"
                     for="rating-45-3">45</label>
                 <input type="radio" id="rating-4-3" name="rating-3" value="4">
-                <label class="ratingControl-stars ratingControl-stars--4" for="rating-4">4</label>
+                <label class="ratingControl-stars ratingControl-stars--4" for="rating-4-3">4</label>
                 <input type="radio" id="rating-35-3" name="rating-3" value="3.5">
                 <label class="ratingControl-stars ratingControl-stars--35 ratingControl-stars--half"
                     for="rating-35-3">35</label>
                 <input type="radio" id="rating-3-3" name="rating-3" value="3">
-                <label class="ratingControl-stars ratingControl-stars--3" for="rating-3">3</label>
+                <label class="ratingControl-stars ratingControl-stars--3" for="rating-3-3">3</label>
                 <input type="radio" id="rating-25-3" name="rating-3" value="2.5">
                 <label class="ratingControl-stars ratingControl-stars--25 ratingControl-stars--half"
                     for="rating-25-3">25</label>
                 <input type="radio" id="rating-2-3" name="rating-3" value="2">
-                <label class="ratingControl-stars ratingControl-stars--2" for="rating-2">2</label>
+                <label class="ratingControl-stars ratingControl-stars--2" for="rating-2-3">2</label>
                 <input type="radio" id="rating-15-3" name="rating-3" value="1.5">
                 <label class="ratingControl-stars ratingControl-stars--15 ratingControl-stars--half"
                     for="rating-15-3">15</label>
@@ -141,22 +141,22 @@
                 <label class="ratingControl-stars ratingControl-stars--45 ratingControl-stars--half"
                     for="rating-45-4">45</label>
                 <input type="radio" id="rating-4-4" name="rating-4" value="4">
-                <label class="ratingControl-stars ratingControl-stars--4" for="rating-4">4</label>
+                <label class="ratingControl-stars ratingControl-stars--4" for="rating-4-4">4</label>
                 <input type="radio" id="rating-35-4" name="rating-4" value="3.5">
                 <label class="ratingControl-stars ratingControl-stars--35 ratingControl-stars--half"
                     for="rating-35-4">35</label>
                 <input type="radio" id="rating-3-4" name="rating-4" value="3">
-                <label class="ratingControl-stars ratingControl-stars--3" for="rating-3">3</label>
+                <label class="ratingControl-stars ratingControl-stars--3" for="rating-3-4">3</label>
                 <input type="radio" id="rating-25-4" name="rating-4" value="2.5">
                 <label class="ratingControl-stars ratingControl-stars--25 ratingControl-stars--half"
                     for="rating-25-4">25</label>
                 <input type="radio" id="rating-2-4" name="rating-4" value="2">
-                <label class="ratingControl-stars ratingControl-stars--2" for="rating-2">2</label>
+                <label class="ratingControl-stars ratingControl-stars--2" for="rating-2-4">2</label>
                 <input type="radio" id="rating-15-4" name="rating-4" value="1.5">
                 <label class="ratingControl-stars ratingControl-stars--15 ratingControl-stars--half"
                     for="rating-15-4">15</label>
                 <input type="radio" id="rating-1-4" name="rating-4" value="1">
-                <label class="ratingControl-stars ratingControl-stars--1" for="rating-1">1</label>
+                <label class="ratingControl-stars ratingControl-stars--1" for="rating-1-4">1</label>
                 <input type="radio" id="rating-05-4" name="rating-4" value="0.5">
                 <label class="ratingControl-stars ratingControl-stars--05 ratingControl-stars--half"
                     for="rating-05-4">05</label>
@@ -210,11 +210,15 @@
 
         </div>
 
+        
+
+        
+    </div>
+
+    <div id='overlay-with-scroll'>
         <div id='review-wall-container-root'>
 
         </div>
-
-        
     </div>
 
     <!-- Load React. -->

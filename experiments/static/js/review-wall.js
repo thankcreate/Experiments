@@ -36,6 +36,37 @@ class ReviewBlock extends React.Component {
         return Math.random() < 0.5;
     }
 
+    isNewAdded() {
+        return this.props.newAdded == true;
+    }
+
+    componentDidMount() {
+        console.log('mont');
+        $('#overlay-with-scroll')[0].addEventListener('scroll', this.handleScroll);
+    }
+    
+    componentWillUnmount() {
+        
+        $('#overlay-with-scroll')[0].removeEventListener('scroll', this.handleScroll);
+    }
+    
+    handleScroll(event){
+        let rect = $('.newadded')[0].getBoundingClientRect();
+        let windowH = $(window).height();
+        let relaH = windowH - rect.bottom;
+        // console.log(windowH - rect.bottom);
+
+        /**
+         * relaH represents the bottom of the div related to the viewport bottom
+         * >0: div above the viewport bottom
+         */
+
+        let fullShownHeight = windowH * 0.3;
+        let op = relaH / fullShownHeight;
+        let clampedOp = clamp(op, 0, 1);
+        $('.newadded').css('opacity', clampedOp);
+    }
+
 
     render() {
         let up =    
@@ -54,10 +85,20 @@ class ReviewBlock extends React.Component {
                 <span className="tooltiptext">The user has deleted their own comment</span>
             </div>
 
+        let focus = 
+            <div className='review-block-404 tooltip'>
+                Focus
+                <span className="tooltiptext">The user has deleted their own comment</span>
+            </div>
+        
+        let blockClass = 'review-block';
+        if(this.props.newAdded) 
+            blockClass+= ' newadded';
+
         return (
-            <div className="review-block">
+            <div className={blockClass} >
                 <div className='review-block-up'>
-                    {this.is404() ? up404 : up} 
+                    {this.is404() ? up404 : this.props.newAdded? focus : up} 
                 </div>
                             
                 <div className="review-block-bottom">
@@ -72,6 +113,8 @@ class ReviewBlock extends React.Component {
 
 var myRef;
 class ReviewWall extends React.Component{
+
+
     constructor(props) {
         super(props);
         this.state = {
@@ -86,6 +129,7 @@ class ReviewWall extends React.Component{
                 }
             ]
         }
+        this.id = '';
         this.refresh();
         myRef= React.createRef();
     }
@@ -101,8 +145,9 @@ class ReviewWall extends React.Component{
         msReload();
     }
 
-    refresh() {
+    refresh(newID) {
         let request = {count: 50};
+        this.id = newID;
         let pm = apiPromise('api/review', request, 'json', 'GET')
             .then(
                 val => {               
@@ -120,9 +165,13 @@ class ReviewWall extends React.Component{
 
     renderOne(i) {
         // console.log('render one ' + this.state.items[i].username);
-        return (
-            <ReviewBlock item={this.state.items[i]} key={i} />
-        )
+        let isNewAdded = this.state.items[i].id == this.id;
+        if(isNewAdded) {
+            console.log('newadded');
+        }
+        let ret = <ReviewBlock item={this.state.items[i]} key={i} newAdded={isNewAdded} />        
+        
+        return ret
     }
 
 

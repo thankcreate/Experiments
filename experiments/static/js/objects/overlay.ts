@@ -406,7 +406,7 @@ class Overlay extends Wrapper<PhText> {
         /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
          * Time shown
          */
-        $('.review-wall-container').css('display', show ? 'block' : "none");
+        $('.review-wall-container').css('display', show ? 'block' : "none");        
     }
 
     /**

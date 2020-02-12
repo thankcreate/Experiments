@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * React scrips need to be put into the end of <body>,
+ * so we can't build the this file together with other phaser logic
+ */
+
 const e = React.createElement;
 
 class LikeButton extends React.Component {
@@ -35,7 +40,7 @@ class ReviewBlock extends React.Component {
     render() {
         let up =    
             <div>
-                <div className='review-block-comment'>
+                <div className='review-block-comment wrap'>
                     {this.props.item.comment}
                 </div>
                 <div className='review-block-time'>

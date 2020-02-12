@@ -6180,6 +6180,7 @@ class Overlay extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.inShow = false;
+        Overlay.instance = this;
         this.inner.alpha = 0;
         let width = getLogicWidth();
         let height = phaserConfig.scale.height;
@@ -6201,6 +6202,9 @@ class Overlay extends Wrapper {
         this.leaderboardDialog.hide();
         this.hide();
         this.initForm();
+    }
+    static getInstance() {
+        return Overlay.instance;
     }
     initForm() {
     }
@@ -6350,108 +6354,111 @@ class Overlay extends Wrapper {
     isInShow() {
         return this.inShow;
     }
-}
-function next() {
-    let count = 5;
-    let stars = [null, null, null, null, null];
-    for (let i = 1; i <= count; i++) {
-        let name = 'rating-' + i;
-        var radio1 = $("input[name='" + name + "']:checked").val();
-        stars[i - 1] = radio1;
-        console.log(i + " : " + radio1);
+    ratingNext() {
+        let count = 5;
+        let stars = [null, null, null, null, null];
+        for (let i = 1; i <= count; i++) {
+            let name = 'rating-' + i;
+            var radio1 = $("input[name='" + name + "']:checked").val();
+            stars[i - 1] = radio1;
+            console.log(i + " : " + radio1);
+        }
+        let notComplete = false;
+        for (let i in stars) {
+            if (stars[i] == null) {
+                notComplete = true;
+                break;
+            }
+        }
+        if (notComplete) {
+            $('#rating-error').css('display', 'block');
+            // return;
+        }
+        else {
+            $('#rating-error').css('display', 'none');
+        }
+        // show comment dialog
+        $('#form-comment').css('display', 'block');
+        setTimeout(() => {
+            $('#form-rating').animate({ opacity: '0' }, 400, () => {
+                $('#form-rating').css('display', 'none');
+            });
+            $('#form-rating').addClass('anim-left-out');
+            $('#form-comment').addClass('anim-center');
+        }, 1);
     }
-    let notComplete = false;
-    for (let i in stars) {
-        if (stars[i] == null) {
+    commentSubmit() {
+        let username = $('#username').val();
+        let comment = $('#comment').val();
+        let notComplete = false;
+        if (username.trim() == ''
+            || comment.trim() == '') {
             notComplete = true;
-            break;
         }
+        if (notComplete) {
+            $('#comment-error').css('display', 'block');
+            return;
+        }
+        else {
+            $('#comment-error').css('display', 'none');
+        }
+        setTimeout(() => {
+            $('#form-comment').animate({ opacity: '0' }, 400);
+            $('#form-comment').addClass('anim-left-out');
+            // $('#form-comment').addClass('anim-center');    
+        }, 1);
+        this.submitReviewToServer();
     }
-    if (notComplete) {
-        $('#rating-error').css('display', 'block');
-        // return;
-    }
-    else {
-        $('#rating-error').css('display', 'none');
-    }
-    // show comment dialog
-    $('#form-comment').css('display', 'block');
-    setTimeout(() => {
-        $('#form-rating').animate({ opacity: '0' }, 400, () => {
-            $('#form-rating').css('display', 'none');
+    submitReviewToServer() {
+        let name = $('#username').val();
+        let comment = $('#comment').val();
+        let request = { name: name, comment: comment };
+        let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
+            .then(val => {
+            // this.updateInfo();
+            console.log('Suc to report review info111');
+            console.log('id is: ' + val.id);
+            return val.id;
+            // console.log(val.val);
+            // console.log(val); 
+            // return Promise.resolve(val);
+        }, err => {
+            console.log('Failed to report review score');
+        })
+            .then(id => {
+            this.showReviewWall(true, id);
+            s_rw.refresh(id);
         });
-        $('#form-rating').addClass('anim-left-out');
-        $('#form-comment').addClass('anim-center');
-    }, 1);
-}
-function commentsubmit() {
-    let username = $('#username').val();
-    let comment = $('#comment').val();
-    let notComplete = false;
-    if (username.trim() == ''
-        || comment.trim() == '') {
-        notComplete = true;
     }
-    if (notComplete) {
-        $('#comment-error').css('display', 'block');
-        return;
-    }
-    else {
-        $('#comment-error').css('display', 'none');
-    }
-    setTimeout(() => {
-        $('#form-comment').animate({ opacity: '0' }, 400);
-        $('#form-comment').addClass('anim-left-out');
-        // $('#form-comment').addClass('anim-center');    
-    }, 1);
-    submitReviewToServer();
-}
-function submitReviewToServer() {
-    let name = $('#username').val();
-    let comment = $('#comment').val();
-    let request = { name: name, comment: comment };
-    let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
-        .then(val => {
-        // this.updateInfo();
-        console.log('Suc to report review info111');
-        console.log('id is: ' + val.id);
-        return val.id;
-        // console.log(val.val);
-        // console.log(val); 
-        // return Promise.resolve(val);
-    }, err => {
-        console.log('Failed to report review score');
-    })
-        .then(id => {
-        showReviewWall(true, id);
-        s_rw.refresh(id);
-    });
-}
-/**
- *
- */
-function showReviewWall(show, id) {
-    if (show) {
-        if (!this.inShow) {
-            this.show();
+    showReviewWall(show, id) {
+        if (show) {
+            if (!this.inShow) {
+                this.show();
+            }
         }
+        else {
+            this.hide();
+        }
+        $('#overlay-with-scroll').css("pointer-events", show ? "auto" : "none");
+        // $('.review-wall-container').css('visibility', show ? 'visible' : 'hidden');
+        /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
+         * Time shown
+         */
+        $('.review-wall-container').css('display', show ? 'block' : "none");
     }
-    else {
-        this.hide();
-    }
-    $('#overlay-with-scroll').css("pointer-events", show ? "auto" : "none");
-    // $('.review-wall-container').css('visibility', show ? 'visible' : 'hidden');
-    /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
-     * Time shown
+    /**
+     * Not used now
      */
-    $('.review-wall-container').css('display', show ? 'block' : "none");
+    isHtmlOverlayInShow() {
+        let ratingInShown = $('#overlay').css('display') != "none";
+        let wallInShown = $('.review-wall-container').css('visibility') != 'none';
+    }
 }
-/**
- * Not used now
- */
-function isHtmlOverlayInShow() {
-    let ratingInShown = $('#overlay').css('display') != "none";
-    let wallInShown = $('.review-wall-container').css('visibility') != 'none';
+function s_ratingNext() {
+    Overlay.getInstance().ratingNext();
+}
+function s_commentSubmit() {
+    Overlay.getInstance().commentSubmit();
 }
 let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
 tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric

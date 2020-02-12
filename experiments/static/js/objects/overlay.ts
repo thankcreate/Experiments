@@ -56,15 +56,18 @@ Caution: You can only get 💰 by eliminating 404s. The award of non-404 is nega
 // The wrapped PhText is only for the fact the Wrapper must have a T
 // We don't really use the wrapped object
 declare function msReload();
+declare var s_rw;
 
 class Overlay extends Wrapper<PhText> {
-    
+
+    private static instance: Overlay;
+
     bkg: Rect;
 
     /**
      * uniDialog is mostly used in UI
      */
-    uniDialog: Dialog;    
+    uniDialog: Dialog;
 
     /**
      * inGameDialog is mostly shown during play
@@ -80,32 +83,38 @@ class Overlay extends Wrapper<PhText> {
 
 
     reviewForm: PhDOM;
-    
+
+
+    static getInstance(): Overlay {
+        return Overlay.instance;
+    }
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
         super(scene, parentContainer, x, y, null);
+
+        Overlay.instance = this;
 
         this.inner.alpha = 0;
 
         let width = getLogicWidth();
         let height = phaserConfig.scale.height
-        this.bkg = new Rect(this.scene, this.inner, 0, 0, {            
-        fillColor: 0x000000,
-        fillAlpha: 0.8,            
-        width: width, 
-        height: height,
-        lineWidth: 0,
-        originX: 0.5,
-        originY: 0.5, 
+        this.bkg = new Rect(this.scene, this.inner, 0, 0, {
+            fillColor: 0x000000,
+            fillAlpha: 0.8,
+            width: width,
+            height: height,
+            lineWidth: 0,
+            originX: 0.5,
+            originY: 0.5,
         });
 
         this.bkg.wrappedObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
 
-        
+
         this.initUniDialog();
         this.initInGameDialog();
         this.initLeaderboardDialog();
-        
+
         this.uniDialog.hide();
         this.inGameDialog.hide();
         this.leaderboardDialog.hide();
@@ -113,13 +122,13 @@ class Overlay extends Wrapper<PhText> {
 
         this.initForm();
 
-    } 
+    }
 
     initForm() {
     }
 
-    initUniDialog(){
-        this.uniDialog =  new Dialog(this.scene, this.inner, 0, 0, {
+    initUniDialog() {
+        this.uniDialog = new Dialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
             lineWidth: 6,
@@ -127,22 +136,22 @@ class Overlay extends Wrapper<PhText> {
             width: 1000,
             height: 700,
             title: 'About',
-            titleContentGap: 40, 
-            contentPadding: 60, 
-            contentBtnGap: 30, 
-            btnToBottom: 65,                   
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
             content: nyuAbout,
             autoHeight: true
         });
         this.uniDialog.setOrigin(0.5, 0.5);
-        this.uniDialog.okBtn.clickedEvent.on(()=>{
+        this.uniDialog.okBtn.clickedEvent.on(() => {
             this.hide();
             this.uniDialog.hide();
         });
     }
 
     initInGameDialog() {
-        this.inGameDialog =  new Dialog(this.scene, this.inner, 0, 0, {
+        this.inGameDialog = new Dialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
             lineWidth: 6,
@@ -150,26 +159,26 @@ class Overlay extends Wrapper<PhText> {
             width: 800,
             height: 700,
             title: 'Caution',
-            titleContentGap: 40, 
-            contentPadding: 60, 
-            contentBtnGap: 30, 
-            btnToBottom: 65,                   
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
             content: cautionDefault,
             autoHeight: true
         });
         this.inGameDialog.setOrigin(0.5, 0.5);
-        this.inGameDialog.okBtn.clickedEvent.on(()=>{
+        this.inGameDialog.okBtn.clickedEvent.on(() => {
             this.hide();
             this.inGameDialog.hide();
         });
-        this.inGameDialog.cancelBtn.clickedEvent.on(()=>{
+        this.inGameDialog.cancelBtn.clickedEvent.on(() => {
             this.hide();
             this.inGameDialog.hide();
         });
     }
 
     initLeaderboardDialog() {
-        this.leaderboardDialog =  new LeaderboardDialog(this.scene, this.inner, 0, 0, {
+        this.leaderboardDialog = new LeaderboardDialog(this.scene, this.inner, 0, 0, {
             fillColor: 0xbbbbbb,
             lineColor: 0x000000,
             lineWidth: 6,
@@ -177,16 +186,16 @@ class Overlay extends Wrapper<PhText> {
             width: 600,
             height: 1000,
             title: 'About',
-            titleContentGap: 40, 
-            contentPadding: 60, 
-            contentBtnGap: 30, 
-            btnToBottom: 65,                   
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
             content: nyuAbout,
             autoHeight: true,
             itemCount: 18,
         });
         this.leaderboardDialog.setOrigin(0.5, 0.5);
-        this.leaderboardDialog.okBtn.clickedEvent.on(()=>{
+        this.leaderboardDialog.okBtn.clickedEvent.on(() => {
             this.hide();
             this.leaderboardDialog.hide();
         });
@@ -202,7 +211,7 @@ class Overlay extends Wrapper<PhText> {
         this.uniDialog.show();
     }
 
-    showAboutDialog() {        
+    showAboutDialog() {
         this.uniDialog.setContent(nyuAbout, "NYU Game Center");
         this.show();
         this.uniDialog.show();
@@ -214,22 +223,22 @@ class Overlay extends Wrapper<PhText> {
         this.uniDialog.show();
     }
 
-    showTurnCautionDialog() : Dialog {
+    showTurnCautionDialog(): Dialog {
         this.inGameDialog.setContent(cautionDefault, 'Caution', ['OK', 'Cancel']);
         this.show();
         this.inGameDialog.show();
         return this.inGameDialog;
     }
 
-    showEcnomicDialog() : Dialog {
+    showEcnomicDialog(): Dialog {
         this.uniDialog.setContent(economicAbout, economicTitle);
         this.show();
         this.uniDialog.show();
         return this.uniDialog;
     }
-    
 
-    showLeaderBoardDialog() {        
+
+    showLeaderBoardDialog() {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
         this.show();
         this.leaderboardDialog.show();
@@ -239,28 +248,28 @@ class Overlay extends Wrapper<PhText> {
 
     showFormRating(show: boolean) {
 
-        if(show) {
-            if(!this.inShow) {
+        if (show) {
+            if (!this.inShow) {
                 this.show();
-            }            
+            }
         }
         else {
             this.hide();
         }
-        
-        
 
-        $('#overlay').css('display', show ? 'block': 'none');
+
+
+        $('#overlay').css('display', show ? 'block' : 'none');
         $('#form-rating').css('display', show ? 'block' : 'none');
         $('#form-comment').css('display', 'none');
 
         // show the star rating form from the bottom
-        if(show) {
+        if (show) {
             setTimeout(() => {
-                $('#form-rating').addClass('anim-center');    
-            }, 50);       
+                $('#form-rating').addClass('anim-center');
+            }, 50);
         }
-        
+
         // just for test 
         // msReload();
     }
@@ -270,7 +279,7 @@ class Overlay extends Wrapper<PhText> {
         this.inShow = true;
         this.inner.setVisible(true);
 
-        
+
         this.inTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: 1,
@@ -282,137 +291,141 @@ class Overlay extends Wrapper<PhText> {
         this.inShow = false;
         this.inner.setVisible(false);
         this.inner.alpha = 0;
-        if(this.inTween) {
-            this.inTween.stop();            
+        if (this.inTween) {
+            this.inTween.stop();
         }
     }
 
     isInShow(): boolean {
         return this.inShow;
     }
-}
 
-function next() {
-    let count = 5;
-    let stars = [null, null, null, null, null];
-    for(let i = 1; i <= count; i++) {
-        let name = 'rating-' + i;
-        var radio1 = $("input[name='" + name + "']:checked").val();
-        stars[i - 1] = radio1;
-        console.log(i + " : "  + radio1);
-    }
-    
-    let notComplete = false;
-    for(let i in stars) {
-        if(stars[i] == null) {
-            notComplete = true;
-            break;
+    ratingNext() {
+        let count = 5;
+        let stars = [null, null, null, null, null];
+        for (let i = 1; i <= count; i++) {
+            let name = 'rating-' + i;
+            var radio1 = $("input[name='" + name + "']:checked").val();
+            stars[i - 1] = radio1;
+            console.log(i + " : " + radio1);
         }
-    }
 
-    if(notComplete) {
-        $('#rating-error').css('display', 'block');
-        // return;
-    }
-    else {
-        $('#rating-error').css('display', 'none');
-    }
-    
-    // show comment dialog
-
-    $('#form-comment').css('display', 'block');    
-    setTimeout(() => {
-        $('#form-rating').animate({opacity: '0'}, 400,()=>{
-            $('#form-rating').css('display', 'none');    
-        });    
-        $('#form-rating').addClass('anim-left-out');    
-        $('#form-comment').addClass('anim-center');    
-    }, 1);  
-}
-
-function commentsubmit(){
-    let username = $('#username').val() as unknown as string;
-    let comment = $('#comment').val() as unknown as string;
-
-    let notComplete = false;
-    if(username.trim() == '' 
-    || comment.trim() == '') {
-        notComplete = true;
-    } 
-
-    if(notComplete) {
-        $('#comment-error').css('display', 'block');
-        return;
-    }
-    else {
-        $('#comment-error').css('display', 'none');
-    }
-
-    setTimeout(() => {
-        $('#form-comment').animate({opacity: '0'}, 400);    
-        $('#form-comment').addClass('anim-left-out');    
-        // $('#form-comment').addClass('anim-center');    
-    }, 1); 
-
-    submitReviewToServer();
-}
-
-declare var s_rw;
-function submitReviewToServer() {    
-    let name = $('#username').val();
-    let comment =  $('#comment').val();
-
-    let request = {name: name, comment: comment};
-    let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
-        .then(
-            val => {
-                // this.updateInfo();
-                console.log('Suc to report review info111'); 
-                console.log('id is: ' + val.id);
-                return val.id;
-                // console.log(val.val);
-                // console.log(val); 
-                // return Promise.resolve(val);
-            },
-            err => {       
-                console.log('Failed to report review score');                    
+        let notComplete = false;
+        for (let i in stars) {
+            if (stars[i] == null) {
+                notComplete = true;
+                break;
             }
-        )
-        .then(id=>{
-            showReviewWall(true, id);
-            s_rw.refresh(id);
-        })            
-}
+        }
 
+        if (notComplete) {
+            $('#rating-error').css('display', 'block');
+            // return;
+        }
+        else {
+            $('#rating-error').css('display', 'none');
+        }
 
+        // show comment dialog
 
-/**
- * 
- */
-function showReviewWall(show: boolean, id?: any) {
-    
-    if(show) {
-        if(!this.inShow) {
-            this.show();
-        }            
+        $('#form-comment').css('display', 'block');
+        setTimeout(() => {
+            $('#form-rating').animate({ opacity: '0' }, 400, () => {
+                $('#form-rating').css('display', 'none');
+            });
+            $('#form-rating').addClass('anim-left-out');
+            $('#form-comment').addClass('anim-center');
+        }, 1);
     }
-    else {
-        this.hide();
+
+    commentSubmit() {
+        let username = $('#username').val() as unknown as string;
+        let comment = $('#comment').val() as unknown as string;
+
+        let notComplete = false;
+        if (username.trim() == ''
+            || comment.trim() == '') {
+            notComplete = true;
+        }
+
+        if (notComplete) {
+            $('#comment-error').css('display', 'block');
+            return;
+        }
+        else {
+            $('#comment-error').css('display', 'none');
+        }
+
+        setTimeout(() => {
+            $('#form-comment').animate({ opacity: '0' }, 400);
+            $('#form-comment').addClass('anim-left-out');
+            // $('#form-comment').addClass('anim-center');    
+        }, 1);
+
+        this.submitReviewToServer();
     }
-    
-    $('#overlay-with-scroll').css("pointer-events", show ? "auto" : "none");
-    // $('.review-wall-container').css('visibility', show ? 'visible' : 'hidden');
-    /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
-     * Time shown
-     */ 
-    $('.review-wall-container').css('display', show ? 'block' : "none");
+
+    submitReviewToServer() {
+        let name = $('#username').val();
+        let comment = $('#comment').val();
+
+        let request = { name: name, comment: comment };
+        let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
+            .then(
+                val => {
+                    // this.updateInfo();
+                    console.log('Suc to report review info111');
+                    console.log('id is: ' + val.id);
+                    return val.id;
+                    // console.log(val.val);
+                    // console.log(val); 
+                    // return Promise.resolve(val);
+                },
+                err => {
+                    console.log('Failed to report review score');
+                }
+            )
+            .then(id => {
+                this.showReviewWall(true, id);
+                s_rw.refresh(id);
+            })
+    }
+
+    showReviewWall(show: boolean, id?: any) {
+        if (show) {
+            if (!this.inShow) {
+                this.show();
+            }
+        }   
+        else {
+            this.hide();
+        }
+
+        $('#overlay-with-scroll').css("pointer-events", show ? "auto" : "none");
+        // $('.review-wall-container').css('visibility', show ? 'visible' : 'hidden');
+        /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
+         * Time shown
+         */
+        $('.review-wall-container').css('display', show ? 'block' : "none");
+    }
+
+    /**
+     * Not used now
+     */
+    isHtmlOverlayInShow() {
+
+        let ratingInShown = $('#overlay').css('display') != "none";
+        let wallInShown = $('.review-wall-container').css('visibility') != 'none';
+    }
+
 }
 
-/**
- * Not used now
- */
-function isHtmlOverlayInShow() {
-    
-    let ratingInShown = $('#overlay').css('display') != "none";
-    let wallInShown = $('.review-wall-container').css('visibility') != 'none';
+function s_ratingNext() {
+    Overlay.getInstance().ratingNext();
 }
+
+function s_commentSubmit() {
+    Overlay.getInstance().commentSubmit();
+}
+
+

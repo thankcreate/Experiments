@@ -147,6 +147,9 @@ let s_rw = ReactDOM.render(
 );
 
 
+/**
+ * Called when ReviewWall element is mounted by React
+ */
 function msInit() {    
     $('.review-wall-container').masonry({        
         itemSelector: '.review-block',

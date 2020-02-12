@@ -6276,7 +6276,7 @@ class Overlay extends Wrapper {
         });
     }
     showAiDialog() {
-        this.showFormRating();
+        this.showFormRating(true);
         return;
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
@@ -6309,17 +6309,26 @@ class Overlay extends Wrapper {
         this.show();
         this.leaderboardDialog.show();
     }
-    showFormRating() {
-        this.show();
-        $('#overlay').css('display', 'inline');
-        $('#form-rating').css('display', 'block');
+    showFormRating(show) {
+        if (show) {
+            if (!this.inShow) {
+                this.show();
+            }
+        }
+        else {
+            this.hide();
+        }
+        $('#overlay').css('display', show ? 'block' : 'none');
+        $('#form-rating').css('display', show ? 'block' : 'none');
         $('#form-comment').css('display', 'none');
-        // $('#form-comment').animate({transform: 'translate(-50%, -50%)'}, 1000);
-        setTimeout(() => {
-            $('#form-rating').addClass('anim-center');
-        }, 50);
-        // must be here
-        msReload();
+        // show the star rating form from the bottom
+        if (show) {
+            setTimeout(() => {
+                $('#form-rating').addClass('anim-center');
+            }, 50);
+        }
+        // just for test 
+        // msReload();
     }
     show() {
         this.inShow = true;
@@ -6414,17 +6423,28 @@ function submitReviewToServer() {
         console.log('Failed to report review score');
     })
         .then(id => {
-        showWall(id);
+        showReviewWall(true, id);
         s_rw.refresh(id);
     });
 }
 /**
  *
  */
-function showWall(id) {
-    $('#overlay-with-scroll').css("pointer-events", "auto");
-    // $('.review-wall-container').css('visibility', 'visible');
-    $('.review-wall-container').css('display', 'block');
+function showReviewWall(show, id) {
+    if (show) {
+        if (!this.inShow) {
+            this.show();
+        }
+    }
+    else {
+        this.hide();
+    }
+    $('#overlay-with-scroll').css("pointer-events", show ? "auto" : "none");
+    // $('.review-wall-container').css('visibility', show ? 'visible' : 'hidden');
+    /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
+     * Time shown
+     */
+    $('.review-wall-container').css('display', show ? 'block' : "none");
 }
 /**
  * Not used now

@@ -326,5 +326,10 @@ input[type="submit"]:active {
 
 
 #review-wall-container-root{
-  padding-bottom:400px;
+  padding-bottom:50vh;
+}
+
+#next-level-btn {
+  margin: 0 auto 50vh auto;
+  display: none;
 }

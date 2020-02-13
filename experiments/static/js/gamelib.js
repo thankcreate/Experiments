@@ -6314,6 +6314,7 @@ class Overlay extends Wrapper {
         this.leaderboardDialog.show();
     }
     showFormRating(show) {
+        // this.showReviewWall(true);
         if (show) {
             if (!this.inShow) {
                 this.show();
@@ -6427,7 +6428,6 @@ class Overlay extends Wrapper {
         })
             .then(id => {
             this.showReviewWall(true, id);
-            s_rw.refresh(id);
         });
     }
     showReviewWall(show, id) {
@@ -6445,6 +6445,8 @@ class Overlay extends Wrapper {
          * Time shown
          */
         $('.review-wall-container').css('display', show ? 'block' : "none");
+        $('#next-level-btn').css('display', show ? 'block' : "none");
+        s_rw.refresh(id);
     }
     /**
      * Not used now

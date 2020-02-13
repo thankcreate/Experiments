@@ -38,6 +38,8 @@ class ReviewBlock extends React.Component {
     }
 
     is404() {
+        if(this.isNewAdded())
+            return false;
         return Math.random() < 0.5;
     }
 
@@ -56,14 +58,59 @@ class ReviewBlock extends React.Component {
     
     handleScroll = () =>{        
         this.refreshOpacity();        
+        this.refreshNewAddedOffset();
+        this.refreshOpacityOfNextLevelButton();
     }
 
-    refreshOpacity() {
+    refreshOpacityOfNextLevelButton() {
+        let rect = $('#next-level-btn')[0].getBoundingClientRect();
+        let windowH = $(window).height();   
+        let relaH = windowH - rect.bottom;
+        let proc = relaH / (windowH / 2);
+        proc = clamp(proc, 0, 1);
+        $('#next-level-btn').css('opacity', proc);       
+    }
+
+
+    getRelaH() {
         let rect = this.myRef.current.getBoundingClientRect();
         let windowH = $(window).height();
         let relaH = windowH - rect.bottom;
-        // console.log(windowH - rect.bottom);
+        return relaH;
+    }
 
+    refreshNewAddedOffset() {
+        if(!this.isNewAdded()) {
+            return;
+        }
+
+        let rect = this.myRef.current.getBoundingClientRect();        
+        let windowH = $(window).height();               
+
+        let sc = $('#overlay-with-scroll').scrollTop();
+        let top = $(this.myRef.current).css('top');
+        let topN = parseInt(top, 10);
+        // console.log('style ' + $(this.myRef.current).attr("style"));
+        // console.log('top ' + $(this.myRef.current).css('top'));
+        
+        let blockHeight = rect.bottom - rect.top;
+        let masonryCalculatedTop = topN + blockHeight - sc;
+        
+        let relaH = windowH - masonryCalculatedTop;
+        
+        let maxOffset = 55;
+        // console.log(topN + blockHeight - sc);
+        let fullShownHeight = windowH * 0.65;
+        let processRaw = relaH / fullShownHeight;
+        let process = clamp(processRaw, 0, 1);
+        let scale = 1.0 +  (1 - process) * 1.2;
+        let prop = 'translateY(' + (1 - process) * maxOffset + 'vh) ' + 'scale(' + scale +  ')';
+        $(this.myRef.current).css('transform', prop);
+    }
+
+    refreshOpacity() {        
+        let windowH = $(window).height();
+        let relaH = this.getRelaH();
         /**
          * relaH represents the bottom of the div related to the viewport bottom
          * >0: div above the viewport bottom
@@ -72,9 +119,7 @@ class ReviewBlock extends React.Component {
         let op = relaH / fullShownHeight;
         let clampedOp = clamp(op, 0, 1);
         // $('.newadded').css('opacity', clampedOp);
-        $(this.myRef.current).css('opacity', clampedOp);
-
-        console.log('refresh');
+        $(this.myRef.current).css('opacity', clampedOp);        
     }
 
 
@@ -108,12 +153,12 @@ class ReviewBlock extends React.Component {
         return (
             <div className={blockClass} ref={this.myRef}>
                 <div className='review-block-up'>
-                    {this.is404() ? up404 : this.props.newAdded? focus : up} 
+                    {this.is404() ? up404 : this.props.newAdded? up : up} 
                 </div>
                             
                 <div className="review-block-bottom">
                     <div className="review-block-name">
-                        {this.props.item.username}                        
+                        {this.isNewAdded() ? this.props.item.username + '(You)': this.props.item.username}                        
                     </div>
                 </div>
             </div>
@@ -190,7 +235,12 @@ class ReviewWall extends React.Component{
             console.log('newadded');
         }
         let ret = 
-            <ReviewBlock item={this.state.items[i]} key={i} newAdded={isNewAdded} ref={(instance)=>{this.blocks.push(instance)}}/>        
+            <ReviewBlock 
+                item={this.state.items[i]} 
+                key={i} 
+                newAdded={isNewAdded} 
+                ref={(instance)=>{this.blocks.push(instance)}}
+            />        
         
         return ret
     }

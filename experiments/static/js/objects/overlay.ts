@@ -247,6 +247,7 @@ class Overlay extends Wrapper<PhText> {
 
 
     showFormRating(show: boolean) {
+        // this.showReviewWall(true);
 
         if (show) {
             if (!this.inShow) {
@@ -387,7 +388,7 @@ class Overlay extends Wrapper<PhText> {
             )
             .then(id => {
                 this.showReviewWall(true, id);
-                s_rw.refresh(id);
+                
             })
     }
 
@@ -406,7 +407,9 @@ class Overlay extends Wrapper<PhText> {
         /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
          * Time shown
          */
-        $('.review-wall-container').css('display', show ? 'block' : "none");        
+        $('.review-wall-container').css('display', show ? 'block' : "none");    
+        $('#next-level-btn').css('display', show ? 'block' : "none");    
+        s_rw.refresh(id);    
     }
 
     /**

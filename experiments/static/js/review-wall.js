@@ -32,6 +32,11 @@ class LikeButton extends React.Component {
 
 class ReviewBlock extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.myRef = React.createRef();
+    }
+
     is404() {
         return Math.random() < 0.5;
     }
@@ -41,17 +46,20 @@ class ReviewBlock extends React.Component {
     }
 
     componentDidMount() {
-        console.log('mont');
         $('#overlay-with-scroll')[0].addEventListener('scroll', this.handleScroll);
+        this.refreshOpacity();
     }
     
-    componentWillUnmount() {
-        
+    componentWillUnmount() {               
         $('#overlay-with-scroll')[0].removeEventListener('scroll', this.handleScroll);
     }
     
-    handleScroll(event){
-        let rect = $('.newadded')[0].getBoundingClientRect();
+    handleScroll = () =>{        
+        this.refreshOpacity();        
+    }
+
+    refreshOpacity() {
+        let rect = this.myRef.current.getBoundingClientRect();
         let windowH = $(window).height();
         let relaH = windowH - rect.bottom;
         // console.log(windowH - rect.bottom);
@@ -60,11 +68,13 @@ class ReviewBlock extends React.Component {
          * relaH represents the bottom of the div related to the viewport bottom
          * >0: div above the viewport bottom
          */
-
         let fullShownHeight = windowH * 0.3;
         let op = relaH / fullShownHeight;
         let clampedOp = clamp(op, 0, 1);
-        $('.newadded').css('opacity', clampedOp);
+        // $('.newadded').css('opacity', clampedOp);
+        $(this.myRef.current).css('opacity', clampedOp);
+
+        console.log('refresh');
     }
 
 
@@ -96,7 +106,7 @@ class ReviewBlock extends React.Component {
             blockClass+= ' newadded';
 
         return (
-            <div className={blockClass} >
+            <div className={blockClass} ref={this.myRef}>
                 <div className='review-block-up'>
                     {this.is404() ? up404 : this.props.newAdded? focus : up} 
                 </div>
@@ -114,7 +124,7 @@ class ReviewBlock extends React.Component {
 var myRef;
 class ReviewWall extends React.Component{
 
-
+    blocks = [];
     constructor(props) {
         super(props);
         this.state = {
@@ -131,6 +141,7 @@ class ReviewWall extends React.Component{
         }
         this.id = '';
         this.refresh();
+        
         myRef= React.createRef();
     }
 
@@ -140,9 +151,18 @@ class ReviewWall extends React.Component{
         msReload();
     }
 
+    forceUpdateOpacity() {        
+        this.blocks.forEach(e=>{
+            if(e == null)
+                return;
+            e.refreshOpacity();
+        });            
+    }
+
     componentDidUpdate() {
         console.log('componentDidUpdate');
-        msReload();
+        msReload();       
+        
     }
 
     refresh(newID) {
@@ -169,7 +189,8 @@ class ReviewWall extends React.Component{
         if(isNewAdded) {
             console.log('newadded');
         }
-        let ret = <ReviewBlock item={this.state.items[i]} key={i} newAdded={isNewAdded} />        
+        let ret = 
+            <ReviewBlock item={this.state.items[i]} key={i} newAdded={isNewAdded} ref={(instance)=>{this.blocks.push(instance)}}/>        
         
         return ret
     }
@@ -177,8 +198,10 @@ class ReviewWall extends React.Component{
 
     renderAll() {
         let res = [];
+        this.blocks.length = 0;
         for(let i = 0; i < this.state.items.length ;i++) {
-            res.push(this.renderOne(i));
+            let rd = this.renderOne(i);
+            res.push(rd);            
         }
         return res;
     }
@@ -209,6 +232,11 @@ function msInit() {
         itemSelector: '.review-block',
         // columnWidth: 210
     });
+
+    $('.review-wall-container').on( 'layoutComplete', ()=>{
+        if(s_rw)
+            s_rw.forceUpdateOpacity();
+    } );
 }
 
 

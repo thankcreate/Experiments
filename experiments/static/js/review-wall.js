@@ -145,7 +145,8 @@ class ReviewBlock extends React.Component {
 
     getRateLbl() {
         let sc = this.getScore().toFixed(1);
-        return 'Rating: ' + sc + ' / 5.0';
+        return sc + ' / 5.0';
+        // return 'Rating: ' + sc + ' / 5.0';
     }
 
     render() {
@@ -161,6 +162,7 @@ class ReviewBlock extends React.Component {
                     <div className='review-block-time'>
                         {moment(this.props.item.timestamp).fromNow()}
                     </div>
+                    
                 </div>
                 
             </div>         

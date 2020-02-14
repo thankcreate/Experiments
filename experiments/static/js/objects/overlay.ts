@@ -96,13 +96,13 @@ class Overlay extends Wrapper<PhText> {
 
         this.inner.alpha = 0;
 
-        let width = getLogicWidth();
-        let height = phaserConfig.scale.height
+        let width = getLogicWidth() * 3;
+        let height = phaserConfig.scale.height * 3;
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0x000000,
             fillAlpha: 0.8,
-            width: width * 3,
-            height: height * 3,
+            width: width,
+            height: height,
             lineWidth: 0,
             originX: 0.5,
             originY: 0.5,

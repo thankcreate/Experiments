@@ -1,16 +1,29 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% block head %}
+  {{ super() }}
+  <script type="text/javascript">
+    function confirmDeletaAll() {
+      let ip = prompt('Please input the password to delete all');
+      if(ip == '123') {
+        location.href='{{ url_for('review.deleteReviewItemAll') }}';
+      }        
+    }
+  </script>
+{% endblock %}
+
 {% block app_content %}
 
 
 <form action="{{ url_for('review.addReviewItem') }}" method="post">
   <div class="form-inline">
-    <input class="form-control" type="text" maxlength="100" name="name" placeholder="Name" autofocus>
-    <input class="form-control" maxlength="100" name="comment" placeholder="Comment">
+    <input class="form-control" type="text" maxlength="100" name="name" placeholder="Name" autofocus value='Tron'>
+    <input class="form-control" maxlength="100" name="comment" placeholder="Comment" value='Good game'>
+    <input class="form-control" type='number' step='0.1' id='score' name="score" placeholder="4.0" value='4.0'>
     <button class="btn btn-primary mb-2" type="submit">Add</button>
-    <button class="btn btn-primary mb-2" type="button"
-      onclick="location.href='{{ url_for('review.deleteReviewItemAll') }}'">Remove
+    <button class="btn btn-primary mb-2" type="button" style='float:right;'
+      onclick="confirmDeletaAll()">Remove
       All</button>
   </div>
 </form>
@@ -39,4 +52,8 @@
     {% endfor %}
   </tbody>
 </table>
+
+<script>
+  document.getElementById('score').value = (Math.random() * 5).toFixed(1);
+</script>
 {% endblock %}

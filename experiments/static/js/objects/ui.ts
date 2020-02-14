@@ -20,6 +20,7 @@ class UI extends Wrapper<PhText>{
         this.leaderboardBtn.inner.scale = 0.6
         this.leaderboardBtn.needInOutAutoAnimation = false;
         this.leaderboardBtn.needHandOnHover = true;
+        this.leaderboardBtn.anchorToRight(30);
     }
 
     mode: GameMode;

@@ -2634,6 +2634,11 @@ class Button {
         this.needInOutAutoAnimation = false;
         this.needTextTransferAnimation = true;
     }
+    anchorToRight(toRight) {
+        window.addEventListener('resize', (event) => {
+            this.inner.x = getLogicWidth() - toRight;
+        }, false);
+    }
 }
 class SpeakerButton extends ImageWrapperClass {
     init() {
@@ -6188,8 +6193,8 @@ class Overlay extends Wrapper {
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0x000000,
             fillAlpha: 0.8,
-            width: width,
-            height: height,
+            width: width * 3,
+            height: height * 3,
             lineWidth: 0,
             originX: 0.5,
             originY: 0.5,
@@ -8325,6 +8330,7 @@ class UI extends Wrapper {
         this.leaderboardBtn.inner.scale = 0.6;
         this.leaderboardBtn.needInOutAutoAnimation = false;
         this.leaderboardBtn.needHandOnHover = true;
+        this.leaderboardBtn.anchorToRight(30);
     }
     gotoGame(mode) {
         this.mode = mode;

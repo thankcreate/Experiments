@@ -101,8 +101,8 @@ class Overlay extends Wrapper<PhText> {
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             fillColor: 0x000000,
             fillAlpha: 0.8,
-            width: width,
-            height: height,
+            width: width * 3,
+            height: height * 3,
             lineWidth: 0,
             originX: 0.5,
             originY: 0.5,

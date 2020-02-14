@@ -223,8 +223,7 @@ class ReviewWall extends React.Component{
         myRef= React.createRef();
     }
 
-    componentDidMount() {
-        console.log('componentDidMount');
+    componentDidMount() {        
         msInit();
         msReload();
     }
@@ -237,10 +236,8 @@ class ReviewWall extends React.Component{
         });            
     }
 
-    componentDidUpdate() {
-        console.log('componentDidUpdate');
-        msReload();       
-        
+    componentDidUpdate() {        
+        msReload();               
     }
 
     refresh(newID) {
@@ -251,22 +248,16 @@ class ReviewWall extends React.Component{
                 val => {               
                     this.setState({                        
                         items: val.reverse()
-                    });                    
-                    console.log("React refresh suc"); 
-                    console.log(val.reverse()); 
+                    });                                                           
                 },
                 err => {                    
-                    console.log('Failed to fetch review info');                    
+                    
                 });
         return pm;
     }
 
-    renderOne(i) {
-        // console.log('render one ' + this.state.items[i].username);
+    renderOne(i) {        
         let isNewAdded = this.state.items[i].id == this.id;
-        if(isNewAdded) {
-            console.log('newadded');
-        }
         let ret = 
             <ReviewBlock 
                 item={this.state.items[i]} 
@@ -290,8 +281,7 @@ class ReviewWall extends React.Component{
     }
 
 
-    render() {    
-        console.log('123');
+    render() {            
         return (
             <div className="review-wall-container">
                 {this.renderAll()}

@@ -1,11 +1,10 @@
 ﻿
 $(document).ready(()=>{
     var game = new Phaser.Game(phaserConfig);
+
+    window.addEventListener('resize', function (event) {
+        myResize(game);
+    }, false);
+    
+    $.cookie.json = true;
 })
-
-window.addEventListener('resize', function (event) {
-    myResize(game);
-}, false);
-
-
-$.cookie.json = true;

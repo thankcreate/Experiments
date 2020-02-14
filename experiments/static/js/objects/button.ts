@@ -381,5 +381,9 @@ class Button {
         this.needTextTransferAnimation = true;
     }
 
-
+    anchorToRight(toRight: number) {
+        window.addEventListener('resize', (event)=> {
+            this.inner.x = getLogicWidth() - toRight;
+        }, false);        
+    }
 }

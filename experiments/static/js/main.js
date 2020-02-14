@@ -5,6 +5,7 @@ $(document).ready(()=>{
     window.addEventListener('resize', function (event) {
         myResize(game);
     }, false);
+    window.game = game;
     
     $.cookie.json = true;
 })

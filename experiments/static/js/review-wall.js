@@ -98,9 +98,9 @@ class ReviewBlock extends React.Component {
         
         let relaH = windowH - masonryCalculatedTop;
         
-        let maxOffset = 55;
+        let maxOffset = 40;
         // console.log(topN + blockHeight - sc);
-        let fullShownHeight = windowH * 0.65;
+        let fullShownHeight = windowH * 0.55;
         let processRaw = relaH / fullShownHeight;
         let process = clamp(processRaw, 0, 1);
         let scale = 1.0 +  (1 - process) * 1.2;
@@ -119,6 +119,10 @@ class ReviewBlock extends React.Component {
         let op = relaH / fullShownHeight;
         let clampedOp = clamp(op, 0, 1);
         // $('.newadded').css('opacity', clampedOp);
+
+        if(this.isNewAdded()) {
+            clampedOp = 1;
+        }
         $(this.myRef.current).css('opacity', clampedOp);        
     }
 

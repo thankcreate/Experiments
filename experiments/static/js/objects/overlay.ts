@@ -302,8 +302,8 @@ class Overlay extends Wrapper<PhText> {
     }
 
     ratingNext() {
-        let count = 5;
-        let stars = [null, null, null, null, null];
+        let count = 4;
+        let stars = [null, null, null, null];
         for (let i = 1; i <= count; i++) {
             let name = 'rating-' + i;
             var radio1 = $("input[name='" + name + "']:checked").val();
@@ -421,6 +421,23 @@ class Overlay extends Wrapper<PhText> {
         let wallInShown = $('.review-wall-container').css('visibility') != 'none';
     }
 
+
+    updateOverallScore() {
+        let count = 4;    
+        let sum = 0;    
+        for (let i = 1; i <= count; i++) {
+            let name = 'rating-' + i;
+            var sc = $("input[name='" + name + "']:checked").val();
+            if(sc)
+                sum += parseInt(sc);            
+        }
+        let score = sum / count;
+        let fixedScore = score.toFixed(1);
+        let combined = fixedScore + '/5.0'
+
+        $('#overall-score').text(combined);
+
+    }
 }
 
 function s_ratingNext() {
@@ -432,3 +449,13 @@ function s_commentSubmit() {
 }
 
 
+function listenToRadio() {    
+    $(':radio').change(() =>{
+        Overlay.getInstance().updateOverallScore();
+    }) ;
+}
+
+
+$(document).ready(()=>{
+    listenToRadio();    
+})

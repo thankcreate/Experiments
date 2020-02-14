@@ -6356,8 +6356,8 @@ class Overlay extends Wrapper {
         return this.inShow;
     }
     ratingNext() {
-        let count = 5;
-        let stars = [null, null, null, null, null];
+        let count = 4;
+        let stars = [null, null, null, null];
         for (let i = 1; i <= count; i++) {
             let name = 'rating-' + i;
             var radio1 = $("input[name='" + name + "']:checked").val();
@@ -6455,6 +6455,20 @@ class Overlay extends Wrapper {
         let ratingInShown = $('#overlay').css('display') != "none";
         let wallInShown = $('.review-wall-container').css('visibility') != 'none';
     }
+    updateOverallScore() {
+        let count = 4;
+        let sum = 0;
+        for (let i = 1; i <= count; i++) {
+            let name = 'rating-' + i;
+            var sc = $("input[name='" + name + "']:checked").val();
+            if (sc)
+                sum += parseInt(sc);
+        }
+        let score = sum / count;
+        let fixedScore = score.toFixed(1);
+        let combined = fixedScore + '/5.0';
+        $('#overall-score').text(combined);
+    }
 }
 function s_ratingNext() {
     Overlay.getInstance().ratingNext();
@@ -6462,6 +6476,14 @@ function s_ratingNext() {
 function s_commentSubmit() {
     Overlay.getInstance().commentSubmit();
 }
+function listenToRadio() {
+    $(':radio').change(() => {
+        Overlay.getInstance().updateOverallScore();
+    });
+}
+$(document).ready(() => {
+    listenToRadio();
+});
 let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
 tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric
 entails persuasion—to change opinion or action. Following the contemporary model, procedural rhetoric entails expression—to convey ideas effectively. Procedural rhetoric is a sub-

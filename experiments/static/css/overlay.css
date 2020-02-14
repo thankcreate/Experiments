@@ -333,3 +333,9 @@ input[type="submit"]:active {
   margin: 0 auto 50vh auto;
   display: none;
 }
+
+#overall-score {
+  text-align: center;
+  font-size: 40px;
+  color: #7f7f7f;
+}

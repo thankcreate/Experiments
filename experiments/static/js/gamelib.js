@@ -6180,6 +6180,7 @@ class Overlay extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.inShow = false;
+        this.score = 0;
         Overlay.instance = this;
         this.inner.alpha = 0;
         let width = getLogicWidth();
@@ -6413,16 +6414,11 @@ class Overlay extends Wrapper {
     submitReviewToServer() {
         let name = $('#username').val();
         let comment = $('#comment').val();
-        let request = { name: name, comment: comment };
+        let request = { name: name, comment: comment, score: this.score };
         let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
             .then(val => {
-            // this.updateInfo();
             console.log('Suc to report review info111');
-            console.log('id is: ' + val.id);
             return val.id;
-            // console.log(val.val);
-            // console.log(val); 
-            // return Promise.resolve(val);
         }, err => {
             console.log('Failed to report review score');
         })
@@ -6465,6 +6461,7 @@ class Overlay extends Wrapper {
                 sum += parseInt(sc);
         }
         let score = sum / count;
+        this.score = score;
         let fixedScore = score.toFixed(1);
         let combined = fixedScore + '/5.0';
         $('#overall-score').text(combined);

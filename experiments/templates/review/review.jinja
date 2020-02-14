@@ -21,7 +21,8 @@
     <tr>
       <th scope="col">Name</th>
       <th scope="col">Comment</th>
-      <th scope="col">Operation</th>
+      <th scope="col">Score</th>
+      <th scope="col">Operation</th>      
     </tr>
   </thead>
   <tbody>
@@ -29,6 +30,7 @@
     <tr>
       <td>{{item.username}}</td>
       <td>{{item.comment}}</td>
+      <td>{{item.score}}</td>
       <td>
         <a href="{{url_for('review.deleteReviewItem', item_id = item.id )}}">Delete
         </a> 

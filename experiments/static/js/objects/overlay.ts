@@ -370,17 +370,12 @@ class Overlay extends Wrapper<PhText> {
         let name = $('#username').val();
         let comment = $('#comment').val();
 
-        let request = { name: name, comment: comment };
+        let request = { name: name, comment: comment, score: this.score};        
         let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
             .then(
-                val => {
-                    // this.updateInfo();
-                    console.log('Suc to report review info111');
-                    console.log('id is: ' + val.id);
-                    return val.id;
-                    // console.log(val.val);
-                    // console.log(val); 
-                    // return Promise.resolve(val);
+                val => {                    
+                    console.log('Suc to report review info111');                    
+                    return val.id;                                        
                 },
                 err => {
                     console.log('Failed to report review score');
@@ -421,7 +416,7 @@ class Overlay extends Wrapper<PhText> {
         let wallInShown = $('.review-wall-container').css('visibility') != 'none';
     }
 
-
+    score: number = 0;
     updateOverallScore() {
         let count = 4;    
         let sum = 0;    
@@ -432,6 +427,7 @@ class Overlay extends Wrapper<PhText> {
                 sum += parseInt(sc);            
         }
         let score = sum / count;
+        this.score = score;
         let fixedScore = score.toFixed(1);
         let combined = fixedScore + '/5.0'
 

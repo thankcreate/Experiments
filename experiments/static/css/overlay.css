@@ -269,14 +269,24 @@ input[type="submit"]:active {
   font-size: 16px;
 }
 
-.review-block-time{
-  /* position: absolute; */
-  text-align: right;
+.review-block-comment-tail{
+  /* display: inline-block;  */
+  width: 100%;
   font-size: 14px;
   color: gray;
   margin-top: 14px;
 }
 
+.review-block-time{
+  /* position: absolute; */
+  /* float: right;   */
+  text-align: right;
+}
+
+.review-block-rate{
+  /* float: left; */
+  text-align: right;
+}
 
 .review-wall-container{  
   display: none;

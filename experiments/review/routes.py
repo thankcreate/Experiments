@@ -41,8 +41,9 @@ def post_review():
     data = json.loads(request.get_data(as_text=True))    
     name = data['name']
     comment = data['comment']
+    score = data['score']
         
-    id = addReviewItemInner(name, comment)
+    id = addReviewItemInner(name, comment, score)
     if id:
         return jsonify({'res': 'Suc', 'id': id}) 
     else:
@@ -53,15 +54,16 @@ def post_review():
 def addReviewItem():
     name = request.form['name']
     comment = request.form['comment']
-    addReviewItemInner(name, comment)
+    score = request.form['score']
+    addReviewItemInner(name, comment, score)
     return redirect(url_for('review.showReview'))
 
-def addReviewItemInner(name, comment):
+def addReviewItemInner(name, comment, score):
     if not name or not name.strip():
         return False
 
 
-    item = Review(username=name, comment=comment)
+    item = Review(username=name, comment=comment, score=score)
     db.session.add(item)
     db.session.commit()
     return item.id

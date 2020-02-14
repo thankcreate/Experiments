@@ -38,9 +38,10 @@ class ReviewBlock extends React.Component {
     }
 
     is404() {
-        if(this.isNewAdded())
-            return false;
-        return Math.random() < 0.5;
+        // if(this.isNewAdded())
+        //     return false;
+        // return Math.random() < 0.5;
+        return this.getScore() < 4.0;
     }
 
     isNewAdded() {
@@ -126,6 +127,26 @@ class ReviewBlock extends React.Component {
         $(this.myRef.current).css('opacity', clampedOp);        
     }
 
+    score = null;
+
+    getScore() {
+        if(this.props.item.score) {
+            this.score = this.props.item.score;
+            return this.props.item.score;   
+        }
+
+        if(this.score) {
+            return this.score;
+        }
+
+        this.score = Math.random() * 5;
+        return this.score;
+    }
+
+    getRateLbl() {
+        let sc = this.getScore().toFixed(1);
+        return 'Rating: ' + sc + ' / 5.0';
+    }
 
     render() {
         let up =    
@@ -133,9 +154,15 @@ class ReviewBlock extends React.Component {
                 <div className='review-block-comment wrap'>
                     {this.props.item.comment}
                 </div>
-                <div className='review-block-time'>
-                    {moment(this.props.item.timestamp).fromNow()}
+                <div className='review-block-comment-tail'>
+                    <div className='review-block-rate'>
+                        {this.getRateLbl()}
+                    </div>
+                    <div className='review-block-time'>
+                        {moment(this.props.item.timestamp).fromNow()}
+                    </div>
                 </div>
+                
             </div>         
         
         let up404 = 
@@ -224,7 +251,7 @@ class ReviewWall extends React.Component{
                         items: val.reverse()
                     });                    
                     console.log("React refresh suc"); 
-                    // console.log(val.reverse()); 
+                    console.log(val.reverse()); 
                 },
                 err => {                    
                     console.log('Failed to fetch review info');                    

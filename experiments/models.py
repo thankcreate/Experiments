@@ -24,8 +24,9 @@ class Review(db.Model):
     username = db.Column(db.String(64), index=True)
     comment = db.Column(db.String(256), index=True)
     avatar = db.Column(db.String(256), index=True)
+    score = db.Column(db.Float, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-
+    
 
     def __repr__(self):
         return 'User: {}'.format(self.username)
@@ -38,5 +39,6 @@ class Review(db.Model):
             'comment': self.comment,
             'avatar': self.avatar,
             'timestamp' : self.timestamp,
+            'score': self.score,
             'id': self.id
         }

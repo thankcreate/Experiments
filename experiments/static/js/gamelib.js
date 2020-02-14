@@ -1969,7 +1969,11 @@ function getUrlParams() {
 function getCurrentLevelRaw() {
     let params = getUrlParams();
     let index = 1;
-    return params['level'];
+    let ret = params['level'];
+    if (!ret) {
+        return '1';
+    }
+    return ret;
 }
 /**
  * If 'Paper' return -1,

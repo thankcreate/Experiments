@@ -2269,14 +2269,6 @@ function setCookie(key, value) {
 function getCookie(key) {
     return $.cookie(key);
 }
-var help = `
-Available Commands:
-setInterval();
-set
-`;
-function sayHi() {
-    console.log("Hi, I'm tron");
-}
 var canvasIndex = 0;
 /**
  * The current Dwitter only uses Canvas context to draw things \
@@ -4205,7 +4197,7 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     });
     return this;
 };
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var normal_1_2 = {
     name: 'Normal_1_2',
     initial: "Default",
@@ -4214,7 +4206,7 @@ var normal_1_2 = {
     ]
 };
 farray.push(normal_1_2);
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var normal_1_3 = {
     name: 'Normal_1_3',
     initial: "Default",
@@ -4226,7 +4218,7 @@ var normal_1_3 = {
     ]
 };
 farray.push(normal_1_3);
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var normal_1_4 = {
     name: 'Normal_1_4',
     initial: "Default",
@@ -4242,7 +4234,7 @@ var normal_1_4 = {
     ]
 };
 farray.push(normal_1_4);
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var normal_1_paper = {
     name: 'Normal_1_Papaer',
     initial: "Default",
@@ -4256,7 +4248,7 @@ var normal_1_paper = {
     ]
 };
 farray.push(normal_1_paper);
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -4295,7 +4287,7 @@ farray.push(mainFsm);
 //     // do with the node
 //   }
 // });
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var normalGameFsm = {
     name: 'NormalGameFsm',
     initial: "Default",
@@ -4310,7 +4302,7 @@ var normalGameFsm = {
     ]
 };
 farray.push(normalGameFsm);
-/// <reference path="../fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 var zenFsm = {
     name: 'ZenFsm',
     initial: "Default",
@@ -4320,6 +4312,8 @@ var zenFsm = {
     ]
 };
 farray.push(zenFsm);
+class FmodManager {
+}
 class SpeechManager {
     constructor(scene) {
         this.loadedSpeechFilesStatic = {};
@@ -6796,6 +6790,7 @@ class LeaderboardManager {
         return pm;
     }
 }
+/// <reference path="../../interface.ts" />
 var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `;
 var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:

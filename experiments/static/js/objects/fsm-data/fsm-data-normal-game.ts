@@ -1,4 +1,4 @@
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm/fsm.ts" />
 
 
 var normalGameFsm = {

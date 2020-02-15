@@ -16,6 +16,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     needloopCeateBad: boolean;
 
     badCount = 0;
+    
     badEliminatedCount = 0;
     normalNormalCount = 0;
     normalTurnedCount = 0;

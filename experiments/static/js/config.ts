@@ -4,7 +4,7 @@
 /// <reference path="scenes/scene-1-3.ts" />
 /// <reference path="scenes/scene-1-4.ts" />
 /// <reference path="scenes/scene-1-paper.ts" />
-/// <reference path="scenes/scene-controller.ts" />
+
 
 
 var gameplayConfig = {

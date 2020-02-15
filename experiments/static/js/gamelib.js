@@ -1615,7 +1615,6 @@ class Scene1LPaper extends Scene1 {
 /// <reference path="scenes/scene-1-3.ts" />
 /// <reference path="scenes/scene-1-4.ts" />
 /// <reference path="scenes/scene-1-paper.ts" />
-/// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
     spawnInterval: 8000,
@@ -2277,785 +2276,6 @@ set
 `;
 function sayHi() {
     console.log("Hi, I'm tron");
-}
-class Bubble extends Wrapper {
-    constructor(scene, parentContainer, x, y, dir) {
-        super(scene, parentContainer, x, y, null);
-        this.gapBetweenTextAndWarningText = 6;
-        let imgRes = "";
-        let originX = 0;
-        let originY = 0;
-        let textX = 0;
-        let textY = 0;
-        if (dir == Dir.Bottom) {
-            imgRes = 'popup_bubble_bottom';
-            originX = 55 / 439;
-            originY = 1;
-            textX = -31;
-            textY = -230;
-        }
-        else if (dir == Dir.Left) {
-            imgRes = 'popup_bubble_left';
-            originX = 0;
-            originY = 46 / 229;
-            textX = 40;
-            textY = -30;
-        }
-        else if (dir == Dir.Right) {
-            imgRes = 'popup_bubble';
-            originX = 1;
-            originY = 46 / 229;
-            textX = -442;
-            textY = -30;
-        }
-        let img = this.scene.add.image(0, 0, imgRes);
-        img.setOrigin(originX, originY);
-        this.applyTarget(img);
-        let style = getDefaultTextStyle();
-        style.fill = '#FFFFFF';
-        style.fontSize = '24px';
-        let cc = "You can just type in 'B' instead of 'BAD' for short";
-        let wordWrapthWidt = 400;
-        // main text
-        this.text = this.scene.add.text(textX, textY, cc, style).setOrigin(0, 0);
-        this.text.setWordWrapWidth(wordWrapthWidt);
-        this.inner.add(this.text);
-        // warning text
-        let warningStyle = getDefaultTextStyle();
-        style.fill = '#FF0000';
-        style.fontSize = '24px';
-        let posi = this.text.getBottomLeft();
-        this.warningText = this.scene.add.text(posi.x, 0, "", style).setOrigin(0, 0);
-        this.warningText.setWordWrapWidth(wordWrapthWidt);
-        this.inner.add(this.warningText);
-    }
-    setText(val, warningVal) {
-        this.text.text = val;
-        if (warningVal) {
-            this.warningText.text = warningVal;
-            this.warningText.y = this.text.getBottomLeft().y + this.gapBetweenTextAndWarningText;
-        }
-        else {
-            this.warningText.text = "";
-        }
-    }
-    show() {
-        this.inner.setVisible(true);
-    }
-    hide() {
-        this.inner.setVisible(false);
-    }
-}
-class ButtonGroup extends Wrapper {
-    constructor() {
-        super(...arguments);
-        this.isShown = false;
-    }
-}
-/**
- * Toggle groups is intended to handle the keyboard event
- * of the button group
- * However, since the name ButtonGroup is already used,
- * we call it ToggleGroup.
- * The difference is that, ButtonGroup contains a Phaser Layer in it while
- * ToggleGroup is more focused on the keyboard event
- */
-class ToggleGroup {
-    constructor(scene) {
-        this.index = 0;
-        this.active = false;
-        this.scene = scene;
-        this.buttons = [];
-        document.addEventListener('keydown', this.keydown.bind(this));
-    }
-    addButton(btn) {
-        btn.toggleGroup = this;
-        this.buttons.push(btn);
-    }
-    setKeyboardActive(active = true) {
-        this.index = 0;
-        this.active = active;
-        // this.focus(0);
-    }
-    initFocus() {
-        this.index = 0;
-        this.focus(0);
-        for (let i = 1; i < this.buttons.length; i++) {
-            this.unfocus(i);
-        }
-    }
-    updateIndexTo(btn) {
-        for (let i = 0; i < this.buttons.length; i++) {
-            if (this.buttons[i] == btn) {
-                this.index = i;
-                break;
-            }
-        }
-    }
-    unfocusExept(btn) {
-        for (let i in this.buttons) {
-            if (btn != this.buttons[i]) {
-                this.unfocus(i);
-            }
-        }
-    }
-    focus(i) {
-        this.buttons[i].focus();
-    }
-    unfocus(i) {
-        this.buttons[i].unfocus();
-    }
-    keydown(event) {
-        if (!this.active)
-            return;
-        if (!this.buttons || this.buttons.length == 0)
-            return;
-        var code = event.keyCode;
-        let oriI = this.index;
-        if (code == Phaser.Input.Keyboard.KeyCodes.DOWN || code == Phaser.Input.Keyboard.KeyCodes.RIGHT
-            || code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
-            if (code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
-                this.index--;
-                this.index += this.buttons.length;
-                this.index %= this.buttons.length;
-            }
-            else {
-                this.index++;
-                this.index %= this.buttons.length;
-            }
-            this.unfocus(oriI);
-            this.focus(this.index);
-        }
-        else if (code == Phaser.Input.Keyboard.KeyCodes.ENTER || code == Phaser.Input.Keyboard.KeyCodes.SPACE) {
-            for (let i in this.buttons) {
-                if (this.buttons[i].focused) {
-                    this.buttons[i].click();
-                }
-            }
-        }
-    }
-}
-/**
- * When you want to deactive a button \
- * Just call setEnable(false) \
- * Don't set the visibility or activity of the inner objects directly
- */
-class Button {
-    /**
-     * Target will be added into inner container
-     * inner container will be added into parentContainer automatically
-     * NO NEED to add this wrapper into the parent
-     * @param scene
-     * @param parentContainer
-     * @param target
-     */
-    constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
-        this.hoverState = 0; // 0:out 1:in
-        this.prevDownState = 0; // 0: not down  1: down
-        this.enable = true;
-        this.focused = false;
-        // auto scale
-        this.needInOutAutoAnimation = true;
-        // auto change the text to another when hovered
-        this.needTextTransferAnimation = false;
-        // auto change the cursor to a hand when hovered
-        this.needHandOnHover = false;
-        this.clickedEvent = new TypedEvent();
-        this.ignoreOverlay = false;
-        this.animationTargets = [];
-        this.canClick = true;
-        this.scene = scene;
-        this.parentContainer = parentContainer;
-        this.inner = this.scene.add.container(x, y);
-        this.parentContainer.add(this.inner);
-        if (imgKey) {
-            this.image = this.scene.add.image(0, 0, imgKey);
-            this.inner.add(this.image);
-        }
-        let style = getDefaultTextStyle();
-        style.fill = '#FFFFFF';
-        this.originalTitle = title;
-        this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
-        this.inner.add(this.text);
-        if (notSet(width))
-            width = this.image ? this.image.displayWidth : this.text.displayWidth;
-        if (notSet(height))
-            height = this.image ? this.image.displayHeight : this.text.displayHeight;
-        if (notSet(fakeOriginX))
-            fakeOriginX = 0.5;
-        if (notSet(fakeOriginY))
-            fakeOriginY = 0.5;
-        this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
-        this.fakeZone.setScale(width / 100, height / 100);
-        this.inner.add(this.fakeZone);
-        if (debug) {
-            this.debugFrame = this.scene.add.graphics();
-            this.debugFrame.lineStyle(4, 0xFF0000, 1);
-            this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
-            this.inner.add(this.debugFrame);
-        }
-        if (this.image)
-            this.animationTargets.push(this.image);
-        if (this.text)
-            this.animationTargets.push(this.text);
-        this.fakeZone.setInteractive();
-        this.fakeZone.on('pointerover', () => {
-            this.pointerin();
-        });
-        this.fakeZone.on('pointerout', () => {
-            this.pointerout();
-        });
-        this.fakeZone.on('pointerdown', () => {
-            this.click();
-        });
-        // this.scene.input.setTopOnly(false);
-        this.scene.updateObjects.push(this);
-    }
-    update(time, dt) {
-    }
-    setEnable(val, needFade) {
-        // hide
-        if (!val && this.enable) {
-            // console.log(this.text.text);
-            this.hoverState = 0;
-            if (needFade) {
-                FadePromise.create(this.scene, this.inner, 0, 500)
-                    .then(s => {
-                    this.inner.setVisible(false);
-                }).catch(e => { });
-            }
-            else {
-                // console.log(this.text.text);
-                this.inner.setVisible(false);
-            }
-        }
-        // show
-        else if (val && !this.enable) {
-            this.text.text = this.originalTitle;
-            this.animationTargets.forEach(e => {
-                e.setScale(1);
-            });
-            if (needFade) {
-                this.inner.alpha = 0;
-                FadePromise.create(this.scene, this.inner, 1, 500);
-            }
-            this.inner.setVisible(true);
-            let contains = this.scene.isObjectHovered(this.fakeZone);
-            if (contains) {
-                this.pointerin();
-            }
-        }
-        this.enable = val;
-        return this;
-    }
-    click() {
-        if (!this.canClick) {
-            return;
-        }
-        if (this.needInOutAutoAnimation) {
-            let timeline = this.scene.tweens.createTimeline(null);
-            timeline.add({
-                targets: this.animationTargets,
-                scale: 0.9,
-                duration: 40,
-            });
-            timeline.add({
-                targets: this.animationTargets,
-                scale: 1.16,
-                duration: 90,
-            });
-            timeline.play();
-        }
-        this.clickedEvent.emit(this);
-    }
-    pointerin() {
-        // We need to double check the hoverState here because in setEnable(true), 
-        // if the pointer is alreay in the zone, it will get to pointerin directly
-        // but if the pointer moved again, the mouseover event will also get us here
-        if (this.hoverState === 1)
-            return;
-        this.hoverState = 1;
-        this.focus();
-    }
-    focus() {
-        if (this.needInOutAutoAnimation) {
-            this.scene.tweens.add({
-                targets: this.animationTargets,
-                scale: 1.16,
-                duration: 100,
-            });
-        }
-        if (this.needTextTransferAnimation) {
-            this.text.text = this.hoverTitle;
-        }
-        if (this.needHandOnHover) {
-            $("body").css('cursor', 'pointer');
-        }
-        if (this.image) {
-            this.image.alpha = 0.55;
-        }
-        if (this.toggleGroup) {
-            this.toggleGroup.updateIndexTo(this);
-            this.toggleGroup.unfocusExept(this);
-            this.text.text = '>' + this.originalTitle + '  ';
-        }
-        this.focused = true;
-    }
-    pointerout() {
-        // Not like pointer in, I don't know if I need to double check like this
-        // This is only for safe
-        if (this.hoverState === 0)
-            return;
-        this.hoverState = 0;
-        if (!this.toggleGroup) {
-            this.unfocus();
-        }
-    }
-    unfocus() {
-        if (this.needInOutAutoAnimation) {
-            this.scene.tweens.add({
-                targets: this.animationTargets,
-                scale: 1,
-                duration: 100,
-            });
-        }
-        if (this.needTextTransferAnimation) {
-            this.text.text = this.originalTitle;
-        }
-        if (this.needHandOnHover) {
-            $("body").css('cursor', 'default');
-        }
-        if (this.image) {
-            this.image.alpha = 1;
-        }
-        if (this.toggleGroup) {
-            this.text.text = this.originalTitle;
-        }
-        this.focused = false;
-    }
-    setToHoverChangeTextMode(hoverText) {
-        this.hoverTitle = hoverText;
-        this.needInOutAutoAnimation = false;
-        this.needTextTransferAnimation = true;
-    }
-    anchorToRight(toRight) {
-        window.addEventListener('resize', (event) => {
-            this.inner.x = getLogicWidth() - toRight;
-        }, false);
-    }
-}
-class SpeakerButton extends ImageWrapperClass {
-    init() {
-        this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
-        this.inner.add(this.icon);
-    }
-    toSpeakerMode(dt = 250) {
-        this.scene.tweens.add({
-            targets: this.icon,
-            alpha: 1,
-            duration: dt,
-        });
-    }
-    toNothingMode(dt = 250) {
-        this.scene.tweens.add({
-            targets: this.icon,
-            alpha: 0,
-            duration: 250,
-        });
-    }
-}
-class CenterObject {
-    constructor(scene, parentContainer, designSize) {
-        this.speakerRight = 56;
-        this.speakerLeft = -56;
-        this.homeScale = 1.3;
-        this.gameScale = 1.2;
-        this.initRotation = -Math.PI / 2;
-        this.frame = 0;
-        this.scene = scene;
-        this.parentContainer = parentContainer;
-        this.designSize = cpp(designSize);
-        this.inner = this.scene.add.container(0, 0);
-        this.parentContainer.add(this.inner);
-        this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
-        this.inner.add(this.mainImage);
-        this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(0, 0, "speaker"));
-        this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
-        this.playerInputText.init("");
-        this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl); });
-        this.inner.setScale(this.homeScale);
-        this.inner.setRotation(this.initRotation);
-        this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
-        this.inner.add(this.text);
-        // Buttons
-        let btn = new Button(this.scene, this.inner, 0, -30, null, "Normal", 200, 98, false, 0.5, 0.7).setEnable(false, false);
-        this.btnMode0 = btn;
-        btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);
-        this.btnMode1 = btn;
-        this.modeToggles = new ToggleGroup(this.scene);
-        this.modeToggles.addButton(this.btnMode0);
-        this.modeToggles.addButton(this.btnMode1);
-        this.modeToggles.setKeyboardActive();
-        this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
-    }
-    playerInputChanged(inputControl) {
-        let percent = inputControl.text.width / this.getTextMaxWidth();
-        percent = Math.max(0, percent);
-        percent = Math.min(1, percent);
-        let desti = lerp(this.speakerRight, this.speakerLeft, percent);
-        // this.speakerImage.x = desti;
-        if (percent == 0) {
-            this.backToZeroTween = this.scene.tweens.add({
-                targets: this.speakerBtn.inner,
-                x: desti,
-                duration: 150
-            });
-        }
-        else {
-            if (this.backToZeroTween)
-                this.backToZeroTween.stop();
-            // this.speakerImage.x = desti;
-            this.backToZeroTween = this.scene.tweens.add({
-                targets: this.speakerBtn.inner,
-                x: desti,
-                duration: 50
-            });
-        }
-    }
-    getDesignWidth() {
-        return this.designSize.x;
-    }
-    getTextMaxWidth() {
-        return this.getDesignWidth() * 0.65;
-    }
-    update(time, dt) {
-        let pointer = this.scene.input.activePointer;
-        this.text.setText([
-            'x: ' + pointer.worldX,
-            'y: ' + pointer.worldY,
-            'isDown: ' + pointer.isDown,
-            'rightButtonDown: ' + pointer.rightButtonDown()
-        ]);
-        if (this.centerProgres) {
-            this.centerProgres.update(time, dt);
-        }
-    }
-    prepareToGame() {
-        this.playerInputText.prepareToGame();
-        this.speakerBtn.toSpeakerMode(1000);
-        this.speakerBtn.inner.x = this.speakerRight;
-    }
-    prepareToHome() {
-        this.playerInputText.prepareToHome();
-        this.speakerBtn.toNothingMode(1000);
-        // this.speakerBtn.inner.x = this.speakerRight;
-        if (this.backToZeroTween)
-            this.backToZeroTween.stop();
-        this.backToZeroTween = this.scene.tweens.add({
-            targets: this.speakerBtn.inner,
-            x: this.speakerRight,
-            duration: 150
-        });
-    }
-    u3(t, c, x) {
-        let Y = 0;
-        let X = 0;
-        let r = 140 - 16 * (t < 10 ? t : 0);
-        for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
-            X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
-    }
-}
-class CenterProgress extends Wrapper {
-    constructor(scene, parentContainer, x, y) {
-        super(scene, parentContainer, x, y, null);
-        this.arcOffset = -Math.PI / 2;
-        /**
-         * progress is normalized as [0, 1]
-         */
-        this.progress = 0;
-        this.progressDisplayed = 0;
-        this.fullEvent = new TypedEvent();
-        this.lastTimeProgressDisplayed = -1;
-        this.radius = 115;
-        this.curVal = 0;
-        this.maxVal = initCreateMax;
-        this.progress = this.curVal / this.maxVal;
-        //let ac = this.scene.add.arc(x, y, radius, 0, Math.pi, false, 0x000000, 1);
-        this.circle = new Arc(this.scene, this.inner, 0, 0, {
-            radius: this.radius,
-            startAngle: 0 + this.arcOffset,
-            endAngle: 1 + this.arcOffset,
-            antiClockwise: false,
-            lineWidth: 12,
-        });
-    }
-    reset() {
-        this.addProgress(-this.curVal, 0);
-    }
-    addProgress(val, delay, duration) {
-        if (notSet(delay))
-            delay = 0;
-        if (notSet(duration))
-            duration = 100;
-        this.curVal += val;
-        this.curVal = clamp(this.curVal, 0, this.maxVal);
-        this.progress = this.curVal / this.maxVal;
-        let to = this.progress;
-        // console.log(to);
-        if (this.resetTw) {
-            this.resetTw.stop();
-        }
-        if (val > 0) {
-            this.addTw = this.scene.add.tween({
-                delay: delay,
-                targets: this,
-                progressDisplayed: to,
-                duration: duration,
-            });
-        }
-        else {
-            this.resetTw = this.scene.add.tween({
-                delay: delay,
-                targets: this,
-                progressDisplayed: to,
-                duration: duration,
-            });
-        }
-        if (this.progress == 1) {
-            this.full();
-        }
-    }
-    full() {
-        this.fullEvent.emit(this);
-        this.addProgress(-this.maxVal, 500, 1000);
-    }
-    update(time, dt) {
-        this.updateProgressDisplay();
-    }
-    updateProgressDisplay() {
-        if (this.progressDisplayed == this.lastTimeProgressDisplayed)
-            return;
-        this.circle.config.endAngle = Math.PI * 2 * this.progressDisplayed + this.arcOffset;
-        this.circle.drawGraphics();
-        this.lastTimeProgressDisplayed = this.progressDisplayed;
-    }
-}
-let initScore = 0;
-let baseScore = 100;
-let normalFreq1 = 7;
-let autoBadgeInterval = 400;
-let autoTurnInterval = 1000;
-let hpRegFactor = 3;
-let initNormalHealth = 3;
-let init404Health = 2;
-let initNormalCount = 0;
-let init404Count = 1;
-let initCreateStep = 1;
-let initCreateMax = 3;
-let priceIncreaseFactor = 1.1;
-let award404IncreaseFactor = 1.1;
-let health404IncreaseFactor = 1.2;
-let basePrice = 100;
-let baseDamage = 1;
-let priceFactorBetweenInfo = 5;
-let damageFactorBetweenInfo = 4;
-let autoTurnDpsFactor = 10;
-let normalDuration = 35000;
-// let normalDuration = 5000;
-let badInfos = [
-    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false },
-    { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 3, price: 0, basePrice: 300, consumed: false },
-    { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 5, price: 0, basePrice: 1000, consumed: false },
-    { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 8, price: 0, basePrice: 3000, consumed: false },
-    { title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 12, price: 0, basePrice: 10000, consumed: false },
-    { title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, baseDamage: 20, price: 0, basePrice: 30000, consumed: false },
-];
-for (let i = 0; i < badInfos.length; i++) {
-    badInfos[i].basePrice = basePrice * Math.pow(priceFactorBetweenInfo, i);
-    badInfos[i].baseDamage = baseDamage * Math.pow(damageFactorBetweenInfo, i);
-}
-function getDamageBasedOnLevel(lvl, info) {
-    // let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
-    let ret = info.baseDamage * lvl;
-    return ret;
-}
-function getPriceToLevel(lvl, info) {
-    let ret = info.basePrice * Math.pow(priceIncreaseFactor, lvl - 1);
-    return ret;
-}
-function getAwardFor404(count) {
-    let sc = Math.floor(baseScore * Math.pow(award404IncreaseFactor, count));
-    return sc;
-}
-let turnInfos = [
-    { title: "Turn", damage: 1 },
-];
-let createInfos = [
-    { title: "Create", damage: 1 },
-];
-function getCreateKeyword() {
-    return createInfos[0].title;
-}
-let hpPropInfos = [
-    { title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: ['+', '='] },
-];
-let propInfos = [
-    { title: "B**", consumed: false, price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
-    { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "T**", consumed: false, price: 2000, size: 30,
-        desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
-    },
-    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
-];
-function getBadgeResID(i) {
-    let resId = 'badge_' + badInfos[i].title.toLowerCase();
-    return resId;
-}
-function getAutoTypeInfo() {
-    return propInfos[1];
-}
-function getTurnInfo() {
-    return propInfos[2];
-}
-function getAutoTurnInfo() {
-    return propInfos[3];
-}
-function getNormalFreq() {
-    return normalFreq1;
-}
-function getCreatePropInfo() {
-    return propInfos[4];
-}
-// for(let i = 0; i < badInfos.length; i++) {
-//     let item = badInfos[i];
-//     item.desc = '"' + item.title + '"' + "\nDPS to 404: " + item.damage + "\nPrice: " + item.price;
-// }
-for (let i = 0; i < hpPropInfos.length; i++) {
-    let item = hpPropInfos[i];
-    item.desc = "+HP"
-        + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
-        + "\nPrice: " + item.price
-        + '\n\nHotkey: "' + item.hotkey[0] + '"';
-}
-function isReservedBadKeyword(inputWord) {
-    if (notSet(inputWord))
-        return false;
-    let foundKeyword = false;
-    for (let i = 0; i < badInfos.length; i++) {
-        if (inputWord.toLocaleLowerCase() == badInfos[i].title.toLocaleLowerCase()) {
-            foundKeyword = true;
-            break;
-        }
-    }
-    return foundKeyword;
-}
-function isReservedTurnKeyword(inputWord) {
-    if (notSet(inputWord))
-        return false;
-    let foundKeyword = false;
-    for (let i = 0; i < turnInfos.length; i++) {
-        if (inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
-            foundKeyword = true;
-            break;
-        }
-    }
-    return foundKeyword;
-}
-function isReservedKeyword(inputWord) {
-    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord) || inputWord == getCreateKeyword();
-}
-var s_infoPanelWidth = 450;
-class ClickerInfoPanel extends Wrapper {
-    constructor(scene, parentContainer, x, y) {
-        super(scene, parentContainer, x, y, null);
-        this.bkg = new Rect(this.scene, this.inner, 0, 0, {
-            fillColor: 0xFFFFFF,
-            // lineColor: 0x222222,
-            lineWidth: 4,
-            width: s_infoPanelWidth,
-            height: 250,
-            originY: 0,
-            originX: 0,
-            roundRadius: 22,
-            fillAlpha: 0.3
-        });
-        let style = getDefaultTextStyle();
-        style.fontSize = '30px';
-        let h = 20;
-        let l = 20;
-        let gapVertical = 10;
-        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS (404): ", style);
-        this.inner.add(this.lblDpsFor404);
-        h += this.lblDpsFor404.displayHeight + gapVertical;
-        this.lblAwardFor404 = this.scene.add.text(l, h, "Award (404): ", style);
-        this.inner.add(this.lblAwardFor404);
-        h += this.lblAwardFor404.displayHeight + gapVertical;
-        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Non-404): ", style);
-        this.inner.add(this.lblAwardForNormal);
-    }
-    update(time, dt) {
-        this.updateValues();
-        this.refreahDisplay();
-    }
-    updateValues() {
-        this.valDpsFor404 = undefined;
-        this.valAwardFor404 = undefined;
-        this.valAwardForNormal = undefined;
-        let sc = this.scene;
-        let em = sc.enemyManager;
-        if (em.curStrategyID == SpawnStrategyType.ClickerGame) {
-            if (em.curStrategy) {
-                let strategy = em.curStrategy;
-                this.valDpsFor404 = strategy.getDps404();
-                this.valAwardFor404 = strategy.getAwardFor404();
-                this.valAwardForNormal = strategy.getAwardForNormal();
-            }
-        }
-    }
-    refreahDisplay() {
-        this.lblDpsFor404.setText("DPS (404): " + myNum(this.valDpsFor404));
-        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '') + myNum(this.valAwardFor404));
-        this.lblAwardForNormal.setText("Award (Non-404): " + myNum(this.valAwardForNormal));
-    }
-}
-class Died extends Wrapper {
-    constructor(scene, parentContainer, x, y) {
-        super(scene, parentContainer, x, y, null);
-        // Big banner
-        this.banner = new Rect(this.scene, this.inner, 0, 0, {
-            originX: 0.5,
-            originY: 0.5,
-            width: 3000,
-            height: 350,
-            fillColor: 0x000000,
-            lineColor: 0x000000,
-            lineAlpha: 0,
-        });
-        // Title
-        let style = getDefaultTextStyle();
-        style.fill = '#ffffff';
-        style.fontSize = '250px';
-        let title = this.scene.add.text(0, -10, "YOU DIED", style).setOrigin(0.5).setAlign('center');
-        this.applyTarget(title);
-        // Restart Btn
-        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, ">reboot -n", 200, 100, false);
-        this.restartBtn.text.setFontSize(44);
-    }
-    hide() {
-        this.inner.setVisible(false);
-        this.restartBtn.setEnable(false, false);
-    }
-    show() {
-        this.inner.setVisible(true);
-        this.inner.alpha = 0;
-        this.restartBtn.setEnable(true, false);
-        return TweenPromise.create(this.scene, {
-            targets: this.inner,
-            alpha: 1,
-            duration: 200
-        });
-    }
 }
 var canvasIndex = 0;
 /**
@@ -4409,408 +3629,6 @@ class EnemyText extends Enemy {
         this.healthIndicator = new HealthIndicator(this.scene, this.inner, lc, this.health);
     }
 }
-/**
- * This class is created to solve the origin problem of PhGraphics
- */
-class Figure extends Wrapper {
-    handleConfig(config) {
-        if (notSet(config))
-            config = {};
-        if (notSet(config.width))
-            config.width = 100;
-        if (notSet(config.height))
-            config.height = 100;
-        if (notSet(config.originX))
-            config.originX = 0;
-        if (notSet(config.originY))
-            config.originY = 0;
-        if (notSet(config.btns))
-            config.btns = ['OK'];
-        this.config = config;
-    }
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, null);
-        this.handleConfig(config);
-        let graphics = this.scene.add.graphics();
-        this.applyTarget(graphics);
-        this.drawGraphics();
-        this.calcGraphicsPosition();
-    }
-    drawGraphics() {
-        // To be implemented in inheritance
-    }
-    setOrigin(x, y) {
-        this.config.originX = x;
-        this.config.originY = y;
-        this.calcGraphicsPosition();
-    }
-    setSize(width, height) {
-        this.config.width = width;
-        if (!notSet(height))
-            this.config.height = height;
-        this.drawGraphics();
-        this.calcGraphicsPosition();
-    }
-    calcGraphicsPosition() {
-        this.applyOrigin(this.wrappedObject);
-        if (this.othersContainer) {
-            this.applyOrigin(this.othersContainer);
-        }
-    }
-    applyOrigin(ob) {
-        if (ob) {
-            ob.x = -this.config.width * this.config.originX;
-            ob.y = -this.config.height * this.config.originY;
-        }
-    }
-}
-class Rect extends Figure {
-    handleConfig(config) {
-        super.handleConfig(config);
-        if (notSet(config.lineWidth))
-            config.lineWidth = 4;
-        if (notSet(config.lineColor))
-            config.lineColor = 0x000000;
-        if (notSet(config.lineAlpha))
-            config.lineAlpha = 1;
-        if (notSet(config.fillColor))
-            config.fillColor = 0xffffff;
-        if (notSet(config.fillColor))
-            config.fillAlpha = 1;
-    }
-    drawGraphics() {
-        let graphics = this.wrappedObject;
-        let config = this.config;
-        graphics.clear();
-        // Some times even if lineWidth == 0 && width == 0
-        // There is still a tiny line
-        // So we need to double check that if the width == 0,
-        // we don't draw anything
-        if (config.width === 0)
-            return;
-        graphics.fillStyle(config.fillColor, config.fillAlpha);
-        if (notSet(config.roundRadius)) {
-            graphics.fillRect(0, 0, config.width, config.height);
-        }
-        else {
-            graphics.fillRoundedRect(0, 0, config.width, config.height, config.roundRadius);
-        }
-        if (config.lineWidth != 0) {
-            graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
-            if (notSet(config.roundRadius)) {
-                graphics.strokeRect(0, 0, config.width, config.height);
-            }
-            else {
-                graphics.strokeRoundedRect(0, 0, config.width, config.height, config.roundRadius);
-            }
-        }
-    }
-}
-class Arc extends Figure {
-    handleConfig(config) {
-        super.handleConfig(config);
-        if (notSet(config.lineWidth))
-            config.lineWidth = 4;
-        if (notSet(config.lineColor))
-            config.lineColor = 0x000000;
-        if (notSet(config.lineAlpha))
-            config.lineAlpha = 1;
-        if (notSet(config.fillColor))
-            config.fillColor = 0xffffff;
-        if (notSet(config.fillColor))
-            config.fillAlpha = 1;
-        if (notSet(config.radius))
-            config.radius = 100;
-        if (notSet(config.startAngle))
-            config.startAngle = 0;
-        if (notSet(config.endAngle))
-            config.endAngle = Math.PI / 2;
-        if (notSet(config.antiClockwise))
-            config.antiClockwise = false;
-    }
-    drawGraphics() {
-        let graphics = this.wrappedObject;
-        let config = this.config;
-        graphics.clear();
-        // Some times even if lineWidth == 0 && width == 0
-        // There is still a tiny line
-        // So we need to double check that if the width == 0,
-        // we don't draw anything
-        if (config.width === 0)
-            return;
-        graphics.arc(0, 0, config.radius, config.startAngle, config.endAngle, config.antiClockwise);
-        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
-        graphics.stroke();
-    }
-}
-class Dialog extends Figure {
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, config);
-        this.fixedHalfButtonOffset = 100;
-        this.singleUseConfirmEvent = new TypedEvent();
-        this.singleUseClosedEvent = new TypedEvent();
-        this.othersContainer = this.scene.add.container(0, 0);
-        this.inner.add(this.othersContainer);
-        let width = config.width;
-        let height = config.height;
-        // title
-        this.fillTitle();
-        // content
-        this.fillContent();
-        // OK btn
-        // If fixed height, btn's position is anchored to the bottom
-        // If auto height, btn's position is anchored to the content
-        // By default, we always initialize two buttons,
-        // and decide whether to hide them in the calcUniPosi
-        this.okBtn = new Button(this.scene, this.othersContainer, width / 2 - this.fixedHalfButtonOffset, 0, null, '< ' + this.getOkBtnTitle() + ' >', 120, 50);
-        this.okBtn.text.setColor('#000000');
-        this.okBtn.text.setFontSize(38);
-        this.okBtn.setToHoverChangeTextMode("-< " + this.getOkBtnTitle() + " >-");
-        this.okBtn.needHandOnHover = true;
-        this.okBtn.ignoreOverlay = true;
-        this.okBtn.clickedEvent.on(() => {
-            this.singleUseConfirmEvent.emit(this);
-        });
-        this.cancelBtn = new Button(this.scene, this.othersContainer, width / 2 + this.fixedHalfButtonOffset, 0, null, '< ' + this.getCancelBtnTitle() + ' >', 120, 50);
-        this.cancelBtn.text.setColor('#000000');
-        this.cancelBtn.text.setFontSize(38);
-        this.cancelBtn.setToHoverChangeTextMode("-< " + this.getCancelBtnTitle() + " >-");
-        this.cancelBtn.needHandOnHover = true;
-        this.cancelBtn.ignoreOverlay = true;
-        this.calcUiPosi();
-        $(document).on('keydown', e => {
-            if (this.inner.visible) {
-                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ENTER
-                    || e.keyCode == Phaser.Input.Keyboard.KeyCodes.SPACE) {
-                    if (this.okBtn)
-                        this.okBtn.click();
-                }
-                // else if(e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
-                //     if(this.cancelBtn)
-                //         this.cancelBtn.click();
-                // }
-            }
-        });
-    }
-    getOkBtnTitle() {
-        if (this.config.btns && this.config.btns[0]) {
-            return this.config.btns[0];
-        }
-        return 'OK';
-    }
-    getCancelBtnTitle() {
-        if (this.config.btns && this.config.btns[1]) {
-            return this.config.btns[1];
-        }
-        return 'Cancel';
-    }
-    fillTitle() {
-        let config = this.config;
-        let width = config.width;
-        let height = config.height;
-        let titleStyle = getDefaultTextStyle();
-        titleStyle.fontSize = "40px";
-        this.title = this.scene.add.text(width / 2, config.padding + 50, config.title, titleStyle).setOrigin(0.5).setAlign('center');
-        this.othersContainer.add(this.title);
-    }
-    fillContent() {
-        let config = this.config;
-        let width = config.width;
-        let height = config.height;
-        let contentStyle = getDefaultTextStyle();
-        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
-        this.content.setFontSize(28);
-        this.content.setOrigin(0, 0).setAlign('left');
-        this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
-        this.othersContainer.add(this.content);
-    }
-    getContentBottomCenterY() {
-        return this.content.getBottomCenter().y;
-    }
-    calcUiPosi() {
-        let btnY = 0;
-        let height = this.config.height;
-        let config = this.config;
-        if (config.autoHeight) {
-            btnY = this.getContentBottomCenterY() + config.contentBtnGap;
-            this.okBtn.inner.y = btnY;
-            this.cancelBtn.inner.y = btnY;
-            let newHeight = btnY + config.btnToBottom;
-            this.setSize(config.width, newHeight);
-        }
-        else {
-            btnY = height - config.btnToBottom;
-            this.okBtn.inner.y = btnY;
-            this.cancelBtn.inner.y = btnY;
-        }
-        // handle whether to hide and adjust the buttons based on the number
-        if (this.config.btns && this.config.btns.length == 1) {
-            this.cancelBtn.setEnable(false, false);
-            this.okBtn.inner.x = this.config.width / 2;
-        }
-        else if (this.config.btns && this.config.btns.length == 2) {
-            this.cancelBtn.setEnable(true, false);
-            this.okBtn.inner.x = this.config.width / 2 - this.fixedHalfButtonOffset;
-            this.cancelBtn.inner.x = this.config.width / 2 + this.fixedHalfButtonOffset;
-        }
-    }
-    setContent(content, title, btns) {
-        this.config.title = title;
-        this.config.content = content;
-        if (notSet(btns)) {
-            btns = ['OK'];
-        }
-        this.config.btns = btns;
-        this.content.text = content;
-        this.title.text = title;
-        if (this.config.autoHeight) {
-            this.calcUiPosi();
-        }
-    }
-    handleConfig(config) {
-        super.handleConfig(config);
-        if (notSet(config.lineWidth))
-            config.lineWidth = 4;
-        if (notSet(config.lineColor))
-            config.lineColor = 0x000000;
-        if (notSet(config.lineAlpha))
-            config.lineAlpha = 1;
-        if (notSet(config.fillColor))
-            config.fillColor = 0xffffff;
-        if (notSet(config.fillColor))
-            config.fillAlpha = 1;
-        if (notSet(config.padding))
-            config.padding = 4;
-        if (notSet(config.padding))
-            config.padding = 4;
-    }
-    drawGraphics() {
-        let graphics = this.wrappedObject;
-        let config = this.config;
-        graphics.clear();
-        graphics.fillStyle(config.fillColor, config.fillAlpha);
-        graphics.fillRect(0, 0, config.width, config.height);
-        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
-        graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);
-    }
-    show() {
-        this.inner.setVisible(true);
-    }
-    hide() {
-        this.inner.setVisible(false);
-        this.singleUseClosedEvent.emit(this);
-        this.singleUseConfirmEvent.clear();
-        this.singleUseClosedEvent.clear();
-    }
-}
-class LeaderboardDialog extends Dialog {
-    constructor(scene, parentContainer, x, y, config) {
-        super(scene, parentContainer, x, y, config);
-    }
-    handleConfig(config) {
-        super.handleConfig(config);
-        if (notSet(config.itemCount))
-            config.itemCount = 10;
-    }
-    getContentBottomCenterY() {
-        return this.col2[this.col2.length - 1].getBottomCenter().y;
-    }
-    fillContent() {
-        this.col1 = [];
-        this.col2 = [];
-        if (!this.items)
-            this.items = [];
-        let config = this.config;
-        let width = config.width;
-        let height = config.height;
-        let contentStyle = getDefaultTextStyle();
-        let lastY = this.title.getBottomCenter().y + config.titleContentGap;
-        for (let i = 0; i < config.itemCount; i++) {
-            let item = this.items[i];
-            let name = item ? item.name : "";
-            let scroe = item ? item.score + "" : "";
-            if (name.length > 15) {
-                name = name.substr(0, 15);
-            }
-            let td1 = this.scene.add.text(width / 2 - 180, lastY, name, contentStyle);
-            td1.setFontSize(28);
-            td1.setOrigin(0, 0).setAlign('left');
-            this.col1.push(td1);
-            this.othersContainer.add(td1);
-            let td2 = this.scene.add.text(width / 2 + 90, lastY, scroe, contentStyle);
-            td2.setFontSize(28);
-            td2.setOrigin(0, 0).setAlign('left');
-            this.col2.push(td2);
-            this.othersContainer.add(td2);
-            lastY = td1.getBottomCenter().y + 4;
-        }
-    }
-    setContentItems(items, title) {
-        this.items = items;
-        let config = this.config;
-        for (let i = 0; i < config.itemCount; i++) {
-            let item = this.items[i];
-            let name = item ? item.name : "";
-            let scroe = item ? item.score + "" : "";
-            if (name.length > 15) {
-                name = name.substr(0, 15);
-            }
-            this.col1[i].text = name;
-            this.col2[i].text = scroe;
-        }
-        this.config.title = title;
-        this.title.text = title;
-        if (this.config.autoHeight) {
-            this.calcUiPosi();
-        }
-    }
-}
-/**
- * The anchor of footer is bottom-left
- */
-class Footer extends Wrapper {
-    constructor(scene, parentContainer, x, y, overallHeight) {
-        super(scene, parentContainer, x, y, null);
-        this.badges = [];
-        let keys = ['footer_ai', 'footer_google', 'footer_nyu'];
-        let sepKey = 'footer_sep';
-        let curX = 0;
-        let gapLogoSep = 50;
-        for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
-            let button = new Button(this.scene, this.inner, curX, 0, key, '', undefined, undefined, false, 0, 1);
-            button.image.setOrigin(0, 1);
-            button.needInOutAutoAnimation = false;
-            button.needHandOnHover = true;
-            this.badges.push(button);
-            if (i === keys.length - 1)
-                continue;
-            curX += button.image.displayWidth;
-            // console.log(button.image.displayWidth)
-            curX += gapLogoSep;
-            let sep = this.scene.add.image(curX, 0, sepKey);
-            sep.setOrigin(0, 1);
-            this.inner.add(sep);
-            curX += gapLogoSep;
-        }
-        let picH = this.badges[0].image.displayHeight;
-        this.inner.setScale(overallHeight / picH);
-    }
-    show() {
-        this.scene.tweens.add({
-            targets: this.inner,
-            y: "-= 250",
-            duration: 1000,
-        });
-    }
-    hide() {
-        this.scene.tweens.add({
-            targets: this.inner,
-            y: "+= 250",
-            duration: 1000,
-        });
-    }
-}
 var farray = [];
 function ImFinishConfig(val) {
     return { finishImmediately: val };
@@ -5387,7 +4205,7 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     });
     return this;
 };
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var normal_1_2 = {
     name: 'Normal_1_2',
     initial: "Default",
@@ -5396,7 +4214,7 @@ var normal_1_2 = {
     ]
 };
 farray.push(normal_1_2);
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var normal_1_3 = {
     name: 'Normal_1_3',
     initial: "Default",
@@ -5408,7 +4226,7 @@ var normal_1_3 = {
     ]
 };
 farray.push(normal_1_3);
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var normal_1_4 = {
     name: 'Normal_1_4',
     initial: "Default",
@@ -5424,7 +4242,7 @@ var normal_1_4 = {
     ]
 };
 farray.push(normal_1_4);
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var normal_1_paper = {
     name: 'Normal_1_Papaer',
     initial: "Default",
@@ -5438,7 +4256,7 @@ var normal_1_paper = {
     ]
 };
 farray.push(normal_1_paper);
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var mainFsm = {
     name: 'MainFsm',
     initial: "Home",
@@ -5477,7 +4295,7 @@ farray.push(mainFsm);
 //     // do with the node
 //   }
 // });
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var normalGameFsm = {
     name: 'NormalGameFsm',
     initial: "Default",
@@ -5492,7 +4310,7 @@ var normalGameFsm = {
     ]
 };
 farray.push(normalGameFsm);
-/// <reference path="fsm.ts" />
+/// <reference path="../fsm.ts" />
 var zenFsm = {
     name: 'ZenFsm',
     initial: "Default",
@@ -5502,6 +4320,1832 @@ var zenFsm = {
     ]
 };
 farray.push(zenFsm);
+class SpeechManager {
+    constructor(scene) {
+        this.loadedSpeechFilesStatic = {};
+        this.loadedSpeechFilesQuick = {};
+        /**
+         * loadRejecters is a cache for the current promise reject handler
+         * for those loading process.
+         * We expose the handler to the cache to stop the loading manually
+         */
+        this.loadRejecters = new Map();
+        this.rejecterID = 0;
+        // contain all the currently playing && not completed sounds played by playSoundByKey()
+        this.playingSounds = [];
+        this.scene = scene;
+    }
+    /**
+     * If after 'timeOut' the resource is still not ready to play\
+     * cancel the whole process
+     * @param text
+     * @param play
+     * @param timeOut
+     */
+    quickLoadAndPlay(text, play = true, timeOut = 4000) {
+        console.log("Begin quick load and play");
+        // in quick mode the key is just the input text
+        // we can judge if we have the key stored directly
+        let key = text;
+        let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+        let cachedByMySelf = this.loadedSpeechFilesQuick.hasOwnProperty(key);
+        let cached = cachedInPhaser && cachedByMySelf;
+        if (cached) {
+            if (play) {
+                // console.log("play cahced");
+                return this.playSoundByKey(key);
+            }
+        }
+        else {
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id")
+                .then(oReq => {
+                //console.log("suc in quickLoadAndPlay")
+                var arrayBuffer = oReq.response;
+                // this blob may leak memory
+                var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+                var url = URL.createObjectURL(blob);
+                // console.log(url);    
+                return this.phaserLoad(text, text, url, false);
+            });
+            let thisRejectID = this.rejecterID++;
+            let race = Promise.race([
+                apiAndLoadPromise,
+                TimeOutPromise.create(timeOut, false),
+                new Promise((resolve, reject) => {
+                    this.loadRejecters.set(thisRejectID, reject);
+                })
+            ]);
+            let ret = race
+                .finally(() => { this.loadRejecters.delete(thisRejectID); })
+                .then(key => {
+                if (play)
+                    return this.playSoundByKey(key);
+            });
+            // .catch(e => {
+            //     console.log("error in static load and play");
+            //     console.log(e);
+            // });
+            return ret;
+        }
+    }
+    /**
+     * If after 'timeOut' the resource is still not ready to play\
+     * cancel the whole process
+     * @param text
+     * @param play
+     * @param timeOut
+     */
+    staticLoadAndPlay(text, play = true, timeOut = 4000) {
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id")
+            .then(sucRet => {
+            let retID = sucRet.id;
+            let retText = sucRet.input;
+            let retPath = sucRet.outputPath;
+            let md5 = sucRet.md5;
+            return this.phaserLoad(retText, md5, retPath, true);
+        });
+        let thisRejectID = this.rejecterID++;
+        let race = Promise.race([
+            apiAndLoadPromise,
+            TimeOutPromise.create(timeOut, false),
+            new Promise((resolve, reject) => {
+                this.loadRejecters.set(thisRejectID, reject);
+            })
+        ]);
+        let ret = race
+            .finally(() => { this.loadRejecters.delete(thisRejectID); })
+            .then(key => {
+            if (play)
+                return this.playSoundByKey(key);
+        });
+        // don't catch here, let the error pass
+        return ret;
+    }
+    clearSpeechCacheStatic() {
+        for (let key in this.loadedSpeechFilesStatic) {
+            this.scene.load.cacheManager.audio.remove(key);
+        }
+        this.loadedSpeechFilesStatic = {};
+    }
+    clearSpeechCacheQuick() {
+        for (let key in this.loadedSpeechFilesStatic) {
+            this.scene.load.cacheManager.audio.remove(key);
+        }
+        this.loadedSpeechFilesQuick = {};
+    }
+    phaserLoad(text, key, fullPath, isStatic = true) {
+        // console.log("isStatic: " + isStatic);
+        // console.log("------------------------------");      
+        let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+        let cachedByMySelf = isStatic ?
+            this.loadedSpeechFilesStatic.hasOwnProperty(key) :
+            this.loadedSpeechFilesQuick.hasOwnProperty(key);
+        // double check
+        if (cachedByMySelf && cachedInPhaser) {
+            return Promise.resolve(key);
+        }
+        else {
+            // console.log(fullPath);
+            return this.loadAudio(key, [fullPath], isStatic);
+        }
+    }
+    // phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true): Pany {
+    //     // console.log("isStatic: " + isStatic);
+    //     // console.log("------------------------------");      
+    //     let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
+    //     let cachedByMySelf = isStatic ?
+    //         this.loadedSpeechFilesStatic.hasOwnProperty(key) :
+    //         this.loadedSpeechFilesQuick.hasOwnProperty(key);
+    //     // double check
+    //     if (cachedByMySelf && cachedInPhaser) {
+    //         return this.playSoundByKey(key);
+    //     }
+    //     else {
+    //         console.log(fullPath);
+    //         return this.loadAudio(key, [fullPath], isStatic, play);
+    //     }
+    // }
+    loadAudio(key, pathArray, isStatic = true) {
+        return new Promise((resolve, reject) => {
+            this.scene.load.audio(key, pathArray);
+            let localThis = this;
+            this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
+                resolve(arg1);
+                localThis.scene.load.removeListener('filecomplete', onCompleted);
+            });
+            this.scene.load.start();
+        })
+            .then(suc => {
+            if (isStatic)
+                this.loadedSpeechFilesStatic[key] = true;
+            else
+                this.loadedSpeechFilesQuick[key] = true;
+            if (suc === key)
+                return Promise.resolve(key);
+            else
+                return Promise.reject("suc != key");
+        });
+    }
+    stopAndClearCurrentPlaying() {
+        this.loadRejecters.forEach((value, key, map) => {
+            value('rejected by stopAndClearCurrentPlaying');
+        });
+        this.playingSounds.forEach(e => {
+            e.stop();
+            e.emit('complete');
+        });
+        this.playingSounds.length = 0;
+    }
+    playSoundByKey(key) {
+        return new Promise((resolve, reject) => {
+            var music = this.scene.sound.add(key);
+            music.on('complete', (param) => {
+                arrayRemove(this.playingSounds, music);
+                resolve(music);
+            });
+            this.playingSounds.push(music);
+            music.play();
+        });
+    }
+}
+var SpawnStrategyType;
+(function (SpawnStrategyType) {
+    SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";
+    SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
+    SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
+    SpawnStrategyType[SpawnStrategyType["RandomFlow"] = 3] = "RandomFlow";
+    SpawnStrategyType[SpawnStrategyType["ClickerGame"] = 4] = "ClickerGame";
+})(SpawnStrategyType || (SpawnStrategyType = {}));
+/**
+ * We have two level of configs
+ * 1. SpawnStrategyConfig
+ * 2. EnemyConfig
+ * During the spawn, we are blending based on both 1. and 2.
+ */
+class SpawnStrategy {
+    constructor(manager, type, config) {
+        this.config = {};
+        this.isPause = false;
+        this.needHandleRewardExclusively = false;
+        this.config = this.getInitConfig();
+        this.enemyManager = manager;
+        this.type = type;
+        this.updateConfig(config);
+    }
+    sc1() {
+        return this.enemyManager.scene;
+    }
+    getInitConfig() {
+        return {};
+    }
+    updateConfig(config) {
+        if (notSet(config))
+            return;
+        for (let key in config) {
+            this.config[key] = config[key];
+        }
+    }
+    pause() {
+        this.isPause = true;
+    }
+    unPause() {
+        this.isPause = false;
+    }
+    onEnter() {
+    }
+    onExit() {
+    }
+    onUpdate(time, dt) {
+    }
+    inputSubmitted(input) {
+    }
+    enemyReachedCore(enemy) {
+    }
+    enemyEliminated(enemy, damagedBy) {
+    }
+    enemySpawned(enemy) {
+    }
+    reset() {
+    }
+}
+var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
+class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
+    constructor(manager, config) {
+        super(manager, SpawnStrategyType.SpawnOnEliminatedAndReachCore, config);
+    }
+    getInitConfig() {
+        return {
+            healthMin: 3,
+            healthMax: 3,
+            health: 3,
+            enemyDuration: 60000,
+        };
+    }
+    spawn() {
+        gSpawnStrategyOnEliminatedAndReachCoreIndex++;
+        let config = this.config;
+        // if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 1)
+        // this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bush'});
+        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 2)
+        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bottlecap'});
+        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
+        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
+        // else
+        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
+    }
+    onEnter() {
+        if (this.enemyManager.enemies.length == 0) {
+            this.spawn();
+        }
+    }
+    enemyReachedCore(enemy) {
+        this.spawn();
+    }
+    enemyEliminated(enemy) {
+        this.spawn();
+    }
+}
+class SpawnStrategyFlowTheory extends SpawnStrategy {
+    constructor(manager, config) {
+        super(manager, SpawnStrategyType.FlowTheory, config);
+    }
+    getInitConfig() {
+        return {
+            healthMin: 3,
+            healthMax: 3,
+            health: 3,
+            enemyDuration: 40000,
+        };
+    }
+    spawn() {
+        let config = this.config;
+        this.enemyManager.spawn({
+            health: config.health,
+            duration: config.enemyDuration,
+        });
+    }
+    getInterval() {
+        let history = this.enemyManager.omniHistory;
+        let n = history.length;
+        let sumLife = 0;
+        let avaiCount = 0;
+        let killedCount = 0;
+        for (let i = 0; i < n; i++) {
+            let item = history[i];
+            let killedTime = item.killedTime;
+            let spawnTime = item.time;
+            if (killedTime === undefined || item.eliminated === undefined) {
+                continue;
+            }
+            if (item.eliminated === true) {
+                killedCount++;
+            }
+            let duration = killedTime - spawnTime;
+            if (duration <= 0)
+                continue;
+            avaiCount++;
+            sumLife += duration;
+            if (item.eliminated === false) {
+                sumLife += 1;
+            }
+        }
+        let average = sumLife / avaiCount;
+        let adjusted = average * 0.7;
+        if (killedCount >= 4)
+            adjusted *= 0.8;
+        if (killedCount >= 8)
+            adjusted *= 0.9;
+        if (avaiCount == 0) {
+            return 8000;
+        }
+        else {
+            return adjusted;
+        }
+    }
+    onEnter() {
+        // console.log('flow entered');
+    }
+    onUpdate(time, dt) {
+        if (this.isPause) {
+            return;
+        }
+        let lastSpawnTime = -1000;
+        let historyLength = this.enemyManager.omniHistory.length;
+        if (historyLength > 0) {
+            lastSpawnTime = this.enemyManager.omniHistory[historyLength - 1].time;
+        }
+        let currentEnemies = this.enemyManager.enemies.length;
+        let minEnemies = 2;
+        let enemiesNeedSpawn = Math.max(0, minEnemies - currentEnemies);
+        if (enemiesNeedSpawn > 0) {
+            for (let i = 0; i < enemiesNeedSpawn; i++) {
+                this.spawn();
+            }
+        }
+        else {
+            let timeSinceLastSpawn = time - lastSpawnTime;
+            let interval = this.getInterval();
+            if (timeSinceLastSpawn > interval) {
+                this.spawn();
+            }
+        }
+    }
+}
+class RandomFlow extends SpawnStrategyFlowTheory {
+    constructor(manager, config) {
+        super(manager, config);
+        this.count = 0;
+        this.type = SpawnStrategyType.RandomFlow;
+    }
+    spawn() {
+        let config = this.config;
+        let tempConfig = { enemyType: EnemyType.Image, health: config.health, duration: config.enemyDuration };
+        tempConfig.rotation = 0;
+        tempConfig.needChange = true;
+        // // default
+        // if(this.count % 5 == 0)  {            
+        //     tempConfig.rotation =  0
+        //     tempConfig.needChange = true;
+        // }
+        // // rotation
+        // if(this.count % 5 == 1 || this.count % 5 == 3)  {            
+        //     tempConfig.rotation =  1000;
+        //     tempConfig.needChange = true;
+        // }        
+        // // shake
+        // if(this.count % 5 == 2)  {            
+        //     tempConfig.rotation =  0;
+        //     tempConfig.needShake = true;
+        //     tempConfig.needChange = true;
+        // }
+        // // flicker
+        // if(this.count % 5 == 4)  {            
+        //     tempConfig.rotation =  0;
+        //     tempConfig.needFlicker = true;
+        //     tempConfig.needChange = true;
+        // }
+        this.enemyManager.spawn(tempConfig);
+        this.count++;
+    }
+}
+/// <reference path="spawn-strategy-base.ts" />
+class SpawnStrategyClickerGame extends SpawnStrategy {
+    constructor(manager, config) {
+        super(manager, SpawnStrategyType.FlowTheory, config);
+        this.badCount = 0;
+        this.badEliminatedCount = 0;
+        this.normalNormalCount = 0;
+        this.normalTurnedCount = 0;
+        this.respawnAfterKilledThreshould = 9999;
+        this.lastAutoTypeTime = -1;
+        this.lastAutoTurnTime = -1;
+        this.autoTypeInterval = 1 * 1000;
+        this.autoTurnInterval = 1 * 1000;
+        this.curBadHealth = init404Health;
+        this.creatCount = 0;
+        this.needHandleRewardExclusively = true;
+    }
+    getInitConfig() {
+        return {
+            healthMin: 3,
+            healthMax: 3,
+            health: 3,
+            enemyDuration: 40000,
+        };
+    }
+    spawnBad(extraConfig, needIncHp = true) {
+        let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth;
+        let cg = { health: health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
+        updateObject(extraConfig, cg);
+        let ene = this.enemyManager.spawn(cg);
+        this.badCount++;
+        return ene;
+    }
+    incAndGetBadHealth() {
+        if (this.badEliminatedCount < 4) {
+            this.curBadHealth = ++this.curBadHealth;
+        }
+        else {
+            this.curBadHealth *= health404IncreaseFactor;
+            this.curBadHealth = Math.ceil(this.curBadHealth);
+        }
+        return this.curBadHealth;
+    }
+    getDps404() {
+        let dpsSum = 0;
+        if (badInfos[0].consumed) {
+            for (let i = 0; i < badInfos.length; i++) {
+                if (badInfos[i].consumed)
+                    dpsSum += badInfos[i].damage;
+            }
+        }
+        return dpsSum;
+    }
+    typerAutoDamage(time, dt) {
+        // auto damage to 404
+        if (badInfos[0].consumed) {
+            let dpsSum = this.getDps404();
+            for (let i in this.enemyManager.enemies) {
+                let e = this.enemyManager.enemies[i];
+                if (e.isSensative()) {
+                    e.damageInner(dpsSum * dt, badInfos[0].title, false);
+                }
+            }
+        }
+        // auto damage to real word
+        if (getAutoTurnInfo().consumed) {
+            // let dpsSum = turnInfos[0].damage;
+            for (let i in this.enemyManager.enemies) {
+                let e = this.enemyManager.enemies[i];
+                if (!e.isSensative()) {
+                    e.damageInner(e.maxHealth / autoTurnDpsFactor * dt, turnInfos[0].title, false);
+                }
+            }
+        }
+        // // auto damage to 404
+        // if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {
+        //     this.lastAutoTypeTime = time;
+        //     for(let i = 0; i < badInfos.length; i++) {
+        //         if(badInfos[i].consumed)
+        //             this.enemyManager.sendInputToServer(badInfos[i].title);
+        //     }            
+        // }
+        // // auto damage to real word
+        // if(getAutoTurnInfo().consumed && time  - this.lastAutoTurnTime > this.autoTurnInterval) {
+        //     this.lastAutoTurnTime = time;
+        //     this.enemyManager.sendInputToServer(turnInfos[0].title);
+        // }
+    }
+    getNormalHelath() {
+        return this.normalTurnedCount + initNormalHealth;
+    }
+    spawnNormal() {
+        let health = this.getNormalHelath();
+        let ene = this.enemyManager.spawn({ health: health, /* label: 'Snorkel', */ duration: normalDuration, clickerType: ClickerType.Normal });
+        return ene;
+    }
+    resetConsumed() {
+        for (let i in propInfos) {
+            propInfos[i].consumed = false;
+        }
+        for (let i in badInfos) {
+            badInfos[i].consumed = false;
+            badInfos[i].price = badInfos[i].basePrice;
+            badInfos[i].damage = badInfos[i].baseDamage;
+        }
+        for (let i in hpPropInfos) {
+            hpPropInfos[i].consumed = false;
+        }
+        let leftBtns = this.sc1().hud.leftBtns;
+        for (let i in leftBtns) {
+            leftBtns[i].curLevel = 0;
+        }
+        this.sc1().centerObject.playerInputText.clearAutoKeywords();
+        this.sc1().centerObject.centerProgres.reset();
+    }
+    onEnter() {
+        this.resetConsumed();
+        this.sc1().hud.resetPropBtns();
+        this.creatCount = 0;
+        this.badCount = 0;
+        this.badEliminatedCount = 0;
+        this.normalNormalCount = 0;
+        this.normalTurnedCount = 0;
+        this.respawnAfterKilledThreshould = 9999;
+        this.curBadHealth = init404Health;
+        this.lastAutoTypeTime = this.enemyManager.accTime - 1;
+        this.lastAutoTurnTime = this.enemyManager.accTime - 1;
+        this.firstSpawn();
+        this.sc1().centerObject.centerProgres.fullEvent.on(() => {
+            this.create();
+        });
+    }
+    firstSpawn() {
+        for (let i = 0; i < init404Count; i++) {
+            this.spawnBad();
+        }
+        for (let i = 0; i < initNormalCount; i++) {
+            this.spawnNormal();
+        }
+    }
+    create() {
+        this.creatCount++;
+        if (this.creatCount == 6) {
+            this.sc1().normalGameFsm.event('MOCK');
+        }
+        let e = this.spawnNormal();
+        let scale = e.inner.scale;
+        let timeline = this.enemyManager.scene.tweens.createTimeline(null);
+        timeline.add({
+            targets: e.inner,
+            scale: scale * 2,
+            duration: 250,
+        });
+        timeline.add({
+            targets: e.inner,
+            scale: scale * 1,
+            duration: 150,
+        });
+        timeline.play();
+    }
+    startLoopCreateNormal() {
+        this.needLoopCreateNormal = true;
+        this.lastNormalTime = this.enemyManager.accTime;
+        this.freqNormal = normalFreq1 * 1000;
+    }
+    startLoopCreateBad() {
+        this.needloopCeateBad = true;
+        this.last404Time = this.enemyManager.accTime;
+        this.freq404 = 6 * 1000;
+    }
+    onUpdate(time, dt) {
+        if (this.isPause)
+            return;
+        if (this.needloopCeateBad && time - this.last404Time > this.freq404) {
+            this.spawnBad();
+            this.last404Time = time;
+        }
+        if (this.needLoopCreateNormal && time - this.lastNormalTime > this.freqNormal) {
+            this.spawnNormal();
+            this.lastNormalTime = time;
+        }
+        this.typerAutoDamage(time, dt);
+    }
+    enemyDisappear(enemy, damagedBy) {
+        let clickerType = enemy.clickerType;
+        if (clickerType == ClickerType.Bad) {
+            this.badEliminatedCount++;
+            if (this.badCount < this.respawnAfterKilledThreshould) {
+                setTimeout(() => {
+                    this.spawnBad();
+                }, 500);
+            }
+            else if (this.badCount == this.respawnAfterKilledThreshould) {
+                this.startLoopCreateBad();
+            }
+        }
+        else if (clickerType == ClickerType.BadFromNormal) {
+        }
+    }
+    enemyReachedCore(enemy) {
+        this.enemyDisappear(enemy, null);
+    }
+    getAwardFor404() {
+        let sc = getAwardFor404(this.badEliminatedCount);
+        return sc;
+    }
+    getAwardForNormal() {
+        return +1;
+        // return -100 - this.normalNormalCount;
+    }
+    enemyEliminated(enemy, damagedBy) {
+        let clickerType = enemy.clickerType;
+        if (clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {
+            let sc = this.getAwardFor404();
+            this.enemyManager.scene.hud.addScore(sc, enemy);
+        }
+        else if (clickerType == ClickerType.Normal) {
+            // by turn
+            if (!isReservedTurnKeyword(damagedBy)) {
+                let sc = this.getAwardForNormal();
+                this.enemyManager.scene.hud.addScore(sc, enemy);
+                this.normalNormalCount++;
+            }
+            // by match
+            else {
+                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal }, false);
+                this.normalTurnedCount++;
+            }
+        }
+        this.enemyDisappear(enemy, damagedBy);
+    }
+    inputSubmitted(input) {
+        if (getCreatePropInfo().consumed && input == getCreateKeyword()) {
+            this.sc1().centerObject.centerProgres.addProgress(initCreateStep);
+        }
+    }
+}
+class Bubble extends Wrapper {
+    constructor(scene, parentContainer, x, y, dir) {
+        super(scene, parentContainer, x, y, null);
+        this.gapBetweenTextAndWarningText = 6;
+        let imgRes = "";
+        let originX = 0;
+        let originY = 0;
+        let textX = 0;
+        let textY = 0;
+        if (dir == Dir.Bottom) {
+            imgRes = 'popup_bubble_bottom';
+            originX = 55 / 439;
+            originY = 1;
+            textX = -31;
+            textY = -230;
+        }
+        else if (dir == Dir.Left) {
+            imgRes = 'popup_bubble_left';
+            originX = 0;
+            originY = 46 / 229;
+            textX = 40;
+            textY = -30;
+        }
+        else if (dir == Dir.Right) {
+            imgRes = 'popup_bubble';
+            originX = 1;
+            originY = 46 / 229;
+            textX = -442;
+            textY = -30;
+        }
+        let img = this.scene.add.image(0, 0, imgRes);
+        img.setOrigin(originX, originY);
+        this.applyTarget(img);
+        let style = getDefaultTextStyle();
+        style.fill = '#FFFFFF';
+        style.fontSize = '24px';
+        let cc = "You can just type in 'B' instead of 'BAD' for short";
+        let wordWrapthWidt = 400;
+        // main text
+        this.text = this.scene.add.text(textX, textY, cc, style).setOrigin(0, 0);
+        this.text.setWordWrapWidth(wordWrapthWidt);
+        this.inner.add(this.text);
+        // warning text
+        let warningStyle = getDefaultTextStyle();
+        style.fill = '#FF0000';
+        style.fontSize = '24px';
+        let posi = this.text.getBottomLeft();
+        this.warningText = this.scene.add.text(posi.x, 0, "", style).setOrigin(0, 0);
+        this.warningText.setWordWrapWidth(wordWrapthWidt);
+        this.inner.add(this.warningText);
+    }
+    setText(val, warningVal) {
+        this.text.text = val;
+        if (warningVal) {
+            this.warningText.text = warningVal;
+            this.warningText.y = this.text.getBottomLeft().y + this.gapBetweenTextAndWarningText;
+        }
+        else {
+            this.warningText.text = "";
+        }
+    }
+    show() {
+        this.inner.setVisible(true);
+    }
+    hide() {
+        this.inner.setVisible(false);
+    }
+}
+class ButtonGroup extends Wrapper {
+    constructor() {
+        super(...arguments);
+        this.isShown = false;
+    }
+}
+/**
+ * Toggle groups is intended to handle the keyboard event
+ * of the button group
+ * However, since the name ButtonGroup is already used,
+ * we call it ToggleGroup.
+ * The difference is that, ButtonGroup contains a Phaser Layer in it while
+ * ToggleGroup is more focused on the keyboard event
+ */
+class ToggleGroup {
+    constructor(scene) {
+        this.index = 0;
+        this.active = false;
+        this.scene = scene;
+        this.buttons = [];
+        document.addEventListener('keydown', this.keydown.bind(this));
+    }
+    addButton(btn) {
+        btn.toggleGroup = this;
+        this.buttons.push(btn);
+    }
+    setKeyboardActive(active = true) {
+        this.index = 0;
+        this.active = active;
+        // this.focus(0);
+    }
+    initFocus() {
+        this.index = 0;
+        this.focus(0);
+        for (let i = 1; i < this.buttons.length; i++) {
+            this.unfocus(i);
+        }
+    }
+    updateIndexTo(btn) {
+        for (let i = 0; i < this.buttons.length; i++) {
+            if (this.buttons[i] == btn) {
+                this.index = i;
+                break;
+            }
+        }
+    }
+    unfocusExept(btn) {
+        for (let i in this.buttons) {
+            if (btn != this.buttons[i]) {
+                this.unfocus(i);
+            }
+        }
+    }
+    focus(i) {
+        this.buttons[i].focus();
+    }
+    unfocus(i) {
+        this.buttons[i].unfocus();
+    }
+    keydown(event) {
+        if (!this.active)
+            return;
+        if (!this.buttons || this.buttons.length == 0)
+            return;
+        var code = event.keyCode;
+        let oriI = this.index;
+        if (code == Phaser.Input.Keyboard.KeyCodes.DOWN || code == Phaser.Input.Keyboard.KeyCodes.RIGHT
+            || code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
+            if (code == Phaser.Input.Keyboard.KeyCodes.LEFT || code == Phaser.Input.Keyboard.KeyCodes.UP) {
+                this.index--;
+                this.index += this.buttons.length;
+                this.index %= this.buttons.length;
+            }
+            else {
+                this.index++;
+                this.index %= this.buttons.length;
+            }
+            this.unfocus(oriI);
+            this.focus(this.index);
+        }
+        else if (code == Phaser.Input.Keyboard.KeyCodes.ENTER || code == Phaser.Input.Keyboard.KeyCodes.SPACE) {
+            for (let i in this.buttons) {
+                if (this.buttons[i].focused) {
+                    this.buttons[i].click();
+                }
+            }
+        }
+    }
+}
+/**
+ * When you want to deactive a button \
+ * Just call setEnable(false) \
+ * Don't set the visibility or activity of the inner objects directly
+ */
+class Button {
+    /**
+     * Target will be added into inner container
+     * inner container will be added into parentContainer automatically
+     * NO NEED to add this wrapper into the parent
+     * @param scene
+     * @param parentContainer
+     * @param target
+     */
+    constructor(scene, parentContainer, x, y, imgKey, title, width, height, debug, fakeOriginX, fakeOriginY) {
+        this.hoverState = 0; // 0:out 1:in
+        this.prevDownState = 0; // 0: not down  1: down
+        this.enable = true;
+        this.focused = false;
+        // auto scale
+        this.needInOutAutoAnimation = true;
+        // auto change the text to another when hovered
+        this.needTextTransferAnimation = false;
+        // auto change the cursor to a hand when hovered
+        this.needHandOnHover = false;
+        this.clickedEvent = new TypedEvent();
+        this.ignoreOverlay = false;
+        this.animationTargets = [];
+        this.canClick = true;
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+        this.inner = this.scene.add.container(x, y);
+        this.parentContainer.add(this.inner);
+        if (imgKey) {
+            this.image = this.scene.add.image(0, 0, imgKey);
+            this.inner.add(this.image);
+        }
+        let style = getDefaultTextStyle();
+        style.fill = '#FFFFFF';
+        this.originalTitle = title;
+        this.text = this.scene.add.text(0, 0, title, style).setOrigin(0.5).setAlign('center');
+        this.inner.add(this.text);
+        if (notSet(width))
+            width = this.image ? this.image.displayWidth : this.text.displayWidth;
+        if (notSet(height))
+            height = this.image ? this.image.displayHeight : this.text.displayHeight;
+        if (notSet(fakeOriginX))
+            fakeOriginX = 0.5;
+        if (notSet(fakeOriginY))
+            fakeOriginY = 0.5;
+        this.fakeZone = this.scene.add.image(0, 0, 'unit_white').setOrigin(fakeOriginX, fakeOriginY);
+        this.fakeZone.setScale(width / 100, height / 100);
+        this.inner.add(this.fakeZone);
+        if (debug) {
+            this.debugFrame = this.scene.add.graphics();
+            this.debugFrame.lineStyle(4, 0xFF0000, 1);
+            this.debugFrame.strokeRect(-width * fakeOriginX, -height * fakeOriginY, width, height);
+            this.inner.add(this.debugFrame);
+        }
+        if (this.image)
+            this.animationTargets.push(this.image);
+        if (this.text)
+            this.animationTargets.push(this.text);
+        this.fakeZone.setInteractive();
+        this.fakeZone.on('pointerover', () => {
+            this.pointerin();
+        });
+        this.fakeZone.on('pointerout', () => {
+            this.pointerout();
+        });
+        this.fakeZone.on('pointerdown', () => {
+            this.click();
+        });
+        // this.scene.input.setTopOnly(false);
+        this.scene.updateObjects.push(this);
+    }
+    update(time, dt) {
+    }
+    setEnable(val, needFade) {
+        // hide
+        if (!val && this.enable) {
+            // console.log(this.text.text);
+            this.hoverState = 0;
+            if (needFade) {
+                FadePromise.create(this.scene, this.inner, 0, 500)
+                    .then(s => {
+                    this.inner.setVisible(false);
+                }).catch(e => { });
+            }
+            else {
+                // console.log(this.text.text);
+                this.inner.setVisible(false);
+            }
+        }
+        // show
+        else if (val && !this.enable) {
+            this.text.text = this.originalTitle;
+            this.animationTargets.forEach(e => {
+                e.setScale(1);
+            });
+            if (needFade) {
+                this.inner.alpha = 0;
+                FadePromise.create(this.scene, this.inner, 1, 500);
+            }
+            this.inner.setVisible(true);
+            let contains = this.scene.isObjectHovered(this.fakeZone);
+            if (contains) {
+                this.pointerin();
+            }
+        }
+        this.enable = val;
+        return this;
+    }
+    click() {
+        if (!this.canClick) {
+            return;
+        }
+        if (this.needInOutAutoAnimation) {
+            let timeline = this.scene.tweens.createTimeline(null);
+            timeline.add({
+                targets: this.animationTargets,
+                scale: 0.9,
+                duration: 40,
+            });
+            timeline.add({
+                targets: this.animationTargets,
+                scale: 1.16,
+                duration: 90,
+            });
+            timeline.play();
+        }
+        this.clickedEvent.emit(this);
+    }
+    pointerin() {
+        // We need to double check the hoverState here because in setEnable(true), 
+        // if the pointer is alreay in the zone, it will get to pointerin directly
+        // but if the pointer moved again, the mouseover event will also get us here
+        if (this.hoverState === 1)
+            return;
+        this.hoverState = 1;
+        this.focus();
+    }
+    focus() {
+        if (this.needInOutAutoAnimation) {
+            this.scene.tweens.add({
+                targets: this.animationTargets,
+                scale: 1.16,
+                duration: 100,
+            });
+        }
+        if (this.needTextTransferAnimation) {
+            this.text.text = this.hoverTitle;
+        }
+        if (this.needHandOnHover) {
+            $("body").css('cursor', 'pointer');
+        }
+        if (this.image) {
+            this.image.alpha = 0.55;
+        }
+        if (this.toggleGroup) {
+            this.toggleGroup.updateIndexTo(this);
+            this.toggleGroup.unfocusExept(this);
+            this.text.text = '>' + this.originalTitle + '  ';
+        }
+        this.focused = true;
+    }
+    pointerout() {
+        // Not like pointer in, I don't know if I need to double check like this
+        // This is only for safe
+        if (this.hoverState === 0)
+            return;
+        this.hoverState = 0;
+        if (!this.toggleGroup) {
+            this.unfocus();
+        }
+    }
+    unfocus() {
+        if (this.needInOutAutoAnimation) {
+            this.scene.tweens.add({
+                targets: this.animationTargets,
+                scale: 1,
+                duration: 100,
+            });
+        }
+        if (this.needTextTransferAnimation) {
+            this.text.text = this.originalTitle;
+        }
+        if (this.needHandOnHover) {
+            $("body").css('cursor', 'default');
+        }
+        if (this.image) {
+            this.image.alpha = 1;
+        }
+        if (this.toggleGroup) {
+            this.text.text = this.originalTitle;
+        }
+        this.focused = false;
+    }
+    setToHoverChangeTextMode(hoverText) {
+        this.hoverTitle = hoverText;
+        this.needInOutAutoAnimation = false;
+        this.needTextTransferAnimation = true;
+    }
+    anchorToRight(toRight) {
+        window.addEventListener('resize', (event) => {
+            this.inner.x = getLogicWidth() - toRight;
+        }, false);
+    }
+}
+class SpeakerButton extends ImageWrapperClass {
+    init() {
+        this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
+        this.inner.add(this.icon);
+    }
+    toSpeakerMode(dt = 250) {
+        this.scene.tweens.add({
+            targets: this.icon,
+            alpha: 1,
+            duration: dt,
+        });
+    }
+    toNothingMode(dt = 250) {
+        this.scene.tweens.add({
+            targets: this.icon,
+            alpha: 0,
+            duration: 250,
+        });
+    }
+}
+class CenterObject {
+    constructor(scene, parentContainer, designSize) {
+        this.speakerRight = 56;
+        this.speakerLeft = -56;
+        this.homeScale = 1.3;
+        this.gameScale = 1.2;
+        this.initRotation = -Math.PI / 2;
+        this.frame = 0;
+        this.scene = scene;
+        this.parentContainer = parentContainer;
+        this.designSize = cpp(designSize);
+        this.inner = this.scene.add.container(0, 0);
+        this.parentContainer.add(this.inner);
+        this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
+        this.inner.add(this.mainImage);
+        this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(0, 0, "speaker"));
+        this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
+        this.playerInputText.init("");
+        this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl); });
+        this.inner.setScale(this.homeScale);
+        this.inner.setRotation(this.initRotation);
+        this.text = this.scene.add.text(0, -200, '', { fill: '#000000' }).setVisible(false);
+        this.inner.add(this.text);
+        // Buttons
+        let btn = new Button(this.scene, this.inner, 0, -30, null, "Normal", 200, 98, false, 0.5, 0.7).setEnable(false, false);
+        this.btnMode0 = btn;
+        btn = new Button(this.scene, this.inner, 0, 30, null, "Zen", 200, 98, false, 0.5, 0.3).setEnable(false, false);
+        this.btnMode1 = btn;
+        this.modeToggles = new ToggleGroup(this.scene);
+        this.modeToggles.addButton(this.btnMode0);
+        this.modeToggles.addButton(this.btnMode1);
+        this.modeToggles.setKeyboardActive();
+        this.centerProgres = new CenterProgress(this.scene, this.inner, 0, 0);
+    }
+    playerInputChanged(inputControl) {
+        let percent = inputControl.text.width / this.getTextMaxWidth();
+        percent = Math.max(0, percent);
+        percent = Math.min(1, percent);
+        let desti = lerp(this.speakerRight, this.speakerLeft, percent);
+        // this.speakerImage.x = desti;
+        if (percent == 0) {
+            this.backToZeroTween = this.scene.tweens.add({
+                targets: this.speakerBtn.inner,
+                x: desti,
+                duration: 150
+            });
+        }
+        else {
+            if (this.backToZeroTween)
+                this.backToZeroTween.stop();
+            // this.speakerImage.x = desti;
+            this.backToZeroTween = this.scene.tweens.add({
+                targets: this.speakerBtn.inner,
+                x: desti,
+                duration: 50
+            });
+        }
+    }
+    getDesignWidth() {
+        return this.designSize.x;
+    }
+    getTextMaxWidth() {
+        return this.getDesignWidth() * 0.65;
+    }
+    update(time, dt) {
+        let pointer = this.scene.input.activePointer;
+        this.text.setText([
+            'x: ' + pointer.worldX,
+            'y: ' + pointer.worldY,
+            'isDown: ' + pointer.isDown,
+            'rightButtonDown: ' + pointer.rightButtonDown()
+        ]);
+        if (this.centerProgres) {
+            this.centerProgres.update(time, dt);
+        }
+    }
+    prepareToGame() {
+        this.playerInputText.prepareToGame();
+        this.speakerBtn.toSpeakerMode(1000);
+        this.speakerBtn.inner.x = this.speakerRight;
+    }
+    prepareToHome() {
+        this.playerInputText.prepareToHome();
+        this.speakerBtn.toNothingMode(1000);
+        // this.speakerBtn.inner.x = this.speakerRight;
+        if (this.backToZeroTween)
+            this.backToZeroTween.stop();
+        this.backToZeroTween = this.scene.tweens.add({
+            targets: this.speakerBtn.inner,
+            x: this.speakerRight,
+            duration: 150
+        });
+    }
+    u3(t, c, x) {
+        let Y = 0;
+        let X = 0;
+        let r = 140 - 16 * (t < 10 ? t : 0);
+        for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
+            X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
+    }
+}
+class CenterProgress extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.arcOffset = -Math.PI / 2;
+        /**
+         * progress is normalized as [0, 1]
+         */
+        this.progress = 0;
+        this.progressDisplayed = 0;
+        this.fullEvent = new TypedEvent();
+        this.lastTimeProgressDisplayed = -1;
+        this.radius = 115;
+        this.curVal = 0;
+        this.maxVal = initCreateMax;
+        this.progress = this.curVal / this.maxVal;
+        //let ac = this.scene.add.arc(x, y, radius, 0, Math.pi, false, 0x000000, 1);
+        this.circle = new Arc(this.scene, this.inner, 0, 0, {
+            radius: this.radius,
+            startAngle: 0 + this.arcOffset,
+            endAngle: 1 + this.arcOffset,
+            antiClockwise: false,
+            lineWidth: 12,
+        });
+    }
+    reset() {
+        this.addProgress(-this.curVal, 0);
+    }
+    addProgress(val, delay, duration) {
+        if (notSet(delay))
+            delay = 0;
+        if (notSet(duration))
+            duration = 100;
+        this.curVal += val;
+        this.curVal = clamp(this.curVal, 0, this.maxVal);
+        this.progress = this.curVal / this.maxVal;
+        let to = this.progress;
+        // console.log(to);
+        if (this.resetTw) {
+            this.resetTw.stop();
+        }
+        if (val > 0) {
+            this.addTw = this.scene.add.tween({
+                delay: delay,
+                targets: this,
+                progressDisplayed: to,
+                duration: duration,
+            });
+        }
+        else {
+            this.resetTw = this.scene.add.tween({
+                delay: delay,
+                targets: this,
+                progressDisplayed: to,
+                duration: duration,
+            });
+        }
+        if (this.progress == 1) {
+            this.full();
+        }
+    }
+    full() {
+        this.fullEvent.emit(this);
+        this.addProgress(-this.maxVal, 500, 1000);
+    }
+    update(time, dt) {
+        this.updateProgressDisplay();
+    }
+    updateProgressDisplay() {
+        if (this.progressDisplayed == this.lastTimeProgressDisplayed)
+            return;
+        this.circle.config.endAngle = Math.PI * 2 * this.progressDisplayed + this.arcOffset;
+        this.circle.drawGraphics();
+        this.lastTimeProgressDisplayed = this.progressDisplayed;
+    }
+}
+let initScore = 0;
+let baseScore = 100;
+let normalFreq1 = 7;
+let autoBadgeInterval = 400;
+let autoTurnInterval = 1000;
+let hpRegFactor = 3;
+let initNormalHealth = 3;
+let init404Health = 2;
+let initNormalCount = 0;
+let init404Count = 1;
+let initCreateStep = 1;
+let initCreateMax = 3;
+let priceIncreaseFactor = 1.1;
+let award404IncreaseFactor = 1.1;
+let health404IncreaseFactor = 1.2;
+let basePrice = 100;
+let baseDamage = 1;
+let priceFactorBetweenInfo = 5;
+let damageFactorBetweenInfo = 4;
+let autoTurnDpsFactor = 10;
+let normalDuration = 35000;
+// let normalDuration = 5000;
+let badInfos = [
+    { title: "Bad", size: 36, desc: "Bad is just bad", damage: 1, baseDamage: 1, price: 0, basePrice: 100, consumed: false },
+    { title: "Evil", size: 34, desc: "Evil, even worse then Bad", damage: 3, baseDamage: 3, price: 0, basePrice: 300, consumed: false },
+    { title: "Guilty", size: 28, desc: "Guilty, even worse than Evil", damage: 5, baseDamage: 5, price: 0, basePrice: 1000, consumed: false },
+    { title: "Vicious", size: 24, desc: "Vicious, even worse than Guilty", damage: 8, baseDamage: 8, price: 0, basePrice: 3000, consumed: false },
+    { title: "Immoral", size: 20, desc: "Immoral, even worse than Vicious", damage: 12, baseDamage: 12, price: 0, basePrice: 10000, consumed: false },
+    { title: "Shameful", size: 18, desc: "Shameful, the worst.", damage: 20, baseDamage: 20, price: 0, basePrice: 30000, consumed: false },
+];
+for (let i = 0; i < badInfos.length; i++) {
+    badInfos[i].basePrice = basePrice * Math.pow(priceFactorBetweenInfo, i);
+    badInfos[i].baseDamage = baseDamage * Math.pow(damageFactorBetweenInfo, i);
+}
+function getDamageBasedOnLevel(lvl, info) {
+    // let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
+    let ret = info.baseDamage * lvl;
+    return ret;
+}
+function getPriceToLevel(lvl, info) {
+    let ret = info.basePrice * Math.pow(priceIncreaseFactor, lvl - 1);
+    return ret;
+}
+function getAwardFor404(count) {
+    let sc = Math.floor(baseScore * Math.pow(award404IncreaseFactor, count));
+    return sc;
+}
+let turnInfos = [
+    { title: "Turn", damage: 1 },
+];
+let createInfos = [
+    { title: "Create", damage: 1 },
+];
+function getCreateKeyword() {
+    return createInfos[0].title;
+}
+let hpPropInfos = [
+    { title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: ['+', '='] },
+];
+let propInfos = [
+    { title: "B**", consumed: false, price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
+    { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
+    { title: "T**", consumed: false, price: 2000, size: 30,
+        desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
+    },
+    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "The\nCreator", consumed: false, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+];
+function getBadgeResID(i) {
+    let resId = 'badge_' + badInfos[i].title.toLowerCase();
+    return resId;
+}
+function getAutoTypeInfo() {
+    return propInfos[1];
+}
+function getTurnInfo() {
+    return propInfos[2];
+}
+function getAutoTurnInfo() {
+    return propInfos[3];
+}
+function getNormalFreq() {
+    return normalFreq1;
+}
+function getCreatePropInfo() {
+    return propInfos[4];
+}
+// for(let i = 0; i < badInfos.length; i++) {
+//     let item = badInfos[i];
+//     item.desc = '"' + item.title + '"' + "\nDPS to 404: " + item.damage + "\nPrice: " + item.price;
+// }
+for (let i = 0; i < hpPropInfos.length; i++) {
+    let item = hpPropInfos[i];
+    item.desc = "+HP"
+        + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
+        + "\nPrice: " + item.price
+        + '\n\nHotkey: "' + item.hotkey[0] + '"';
+}
+function isReservedBadKeyword(inputWord) {
+    if (notSet(inputWord))
+        return false;
+    let foundKeyword = false;
+    for (let i = 0; i < badInfos.length; i++) {
+        if (inputWord.toLocaleLowerCase() == badInfos[i].title.toLocaleLowerCase()) {
+            foundKeyword = true;
+            break;
+        }
+    }
+    return foundKeyword;
+}
+function isReservedTurnKeyword(inputWord) {
+    if (notSet(inputWord))
+        return false;
+    let foundKeyword = false;
+    for (let i = 0; i < turnInfos.length; i++) {
+        if (inputWord.toLocaleLowerCase() == turnInfos[i].title.toLocaleLowerCase()) {
+            foundKeyword = true;
+            break;
+        }
+    }
+    return foundKeyword;
+}
+function isReservedKeyword(inputWord) {
+    return isReservedBadKeyword(inputWord) || isReservedTurnKeyword(inputWord) || inputWord == getCreateKeyword();
+}
+var s_infoPanelWidth = 450;
+class ClickerInfoPanel extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        this.bkg = new Rect(this.scene, this.inner, 0, 0, {
+            fillColor: 0xFFFFFF,
+            // lineColor: 0x222222,
+            lineWidth: 4,
+            width: s_infoPanelWidth,
+            height: 250,
+            originY: 0,
+            originX: 0,
+            roundRadius: 22,
+            fillAlpha: 0.3
+        });
+        let style = getDefaultTextStyle();
+        style.fontSize = '30px';
+        let h = 20;
+        let l = 20;
+        let gapVertical = 10;
+        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS (404): ", style);
+        this.inner.add(this.lblDpsFor404);
+        h += this.lblDpsFor404.displayHeight + gapVertical;
+        this.lblAwardFor404 = this.scene.add.text(l, h, "Award (404): ", style);
+        this.inner.add(this.lblAwardFor404);
+        h += this.lblAwardFor404.displayHeight + gapVertical;
+        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Non-404): ", style);
+        this.inner.add(this.lblAwardForNormal);
+    }
+    update(time, dt) {
+        this.updateValues();
+        this.refreahDisplay();
+    }
+    updateValues() {
+        this.valDpsFor404 = undefined;
+        this.valAwardFor404 = undefined;
+        this.valAwardForNormal = undefined;
+        let sc = this.scene;
+        let em = sc.enemyManager;
+        if (em.curStrategyID == SpawnStrategyType.ClickerGame) {
+            if (em.curStrategy) {
+                let strategy = em.curStrategy;
+                this.valDpsFor404 = strategy.getDps404();
+                this.valAwardFor404 = strategy.getAwardFor404();
+                this.valAwardForNormal = strategy.getAwardForNormal();
+            }
+        }
+    }
+    refreahDisplay() {
+        this.lblDpsFor404.setText("DPS (404): " + myNum(this.valDpsFor404));
+        this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '') + myNum(this.valAwardFor404));
+        this.lblAwardForNormal.setText("Award (Non-404): " + myNum(this.valAwardForNormal));
+    }
+}
+class Died extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+        // Big banner
+        this.banner = new Rect(this.scene, this.inner, 0, 0, {
+            originX: 0.5,
+            originY: 0.5,
+            width: 3000,
+            height: 350,
+            fillColor: 0x000000,
+            lineColor: 0x000000,
+            lineAlpha: 0,
+        });
+        // Title
+        let style = getDefaultTextStyle();
+        style.fill = '#ffffff';
+        style.fontSize = '250px';
+        let title = this.scene.add.text(0, -10, "YOU DIED", style).setOrigin(0.5).setAlign('center');
+        this.applyTarget(title);
+        // Restart Btn
+        this.restartBtn = new Button(this.scene, this.inner, 0, 125, null, ">reboot -n", 200, 100, false);
+        this.restartBtn.text.setFontSize(44);
+    }
+    hide() {
+        this.inner.setVisible(false);
+        this.restartBtn.setEnable(false, false);
+    }
+    show() {
+        this.inner.setVisible(true);
+        this.inner.alpha = 0;
+        this.restartBtn.setEnable(true, false);
+        return TweenPromise.create(this.scene, {
+            targets: this.inner,
+            alpha: 1,
+            duration: 200
+        });
+    }
+}
+/**
+ * This class is created to solve the origin problem of PhGraphics
+ */
+class Figure extends Wrapper {
+    handleConfig(config) {
+        if (notSet(config))
+            config = {};
+        if (notSet(config.width))
+            config.width = 100;
+        if (notSet(config.height))
+            config.height = 100;
+        if (notSet(config.originX))
+            config.originX = 0;
+        if (notSet(config.originY))
+            config.originY = 0;
+        if (notSet(config.btns))
+            config.btns = ['OK'];
+        this.config = config;
+    }
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, null);
+        this.handleConfig(config);
+        let graphics = this.scene.add.graphics();
+        this.applyTarget(graphics);
+        this.drawGraphics();
+        this.calcGraphicsPosition();
+    }
+    drawGraphics() {
+        // To be implemented in inheritance
+    }
+    setOrigin(x, y) {
+        this.config.originX = x;
+        this.config.originY = y;
+        this.calcGraphicsPosition();
+    }
+    setSize(width, height) {
+        this.config.width = width;
+        if (!notSet(height))
+            this.config.height = height;
+        this.drawGraphics();
+        this.calcGraphicsPosition();
+    }
+    calcGraphicsPosition() {
+        this.applyOrigin(this.wrappedObject);
+        if (this.othersContainer) {
+            this.applyOrigin(this.othersContainer);
+        }
+    }
+    applyOrigin(ob) {
+        if (ob) {
+            ob.x = -this.config.width * this.config.originX;
+            ob.y = -this.config.height * this.config.originY;
+        }
+    }
+}
+class Rect extends Figure {
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.lineWidth))
+            config.lineWidth = 4;
+        if (notSet(config.lineColor))
+            config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha))
+            config.lineAlpha = 1;
+        if (notSet(config.fillColor))
+            config.fillColor = 0xffffff;
+        if (notSet(config.fillColor))
+            config.fillAlpha = 1;
+    }
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+        graphics.clear();
+        // Some times even if lineWidth == 0 && width == 0
+        // There is still a tiny line
+        // So we need to double check that if the width == 0,
+        // we don't draw anything
+        if (config.width === 0)
+            return;
+        graphics.fillStyle(config.fillColor, config.fillAlpha);
+        if (notSet(config.roundRadius)) {
+            graphics.fillRect(0, 0, config.width, config.height);
+        }
+        else {
+            graphics.fillRoundedRect(0, 0, config.width, config.height, config.roundRadius);
+        }
+        if (config.lineWidth != 0) {
+            graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+            if (notSet(config.roundRadius)) {
+                graphics.strokeRect(0, 0, config.width, config.height);
+            }
+            else {
+                graphics.strokeRoundedRect(0, 0, config.width, config.height, config.roundRadius);
+            }
+        }
+    }
+}
+class Arc extends Figure {
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.lineWidth))
+            config.lineWidth = 4;
+        if (notSet(config.lineColor))
+            config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha))
+            config.lineAlpha = 1;
+        if (notSet(config.fillColor))
+            config.fillColor = 0xffffff;
+        if (notSet(config.fillColor))
+            config.fillAlpha = 1;
+        if (notSet(config.radius))
+            config.radius = 100;
+        if (notSet(config.startAngle))
+            config.startAngle = 0;
+        if (notSet(config.endAngle))
+            config.endAngle = Math.PI / 2;
+        if (notSet(config.antiClockwise))
+            config.antiClockwise = false;
+    }
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+        graphics.clear();
+        // Some times even if lineWidth == 0 && width == 0
+        // There is still a tiny line
+        // So we need to double check that if the width == 0,
+        // we don't draw anything
+        if (config.width === 0)
+            return;
+        graphics.arc(0, 0, config.radius, config.startAngle, config.endAngle, config.antiClockwise);
+        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+        graphics.stroke();
+    }
+}
+class Dialog extends Figure {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, config);
+        this.fixedHalfButtonOffset = 100;
+        this.singleUseConfirmEvent = new TypedEvent();
+        this.singleUseClosedEvent = new TypedEvent();
+        this.othersContainer = this.scene.add.container(0, 0);
+        this.inner.add(this.othersContainer);
+        let width = config.width;
+        let height = config.height;
+        // title
+        this.fillTitle();
+        // content
+        this.fillContent();
+        // OK btn
+        // If fixed height, btn's position is anchored to the bottom
+        // If auto height, btn's position is anchored to the content
+        // By default, we always initialize two buttons,
+        // and decide whether to hide them in the calcUniPosi
+        this.okBtn = new Button(this.scene, this.othersContainer, width / 2 - this.fixedHalfButtonOffset, 0, null, '< ' + this.getOkBtnTitle() + ' >', 120, 50);
+        this.okBtn.text.setColor('#000000');
+        this.okBtn.text.setFontSize(38);
+        this.okBtn.setToHoverChangeTextMode("-< " + this.getOkBtnTitle() + " >-");
+        this.okBtn.needHandOnHover = true;
+        this.okBtn.ignoreOverlay = true;
+        this.okBtn.clickedEvent.on(() => {
+            this.singleUseConfirmEvent.emit(this);
+        });
+        this.cancelBtn = new Button(this.scene, this.othersContainer, width / 2 + this.fixedHalfButtonOffset, 0, null, '< ' + this.getCancelBtnTitle() + ' >', 120, 50);
+        this.cancelBtn.text.setColor('#000000');
+        this.cancelBtn.text.setFontSize(38);
+        this.cancelBtn.setToHoverChangeTextMode("-< " + this.getCancelBtnTitle() + " >-");
+        this.cancelBtn.needHandOnHover = true;
+        this.cancelBtn.ignoreOverlay = true;
+        this.calcUiPosi();
+        $(document).on('keydown', e => {
+            if (this.inner.visible) {
+                if (e.keyCode == Phaser.Input.Keyboard.KeyCodes.ENTER
+                    || e.keyCode == Phaser.Input.Keyboard.KeyCodes.SPACE) {
+                    if (this.okBtn)
+                        this.okBtn.click();
+                }
+                // else if(e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
+                //     if(this.cancelBtn)
+                //         this.cancelBtn.click();
+                // }
+            }
+        });
+    }
+    getOkBtnTitle() {
+        if (this.config.btns && this.config.btns[0]) {
+            return this.config.btns[0];
+        }
+        return 'OK';
+    }
+    getCancelBtnTitle() {
+        if (this.config.btns && this.config.btns[1]) {
+            return this.config.btns[1];
+        }
+        return 'Cancel';
+    }
+    fillTitle() {
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let titleStyle = getDefaultTextStyle();
+        titleStyle.fontSize = "40px";
+        this.title = this.scene.add.text(width / 2, config.padding + 50, config.title, titleStyle).setOrigin(0.5).setAlign('center');
+        this.othersContainer.add(this.title);
+    }
+    fillContent() {
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let contentStyle = getDefaultTextStyle();
+        this.content = this.scene.add.text(config.padding + config.contentPadding, this.title.getBottomCenter().y + config.titleContentGap, config.content, contentStyle);
+        this.content.setFontSize(28);
+        this.content.setOrigin(0, 0).setAlign('left');
+        this.content.setWordWrapWidth(width - (this.config.padding + config.contentPadding) * 2);
+        this.othersContainer.add(this.content);
+    }
+    getContentBottomCenterY() {
+        return this.content.getBottomCenter().y;
+    }
+    calcUiPosi() {
+        let btnY = 0;
+        let height = this.config.height;
+        let config = this.config;
+        if (config.autoHeight) {
+            btnY = this.getContentBottomCenterY() + config.contentBtnGap;
+            this.okBtn.inner.y = btnY;
+            this.cancelBtn.inner.y = btnY;
+            let newHeight = btnY + config.btnToBottom;
+            this.setSize(config.width, newHeight);
+        }
+        else {
+            btnY = height - config.btnToBottom;
+            this.okBtn.inner.y = btnY;
+            this.cancelBtn.inner.y = btnY;
+        }
+        // handle whether to hide and adjust the buttons based on the number
+        if (this.config.btns && this.config.btns.length == 1) {
+            this.cancelBtn.setEnable(false, false);
+            this.okBtn.inner.x = this.config.width / 2;
+        }
+        else if (this.config.btns && this.config.btns.length == 2) {
+            this.cancelBtn.setEnable(true, false);
+            this.okBtn.inner.x = this.config.width / 2 - this.fixedHalfButtonOffset;
+            this.cancelBtn.inner.x = this.config.width / 2 + this.fixedHalfButtonOffset;
+        }
+    }
+    setContent(content, title, btns) {
+        this.config.title = title;
+        this.config.content = content;
+        if (notSet(btns)) {
+            btns = ['OK'];
+        }
+        this.config.btns = btns;
+        this.content.text = content;
+        this.title.text = title;
+        if (this.config.autoHeight) {
+            this.calcUiPosi();
+        }
+    }
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.lineWidth))
+            config.lineWidth = 4;
+        if (notSet(config.lineColor))
+            config.lineColor = 0x000000;
+        if (notSet(config.lineAlpha))
+            config.lineAlpha = 1;
+        if (notSet(config.fillColor))
+            config.fillColor = 0xffffff;
+        if (notSet(config.fillColor))
+            config.fillAlpha = 1;
+        if (notSet(config.padding))
+            config.padding = 4;
+        if (notSet(config.padding))
+            config.padding = 4;
+    }
+    drawGraphics() {
+        let graphics = this.wrappedObject;
+        let config = this.config;
+        graphics.clear();
+        graphics.fillStyle(config.fillColor, config.fillAlpha);
+        graphics.fillRect(0, 0, config.width, config.height);
+        graphics.lineStyle(config.lineWidth, config.lineColor, config.lineAlpha);
+        graphics.strokeRect(config.padding, config.padding, config.width - config.padding * 2, config.height - config.padding * 2);
+    }
+    show() {
+        this.inner.setVisible(true);
+    }
+    hide() {
+        this.inner.setVisible(false);
+        this.singleUseClosedEvent.emit(this);
+        this.singleUseConfirmEvent.clear();
+        this.singleUseClosedEvent.clear();
+    }
+}
+class LeaderboardDialog extends Dialog {
+    constructor(scene, parentContainer, x, y, config) {
+        super(scene, parentContainer, x, y, config);
+    }
+    handleConfig(config) {
+        super.handleConfig(config);
+        if (notSet(config.itemCount))
+            config.itemCount = 10;
+    }
+    getContentBottomCenterY() {
+        return this.col2[this.col2.length - 1].getBottomCenter().y;
+    }
+    fillContent() {
+        this.col1 = [];
+        this.col2 = [];
+        if (!this.items)
+            this.items = [];
+        let config = this.config;
+        let width = config.width;
+        let height = config.height;
+        let contentStyle = getDefaultTextStyle();
+        let lastY = this.title.getBottomCenter().y + config.titleContentGap;
+        for (let i = 0; i < config.itemCount; i++) {
+            let item = this.items[i];
+            let name = item ? item.name : "";
+            let scroe = item ? item.score + "" : "";
+            if (name.length > 15) {
+                name = name.substr(0, 15);
+            }
+            let td1 = this.scene.add.text(width / 2 - 180, lastY, name, contentStyle);
+            td1.setFontSize(28);
+            td1.setOrigin(0, 0).setAlign('left');
+            this.col1.push(td1);
+            this.othersContainer.add(td1);
+            let td2 = this.scene.add.text(width / 2 + 90, lastY, scroe, contentStyle);
+            td2.setFontSize(28);
+            td2.setOrigin(0, 0).setAlign('left');
+            this.col2.push(td2);
+            this.othersContainer.add(td2);
+            lastY = td1.getBottomCenter().y + 4;
+        }
+    }
+    setContentItems(items, title) {
+        this.items = items;
+        let config = this.config;
+        for (let i = 0; i < config.itemCount; i++) {
+            let item = this.items[i];
+            let name = item ? item.name : "";
+            let scroe = item ? item.score + "" : "";
+            if (name.length > 15) {
+                name = name.substr(0, 15);
+            }
+            this.col1[i].text = name;
+            this.col2[i].text = scroe;
+        }
+        this.config.title = title;
+        this.title.text = title;
+        if (this.config.autoHeight) {
+            this.calcUiPosi();
+        }
+    }
+}
+/**
+ * The anchor of footer is bottom-left
+ */
+class Footer extends Wrapper {
+    constructor(scene, parentContainer, x, y, overallHeight) {
+        super(scene, parentContainer, x, y, null);
+        this.badges = [];
+        let keys = ['footer_ai', 'footer_google', 'footer_nyu'];
+        let sepKey = 'footer_sep';
+        let curX = 0;
+        let gapLogoSep = 50;
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let button = new Button(this.scene, this.inner, curX, 0, key, '', undefined, undefined, false, 0, 1);
+            button.image.setOrigin(0, 1);
+            button.needInOutAutoAnimation = false;
+            button.needHandOnHover = true;
+            this.badges.push(button);
+            if (i === keys.length - 1)
+                continue;
+            curX += button.image.displayWidth;
+            // console.log(button.image.displayWidth)
+            curX += gapLogoSep;
+            let sep = this.scene.add.image(curX, 0, sepKey);
+            sep.setOrigin(0, 1);
+            this.inner.add(sep);
+            curX += gapLogoSep;
+        }
+        let picH = this.badges[0].image.displayHeight;
+        this.inner.setScale(overallHeight / picH);
+    }
+    show() {
+        this.scene.tweens.add({
+            targets: this.inner,
+            y: "-= 250",
+            duration: 1000,
+        });
+    }
+    hide() {
+        this.scene.tweens.add({
+            targets: this.inner,
+            y: "+= 250",
+            duration: 1000,
+        });
+    }
+}
 class HealthIndicator {
     // mvTween: PhTween;
     constructor(scene, parentContainer, posi, num) {
@@ -6152,7 +6796,6 @@ class LeaderboardManager {
         return pm;
     }
 }
-/// <reference path="../interface.ts" />
 var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `;
 var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:
@@ -7507,651 +8150,6 @@ class QuickDrawFigure {
     getCenter() {
         let mappedPosi = this.getMappedPosi(this.sampleRate / 2, this.sampleRate / 2);
         return new Phaser.Geom.Point(mappedPosi[0], mappedPosi[1]);
-    }
-}
-var SpawnStrategyType;
-(function (SpawnStrategyType) {
-    SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";
-    SpawnStrategyType[SpawnStrategyType["SpawnOnEliminatedAndReachCore"] = 1] = "SpawnOnEliminatedAndReachCore";
-    SpawnStrategyType[SpawnStrategyType["FlowTheory"] = 2] = "FlowTheory";
-    SpawnStrategyType[SpawnStrategyType["RandomFlow"] = 3] = "RandomFlow";
-    SpawnStrategyType[SpawnStrategyType["ClickerGame"] = 4] = "ClickerGame";
-})(SpawnStrategyType || (SpawnStrategyType = {}));
-/**
- * We have two level of configs
- * 1. SpawnStrategyConfig
- * 2. EnemyConfig
- * During the spawn, we are blending based on both 1. and 2.
- */
-class SpawnStrategy {
-    constructor(manager, type, config) {
-        this.config = {};
-        this.isPause = false;
-        this.needHandleRewardExclusively = false;
-        this.config = this.getInitConfig();
-        this.enemyManager = manager;
-        this.type = type;
-        this.updateConfig(config);
-    }
-    sc1() {
-        return this.enemyManager.scene;
-    }
-    getInitConfig() {
-        return {};
-    }
-    updateConfig(config) {
-        if (notSet(config))
-            return;
-        for (let key in config) {
-            this.config[key] = config[key];
-        }
-    }
-    pause() {
-        this.isPause = true;
-    }
-    unPause() {
-        this.isPause = false;
-    }
-    onEnter() {
-    }
-    onExit() {
-    }
-    onUpdate(time, dt) {
-    }
-    inputSubmitted(input) {
-    }
-    enemyReachedCore(enemy) {
-    }
-    enemyEliminated(enemy, damagedBy) {
-    }
-    enemySpawned(enemy) {
-    }
-    reset() {
-    }
-}
-var gSpawnStrategyOnEliminatedAndReachCoreIndex = 0;
-class SpawnStrategyOnEliminatedAndReachCore extends SpawnStrategy {
-    constructor(manager, config) {
-        super(manager, SpawnStrategyType.SpawnOnEliminatedAndReachCore, config);
-    }
-    getInitConfig() {
-        return {
-            healthMin: 3,
-            healthMax: 3,
-            health: 3,
-            enemyDuration: 60000,
-        };
-    }
-    spawn() {
-        gSpawnStrategyOnEliminatedAndReachCoreIndex++;
-        let config = this.config;
-        // if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 1)
-        // this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bush'});
-        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 2)
-        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Bottlecap'});
-        // else if(gSpawnStrategyOnEliminatedAndReachCoreIndex== 3)
-        //     this.enemyManager.spawn({health:config.health, duration: config.enemyDuration, label: 'Camera'});            
-        // else
-        this.enemyManager.spawn({ health: config.health, duration: config.enemyDuration });
-    }
-    onEnter() {
-        if (this.enemyManager.enemies.length == 0) {
-            this.spawn();
-        }
-    }
-    enemyReachedCore(enemy) {
-        this.spawn();
-    }
-    enemyEliminated(enemy) {
-        this.spawn();
-    }
-}
-class SpawnStrategyFlowTheory extends SpawnStrategy {
-    constructor(manager, config) {
-        super(manager, SpawnStrategyType.FlowTheory, config);
-    }
-    getInitConfig() {
-        return {
-            healthMin: 3,
-            healthMax: 3,
-            health: 3,
-            enemyDuration: 40000,
-        };
-    }
-    spawn() {
-        let config = this.config;
-        this.enemyManager.spawn({
-            health: config.health,
-            duration: config.enemyDuration,
-        });
-    }
-    getInterval() {
-        let history = this.enemyManager.omniHistory;
-        let n = history.length;
-        let sumLife = 0;
-        let avaiCount = 0;
-        let killedCount = 0;
-        for (let i = 0; i < n; i++) {
-            let item = history[i];
-            let killedTime = item.killedTime;
-            let spawnTime = item.time;
-            if (killedTime === undefined || item.eliminated === undefined) {
-                continue;
-            }
-            if (item.eliminated === true) {
-                killedCount++;
-            }
-            let duration = killedTime - spawnTime;
-            if (duration <= 0)
-                continue;
-            avaiCount++;
-            sumLife += duration;
-            if (item.eliminated === false) {
-                sumLife += 1;
-            }
-        }
-        let average = sumLife / avaiCount;
-        let adjusted = average * 0.7;
-        if (killedCount >= 4)
-            adjusted *= 0.8;
-        if (killedCount >= 8)
-            adjusted *= 0.9;
-        if (avaiCount == 0) {
-            return 8000;
-        }
-        else {
-            return adjusted;
-        }
-    }
-    onEnter() {
-        // console.log('flow entered');
-    }
-    onUpdate(time, dt) {
-        if (this.isPause) {
-            return;
-        }
-        let lastSpawnTime = -1000;
-        let historyLength = this.enemyManager.omniHistory.length;
-        if (historyLength > 0) {
-            lastSpawnTime = this.enemyManager.omniHistory[historyLength - 1].time;
-        }
-        let currentEnemies = this.enemyManager.enemies.length;
-        let minEnemies = 2;
-        let enemiesNeedSpawn = Math.max(0, minEnemies - currentEnemies);
-        if (enemiesNeedSpawn > 0) {
-            for (let i = 0; i < enemiesNeedSpawn; i++) {
-                this.spawn();
-            }
-        }
-        else {
-            let timeSinceLastSpawn = time - lastSpawnTime;
-            let interval = this.getInterval();
-            if (timeSinceLastSpawn > interval) {
-                this.spawn();
-            }
-        }
-    }
-}
-class RandomFlow extends SpawnStrategyFlowTheory {
-    constructor(manager, config) {
-        super(manager, config);
-        this.count = 0;
-        this.type = SpawnStrategyType.RandomFlow;
-    }
-    spawn() {
-        let config = this.config;
-        let tempConfig = { enemyType: EnemyType.Image, health: config.health, duration: config.enemyDuration };
-        tempConfig.rotation = 0;
-        tempConfig.needChange = true;
-        // // default
-        // if(this.count % 5 == 0)  {            
-        //     tempConfig.rotation =  0
-        //     tempConfig.needChange = true;
-        // }
-        // // rotation
-        // if(this.count % 5 == 1 || this.count % 5 == 3)  {            
-        //     tempConfig.rotation =  1000;
-        //     tempConfig.needChange = true;
-        // }        
-        // // shake
-        // if(this.count % 5 == 2)  {            
-        //     tempConfig.rotation =  0;
-        //     tempConfig.needShake = true;
-        //     tempConfig.needChange = true;
-        // }
-        // // flicker
-        // if(this.count % 5 == 4)  {            
-        //     tempConfig.rotation =  0;
-        //     tempConfig.needFlicker = true;
-        //     tempConfig.needChange = true;
-        // }
-        this.enemyManager.spawn(tempConfig);
-        this.count++;
-    }
-}
-/// <reference path="spawn-strategy-base.ts" />
-class SpawnStrategyClickerGame extends SpawnStrategy {
-    constructor(manager, config) {
-        super(manager, SpawnStrategyType.FlowTheory, config);
-        this.badCount = 0;
-        this.badEliminatedCount = 0;
-        this.normalNormalCount = 0;
-        this.normalTurnedCount = 0;
-        this.respawnAfterKilledThreshould = 9999;
-        this.lastAutoTypeTime = -1;
-        this.lastAutoTurnTime = -1;
-        this.autoTypeInterval = 1 * 1000;
-        this.autoTurnInterval = 1 * 1000;
-        this.curBadHealth = init404Health;
-        this.creatCount = 0;
-        this.needHandleRewardExclusively = true;
-    }
-    getInitConfig() {
-        return {
-            healthMin: 3,
-            healthMax: 3,
-            health: 3,
-            enemyDuration: 40000,
-        };
-    }
-    spawnBad(extraConfig, needIncHp = true) {
-        let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth;
-        let cg = { health: health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
-        updateObject(extraConfig, cg);
-        let ene = this.enemyManager.spawn(cg);
-        this.badCount++;
-        return ene;
-    }
-    incAndGetBadHealth() {
-        if (this.badEliminatedCount < 4) {
-            this.curBadHealth = ++this.curBadHealth;
-        }
-        else {
-            this.curBadHealth *= health404IncreaseFactor;
-            this.curBadHealth = Math.ceil(this.curBadHealth);
-        }
-        return this.curBadHealth;
-    }
-    getDps404() {
-        let dpsSum = 0;
-        if (badInfos[0].consumed) {
-            for (let i = 0; i < badInfos.length; i++) {
-                if (badInfos[i].consumed)
-                    dpsSum += badInfos[i].damage;
-            }
-        }
-        return dpsSum;
-    }
-    typerAutoDamage(time, dt) {
-        // auto damage to 404
-        if (badInfos[0].consumed) {
-            let dpsSum = this.getDps404();
-            for (let i in this.enemyManager.enemies) {
-                let e = this.enemyManager.enemies[i];
-                if (e.isSensative()) {
-                    e.damageInner(dpsSum * dt, badInfos[0].title, false);
-                }
-            }
-        }
-        // auto damage to real word
-        if (getAutoTurnInfo().consumed) {
-            // let dpsSum = turnInfos[0].damage;
-            for (let i in this.enemyManager.enemies) {
-                let e = this.enemyManager.enemies[i];
-                if (!e.isSensative()) {
-                    e.damageInner(e.maxHealth / autoTurnDpsFactor * dt, turnInfos[0].title, false);
-                }
-            }
-        }
-        // // auto damage to 404
-        // if(badInfos[0].consumed && time  - this.lastAutoTypeTime > this.autoTypeInterval) {
-        //     this.lastAutoTypeTime = time;
-        //     for(let i = 0; i < badInfos.length; i++) {
-        //         if(badInfos[i].consumed)
-        //             this.enemyManager.sendInputToServer(badInfos[i].title);
-        //     }            
-        // }
-        // // auto damage to real word
-        // if(getAutoTurnInfo().consumed && time  - this.lastAutoTurnTime > this.autoTurnInterval) {
-        //     this.lastAutoTurnTime = time;
-        //     this.enemyManager.sendInputToServer(turnInfos[0].title);
-        // }
-    }
-    getNormalHelath() {
-        return this.normalTurnedCount + initNormalHealth;
-    }
-    spawnNormal() {
-        let health = this.getNormalHelath();
-        let ene = this.enemyManager.spawn({ health: health, /* label: 'Snorkel', */ duration: normalDuration, clickerType: ClickerType.Normal });
-        return ene;
-    }
-    resetConsumed() {
-        for (let i in propInfos) {
-            propInfos[i].consumed = false;
-        }
-        for (let i in badInfos) {
-            badInfos[i].consumed = false;
-            badInfos[i].price = badInfos[i].basePrice;
-            badInfos[i].damage = badInfos[i].baseDamage;
-        }
-        for (let i in hpPropInfos) {
-            hpPropInfos[i].consumed = false;
-        }
-        let leftBtns = this.sc1().hud.leftBtns;
-        for (let i in leftBtns) {
-            leftBtns[i].curLevel = 0;
-        }
-        this.sc1().centerObject.playerInputText.clearAutoKeywords();
-        this.sc1().centerObject.centerProgres.reset();
-    }
-    onEnter() {
-        this.resetConsumed();
-        this.sc1().hud.resetPropBtns();
-        this.creatCount = 0;
-        this.badCount = 0;
-        this.badEliminatedCount = 0;
-        this.normalNormalCount = 0;
-        this.normalTurnedCount = 0;
-        this.respawnAfterKilledThreshould = 9999;
-        this.curBadHealth = init404Health;
-        this.lastAutoTypeTime = this.enemyManager.accTime - 1;
-        this.lastAutoTurnTime = this.enemyManager.accTime - 1;
-        this.firstSpawn();
-        this.sc1().centerObject.centerProgres.fullEvent.on(() => {
-            this.create();
-        });
-    }
-    firstSpawn() {
-        for (let i = 0; i < init404Count; i++) {
-            this.spawnBad();
-        }
-        for (let i = 0; i < initNormalCount; i++) {
-            this.spawnNormal();
-        }
-    }
-    create() {
-        this.creatCount++;
-        if (this.creatCount == 6) {
-            this.sc1().normalGameFsm.event('MOCK');
-        }
-        let e = this.spawnNormal();
-        let scale = e.inner.scale;
-        let timeline = this.enemyManager.scene.tweens.createTimeline(null);
-        timeline.add({
-            targets: e.inner,
-            scale: scale * 2,
-            duration: 250,
-        });
-        timeline.add({
-            targets: e.inner,
-            scale: scale * 1,
-            duration: 150,
-        });
-        timeline.play();
-    }
-    startLoopCreateNormal() {
-        this.needLoopCreateNormal = true;
-        this.lastNormalTime = this.enemyManager.accTime;
-        this.freqNormal = normalFreq1 * 1000;
-    }
-    startLoopCreateBad() {
-        this.needloopCeateBad = true;
-        this.last404Time = this.enemyManager.accTime;
-        this.freq404 = 6 * 1000;
-    }
-    onUpdate(time, dt) {
-        if (this.isPause)
-            return;
-        if (this.needloopCeateBad && time - this.last404Time > this.freq404) {
-            this.spawnBad();
-            this.last404Time = time;
-        }
-        if (this.needLoopCreateNormal && time - this.lastNormalTime > this.freqNormal) {
-            this.spawnNormal();
-            this.lastNormalTime = time;
-        }
-        this.typerAutoDamage(time, dt);
-    }
-    enemyDisappear(enemy, damagedBy) {
-        let clickerType = enemy.clickerType;
-        if (clickerType == ClickerType.Bad) {
-            this.badEliminatedCount++;
-            if (this.badCount < this.respawnAfterKilledThreshould) {
-                setTimeout(() => {
-                    this.spawnBad();
-                }, 500);
-            }
-            else if (this.badCount == this.respawnAfterKilledThreshould) {
-                this.startLoopCreateBad();
-            }
-        }
-        else if (clickerType == ClickerType.BadFromNormal) {
-        }
-    }
-    enemyReachedCore(enemy) {
-        this.enemyDisappear(enemy, null);
-    }
-    getAwardFor404() {
-        let sc = getAwardFor404(this.badEliminatedCount);
-        return sc;
-    }
-    getAwardForNormal() {
-        return +1;
-        // return -100 - this.normalNormalCount;
-    }
-    enemyEliminated(enemy, damagedBy) {
-        let clickerType = enemy.clickerType;
-        if (clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {
-            let sc = this.getAwardFor404();
-            this.enemyManager.scene.hud.addScore(sc, enemy);
-        }
-        else if (clickerType == ClickerType.Normal) {
-            // by turn
-            if (!isReservedTurnKeyword(damagedBy)) {
-                let sc = this.getAwardForNormal();
-                this.enemyManager.scene.hud.addScore(sc, enemy);
-                this.normalNormalCount++;
-            }
-            // by match
-            else {
-                this.spawnBad({ initPosi: enemy.initPosi, clickerType: ClickerType.BadFromNormal }, false);
-                this.normalTurnedCount++;
-            }
-        }
-        this.enemyDisappear(enemy, damagedBy);
-    }
-    inputSubmitted(input) {
-        if (getCreatePropInfo().consumed && input == getCreateKeyword()) {
-            this.sc1().centerObject.centerProgres.addProgress(initCreateStep);
-        }
-    }
-}
-class SpeechManager {
-    constructor(scene) {
-        this.loadedSpeechFilesStatic = {};
-        this.loadedSpeechFilesQuick = {};
-        /**
-         * loadRejecters is a cache for the current promise reject handler
-         * for those loading process.
-         * We expose the handler to the cache to stop the loading manually
-         */
-        this.loadRejecters = new Map();
-        this.rejecterID = 0;
-        // contain all the currently playing && not completed sounds played by playSoundByKey()
-        this.playingSounds = [];
-        this.scene = scene;
-    }
-    /**
-     * If after 'timeOut' the resource is still not ready to play\
-     * cancel the whole process
-     * @param text
-     * @param play
-     * @param timeOut
-     */
-    quickLoadAndPlay(text, play = true, timeOut = 4000) {
-        console.log("Begin quick load and play");
-        // in quick mode the key is just the input text
-        // we can judge if we have the key stored directly
-        let key = text;
-        let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
-        let cachedByMySelf = this.loadedSpeechFilesQuick.hasOwnProperty(key);
-        let cached = cachedInPhaser && cachedByMySelf;
-        if (cached) {
-            if (play) {
-                // console.log("play cahced");
-                return this.playSoundByKey(key);
-            }
-        }
-        else {
-            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id")
-                .then(oReq => {
-                //console.log("suc in quickLoadAndPlay")
-                var arrayBuffer = oReq.response;
-                // this blob may leak memory
-                var blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
-                var url = URL.createObjectURL(blob);
-                // console.log(url);    
-                return this.phaserLoad(text, text, url, false);
-            });
-            let thisRejectID = this.rejecterID++;
-            let race = Promise.race([
-                apiAndLoadPromise,
-                TimeOutPromise.create(timeOut, false),
-                new Promise((resolve, reject) => {
-                    this.loadRejecters.set(thisRejectID, reject);
-                })
-            ]);
-            let ret = race
-                .finally(() => { this.loadRejecters.delete(thisRejectID); })
-                .then(key => {
-                if (play)
-                    return this.playSoundByKey(key);
-            });
-            // .catch(e => {
-            //     console.log("error in static load and play");
-            //     console.log(e);
-            // });
-            return ret;
-        }
-    }
-    /**
-     * If after 'timeOut' the resource is still not ready to play\
-     * cancel the whole process
-     * @param text
-     * @param play
-     * @param timeOut
-     */
-    staticLoadAndPlay(text, play = true, timeOut = 4000) {
-        let apiAndLoadPromise = apiTextToSpeech(text, "no_id")
-            .then(sucRet => {
-            let retID = sucRet.id;
-            let retText = sucRet.input;
-            let retPath = sucRet.outputPath;
-            let md5 = sucRet.md5;
-            return this.phaserLoad(retText, md5, retPath, true);
-        });
-        let thisRejectID = this.rejecterID++;
-        let race = Promise.race([
-            apiAndLoadPromise,
-            TimeOutPromise.create(timeOut, false),
-            new Promise((resolve, reject) => {
-                this.loadRejecters.set(thisRejectID, reject);
-            })
-        ]);
-        let ret = race
-            .finally(() => { this.loadRejecters.delete(thisRejectID); })
-            .then(key => {
-            if (play)
-                return this.playSoundByKey(key);
-        });
-        // don't catch here, let the error pass
-        return ret;
-    }
-    clearSpeechCacheStatic() {
-        for (let key in this.loadedSpeechFilesStatic) {
-            this.scene.load.cacheManager.audio.remove(key);
-        }
-        this.loadedSpeechFilesStatic = {};
-    }
-    clearSpeechCacheQuick() {
-        for (let key in this.loadedSpeechFilesStatic) {
-            this.scene.load.cacheManager.audio.remove(key);
-        }
-        this.loadedSpeechFilesQuick = {};
-    }
-    phaserLoad(text, key, fullPath, isStatic = true) {
-        // console.log("isStatic: " + isStatic);
-        // console.log("------------------------------");      
-        let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
-        let cachedByMySelf = isStatic ?
-            this.loadedSpeechFilesStatic.hasOwnProperty(key) :
-            this.loadedSpeechFilesQuick.hasOwnProperty(key);
-        // double check
-        if (cachedByMySelf && cachedInPhaser) {
-            return Promise.resolve(key);
-        }
-        else {
-            // console.log(fullPath);
-            return this.loadAudio(key, [fullPath], isStatic);
-        }
-    }
-    // phaserLoadAndPlay(text, key, fullPath, isStatic = true, play = true): Pany {
-    //     // console.log("isStatic: " + isStatic);
-    //     // console.log("------------------------------");      
-    //     let cachedInPhaser = this.scene.load.cacheManager.audio.has(key);
-    //     let cachedByMySelf = isStatic ?
-    //         this.loadedSpeechFilesStatic.hasOwnProperty(key) :
-    //         this.loadedSpeechFilesQuick.hasOwnProperty(key);
-    //     // double check
-    //     if (cachedByMySelf && cachedInPhaser) {
-    //         return this.playSoundByKey(key);
-    //     }
-    //     else {
-    //         console.log(fullPath);
-    //         return this.loadAudio(key, [fullPath], isStatic, play);
-    //     }
-    // }
-    loadAudio(key, pathArray, isStatic = true) {
-        return new Promise((resolve, reject) => {
-            this.scene.load.audio(key, pathArray);
-            let localThis = this;
-            this.scene.load.addListener('filecomplete', function onCompleted(arg1, arg2, arg3) {
-                resolve(arg1);
-                localThis.scene.load.removeListener('filecomplete', onCompleted);
-            });
-            this.scene.load.start();
-        })
-            .then(suc => {
-            if (isStatic)
-                this.loadedSpeechFilesStatic[key] = true;
-            else
-                this.loadedSpeechFilesQuick[key] = true;
-            if (suc === key)
-                return Promise.resolve(key);
-            else
-                return Promise.reject("suc != key");
-        });
-    }
-    stopAndClearCurrentPlaying() {
-        this.loadRejecters.forEach((value, key, map) => {
-            value('rejected by stopAndClearCurrentPlaying');
-        });
-        this.playingSounds.forEach(e => {
-            e.stop();
-            e.emit('complete');
-        });
-        this.playingSounds.length = 0;
-    }
-    playSoundByKey(key) {
-        return new Promise((resolve, reject) => {
-            var music = this.scene.sound.add(key);
-            music.on('complete', (param) => {
-                arrayRemove(this.playingSounds, music);
-                resolve(music);
-            });
-            this.playingSounds.push(music);
-            music.play();
-        });
     }
 }
 var monologueList = [

@@ -242,12 +242,17 @@ class Overlay extends Wrapper<PhText> {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
         this.show();
         this.leaderboardDialog.show();
+
+        FmodManager.getInstance().playOneShot('event:/Ambience/Country');
     }
 
 
 
     showFormRating(show: boolean) {
         // this.showReviewWall(true);
+
+        // FmodManager.getInstance().test();
+        
 
         if (show) {
             if (!this.inShow) {

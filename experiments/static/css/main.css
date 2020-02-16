@@ -19,3 +19,20 @@
     border-right: 4px outset #252525;
 }
 
+#yb-player-root{
+    pointer-events: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+#yb-player {
+    
+    position: absolute;
+    display: block;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}

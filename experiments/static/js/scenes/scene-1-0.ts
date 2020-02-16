@@ -23,6 +23,9 @@ class Scene1L0 extends Scene1 {
         this.dwitterCenter.inner.x = offsetX;
         this.dwitterBKG.inner.x = offsetX;
 
+        this.centerObject.inner.scale *= 1.15;
+        this.dwitterCenter.inner.scale *= 1.15;
+
 
         this.centerObject.inner.y = offsetY;
         this.dwitterCenter.inner.y = offsetY;

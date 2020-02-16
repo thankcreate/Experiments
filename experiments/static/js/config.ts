@@ -1,4 +1,5 @@
 /// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-1-3.ts" />
@@ -51,7 +52,7 @@ var gameplayConfig = {
     drawDataSample: 255,
     drawDataDefaultSize: 150,
 
-    titleOriginal: "Project 65535",
+    titleOriginal: "Project 65536",
     titleChangedTo: "Project 65536",
 }
 
@@ -72,5 +73,5 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
+    scene: [Controller, Scene1L0, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
 };

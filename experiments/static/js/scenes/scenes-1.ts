@@ -107,7 +107,7 @@ class Scene1 extends BaseScene {
     sfxFail : Phaser.Sound.BaseSound;
 
     
-    
+    anyKeyEvent: TypedEvent<string> = new TypedEvent();
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {        
         super(config);
@@ -443,11 +443,16 @@ class Scene1 extends BaseScene {
         });
     }
 
-    homeEnterInvoked(s: FsmState) {
+    homeEnterInvoked(s: FsmState) {        
         this.centerObject.playerInputText.changeTitleToChanged();
-        this.dwitterBKG.toStaticMode();
+
+        if(this.needChangeUiWhenIntoGame())
+            this.dwitterBKG.toStaticMode();
         this.subtitle.stopMonologue();
         
+        if(this.forceDirectIntoGame()) {
+            s.event('FORCE_DIRECT_INTO_GAME');
+        }
 
         // let firstIn = this.firstIntoHome();
         let name = this.getUserName();
@@ -457,6 +462,12 @@ class Scene1 extends BaseScene {
         else {
             s.event('TO_FIRST_MEET');
         }
+
+        this.anyKeyEvent.emit('haha');
+    }
+
+    forceDirectIntoGame(): boolean {
+        return false;
     }
 
     initStFirstMeet() {
@@ -580,14 +591,17 @@ class Scene1 extends BaseScene {
     }
 
 
+    needChangeUiWhenIntoGame(): boolean {
+        return true;
+    }
 
     initStHomeToGameAnimation() {
         let dt = 1000;
         let state = this.mainFsm.getState("HomeToGameAnimation")
         state
             .addAction(s => {
-               
-                this.ui.gotoGame(this.mode);
+                if(this.needChangeUiWhenIntoGame())
+                    this.ui.gotoGame(this.mode);
             })
             .addTweenAllAction(this, [
                 // Rotate center to normal angle
@@ -635,7 +649,9 @@ class Scene1 extends BaseScene {
             this.zenFsm.start();
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
-            this.backBtn.setEnable(true, true);
+
+            if(this.needChangeUiWhenIntoGame())
+                this.backBtn.setEnable(true, true);
             
             this.gamePlayStarted();
 

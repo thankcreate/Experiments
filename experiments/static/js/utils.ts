@@ -40,10 +40,10 @@ function getUrlParams() {
 
 function getCurrentLevelRaw() : string {
     let params = getUrlParams();
-    let index = 1;
+    let index = 0;
     let ret = params['level'];
     if(!ret) {
-        return '1';
+        return '0';
     }
     return ret;
 }

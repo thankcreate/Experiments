@@ -16,7 +16,8 @@ var mainFsm =
     { name: 'DIED', from: 'NormalGame', to: 'Died' },
     { name: 'RESTART', from: 'Died', to: 'Restart' },
     { name: 'BACK_TO_HOME', from: 'Died', to: 'BackToHomeAnimation' },
-    { name: 'RESTART_TO_GAME', from: 'Restart', to: 'NormalGame'}
+    { name: 'RESTART_TO_GAME', from: 'Restart', to: 'NormalGame'},
+    { name: 'FORCE_DIRECT_INTO_GAME', from:'Home', to:'HomeToGameAnimation'}
   ],
 };
 

@@ -126,7 +126,7 @@ class FmodManager {
 
         }
 
-        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
         if (iOS)
         {
             window.addEventListener('touchend', resumeAudio, false);

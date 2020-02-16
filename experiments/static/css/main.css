@@ -30,9 +30,12 @@
     
     position: absolute;
     display: block;
+    visibility: hidden;
     margin: auto;
     top: 0;
-    bottom: 0;
+    bottom: 2.3vh;
     left: 0;
     right: 0;
+
+    transform: translateX(11.8vw);
 }

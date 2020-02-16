@@ -140,6 +140,7 @@ class Scene1 extends BaseScene {
         this.counters = new Map();
         this.playerName = "";
         this.sfxMatches = [];
+        this.anyKeyEvent = new TypedEvent();
         this.pauseCounter = 0;
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
@@ -390,8 +391,12 @@ class Scene1 extends BaseScene {
     }
     homeEnterInvoked(s) {
         this.centerObject.playerInputText.changeTitleToChanged();
-        this.dwitterBKG.toStaticMode();
+        if (this.needChangeUiWhenIntoGame())
+            this.dwitterBKG.toStaticMode();
         this.subtitle.stopMonologue();
+        if (this.forceDirectIntoGame()) {
+            s.event('FORCE_DIRECT_INTO_GAME');
+        }
         // let firstIn = this.firstIntoHome();
         let name = this.getUserName();
         if (name) {
@@ -400,6 +405,10 @@ class Scene1 extends BaseScene {
         else {
             s.event('TO_FIRST_MEET');
         }
+        this.anyKeyEvent.emit('haha');
+    }
+    forceDirectIntoGame() {
+        return false;
     }
     initStFirstMeet() {
         this.mainFsm.getState("FirstMeet")
@@ -501,12 +510,16 @@ class Scene1 extends BaseScene {
             .addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!'; }, true, null, null, 1)
             .addFinishAction();
     }
+    needChangeUiWhenIntoGame() {
+        return true;
+    }
     initStHomeToGameAnimation() {
         let dt = 1000;
         let state = this.mainFsm.getState("HomeToGameAnimation");
         state
             .addAction(s => {
-            this.ui.gotoGame(this.mode);
+            if (this.needChangeUiWhenIntoGame())
+                this.ui.gotoGame(this.mode);
         })
             .addTweenAllAction(this, [
             // Rotate center to normal angle
@@ -550,7 +563,8 @@ class Scene1 extends BaseScene {
             this.zenFsm.start();
             // Hide title and show speaker dots
             this.centerObject.prepareToGame();
-            this.backBtn.setEnable(true, true);
+            if (this.needChangeUiWhenIntoGame())
+                this.backBtn.setEnable(true, true);
             this.gamePlayStarted();
             // Back
             s.autoOn($(document), 'keydown', e => {
@@ -695,6 +709,64 @@ class Scene1 extends BaseScene {
     }
     needHud() {
         return true;
+    }
+}
+class Scene1L0 extends Scene1 {
+    constructor() {
+        super('Scene1L0');
+        this.camAllowed = false;
+    }
+    create() {
+        super.create();
+        this.createYoutubeVideo();
+        this.initNormalGameFsm();
+        this.anyKeyEvent.on((s) => {
+            playYoutubeVideo();
+            $('#yb-player').css('visibility', 'visible');
+        });
+        this.subtitle.inner.alpha = 0;
+        let offsetX = getLogicWidth() * 11.8 / 100;
+        let offsetY = getLogicHeight() * 0 / 100;
+        this.centerObject.inner.x = offsetX;
+        this.dwitterCenter.inner.x = offsetX;
+        this.dwitterBKG.inner.x = offsetX;
+        this.centerObject.inner.y = offsetY;
+        this.dwitterCenter.inner.y = offsetY;
+        this.dwitterBKG.inner.y = offsetY;
+    }
+    createYoutubeVideo() {
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/player_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        s_youtubeFinishCallback = () => {
+            window.location.replace(window.location.origin + "?level=1");
+        };
+    }
+    initNormalGameFsm() {
+        this.updateObjects.push(this.normalGameFsm);
+    }
+    forceDirectIntoGame() {
+        return true;
+    }
+    needChangeUiWhenIntoGame() {
+        return false;
+    }
+    initStNormalDefault() {
+        // let state = this.normalGameFsm.getState("Default");
+        // state.addAction(s=>{
+        //     this.confirmCount = 0;
+        // })
+        // state.addEventAction('START');
+    }
+    initStStart() {
+        let state = this.normalGameFsm.getState("Start");
+    }
+    getNormalGameFsm() {
+        return normal_1_0;
+    }
+    needHud() {
+        return false;
     }
 }
 class Scene1L1 extends Scene1 {
@@ -1610,6 +1682,7 @@ class Scene1LPaper extends Scene1 {
     }
 }
 /// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-1-3.ts" />
@@ -1644,7 +1717,7 @@ var gameplayConfig = {
     healthIndicatorWidth: 32,
     drawDataSample: 255,
     drawDataDefaultSize: 150,
-    titleOriginal: "Project 65535",
+    titleOriginal: "Project 65536",
     titleChangedTo: "Project 65536",
 };
 var phaserConfig = {
@@ -1663,7 +1736,7 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
+    scene: [Controller, Scene1L0, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -1967,10 +2040,10 @@ function getUrlParams() {
 }
 function getCurrentLevelRaw() {
     let params = getUrlParams();
-    let index = 1;
+    let index = 0;
     let ret = params['level'];
     if (!ret) {
-        return '1';
+        return '0';
     }
     return ret;
 }
@@ -4198,6 +4271,19 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     return this;
 };
 /// <reference path="../fsm/fsm.ts" />
+var normal_1_0 = {
+    name: 'Normal_0',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+        { name: 'VIDEO_FINISHED', from: 'Start', to: 'EndAnimation' }
+    ],
+    states: [
+    // {name: 'Idle', color:'Green'}
+    ]
+};
+farray.push(normal_1_0);
+/// <reference path="../fsm/fsm.ts" />
 var normal_1_2 = {
     name: 'Normal_1_2',
     initial: "Default",
@@ -4264,7 +4350,8 @@ var mainFsm = {
         { name: 'DIED', from: 'NormalGame', to: 'Died' },
         { name: 'RESTART', from: 'Died', to: 'Restart' },
         { name: 'BACK_TO_HOME', from: 'Died', to: 'BackToHomeAnimation' },
-        { name: 'RESTART_TO_GAME', from: 'Restart', to: 'NormalGame' }
+        { name: 'RESTART_TO_GAME', from: 'Restart', to: 'NormalGame' },
+        { name: 'FORCE_DIRECT_INTO_GAME', from: 'Home', to: 'HomeToGameAnimation' }
     ],
 };
 farray.push(mainFsm);

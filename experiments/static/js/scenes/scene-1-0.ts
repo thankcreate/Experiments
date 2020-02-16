@@ -18,7 +18,7 @@ class Scene1L0 extends Scene1 {
 
         this.subtitle.inner.alpha = 0;
         let offsetX = getLogicWidth() * 11.8 / 100;
-        let offsetY = getLogicHeight() *0/ 100;
+        let offsetY = getLogicHeight() * 2/ 100;
         this.centerObject.inner.x = offsetX;
         this.dwitterCenter.inner.x = offsetX;
         this.dwitterBKG.inner.x = offsetX;

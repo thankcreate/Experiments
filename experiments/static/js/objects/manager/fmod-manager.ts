@@ -1,5 +1,10 @@
 declare function FMODModule(e);
 
+let s_banks = [
+    "Master.bank",
+    "Master.strings.bank",
+    "Level1.bank",
+]
 
 class FmodManager {
     private static instance: FmodManager;
@@ -43,21 +48,15 @@ class FmodManager {
 
     prerun() {
         console.log('begin prerun');
-        var fileUrl = "/banks/";
-        var fileName;
+        var fileUrl = "/banks/";        
         var folderName = "/";
         var canRead = true;
         var canWrite = false;
     
-        fileName = [
-            "Master Bank.bank",
-            "Master Bank.strings.bank",
-            "SFX.bank"
-        ];
-    
-        for (var count = 0; count < fileName.length; count++)
+          
+        for (var count = 0; count < s_banks.length; count++)
         {
-            this.FMOD.FS_createPreloadedFile(folderName, fileName[count], fileUrl + fileName[count], canRead, canWrite);
+            this.FMOD.FS_createPreloadedFile(folderName, s_banks[count], fileUrl + s_banks[count], canRead, canWrite);
         }
 
         console.log('finish prerun');
@@ -148,8 +147,7 @@ class FmodManager {
     // Helper function to load a bank by name.
     loadBank(name: string)
     {
-        var bankhandle = {};
-        // this.CHECK_RESULT(this.gSystem.loadBankFile("/" + name, this.FMOD.STUDIO_LOAD_BANK_NORMAL, bankhandle) );
+        var bankhandle = {};        
         this.CHECK_RESULT(this.gSystem.loadBankFile("/" + name, this.FMOD.STUDIO_LOAD_BANK_NORMAL, bankhandle) );
     }
 
@@ -161,21 +159,18 @@ class FmodManager {
         
         instance.val.start();
         instance.val.release();
-
-        // let instance: any = {};        
-        // this.CHECK_RESULT(this.loopingAmbienceDescription.val.createInstance(instance));
-        
-        // instance.val.start();
-        // instance.val.release();
-
     }
+
+
     loopingAmbienceDescription:any = {};
     initApplication() {
-        console.log("Loading events\n");
-    
-        this.loadBank("Master Bank.bank");
-        this.loadBank("Master Bank.strings.bank");
-        this.loadBank("SFX.bank");
+        console.log("Loading events\n");    
+
+        for (var count = 0; count < s_banks.length; count++)
+        {
+            this.loadBank(s_banks[count]);
+        }        
+
     
         // // Get the Looping Ambience event
         //var loopingAmbienceDescription:any = {};
@@ -207,6 +202,6 @@ class FmodManager {
 }
 
 
-setTimeout(() => {
-    let gFmodManager = FmodManager.getInstance();    
-}, 1);
+
+// let gFmodManager = FmodManager.getInstance();    
+

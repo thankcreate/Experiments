@@ -4452,7 +4452,7 @@ class FmodManager {
         this.CHECK_RESULT(result);
     }
 }
-// let gFmodManager = FmodManager.getInstance();    
+let gFmodManager = FmodManager.getInstance();
 class SpeechManager {
     constructor(scene) {
         this.loadedSpeechFilesStatic = {};
@@ -7099,11 +7099,8 @@ class Overlay extends Wrapper {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
         this.show();
         this.leaderboardDialog.show();
-        FmodManager.getInstance().playOneShot('event:/Ambience/Country');
     }
     showFormRating(show) {
-        // this.showReviewWall(true);
-        // FmodManager.getInstance().test();
         if (show) {
             if (!this.inShow) {
                 this.show();
@@ -7121,8 +7118,6 @@ class Overlay extends Wrapper {
                 $('#form-rating').addClass('anim-center');
             }, 50);
         }
-        // just for test 
-        // msReload();
     }
     show() {
         this.inShow = true;

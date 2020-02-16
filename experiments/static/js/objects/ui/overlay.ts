@@ -241,19 +241,13 @@ class Overlay extends Wrapper<PhText> {
     showLeaderBoardDialog() {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
         this.show();
-        this.leaderboardDialog.show();
-
-        FmodManager.getInstance().playOneShot('event:/Ambience/Country');
+        this.leaderboardDialog.show();        
     }
 
 
 
-    showFormRating(show: boolean) {
-        // this.showReviewWall(true);
-
-        // FmodManager.getInstance().test();
+    showFormRating(show: boolean) {        
         
-
         if (show) {
             if (!this.inShow) {
                 this.show();
@@ -275,9 +269,6 @@ class Overlay extends Wrapper<PhText> {
                 $('#form-rating').addClass('anim-center');
             }, 50);
         }
-
-        // just for test 
-        // msReload();
     }
 
 

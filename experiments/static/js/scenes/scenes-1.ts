@@ -18,6 +18,7 @@ enum EntryPoint {
     FromDie,
 }
 
+
 enum Counter {
     None,
     IntoHome,

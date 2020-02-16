@@ -203,5 +203,5 @@ class FmodManager {
 
 
 
-// let gFmodManager = FmodManager.getInstance();    
+let gFmodManager = FmodManager.getInstance();    
 

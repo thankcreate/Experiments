@@ -152,7 +152,7 @@ class Scene1 extends BaseScene {
 
         this.load.image('purchased_mark', "assets/purchased_mark.png")
         this.load.image('level_mark', "assets/level_mark.png")
-        this.load.image('magic', 'assets/magic.png');
+        this.load.image('magic', 'assets/magic.png');        
 
         this.preloadBadges();        
     }
@@ -808,6 +808,7 @@ class Scene1 extends BaseScene {
         }        
     }
 
+    
     gamePlayStarted() {
         this.pauseCounter = 0;
         if(this.playerName.length == 0) {

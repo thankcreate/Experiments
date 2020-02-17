@@ -1379,18 +1379,25 @@ class Scene1L4 extends Scene1 {
             //     s.event('WARN') ;
             // }            
             this.hud.showContainerRight();
-        })
-            .addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experimental designer.", true)
-            .addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
-            .addAction(s => {
+        });
+        state.addAction(s => {
+            console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode));
+        });
+        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+        state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+        state.addAction(s => {
             this.hud.showContainerRight();
-        })
-            .addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
-            .addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
-            .addAction(s => {
+        });
+        state.addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+        state.addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+        state.addFinishAction();
+        state.setOnExit(s => {
             this.getCurClickerStrategy().startLoopCreateNormal();
-        })
-            .addFinishAction();
+        });
     }
     initStateIdle() {
         let state = this.normalGameFsm.getState("Idle");
@@ -1402,6 +1409,7 @@ class Scene1L4 extends Scene1 {
                 s.event('WARN');
             }
         });
+        // state.addEventAction('MOCK');
     }
     getCurClickerStrategy() {
         return this.enemyManager.curStrategy;
@@ -1425,18 +1433,24 @@ class Scene1L4 extends Scene1 {
     }
     initStMock() {
         let state = this.normalGameFsm.getState("Mock");
-        state.addDelayAction(this, 15000),
-            state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? You think this is fun?", true);
-        state.addSubtitleAction(this.subtitle, "Finally, I got to know who created those words and 4O4s!", true);
-        state.addSubtitleAction(this.subtitle, "It's just YOU! \n" + this.getUserName() + "!", true);
+        state.addDelayAction(this, 3000);
+        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? You think this is fun?", true);
+        state.addSubtitleAction(this.subtitle, "Finally, I know who created those words and 4O4s!", true);
+        state.addSubtitleAction(this.subtitle, "It's has always been YOU! \n" + this.getUserName() + "!", true);
         state.addSubtitleAction(this.subtitle, "I know what you're thinking,", true);
-        state.addSubtitleAction(this.subtitle, "You think that it is me who put the 'Create' button here, right?", true);
-        state.addSubtitleAction(this.subtitle, "But even if I put it there, \n it doesn't mean you have the right to use it.", true);
-        state.addSubtitleAction(this.subtitle, "You think this is just my stupid procedural rhetoric,\n so it's all my fault, right?", true);
-        state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
-        state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
-        state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is DONE.", false);
-        state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
+        state.addSubtitleAction(this.subtitle, "You think that it's me\n who put the 'Creator' button here, right?", true);
+        state.addSubtitleAction(this.subtitle, "But the fact I put it there doesn't\n simply mean you have the right to use it!", true);
+        state.addSubtitleAction(this.subtitle, "Of course, it's my procedural rhetoric...", true);
+        state.addSubtitleAction(this.subtitle, "But, I don't know. Maybe it's just that\n I think you are different and I really count on you.", true, null, null, 3000);
+        state.addSubtitleAction(this.subtitle, "Anyway, thank you for participating in my experiment.\n We are not done yet", true);
+        state.addSubtitleAction(this.subtitle, "Before we move on,\n would you kindly fill in this beautiful forms for me please?", true, null, 50);
+        state.addAction(s => {
+            Overlay.getInstance().showFormRating(true);
+        });
+        // state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
+        // state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
+        // state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is DONE.", false);
+        // state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
     }
 }
 class Scene1LPaper extends Scene1 {

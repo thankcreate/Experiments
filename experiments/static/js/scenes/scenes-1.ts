@@ -788,10 +788,12 @@ class Scene1 extends BaseScene {
         this.bgm = sound;
         this.bgm.play('', {loop: true});        
     }
+
         
     pauseCounter = 0;
     pause() {
         this.pauseCounter++;
+        // console.log('pause: ' + this.pauseCounter);
         if(this.pauseCounter == 1) {
             this.pauseLayer.show();
             this.enemyManager.freezeAllEnemies();        
@@ -800,6 +802,7 @@ class Scene1 extends BaseScene {
 
     unPause() {
         this.pauseCounter--;
+        // console.log('unPause: ' + this.pauseCounter);
         if(this.pauseCounter == 0) {
             this.pauseLayer.hide();
             this.enemyManager.unFreezeAllEnemies();

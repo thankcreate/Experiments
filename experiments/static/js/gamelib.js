@@ -682,6 +682,7 @@ class Scene1 extends BaseScene {
     }
     pause() {
         this.pauseCounter++;
+        // console.log('pause: ' + this.pauseCounter);
         if (this.pauseCounter == 1) {
             this.pauseLayer.show();
             this.enemyManager.freezeAllEnemies();
@@ -689,6 +690,7 @@ class Scene1 extends BaseScene {
     }
     unPause() {
         this.pauseCounter--;
+        // console.log('unPause: ' + this.pauseCounter);
         if (this.pauseCounter == 0) {
             this.pauseLayer.hide();
             this.enemyManager.unFreezeAllEnemies();
@@ -1384,18 +1386,19 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
+            /**
+             * Pause at first because all the forked logic is originated from 'Idle' state
+             * We need to exclude any possible player input here
+             */
             this.pause();
         });
         state.setOnExit(s => {
-            console.log('123');
             this.unPause();
-            console.log('456');
-            // 
-            // this.getCurClickerStrategy().startLoopCreateNormal();
+            this.getCurClickerStrategy().startLoopCreateNormal();
         });
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
-        state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
+        state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addAction(s => {
             this.hud.showContainerRight();
@@ -1460,11 +1463,42 @@ class Scene1L4 extends Scene1 {
         // state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
     }
     firstTimeBubbleAutoBad() {
-        this.normalGameFsm.event('TO_PROMPT_AUTO_BAD');
+        this.normalGameFsm.event('TO_PROMPT_COMPLETE_BAD');
     }
     initStPromptAutoBad() {
+        let targetBtn = this.ui.hud.rightBtns[0];
+        let state = this.normalGameFsm.getState("PromptCompleteBad");
+        state.setOnEnter(s => {
+        });
+        state.addSubtitleAction(this.subtitle, "Congratulations!", false)
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+        state.addSubtitleAction(this.subtitle, "Based on your score,\n I think this AUTO-COMPLETION tool might be of help", false, null, null, 2500)
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+        //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
+        state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly();
+        state.addAction((s, result, resolve, reject) => {
+            s.autoOn($(document), 'keypress', (event) => {
+                var code = String.fromCharCode(event.keyCode).toUpperCase();
+                if (code == 'Y') {
+                    targetBtn.click();
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('123');
+                }
+                else if (code == 'N') {
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('123');
+                }
+            });
+        });
+        state.addFinishAction();
+        state.setOnExit(s => {
+            targetBtn.hideAttachedBubble();
+        });
+    }
+    initStPrmoptAutoTyper() {
         let state = this.normalGameFsm.getState("PromptAutoBad");
-        state.addSubtitleAction(this.subtitle, "Hello", false);
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous play tester. \n Seldom of them have the patient to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you", false);
     }
 }
 class Scene1LPaper extends Scene1 {
@@ -2609,7 +2643,7 @@ class Enemy {
             y: this.dest.y,
             duration: tweenDuration
         });
-        console.log('startrun');
+        // console.log('startrun');
         let fadeInTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: {
@@ -2625,7 +2659,7 @@ class Enemy {
      * the unfreeze will have no effect. (occurred scene-1-4)
      */
     freeze() {
-        console.log('freeze');
+        // console.log('freeze');
         this.freezeCounter++;
         if (this.freezeCounter == 1) {
             this.freezeInner();
@@ -2638,7 +2672,7 @@ class Enemy {
         }
     }
     freezeInner() {
-        console.log('freezeInner');
+        // console.log('freezeInner');
         if (this.mvTween) {
             this.oriTimeScale = this.mvTween.timeScale;
             this.mvTween.timeScale = 0;
@@ -4393,8 +4427,10 @@ var normal_1_4 = {
         { name: 'WARN', from: 'Idle', to: 'Warn' },
         { name: 'FINISHED', from: 'Warn', to: 'Idle' },
         { name: 'MOCK', from: 'Idle', to: 'Mock' },
+        { name: 'TO_PROMPT_COMPLETE_BAD', from: 'Idle', to: 'PromptCompleteBad' },
+        { name: 'FINISHED', from: 'PromptCompleteBad', to: 'Idle' },
         { name: 'TO_PROMPT_AUTO_BAD', from: 'Idle', to: 'PromptAutoBad' },
-        { name: 'FINISHED', from: 'PromptAutoBad', to: 'Idle' }
+        { name: 'FINISHED', from: 'PromptAutoBad', to: 'Idle' },
     ],
     states: [
         { name: 'Idle', color: 'Green' }
@@ -5055,7 +5091,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         };
     }
     spawnBad(extraConfig, needIncHp = true) {
-        console.log('spawnBad');
+        // console.log('spawnBad');
         let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth;
         let cg = { health: health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
         updateObject(extraConfig, cg);
@@ -8287,7 +8323,7 @@ class PropButton extends Button {
             if (!this.hasShownFirstTimeBubble) {
                 this.hasShownFirstTimeBubble = true;
                 if (this.needForceBubble == true) {
-                    console.log('bubble show');
+                    // console.log('bubble show');
                     this.showAttachedBubble();
                     if (this.firstTimeBubbleCallback)
                         this.firstTimeBubbleCallback();

@@ -173,7 +173,7 @@ class Enemy {
             duration: tweenDuration
         });
 
-        console.log('startrun');
+        // console.log('startrun');
         let fadeInTween = this.scene.tweens.add({
             targets: this.inner,
             alpha: {
@@ -192,7 +192,7 @@ class Enemy {
      * the unfreeze will have no effect. (occurred scene-1-4)
      */
     freeze() {       
-        console.log('freeze');
+        // console.log('freeze');
         this.freezeCounter ++; 
         if(this.freezeCounter == 1) {
             this.freezeInner();
@@ -209,7 +209,7 @@ class Enemy {
 
 
     private freezeInner() {
-        console.log('freezeInner');
+        // console.log('freezeInner');
         if(this.mvTween) {
             this.oriTimeScale = this.mvTween.timeScale;
             this.mvTween.timeScale = 0;

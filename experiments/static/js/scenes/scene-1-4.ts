@@ -84,7 +84,7 @@ class Scene1L4 extends Scene1 {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
 
-
+            
             // this.enemyManager.sensetiveDuration = 60000;
             // // this.needFeedback = true;
             // this.enemyManager.setNextNeedSensitiveAlways(true);     
@@ -93,21 +93,23 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
+
+            /**
+             * Pause at first because all the forked logic is originated from 'Idle' state
+             * We need to exclude any possible player input here
+             */
             this.pause();   
         })
 
-        state.setOnExit(s=>{
-            console.log('123');
-            this.unPause();
-            console.log('456');
-            // 
-            // this.getCurClickerStrategy().startLoopCreateNormal();
+        state.setOnExit(s=>{            
+            this.unPause()
+            this.getCurClickerStrategy().startLoopCreateNormal();
         })
 
         
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true);
-        state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
+        state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true);
         state.addAction(s => {
            this.hud.showContainerRight();
@@ -120,6 +122,8 @@ class Scene1L4 extends Scene1 {
 
         
     }
+
+    
 
     hasWarnKey = 'HasWarn';
 
@@ -188,11 +192,46 @@ class Scene1L4 extends Scene1 {
     }
 
     firstTimeBubbleAutoBad() {
-        this.normalGameFsm.event('TO_PROMPT_AUTO_BAD');
+        this.normalGameFsm.event('TO_PROMPT_COMPLETE_BAD');
     }
 
     initStPromptAutoBad() {
+        let targetBtn = this.ui.hud.rightBtns[0];
+        let state = this.normalGameFsm.getState("PromptCompleteBad");
+        state.setOnEnter(s=>{
+
+        });
+        state.addSubtitleAction(this.subtitle, "Congratulations!", false)
+            .setBoolCondition(s=>this.firstIntoNormalMode(), true)
+        state.addSubtitleAction(this.subtitle, "Based on your score,\n I think this AUTO-COMPLETION tool might be of help", false, null, null, 2500)
+            .setBoolCondition(s=>this.firstIntoNormalMode(), true)
+//      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
+        state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly()
+
+        state.addAction((s: FsmState, result, resolve, reject) => {
+            s.autoOn($(document), 'keypress', (event)=>{
+                var code = String.fromCharCode(event.keyCode).toUpperCase();                
+                if(code == 'Y') {
+                    targetBtn.click();
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('123');
+                }
+                else if(code == 'N') {
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('123');
+                    
+                }
+            });
+        })
+        state.addFinishAction();
+        state.setOnExit(s=>{            
+            targetBtn.hideAttachedBubble();
+        })
+    }
+
+    initStPrmoptAutoTyper() {
         let state = this.normalGameFsm.getState("PromptAutoBad");
-        state.addSubtitleAction(this.subtitle, "Hello", false);
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous play tester. \n Seldom of them have the patient to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you", false);
     }
 }

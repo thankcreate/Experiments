@@ -363,7 +363,7 @@ class PropButton extends Button {
             if(!this.hasShownFirstTimeBubble) {
                 this.hasShownFirstTimeBubble = true;
                 if(this.needForceBubble == true) {
-                    console.log('bubble show');
+                    // console.log('bubble show');
                     this.showAttachedBubble();
                     if(this.firstTimeBubbleCallback)
                         this.firstTimeBubbleCallback();

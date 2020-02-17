@@ -276,6 +276,14 @@ class EnemyManager {
         this.enemies.push(enemy);
         enemy.startRun();
 
+        /**
+         * freezeAllEnemies can only forward the the freeze signal when the enemy is already in the this.enemies
+         * when the current overall status is freeze, we need to set it to be freezed manually for new spawned ones
+         */         
+        if(this.isPaused) {
+            enemy.freeze();
+        }
+
         if(this.curStrategy)
             this.curStrategy.enemySpawned(enemy);
 

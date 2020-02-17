@@ -22,9 +22,11 @@ class PauseLayer extends Wrapper<PhText> {
         // Title
         let style = getDefaultTextStyle();
         style.fill = '#ffffff';
-        style.fontSize = '100px';
+        style.fontSize = '110px';
 
-        this.title = this.scene.add.text(0, 0, "Paused", style).setOrigin(0.5).setAlign('center');        
+        
+        this.title = this.scene.add.text(0, 0, " Paused ", style).setOrigin(0.5).setAlign('center');       
+        this.title.setBackgroundColor('#000000'); 
         this.inner.add(this.title);        
     }
 

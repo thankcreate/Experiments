@@ -108,8 +108,16 @@ class Enemy {
     }
 
     update(time, dt) {        
-        if(this.enemyManager.isPaused)
-            return;
+        // if(this.enemyManager.isPaused) {
+        //     // in most cases, freeze is called outside when a freeze is needed
+        //     // but due to some timing sequence problem, it might be that a spawn happened right after
+        //     // a previous freeze event.
+        //     // Hence, we added a double check here
+        //     this.freeze();
+        //     return;
+        // }
+        
+            
 
         this.checkIfReachEnd();
         this.checkIfNeedShowAutoBadBadge(time, dt);
@@ -161,23 +169,59 @@ class Enemy {
             targets: this.inner,
             x: this.dest.x,
             y: this.dest.y,
+            
+            duration: tweenDuration
+        });
+
+        console.log('startrun');
+        let fadeInTween = this.scene.tweens.add({
+            targets: this.inner,
             alpha: {
                 getStart: () => 0,
                 getEnd: () => 1,
                 duration: 500
-            },
-            duration: tweenDuration
+            },            
         });
     }
 
-    freeze() {
-        if(this.mvTween)
-            this.mvTween.pause();
+    oriTimeScale = 1;
+    freezeCounter = 0;
+    /**
+     * freeze and unFreeze are changed to use the timeScale
+     * because if a freeze is invoked right after the startRun,
+     * the unfreeze will have no effect. (occurred scene-1-4)
+     */
+    freeze() {       
+        console.log('freeze');
+        this.freezeCounter ++; 
+        if(this.freezeCounter == 1) {
+            this.freezeInner();
+        }            
     }
 
+    
     unFreeze() {
-        if(this.mvTween)
-            this.mvTween.resume();
+        this.freezeCounter--;       
+        if(this.freezeCounter == 0) {
+            this.unFreezeInner();
+        }
+    }
+
+
+    private freezeInner() {
+        console.log('freezeInner');
+        if(this.mvTween) {
+            this.oriTimeScale = this.mvTween.timeScale;
+            this.mvTween.timeScale = 0;
+            // this.mvTween.pause();
+        }            
+    }
+
+    unFreezeInner() {
+        if(this.mvTween) {
+            this.mvTween.timeScale = this.oriTimeScale;
+            // this.mvTween.resume();
+        }
     }
     
 

@@ -34,6 +34,8 @@ class Scene1L4 extends Scene1 {
         this.hp.initMaxHealth(10);
         this.createBtns();
 
+
+        this.ui.hud.rightBtns[0].firstTimeBubbleCallback = ()=>{this.firstTimeBubbleAutoBad()};
         // this.overlay.showReviewForm();
     }
 
@@ -48,6 +50,7 @@ class Scene1L4 extends Scene1 {
         this.initWarn();
         this.initStateIdle();
         this.initStMock();
+        this.initStPromptAutoBad();
         this.updateObjects.push(this.normalGameFsm);
     }
 
@@ -77,8 +80,6 @@ class Scene1L4 extends Scene1 {
 
     }
 
-
-
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
@@ -92,12 +93,18 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
-            // this.hud.showContainerRight();
+            this.pause();   
         })
 
-        state.addAction(s=>{
-            // console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode) );
+        state.setOnExit(s=>{
+            console.log('123');
+            this.unPause();
+            console.log('456');
+            // 
+            // this.getCurClickerStrategy().startLoopCreateNormal();
         })
+
+        
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
@@ -111,9 +118,7 @@ class Scene1L4 extends Scene1 {
             .setBoolCondition(s=>this.firstIntoNormalMode(), true);
         state.addFinishAction();
 
-        state.setOnExit(s=>{
-            this.getCurClickerStrategy().startLoopCreateNormal();
-        })
+        
     }
 
     hasWarnKey = 'HasWarn';
@@ -121,7 +126,7 @@ class Scene1L4 extends Scene1 {
     initStateIdle() {
         let state = this.normalGameFsm.getState("Idle");
         state.setOnEnter(s => {
-
+            
         });
         state.setOnUpdate(s => {
             if (this.getCurClickerStrategy().normalNormalCount >= 2 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
@@ -180,5 +185,14 @@ class Scene1L4 extends Scene1 {
         // state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
         // state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is DONE.", false);
         // state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
+    }
+
+    firstTimeBubbleAutoBad() {
+        this.normalGameFsm.event('TO_PROMPT_AUTO_BAD');
+    }
+
+    initStPromptAutoBad() {
+        let state = this.normalGameFsm.getState("PromptAutoBad");
+        state.addSubtitleAction(this.subtitle, "Hello", false);
     }
 }

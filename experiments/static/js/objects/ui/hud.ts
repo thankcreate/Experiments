@@ -122,10 +122,11 @@ class Hud extends Wrapper<PhText> {
             } 
         }
         
-        // 'Bad' Btn click
+        // auto 'Bad' Btn click
         this.rightBtns[0].purchasedEvent.on(btn=>{    
             (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad');            
         });
+        this.rightBtns[0].needForceBubble = true;
 
         // 'Auto'
         this.rightBtns[1].purchasedEvent.on(btn=>{    
@@ -638,11 +639,15 @@ class Hud extends Wrapper<PhText> {
         return false;
     }
 
+    /**
+     * Called by spawn-strategy-clicker's onEnter
+     */
     resetPropBtns() {
         let btns = this.getAllPropBtns();
         for(let i in btns) {
             let btn = btns[i];
             btn.setPurchased(false);
+            btn.hasShownFirstTimeBubble = false;
         }
     }
 }

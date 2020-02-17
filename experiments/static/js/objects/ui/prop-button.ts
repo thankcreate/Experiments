@@ -3,6 +3,7 @@ class PropButton extends Button {
     priceTag: number;
     priceLbl: PhText;
     purchased: boolean = false;
+    hasShownFirstTimeBubble: boolean = false;
 
     hud: Hud;
     promptImg: ImageWrapper;
@@ -43,6 +44,30 @@ class PropButton extends Button {
     bubbleAnchor: PosiGen;
     bubbleContent: StrGen;
 
+    
+
+
+    showAttachedBubble() {
+        (this.scene as Scene1).pause();    
+        this.hovered = true;       
+
+        if(this.bubble) {
+            this.updateBubbleInfo();
+            this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
+            this.bubble.show();
+        }
+            
+    }
+
+    hideAttachedBubble() {
+        (this.scene as Scene1).unPause();
+        this.hovered = false;
+        
+        if(this.bubble) {                
+            this.bubble.hide();
+        }
+    }
+
     constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
         x: number, y: number,
         imgKey: string, info: PropInfo, canLevelUp:boolean,
@@ -69,24 +94,11 @@ class PropButton extends Button {
         this.priceTag = info.price;
 
         this.fakeZone.on('pointerover', ()=>{            
-            (this.scene as Scene1).pause();    
-            this.hovered = true;       
-
-            if(this.bubble) {
-                this.updateBubbleInfo();
-                this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
-                this.bubble.show();
-            }
-                
+            this.showAttachedBubble();
         });
 
         this.fakeZone.on('pointerout', () =>{
-            (this.scene as Scene1).unPause();
-            this.hovered = false;
-            
-            if(this.bubble) {                
-                this.bubble.hide();
-            }
+            this.hideAttachedBubble();            
         });
 
         
@@ -258,13 +270,13 @@ class PropButton extends Button {
             // this.promptImg.setScale(isLeft ? -1 : 1);
 
             //if(this.needConsiderHP) {
-                this.scene.tweens.add({
-                    targets: this.promptImg.inner,
-                    x:  isLeft ? +60 : -60,
-                    yoyo: true,
-                    duration: 250,
-                    loop: -1,
-                });
+                // this.scene.tweens.add({
+                //     targets: this.promptImg.inner,
+                //     x:  isLeft ? +60 : -60,
+                //     yoyo: true,
+                //     duration: 250,
+                //     loop: -1,
+                // });
             //}
             
         }
@@ -325,6 +337,9 @@ class PropButton extends Button {
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
 
+    needForceBubble = false;
+    firstTimeBubbleCallback: any;
+
     needConsiderHP: boolean = false;
     /**
      * Refresh if can click
@@ -345,6 +360,17 @@ class PropButton extends Button {
         }
         // can buy
         else if(this.canBePurchased()){
+            if(!this.hasShownFirstTimeBubble) {
+                this.hasShownFirstTimeBubble = true;
+                if(this.needForceBubble == true) {
+                    console.log('bubble show');
+                    this.showAttachedBubble();
+                    if(this.firstTimeBubbleCallback)
+                        this.firstTimeBubbleCallback();
+                }
+                    
+            }
+
             if(this.promptImg) {
                 if(this.hovered)
                     this.promptImg.inner.setVisible(false);

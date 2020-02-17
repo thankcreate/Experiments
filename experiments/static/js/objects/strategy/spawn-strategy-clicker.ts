@@ -45,6 +45,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     spawnBad(extraConfig?: EnemyConfig, needIncHp:boolean = true) : Enemy {      
+        console.log('spawnBad');
         let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth ;
         let cg = {health:health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad};
         updateObject(extraConfig, cg);

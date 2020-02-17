@@ -9,7 +9,9 @@ var normal_1_4 = {
         {name: 'FINISHED', from: 'Start', to: 'Idle'},
         {name: 'WARN', from: 'Idle', to: 'Warn'},
         {name: 'FINISHED', from:'Warn', to:'Idle'},
-        {name: 'MOCK', from: 'Idle', to:'Mock'}
+        {name: 'MOCK', from: 'Idle', to:'Mock'},
+        {name: 'TO_PROMPT_AUTO_BAD', from:'Idle', to:'PromptAutoBad'},
+        {name: 'FINISHED', from:'PromptAutoBad', to:'Idle'}
     ],
     states: [
         {name: 'Idle', color:'Green'}

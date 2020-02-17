@@ -1335,6 +1335,7 @@ class Scene1L4 extends Scene1 {
         this.initNormalGameFsm();
         this.hp.initMaxHealth(10);
         this.createBtns();
+        this.ui.hud.rightBtns[0].firstTimeBubbleCallback = () => { this.firstTimeBubbleAutoBad(); };
         // this.overlay.showReviewForm();
     }
     createBtns() {
@@ -1347,6 +1348,7 @@ class Scene1L4 extends Scene1 {
         this.initWarn();
         this.initStateIdle();
         this.initStMock();
+        this.initStPromptAutoBad();
         this.updateObjects.push(this.normalGameFsm);
     }
     needShowEcoAboutAtStartup() {
@@ -1382,10 +1384,14 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
-            // this.hud.showContainerRight();
+            this.pause();
         });
-        state.addAction(s => {
-            // console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode) );
+        state.setOnExit(s => {
+            console.log('123');
+            this.unPause();
+            console.log('456');
+            // 
+            // this.getCurClickerStrategy().startLoopCreateNormal();
         });
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
@@ -1399,9 +1405,6 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addFinishAction();
-        state.setOnExit(s => {
-            this.getCurClickerStrategy().startLoopCreateNormal();
-        });
     }
     initStateIdle() {
         let state = this.normalGameFsm.getState("Idle");
@@ -1455,6 +1458,13 @@ class Scene1L4 extends Scene1 {
         // state.addSubtitleAction(this.subtitle, "And I don't want to bear this ugly scene any more", true);
         // state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is DONE.", false);
         // state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
+    }
+    firstTimeBubbleAutoBad() {
+        this.normalGameFsm.event('TO_PROMPT_AUTO_BAD');
+    }
+    initStPromptAutoBad() {
+        let state = this.normalGameFsm.getState("PromptAutoBad");
+        state.addSubtitleAction(this.subtitle, "Hello", false);
     }
 }
 class Scene1LPaper extends Scene1 {
@@ -2523,6 +2533,8 @@ class Enemy {
         this.clickerType = ClickerType.None;
         this.centerRadius = 125;
         this.damagedHistory = []; //store only valid input history
+        this.oriTimeScale = 1;
+        this.freezeCounter = 0;
         this.inStop = false;
         this.hasBeenDamagedByTurn = false;
         this.lastAutoBadge = -1000;
@@ -2550,8 +2562,14 @@ class Enemy {
         // init in inheritance
     }
     update(time, dt) {
-        if (this.enemyManager.isPaused)
-            return;
+        // if(this.enemyManager.isPaused) {
+        //     // in most cases, freeze is called outside when a freeze is needed
+        //     // but due to some timing sequence problem, it might be that a spawn happened right after
+        //     // a previous freeze event.
+        //     // Hence, we added a double check here
+        //     this.freeze();
+        //     return;
+        // }
         this.checkIfReachEnd();
         this.checkIfNeedShowAutoBadBadge(time, dt);
         this.checkIfNeedAutoTurn(time, dt);
@@ -2589,21 +2607,49 @@ class Enemy {
             targets: this.inner,
             x: this.dest.x,
             y: this.dest.y,
+            duration: tweenDuration
+        });
+        console.log('startrun');
+        let fadeInTween = this.scene.tweens.add({
+            targets: this.inner,
             alpha: {
                 getStart: () => 0,
                 getEnd: () => 1,
                 duration: 500
             },
-            duration: tweenDuration
         });
     }
+    /**
+     * freeze and unFreeze are changed to use the timeScale
+     * because if a freeze is invoked right after the startRun,
+     * the unfreeze will have no effect. (occurred scene-1-4)
+     */
     freeze() {
-        if (this.mvTween)
-            this.mvTween.pause();
+        console.log('freeze');
+        this.freezeCounter++;
+        if (this.freezeCounter == 1) {
+            this.freezeInner();
+        }
     }
     unFreeze() {
-        if (this.mvTween)
-            this.mvTween.resume();
+        this.freezeCounter--;
+        if (this.freezeCounter == 0) {
+            this.unFreezeInner();
+        }
+    }
+    freezeInner() {
+        console.log('freezeInner');
+        if (this.mvTween) {
+            this.oriTimeScale = this.mvTween.timeScale;
+            this.mvTween.timeScale = 0;
+            // this.mvTween.pause();
+        }
+    }
+    unFreezeInner() {
+        if (this.mvTween) {
+            this.mvTween.timeScale = this.oriTimeScale;
+            // this.mvTween.resume();
+        }
     }
     stopRunAndDestroySelf() {
         let thisEnemy = this;
@@ -3334,6 +3380,13 @@ class EnemyManager {
         // console.log(this.enemies.length + "  name:" + name);
         this.enemies.push(enemy);
         enemy.startRun();
+        /**
+         * freezeAllEnemies can only forward the the freeze signal when the enemy is already in the this.enemies
+         * when the current overall status is freeze, we need to set it to be freezed manually for new spawned ones
+         */
+        if (this.isPaused) {
+            enemy.freeze();
+        }
         if (this.curStrategy)
             this.curStrategy.enemySpawned(enemy);
         this.enemySpawnedEvent.emit(enemy);
@@ -4339,7 +4392,9 @@ var normal_1_4 = {
         { name: 'FINISHED', from: 'Start', to: 'Idle' },
         { name: 'WARN', from: 'Idle', to: 'Warn' },
         { name: 'FINISHED', from: 'Warn', to: 'Idle' },
-        { name: 'MOCK', from: 'Idle', to: 'Mock' }
+        { name: 'MOCK', from: 'Idle', to: 'Mock' },
+        { name: 'TO_PROMPT_AUTO_BAD', from: 'Idle', to: 'PromptAutoBad' },
+        { name: 'FINISHED', from: 'PromptAutoBad', to: 'Idle' }
     ],
     states: [
         { name: 'Idle', color: 'Green' }
@@ -5000,6 +5055,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         };
     }
     spawnBad(extraConfig, needIncHp = true) {
+        console.log('spawnBad');
         let health = needIncHp ? this.incAndGetBadHealth() : this.curBadHealth;
         let cg = { health: health, duration: 70000, label: '!@#$%^&*', clickerType: ClickerType.Bad };
         updateObject(extraConfig, cg);
@@ -5768,7 +5824,7 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 100000;
+let initScore = 0;
 let baseScore = 100;
 let normalFreq1 = 7;
 let autoBadgeInterval = 400;
@@ -6602,10 +6658,11 @@ class Hud extends Wrapper {
                 return info.desc + "\n\nPrice: " + myNum(info.price);
             };
         }
-        // 'Bad' Btn click
+        // auto 'Bad' Btn click
         this.rightBtns[0].purchasedEvent.on(btn => {
             this.scene.centerObject.playerInputText.addAutoKeywords('Bad');
         });
+        this.rightBtns[0].needForceBubble = true;
         // 'Auto'
         this.rightBtns[1].purchasedEvent.on(btn => {
             badInfos[0].consumed = true;
@@ -7003,11 +7060,15 @@ class Hud extends Wrapper {
         }
         return false;
     }
+    /**
+     * Called by spawn-strategy-clicker's onEnter
+     */
     resetPropBtns() {
         let btns = this.getAllPropBtns();
         for (let i in btns) {
             let btn = btns[i];
             btn.setPurchased(false);
+            btn.hasShownFirstTimeBubble = false;
         }
     }
 }
@@ -7059,7 +7120,7 @@ var aiAbout = `This experiment is a prospect study for a thesis project at NYU G
 
 This current demo is only at progress 10% at most. 
 `;
-var cautionDefault = `Once purchased this item, you can no longer do semantic word matching. All you can input will be limited to "Turn" and "Bad"
+var cautionDefault = `Once purchased this item, all you can input will be limited to "Turn" and "Bad"
 
 Click "OK"(or press "Enter") to confirm
 `;
@@ -7524,8 +7585,9 @@ class PauseLayer extends Wrapper {
         // Title
         let style = getDefaultTextStyle();
         style.fill = '#ffffff';
-        style.fontSize = '100px';
-        this.title = this.scene.add.text(0, 0, "Paused", style).setOrigin(0.5).setAlign('center');
+        style.fontSize = '110px';
+        this.title = this.scene.add.text(0, 0, " Paused ", style).setOrigin(0.5).setAlign('center');
+        this.title.setBackgroundColor('#000000');
         this.inner.add(this.title);
     }
     hide() {
@@ -7971,6 +8033,7 @@ class PropButton extends Button {
     constructor(scene, parentContainer, group, hd, x, y, imgKey, info, canLevelUp, width, height, debug, fakeOriginX, fakeOriginY) {
         super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
         this.purchased = false;
+        this.hasShownFirstTimeBubble = false;
         this.purchasedEvent = new TypedEvent();
         this.needConfirmEvent = new TypedEvent();
         /**
@@ -7980,6 +8043,7 @@ class PropButton extends Button {
         this.allowMultipleConsume = false;
         this.allowLevelUp = false;
         this.curLevel = 0;
+        this.needForceBubble = false;
         this.needConsiderHP = false;
         this.allowLevelUp = canLevelUp;
         this.group = group;
@@ -7997,20 +8061,10 @@ class PropButton extends Button {
         this.desc = info.desc;
         this.priceTag = info.price;
         this.fakeZone.on('pointerover', () => {
-            this.scene.pause();
-            this.hovered = true;
-            if (this.bubble) {
-                this.updateBubbleInfo();
-                this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
-                this.bubble.show();
-            }
+            this.showAttachedBubble();
         });
         this.fakeZone.on('pointerout', () => {
-            this.scene.unPause();
-            this.hovered = false;
-            if (this.bubble) {
-                this.bubble.hide();
-            }
+            this.hideAttachedBubble();
         });
         this.purchasedEvent.on(btn => {
             if (notSet(this.shakeScale)) {
@@ -8075,6 +8129,22 @@ class PropButton extends Button {
         this.purchasedMark.inner.setVisible(false);
         if (canLevelUp)
             this.updateInfo();
+    }
+    showAttachedBubble() {
+        this.scene.pause();
+        this.hovered = true;
+        if (this.bubble) {
+            this.updateBubbleInfo();
+            this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
+            this.bubble.show();
+        }
+    }
+    hideAttachedBubble() {
+        this.scene.unPause();
+        this.hovered = false;
+        if (this.bubble) {
+            this.bubble.hide();
+        }
     }
     doPurchased() {
         this.purchased = true;
@@ -8142,13 +8212,13 @@ class PropButton extends Button {
             img.setOrigin(isLeft ? 0 : 1, 0.5);
             // this.promptImg.setScale(isLeft ? -1 : 1);
             //if(this.needConsiderHP) {
-            this.scene.tweens.add({
-                targets: this.promptImg.inner,
-                x: isLeft ? +60 : -60,
-                yoyo: true,
-                duration: 250,
-                loop: -1,
-            });
+            // this.scene.tweens.add({
+            //     targets: this.promptImg.inner,
+            //     x:  isLeft ? +60 : -60,
+            //     yoyo: true,
+            //     duration: 250,
+            //     loop: -1,
+            // });
             //}
         }
         let textOriginX = 0;
@@ -8214,6 +8284,15 @@ class PropButton extends Button {
         }
         // can buy
         else if (this.canBePurchased()) {
+            if (!this.hasShownFirstTimeBubble) {
+                this.hasShownFirstTimeBubble = true;
+                if (this.needForceBubble == true) {
+                    console.log('bubble show');
+                    this.showAttachedBubble();
+                    if (this.firstTimeBubbleCallback)
+                        this.firstTimeBubbleCallback();
+                }
+            }
             if (this.promptImg) {
                 if (this.hovered)
                     this.promptImg.inner.setVisible(false);

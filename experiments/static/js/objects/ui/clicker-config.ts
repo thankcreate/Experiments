@@ -10,7 +10,7 @@ interface PropInfo {
 }
 
 
-let initScore = 100000;
+let initScore = 0;
 let baseScore = 100;
 let normalFreq1 = 7;
 

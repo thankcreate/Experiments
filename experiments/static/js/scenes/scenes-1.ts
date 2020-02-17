@@ -699,15 +699,13 @@ class Scene1 extends BaseScene {
         // Check mode and dispatch
         state.addDelayAction(this, 1500)
             .addAction(s => {
-                if (this.mode === GameMode.Normal) {
-                    this.addCounter(Counter.IntoNormalMode);
+                if (this.mode === GameMode.Normal) {                    
                     if (this.firstIntoNormalMode())
                         s.event('TUTORIAL_START', this.normalGameFsm);
                     else
                         s.event('NORMAL_START', this.normalGameFsm);
                 }
-                else {
-                    this.addCounter(Counter.IntoZenMode);
+                else {                    
                     s.event('START', this.zenFsm);
                 }
             })
@@ -810,6 +808,14 @@ class Scene1 extends BaseScene {
 
     
     gamePlayStarted() {
+        if (this.mode === GameMode.Normal) {
+            this.addCounter(Counter.IntoNormalMode);           
+        }
+        else {
+            this.addCounter(Counter.IntoZenMode);            
+        }
+
+
         this.pauseCounter = 0;
         if(this.playerName.length == 0) {
             this.playerName = getCookie('name');

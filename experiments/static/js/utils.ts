@@ -412,11 +412,25 @@ function updateObject(from: any, to: any) {
 
 function setCookie(key: string, value: any) {
     ($ as any).cookie(key, value);
+    
 }
 
 function getCookie(key: string) : any {
     return ($ as any).cookie(key);
 }
+
+function getUserName() {
+    return getCookie('name');
+}
+
+function deleteAllCookie() {
+    console.log('delete all cookies');
+    var cookies = ($ as any).cookie() as any;
+    for(var cookie in cookies) {
+        ($ as any).removeCookie(cookie);
+    }
+}
+
 
 function anchorToRight(toRight: number, ob: Movable) {
     ob.x = getLogicWidth() - toRight;

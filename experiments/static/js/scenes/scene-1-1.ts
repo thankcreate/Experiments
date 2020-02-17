@@ -8,7 +8,7 @@ class Scene1L1 extends Scene1 {
         super.create();
         // console.log('print');
         // console.log(getCookie('name'));
-        setCookie("name", "TronTron");
+        // setCookie("name", "TronTron");
        
 
         this.initNormalGameFsm();

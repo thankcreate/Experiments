@@ -711,7 +711,7 @@ class Scene1 extends BaseScene {
     gamePlayExit() {
     }
     getUserName() {
-        return getCookie('name');
+        return getUserName();
     }
     needHud() {
         return true;
@@ -723,6 +723,7 @@ class Scene1L0 extends Scene1 {
         this.camAllowed = false;
     }
     create() {
+        deleteAllCookie();
         super.create();
         this.createYoutubeVideo();
         this.initNormalGameFsm();
@@ -785,7 +786,7 @@ class Scene1L1 extends Scene1 {
         super.create();
         // console.log('print');
         // console.log(getCookie('name'));
-        setCookie("name", "TronTron");
+        // setCookie("name", "TronTron");
         this.initNormalGameFsm();
         this.initZenFsm();
         this.hp.initMaxHealth(10);
@@ -2405,6 +2406,16 @@ function setCookie(key, value) {
 }
 function getCookie(key) {
     return $.cookie(key);
+}
+function getUserName() {
+    return getCookie('name');
+}
+function deleteAllCookie() {
+    console.log('delete all cookies');
+    var cookies = $.cookie();
+    for (var cookie in cookies) {
+        $.removeCookie(cookie);
+    }
 }
 function anchorToRight(toRight, ob) {
     ob.x = getLogicWidth() - toRight;

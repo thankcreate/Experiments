@@ -832,7 +832,7 @@ class Scene1 extends BaseScene {
     }
 
     getUserName() {
-        return getCookie('name');
+        return getUserName();
     }
 
     needHud() : boolean{

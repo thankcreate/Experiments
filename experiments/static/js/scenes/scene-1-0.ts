@@ -7,6 +7,8 @@ class Scene1L0 extends Scene1 {
     }
 
     create() {
+        deleteAllCookie();
+
         super.create();
         this.createYoutubeVideo();
         this.initNormalGameFsm();     
@@ -30,6 +32,8 @@ class Scene1L0 extends Scene1 {
         this.centerObject.inner.y = offsetY;
         this.dwitterCenter.inner.y = offsetY;
         this.dwitterBKG.inner.y = offsetY;        
+        
+        
     }
 
     createYoutubeVideo() {

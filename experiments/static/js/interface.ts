@@ -210,6 +210,11 @@ interface Disposable {
     dispose(): any;
 }
 
+interface Movable {
+    x: number,
+    y: number,
+}
+
 class TypedEvent<T> {
     private listeners: Listener<T>[] = [];
     private listenersOncer: Listener<T>[] = [];

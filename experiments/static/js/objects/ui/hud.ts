@@ -20,6 +20,7 @@ class Hud extends Wrapper<PhText> {
     inTwenn: PhTween;
     outTween: PhTween;
    
+    toolMenuContainerRightAnchor: PhContainer;
     toolMenuContainerRight: ButtonGroup;
     toolMenuContainerRightIsShown: boolean = true;
     rightBtns: PropButton[] = [];
@@ -77,10 +78,16 @@ class Hud extends Wrapper<PhText> {
     }
 
 
+
     createMenuRight() {
         // tool menu right
         // this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
-        this.toolMenuContainerRight = new ButtonGroup(this.scene, this.inner, getLogicWidth() - 75, 400, null);        
+        this.toolMenuContainerRightAnchor = this.scene.add.container(0, 0);
+        this.inner.add(this.toolMenuContainerRightAnchor);
+        anchorToRight(0, this.toolMenuContainerRightAnchor);
+        this.toolMenuContainerRight = new ButtonGroup(this.scene, this.toolMenuContainerRightAnchor, - 75, 400, null);    
+        
+        
         this.hideContainerRight(false);
 
         // bubble

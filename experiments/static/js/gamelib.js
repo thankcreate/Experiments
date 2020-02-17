@@ -1385,19 +1385,19 @@ class Scene1L4 extends Scene1 {
             this.hud.showContainerRight();
         });
         state.addAction(s => {
-            console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode));
+            // console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode) );
         });
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
-            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
-            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
         state.addAction(s => {
             this.hud.showContainerRight();
         });
         state.addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
-            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
-            .setBoolCondition(s => this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
         state.addFinishAction();
         state.setOnExit(s => {
             this.getCurClickerStrategy().startLoopCreateNormal();
@@ -2361,6 +2361,12 @@ function setCookie(key, value) {
 }
 function getCookie(key) {
     return $.cookie(key);
+}
+function anchorToRight(toRight, ob) {
+    ob.x = getLogicWidth() - toRight;
+    window.addEventListener('resize', (event) => {
+        ob.x = getLogicWidth() - toRight;
+    }, false);
 }
 var canvasIndex = 0;
 /**
@@ -5565,11 +5571,6 @@ class Button {
         this.needInOutAutoAnimation = false;
         this.needTextTransferAnimation = true;
     }
-    anchorToRight(toRight) {
-        window.addEventListener('resize', (event) => {
-            this.inner.x = getLogicWidth() - toRight;
-        }, false);
-    }
 }
 class SpeakerButton extends ImageWrapperClass {
     init() {
@@ -6573,7 +6574,10 @@ class Hud extends Wrapper {
     createMenuRight() {
         // tool menu right
         // this.toolMenuContainerRight = this.scene.add.container(getLogicWidth() - 75, 400); 
-        this.toolMenuContainerRight = new ButtonGroup(this.scene, this.inner, getLogicWidth() - 75, 400, null);
+        this.toolMenuContainerRightAnchor = this.scene.add.container(0, 0);
+        this.inner.add(this.toolMenuContainerRightAnchor);
+        anchorToRight(0, this.toolMenuContainerRightAnchor);
+        this.toolMenuContainerRight = new ButtonGroup(this.scene, this.toolMenuContainerRightAnchor, -75, 400, null);
         this.hideContainerRight(false);
         // bubble
         this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);
@@ -8570,7 +8574,7 @@ class UI extends Wrapper {
         this.leaderboardBtn.inner.scale = 0.6;
         this.leaderboardBtn.needInOutAutoAnimation = false;
         this.leaderboardBtn.needHandOnHover = true;
-        this.leaderboardBtn.anchorToRight(30);
+        anchorToRight(30, this.leaderboardBtn.inner);
     }
     gotoGame(mode) {
         this.mode = mode;

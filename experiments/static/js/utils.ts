@@ -418,3 +418,9 @@ function getCookie(key: string) : any {
     return ($ as any).cookie(key);
 }
 
+function anchorToRight(toRight: number, ob: Movable) {
+    ob.x = getLogicWidth() - toRight;
+    window.addEventListener('resize', (event)=> {
+        ob.x = getLogicWidth() - toRight;
+    }, false);        
+}

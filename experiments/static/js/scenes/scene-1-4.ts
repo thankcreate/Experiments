@@ -96,19 +96,19 @@ class Scene1L4 extends Scene1 {
         })
 
         state.addAction(s=>{
-            console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode) );
+            // console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode) );
         })
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
-            .setBoolCondition(s=>this.firstIntoNormalMode(), true);
+            .setBoolCondition(s=>!this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
-            .setBoolCondition(s=>this.firstIntoNormalMode(), true);
+            .setBoolCondition(s=>!this.firstIntoNormalMode(), true);
         state.addAction(s => {
             this.hud.showContainerRight();
         })                
         state.addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
-            .setBoolCondition(s=>this.firstIntoNormalMode(), true);
+            .setBoolCondition(s=>!this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)        
-            .setBoolCondition(s=>this.firstIntoNormalMode(), true);
+            .setBoolCondition(s=>!this.firstIntoNormalMode(), true);
         state.addFinishAction();
 
         state.setOnExit(s=>{

@@ -230,8 +230,6 @@ class Scene1 extends BaseScene {
         // Dwitters         
         this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
-        // Subtitle
-        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
         // Back button
         this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
         this.backBtn.text.setColor('#000000');
@@ -248,6 +246,8 @@ class Scene1 extends BaseScene {
         // Pause Layer
         this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
         this.pauseLayer.hide();
+        // Subtitle
+        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
         // Overlay
         this.overlayContainer = this.add.container(400, 299);
         // Died layer
@@ -680,11 +680,11 @@ class Scene1 extends BaseScene {
         this.bgm = sound;
         this.bgm.play('', { loop: true });
     }
-    pause() {
+    pause(title, alpha) {
         this.pauseCounter++;
         // console.log('pause: ' + this.pauseCounter);
         if (this.pauseCounter == 1) {
-            this.pauseLayer.show();
+            this.pauseLayer.show(title, alpha);
             this.enemyManager.freezeAllEnemies();
         }
     }
@@ -1390,7 +1390,7 @@ class Scene1L4 extends Scene1 {
              * Pause at first because all the forked logic is originated from 'Idle' state
              * We need to exclude any possible player input here
              */
-            this.pause();
+            this.pause(null, 0);
         });
         state.setOnExit(s => {
             this.unPause();
@@ -1429,8 +1429,8 @@ class Scene1L4 extends Scene1 {
         state.setOnEnter(s => {
         })
             .addSubtitleAction(this.subtitle, "Let me be clear", true)
-            .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
-            .addSubtitleAction(this.subtitle, "Hey, just be a reasonable person. Seriously!", true, null, null, 2000)
+            .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Don't be so obsessed with the word matching!", true, null, null, 4000)
+            .addSubtitleAction(this.subtitle, "Just be a reasonable person. Seriously!", true, null, null, 2000)
             .addFinishAction();
     }
     gamePlayStarted() {
@@ -6112,6 +6112,10 @@ class Figure extends Wrapper {
         this.config.originY = y;
         this.calcGraphicsPosition();
     }
+    setFillAlpha(a) {
+        this.config.fillAlpha = a;
+        this.drawGraphics();
+    }
     setSize(width, height) {
         this.config.width = width;
         if (!notSet(height))
@@ -7636,7 +7640,15 @@ class PauseLayer extends Wrapper {
             duration: 150,
         });
     }
-    show() {
+    show(title, alpha) {
+        if (notSet(title)) {
+            title = ' Paused ';
+        }
+        if (notSet(alpha)) {
+            alpha = 0.7;
+        }
+        this.title.text = title;
+        this.bkg.setFillAlpha(alpha);
         this.inner.setVisible(true);
         if (this.tw)
             this.tw.stop();

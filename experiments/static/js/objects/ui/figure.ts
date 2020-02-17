@@ -77,6 +77,12 @@ class Figure extends Wrapper<PhGraphics> {
         this.calcGraphicsPosition();
     }
 
+    setFillAlpha(a) {
+        this.config.fillAlpha = a;
+        this.drawGraphics();
+        
+    }
+
     setSize(width, height?) {
         this.config.width = width;
 

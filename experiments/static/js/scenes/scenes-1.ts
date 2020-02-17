@@ -223,8 +223,7 @@ class Scene1 extends BaseScene {
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
 
 
-        // Subtitle
-        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
+
 
 
         // Back button
@@ -248,6 +247,9 @@ class Scene1 extends BaseScene {
         // Pause Layer
         this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
         this.pauseLayer.hide();
+
+        // Subtitle
+        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
 
 
 
@@ -791,11 +793,11 @@ class Scene1 extends BaseScene {
 
         
     pauseCounter = 0;
-    pause() {
+    pause(title?: string, alpha?: number) {
         this.pauseCounter++;
         // console.log('pause: ' + this.pauseCounter);
         if(this.pauseCounter == 1) {
-            this.pauseLayer.show();
+            this.pauseLayer.show(title, alpha);
             this.enemyManager.freezeAllEnemies();        
         }        
     }

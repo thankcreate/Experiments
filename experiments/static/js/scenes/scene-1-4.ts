@@ -98,7 +98,7 @@ class Scene1L4 extends Scene1 {
              * Pause at first because all the forked logic is originated from 'Idle' state
              * We need to exclude any possible player input here
              */
-            this.pause();   
+            this.pause(null, 0);   
         })
 
         state.setOnExit(s=>{            
@@ -151,8 +151,8 @@ class Scene1L4 extends Scene1 {
 
         })
             .addSubtitleAction(this.subtitle, "Let me be clear", true)
-            .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
-            .addSubtitleAction(this.subtitle, "Hey, just be a reasonable person. Seriously!", true, null, null, 2000)
+            .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Don't be so obsessed with the word matching!", true, null, null, 4000)
+            .addSubtitleAction(this.subtitle, "Just be a reasonable person. Seriously!", true, null, null, 2000)
             .addFinishAction();
     }
 

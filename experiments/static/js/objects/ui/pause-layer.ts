@@ -42,8 +42,19 @@ class PauseLayer extends Wrapper<PhText> {
         })
     }
 
-    show() {
-        this.inner.setVisible(true);        
+    show(title?, alpha?) {        
+        if(notSet(title)) {
+            title = ' Paused ';
+        }
+        if(notSet(alpha)) {
+            alpha=  0.7;
+        }
+        
+        this.title.text = title;
+        this.bkg.setFillAlpha(alpha);
+        this.inner.setVisible(true);    
+        
+        
         if(this.tw)
             this.tw.stop();
         this.tw = this.scene.tweens.add({

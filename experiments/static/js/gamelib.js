@@ -1382,22 +1382,22 @@ class Scene1L4 extends Scene1 {
             // if((this.enemyManager.curStrategy as SpawnStrategyClickerGame).normalNormalCount >= 1 ) {
             //     s.event('WARN') ;
             // }            
-            this.hud.showContainerRight();
+            // this.hud.showContainerRight();
         });
         state.addAction(s => {
             // console.log('Count:   ' + this.getCounter(Counter.IntoNormalMode) );
         });
         state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
-            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s kept appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
-            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addAction(s => {
             this.hud.showContainerRight();
         });
         state.addSubtitleAction(this.subtitle, "Don't worry! I've prepared some handy tools for you,\nbut everything comes with a PRICE.\n And let's just define the PRICE as the SCORE you've got", true)
-            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "Remember! I'm always on YOUR side.", true)
-            .setBoolCondition(s => !this.firstIntoNormalMode(), true);
+            .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addFinishAction();
         state.setOnExit(s => {
             this.getCurClickerStrategy().startLoopCreateNormal();
@@ -1422,7 +1422,7 @@ class Scene1L4 extends Scene1 {
         let state = this.normalGameFsm.getState("Warn");
         state.setOnEnter(s => {
         })
-            .addSubtitleAction(this.subtitle, "Can't you read? ", true)
+            .addSubtitleAction(this.subtitle, "Let me be clear", true)
             .addSubtitleAction(this.subtitle, "You can ONLY benefit from eliminating 4O4s. \n Why are you still so obsessed with the word matching!", true, null, null, 4000)
             .addSubtitleAction(this.subtitle, "Hey, just be a reasonable person. Seriously!", true, null, null, 2000)
             .addFinishAction();
@@ -5768,7 +5768,7 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
-let initScore = 0;
+let initScore = 100000;
 let baseScore = 100;
 let normalFreq1 = 7;
 let autoBadgeInterval = 400;
@@ -6555,6 +6555,7 @@ class Hud extends Wrapper {
         let style = getDefaultTextStyle();
         style.fontSize = '44px';
         this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "$core: 0", style).setOrigin(1, 1);
+        anchorToRight(30, this.scoreText);
         this.scoreText.y += 250;
         this.inner.add(this.scoreText);
         // combo
@@ -6568,6 +6569,7 @@ class Hud extends Wrapper {
         this.createMenuBottom();
         if (getCurLevelIndex() == 4) {
             this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
+            anchorToRight(s_infoPanelWidth + 30, this.infoPanel.inner);
             this.infoPanel.inner.setVisible(false);
         }
     }
@@ -6580,12 +6582,12 @@ class Hud extends Wrapper {
         this.toolMenuContainerRight = new ButtonGroup(this.scene, this.toolMenuContainerRightAnchor, -75, 400, null);
         this.hideContainerRight(false);
         // bubble
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);
+        this.popupBubbleRight = new Bubble(this.scene, this.toolMenuContainerRightAnchor, 0, 0, Dir.Right);
         this.popupBubbleRight.inner.setPosition(0, 0);
         this.popupBubbleRight.hide();
         let startY = 0;
         let intervalY = 100;
-        let tempHotkey = ['7', '8', '9', '0', '-'];
+        let tempHotkey = ['1', '2', '3', '4', '5'];
         for (let i = 0; i < propInfos.length; i++) {
             let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', info, false, 100, 100, false);
@@ -6679,6 +6681,7 @@ class Hud extends Wrapper {
         titleStyle.fill = '#1A1A1A';
         let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
+        let tempHotkey = ['6', '7', '8', '9', '0', '-'];
         for (let i = 0; i < badInfos.length; i++) {
             let info = badInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], true, 100, 105, false);
@@ -6687,7 +6690,8 @@ class Hud extends Wrapper {
             }
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
-            btn.setHotKey((i + 1) + "");
+            // btn.setHotKey((i + 1) + "");
+            btn.setHotKey(tempHotkey[i]);
             btn.bubble = this.popupBubbleLeft;
             btn.bubbleAnchor = () => {
                 return MakePoint2(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);

@@ -54,6 +54,7 @@ class Hud extends Wrapper<PhText> {
         let style = getDefaultTextStyle();
         style.fontSize = '44px';
         this.scoreText = this.scene.add.text(getLogicWidth() - 30, phaserConfig.scale.height - 20, "$core: 0", style).setOrigin(1, 1);
+        anchorToRight(30, this.scoreText);
         this.scoreText.y += 250
         this.inner.add(this.scoreText);
 
@@ -70,6 +71,7 @@ class Hud extends Wrapper<PhText> {
 
         if(getCurLevelIndex() == 4)  {
             this.infoPanel = new ClickerInfoPanel(this.scene, this.inner, getLogicWidth() - s_infoPanelWidth - 30, 30);
+            anchorToRight(s_infoPanelWidth + 30, this.infoPanel.inner);
             this.infoPanel.inner.setVisible(false);
 
         }
@@ -91,7 +93,7 @@ class Hud extends Wrapper<PhText> {
         this.hideContainerRight(false);
 
         // bubble
-        this.popupBubbleRight = new Bubble(this.scene, this.inner, 0, 0, Dir.Right);        
+        this.popupBubbleRight = new Bubble(this.scene, this.toolMenuContainerRightAnchor, 0, 0, Dir.Right);        
         this.popupBubbleRight.inner.setPosition(0, 0);        
         this.popupBubbleRight.hide();
 
@@ -99,7 +101,7 @@ class Hud extends Wrapper<PhText> {
         let startY = 0;
         let intervalY = 100;
 
-        let tempHotkey = ['7', '8', '9', '0', '-'];
+        let tempHotkey = ['1', '2', '3', '4', '5'];
         for(let i = 0; i < propInfos.length; i++) {       
             let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
@@ -223,7 +225,7 @@ class Hud extends Wrapper<PhText> {
         titleStyle.fill = '#1A1A1A'
         let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
-        
+        let tempHotkey = ['6', '7', '8', '9', '0', '-'];
         for(let i = 0; i < badInfos.length; i++) {    
             let info = badInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i,
@@ -236,7 +238,8 @@ class Hud extends Wrapper<PhText> {
 
             this.leftBtns.push(btn);
             btn.addPromptImg(Dir.Left);
-            btn.setHotKey((i + 1) + "");
+            // btn.setHotKey((i + 1) + "");
+            btn.setHotKey(tempHotkey[i]);
 
             btn.bubble = this.popupBubbleLeft;
             btn.bubbleAnchor = ()=> {

@@ -433,6 +433,7 @@ class Scene1 extends BaseScene {
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
                 this.playerName = word;
                 setCookie('name', word);
+                console.log('just in time check: ' + getCookie('name'));
                 resolve(word);
             });
         })
@@ -711,7 +712,9 @@ class Scene1 extends BaseScene {
     gamePlayExit() {
     }
     getUserName() {
-        return getUserName();
+        let un = getUserName();
+        console.log(un);
+        return un;
     }
     needHud() {
         return true;
@@ -1397,7 +1400,7 @@ class Scene1L4 extends Scene1 {
             this.unPause();
             this.getCurClickerStrategy().startLoopCreateNormal();
         });
-        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
+        state.addSubtitleAction(this.subtitle, s => this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
@@ -1445,9 +1448,9 @@ class Scene1L4 extends Scene1 {
     initStMock() {
         let state = this.normalGameFsm.getState("Mock");
         state.addDelayAction(this, 3000);
-        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? You think this is fun?", true);
+        state.addSubtitleAction(this.subtitle, s => this.getUserName() + "!\n What are you doing? You think this is fun?", true);
         state.addSubtitleAction(this.subtitle, "Finally, I know who created those words and 4O4s!", true);
-        state.addSubtitleAction(this.subtitle, "It's has always been YOU! \n" + this.getUserName() + "!", true);
+        state.addSubtitleAction(this.subtitle, s => "It's has always been YOU! \n" + this.getUserName() + "!", true);
         state.addSubtitleAction(this.subtitle, "I know what you're thinking,", true);
         state.addSubtitleAction(this.subtitle, "You think that it's me\n who put the 'Creator' button here, right?", true);
         state.addSubtitleAction(this.subtitle, "But the fact I put it there doesn't\n simply mean you have the right to use it!", true);
@@ -1657,7 +1660,7 @@ class Scene1LPaper extends Scene1 {
         state.addAction(s => {
             this.paper.continueBtn.canClick = false;
         });
-        state.addSubtitleAction(this.subtitle, 'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
+        state.addSubtitleAction(this.subtitle, s => 'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you  at least 30 seconds to complete the reading.', false);
         state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it again carefully?", true, null, null, 2000);
         state.addAction(s => {
@@ -1684,7 +1687,7 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState('Confirm_2');
         state.addAction(() => {
         })
-            .addSubtitleAction(this.subtitle, this.getUserName() + "! I can see you are still not reading carefully enough.", false)
+            .addSubtitleAction(this.subtitle, s => this.getUserName() + "! I can see you are still not reading carefully enough.", false)
             .addAction(() => {
             this.beginVideo();
         })
@@ -1692,7 +1695,7 @@ class Scene1LPaper extends Scene1 {
             .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)
             .addSubtitleAction(this.subtitle, "You know, when my other advisor, Mitu, told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)
             .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
-            .addSubtitleAction(this.subtitle, "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
+            .addSubtitleAction(this.subtitle, s => "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
             .addAction(() => {
             this.nextLevelBtn.setEnable(true, true);
             this.paper.continueBtn.setEnable(false, true);

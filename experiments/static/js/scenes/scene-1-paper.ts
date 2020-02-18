@@ -198,7 +198,7 @@ class Scene1LPaper extends Scene1 {
         state.addAction(s=>{
             this.paper.continueBtn.canClick = false;
         })
-        state.addSubtitleAction(this.subtitle, 'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
+        state.addSubtitleAction(this.subtitle, s=>'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you  at least 30 seconds to complete the reading.', false);        
         state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it again carefully?", true, null, null, 2000);
         state.addAction(s=>{
@@ -228,7 +228,7 @@ class Scene1LPaper extends Scene1 {
         state.addAction(()=>{
           
         })
-        .addSubtitleAction(this.subtitle, this.getUserName() + "! I can see you are still not reading carefully enough.", false)
+        .addSubtitleAction(this.subtitle, s=>this.getUserName() + "! I can see you are still not reading carefully enough.", false)
         .addAction(()=>{
             this.beginVideo();
         })
@@ -236,7 +236,7 @@ class Scene1LPaper extends Scene1 {
         .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)     
         .addSubtitleAction(this.subtitle, "You know, when my other advisor, Mitu, told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)           
         .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
-        .addSubtitleAction(this.subtitle, "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
+        .addSubtitleAction(this.subtitle, s=>"Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
         .addAction(()=>{
             this.nextLevelBtn.setEnable(true, true);
             this.paper.continueBtn.setEnable(false, true);

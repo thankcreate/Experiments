@@ -498,6 +498,7 @@ class Scene1 extends BaseScene {
                 s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
                     this.playerName = word;
                     setCookie('name', word);
+                    console.log('just in time check: ' + getCookie('name'));
                     resolve(word);
                 });
             })
@@ -832,7 +833,9 @@ class Scene1 extends BaseScene {
     }
 
     getUserName() {
-        return getUserName();
+        let un = getUserName();
+        console.log(un);
+        return un;
     }
 
     needHud() : boolean{

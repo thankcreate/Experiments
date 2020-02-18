@@ -107,7 +107,7 @@ class Scene1L4 extends Scene1 {
         })
 
         
-        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
+        state.addSubtitleAction(this.subtitle, s=>this.getUserName() + "!\n Looks like I have to admit that I'm a bad experiment designer.", true)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true);
         state.addSubtitleAction(this.subtitle, "I really don't know why those 4O4s keep appearing.\nHowever, I think you'll surely help me get rid of them, right?", true)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true);
@@ -170,9 +170,9 @@ class Scene1L4 extends Scene1 {
     initStMock() {
         let state = this.normalGameFsm.getState("Mock");
         state.addDelayAction(this, 3000)
-        state.addSubtitleAction(this.subtitle, this.getUserName() + "!\n What are you doing? You think this is fun?", true);
+        state.addSubtitleAction(this.subtitle, s=>this.getUserName() + "!\n What are you doing? You think this is fun?", true);
         state.addSubtitleAction(this.subtitle, "Finally, I know who created those words and 4O4s!", true);
-        state.addSubtitleAction(this.subtitle, "It's has always been YOU! \n" + this.getUserName() + "!", true);
+        state.addSubtitleAction(this.subtitle, s=>"It's has always been YOU! \n" + this.getUserName() + "!", true);
         state.addSubtitleAction(this.subtitle, "I know what you're thinking,", true);
         state.addSubtitleAction(this.subtitle, "You think that it's me\n who put the 'Creator' button here, right?", true);
         state.addSubtitleAction(this.subtitle, "But the fact I put it there doesn't\n simply mean you have the right to use it!", true);
@@ -207,7 +207,6 @@ class Scene1L4 extends Scene1 {
             .setBoolCondition(s=>this.firstIntoNormalMode(), true)
 //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
         state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly()
-
         state.addAction((s: FsmState, result, resolve, reject) => {
             s.autoOn($(document), 'keypress', (event)=>{
                 var code = String.fromCharCode(event.keyCode).toUpperCase();                
@@ -218,8 +217,7 @@ class Scene1L4 extends Scene1 {
                 }
                 else if(code == 'N') {
                     this.subtitle.forceStopAndHideSubtitles();
-                    resolve('123');
-                    
+                    resolve('123');                    
                 }
             });
         })

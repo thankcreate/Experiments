@@ -1483,26 +1483,32 @@ class Scene1L4 extends Scene1 {
     }
     addYesOrNoAction(s, targetBtn) {
         s.addAction((s, result, resolve, reject) => {
+            targetBtn.hasNoActualClick = false;
             // Turn the original pause title to " 'Y' / 'N' "
             this.pauseLayer.title.text = cYesOrNo;
             s.autoOn($(document), 'keypress', (event) => {
                 var code = String.fromCharCode(event.keyCode).toUpperCase();
                 if (code == 'Y') {
                     targetBtn.click();
-                    this.subtitle.forceStopAndHideSubtitles();
                     resolve('YES');
                 }
                 else if (code == 'N') {
-                    this.subtitle.forceStopAndHideSubtitles();
                     resolve('NO');
                 }
             });
+            s.autoOn(targetBtn.clickedEvent, null, o => {
+                resolve('YES');
+            });
+        })
+            .addAction(s => {
+            this.subtitle.forceStopAndHideSubtitles();
         });
     }
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
         let state = this.normalGameFsm.getState("PromptCompleteBad");
         state.setOnEnter(s => {
+            targetBtn.hasNoActualClick = true;
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
@@ -1518,6 +1524,9 @@ class Scene1L4 extends Scene1 {
     }
     initStPrmoptAutoTyper() {
         let state = this.normalGameFsm.getState("PromptAutoBad");
+        state.setOnEnter(s => {
+            targetBtn.hasNoActualClick = true;
+        });
         let targetBtn = this.ui.hud.rightBtns[1];
         state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
@@ -8131,6 +8140,7 @@ class PropButton extends Button {
         this.allowMultipleConsume = false;
         this.allowLevelUp = false;
         this.curLevel = 0;
+        this.hasNoActualClick = false;
         this.needForceBubble = false;
         this.needConsiderHP = false;
         this.allowLevelUp = canLevelUp;
@@ -8175,6 +8185,9 @@ class PropButton extends Button {
             let btn = btn1;
             //if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
             {
+                if (this.hasNoActualClick) {
+                    return;
+                }
                 if (this.needConfirm) {
                     let dialog = this.scene.overlay.showTurnCautionDialog();
                     // (this.scene as Scene1).enemyManager.freezeAllEnemies();
@@ -8335,7 +8348,12 @@ class PropButton extends Button {
         let style = getDefaultTextStyle();
         let size = 24;
         style.fontSize = size + 'px';
-        style.fill = '#ff0000';
+        // style.fill = '#ff0000';          
+        /**
+         * Changed from red to black, because we added a much more obivious prompt
+         * when a prop is available
+         */
+        style.fill = '#000000';
         this.hotkeyPrompt = this.scene.add.text(textX, -40, "", style).setOrigin(textOriginX, textOriginY);
         this.promptImg.inner.add(this.hotkeyPrompt);
         // this.hotkeyPrompt.setVisible(false);

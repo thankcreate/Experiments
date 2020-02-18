@@ -209,30 +209,39 @@ class Scene1L4 extends Scene1 {
         this.normalGameFsm.event(eventNames[idx]);
     }
 
+
+    
     addYesOrNoAction(s: FsmState, targetBtn: PropButton) {
+        
         s.addAction((s: FsmState, result, resolve, reject) => {
+            targetBtn.hasNoActualClick = false;
             // Turn the original pause title to " 'Y' / 'N' "
             this.pauseLayer.title.text = cYesOrNo;
             s.autoOn($(document), 'keypress', (event)=>{
                 var code = String.fromCharCode(event.keyCode).toUpperCase();                
                 if(code == 'Y') {
-                    targetBtn.click();
-                    this.subtitle.forceStopAndHideSubtitles();
+                    targetBtn.click();                    
                     resolve('YES');
                 }
-                else if(code == 'N') {
-                    this.subtitle.forceStopAndHideSubtitles();
+                else if(code == 'N') {           
                     resolve('NO');                    
                 }
             });
+
+            s.autoOn(targetBtn.clickedEvent, null, o => {                
+                resolve('YES');
+            })
         })
+        .addAction(s=>{
+            this.subtitle.forceStopAndHideSubtitles();
+        });
     }
 
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
         let state = this.normalGameFsm.getState("PromptCompleteBad");
         state.setOnEnter(s=>{
-
+            targetBtn.hasNoActualClick = true;
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true)
@@ -251,6 +260,9 @@ class Scene1L4 extends Scene1 {
 
     initStPrmoptAutoTyper() {
         let state = this.normalGameFsm.getState("PromptAutoBad");
+        state.setOnEnter(s=>{
+            targetBtn.hasNoActualClick = true;
+        });
         let targetBtn = this.ui.hud.rightBtns[1];
         state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);

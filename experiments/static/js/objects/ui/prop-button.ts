@@ -77,6 +77,8 @@ class PropButton extends Button {
         }
     }
 
+    hasNoActualClick: boolean = false;
+
     constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
         x: number, y: number,
         imgKey: string, info: PropInfo, canLevelUp:boolean,
@@ -129,11 +131,17 @@ class PropButton extends Button {
             timeline.play();
         });    
 
+        
 
         this.clickedEvent.on(btn1=>{    
+            
             let btn = btn1 as PropButton;          
             //if((this.allowMultipleConsume || !btn.purchased) && this.hud.score >= btn.priceTag) {
             {
+                if(this.hasNoActualClick){
+                    return;
+                }
+
                 if(this.needConfirm) {
                     let dialog = (this.scene as Scene1).overlay.showTurnCautionDialog();
                     // (this.scene as Scene1).enemyManager.freezeAllEnemies();
@@ -308,7 +316,13 @@ class PropButton extends Button {
         let style = getDefaultTextStyle();
         let size = 24;
         style.fontSize = size + 'px';
-        style.fill = '#ff0000';        
+        // style.fill = '#ff0000';          
+
+        /**
+         * Changed from red to black, because we added a much more obivious prompt
+         * when a prop is available
+         */
+        style.fill = '#000000';
                 
         this.hotkeyPrompt = this.scene.add.text(textX, -40, "", style).setOrigin(textOriginX, textOriginY);
         this.promptImg.inner.add(this.hotkeyPrompt);

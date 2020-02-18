@@ -23,25 +23,19 @@
 
 // firstRes('fuckyou');
 
-let chain = Promise.reject(1)
-.then(res => {
-    console.log(res);
-    return 2;
-},
-rej=>{
-    console.log(rej);
-    return 2;
-})
-.then(res =>{
-    console.log(res);
-},
-rej=>{
-    console.log(ref);
-}
-)
+let outResolve;
+let chain = Promise.resolve(1)
 .then(res => {
     return new Promise((resolve, rej) => {
-        rej('just rej');
+        
+        console.log('log1');
+        resolve('1');
+        console.log('log2');
+        outResolve = resolve;
+        setTimeout(() => {
+            console.log('delay');
+            resolve('haha');
+        }, 2000);
     });
 })
 .then(res => {

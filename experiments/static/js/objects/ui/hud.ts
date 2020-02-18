@@ -136,6 +136,7 @@ class Hud extends Wrapper<PhText> {
             getAutoTypeInfo().consumed = true;
 
         });
+        this.rightBtns[1].needForceBubble = true;
 
         // Turn 
         

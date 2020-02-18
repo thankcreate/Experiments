@@ -1341,8 +1341,13 @@ class Scene1L4 extends Scene1 {
         this.initNormalGameFsm();
         this.hp.initMaxHealth(10);
         this.createBtns();
-        this.ui.hud.rightBtns[0].firstTimeBubbleCallback = () => { this.firstTimeBubbleAutoBad(); };
+        this.addCallbackForFirstTimeBubble();
         // this.overlay.showReviewForm();
+    }
+    addCallbackForFirstTimeBubble() {
+        for (let i = 0; i < this.ui.hud.rightBtns.length; i++) {
+            this.ui.hud.rightBtns[i].firstTimeBubbleCallback = (idx) => { this.firstTimeBubbleAutoBad(idx); };
+        }
     }
     createBtns() {
         // this.upgrade1 = new Button(this, )
@@ -1355,6 +1360,7 @@ class Scene1L4 extends Scene1 {
         this.initStateIdle();
         this.initStMock();
         this.initStPromptAutoBad();
+        this.initStPrmoptAutoTyper();
         this.updateObjects.push(this.normalGameFsm);
     }
     needShowEcoAboutAtStartup() {
@@ -1394,7 +1400,8 @@ class Scene1L4 extends Scene1 {
              * Pause at first because all the forked logic is originated from 'Idle' state
              * We need to exclude any possible player input here
              */
-            this.pause(null, 0);
+            this.pause('　　　', 0);
+            //this.pause(null, 0);   
         });
         state.setOnExit(s => {
             this.unPause();
@@ -1466,8 +1473,31 @@ class Scene1L4 extends Scene1 {
         // state.addSubtitleAction(this.subtitle, "If you want to continue, just do it. \nBut our experiment is DONE.", false);
         // state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
     }
-    firstTimeBubbleAutoBad() {
-        this.normalGameFsm.event('TO_PROMPT_COMPLETE_BAD');
+    firstTimeBubbleAutoBad(idx) {
+        console.log(idx);
+        let eventNames = [
+            'TO_PROMPT_COMPLETE_BAD',
+            'TO_PROMPT_AUTO_BAD',
+        ];
+        this.normalGameFsm.event(eventNames[idx]);
+    }
+    addYesOrNoAction(s, targetBtn) {
+        s.addAction((s, result, resolve, reject) => {
+            // Turn the original pause title to " 'Y' / 'N' "
+            this.pauseLayer.title.text = cYesOrNo;
+            s.autoOn($(document), 'keypress', (event) => {
+                var code = String.fromCharCode(event.keyCode).toUpperCase();
+                if (code == 'Y') {
+                    targetBtn.click();
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('YES');
+                }
+                else if (code == 'N') {
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('NO');
+                }
+            });
+        });
     }
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
@@ -1480,20 +1510,7 @@ class Scene1L4 extends Scene1 {
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
         //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
         state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly();
-        state.addAction((s, result, resolve, reject) => {
-            s.autoOn($(document), 'keypress', (event) => {
-                var code = String.fromCharCode(event.keyCode).toUpperCase();
-                if (code == 'Y') {
-                    targetBtn.click();
-                    this.subtitle.forceStopAndHideSubtitles();
-                    resolve('123');
-                }
-                else if (code == 'N') {
-                    this.subtitle.forceStopAndHideSubtitles();
-                    resolve('123');
-                }
-            });
-        });
+        this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s => {
             targetBtn.hideAttachedBubble();
@@ -1501,8 +1518,15 @@ class Scene1L4 extends Scene1 {
     }
     initStPrmoptAutoTyper() {
         let state = this.normalGameFsm.getState("PromptAutoBad");
-        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous play tester. \n Seldom of them have the patient to listen carefully what I'm saying", false);
-        state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you", false);
+        let targetBtn = this.ui.hud.rightBtns[1];
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
+        state.addSubtitleAction(this.subtitle, "This time, an automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly();
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s => {
+            targetBtn.hideAttachedBubble();
+        });
     }
 }
 class Scene1LPaper extends Scene1 {
@@ -5875,7 +5899,7 @@ class CenterProgress extends Wrapper {
     }
 }
 let initScore = 0;
-let baseScore = 100;
+let baseScore = 200;
 let normalFreq1 = 7;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
@@ -5933,14 +5957,15 @@ function getCreateKeyword() {
 let hpPropInfos = [
     { title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: ['+', '='] },
 ];
+let cYesOrNo = " 'Y' / 'N' ";
 let propInfos = [
-    { title: "B**", consumed: false, price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
-    { title: "Auto\nBad", consumed: false, price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "T**", consumed: false, price: 2000, size: 30,
+    { title: "B**", consumed: false, pauseTitle: ' Paused ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
+    { title: "Auto\nBad", consumed: false, pauseTitle: '  >_<  ', price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
+    { title: "T**", consumed: false, pauseTitle: cYesOrNo, price: 2000, size: 30,
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
-    { title: "Auto\nTurn", consumed: false, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+    { title: "Auto\nTurn", consumed: false, pauseTitle: cYesOrNo, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "The\nCreator", consumed: false, pauseTitle: cYesOrNo, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -6724,6 +6749,7 @@ class Hud extends Wrapper {
             this.leftBtns[0].doPurchased();
             getAutoTypeInfo().consumed = true;
         });
+        this.rightBtns[1].needForceBubble = true;
         // Turn 
         this.rightBtns[2].needConfirm = !isEconomicSpecialEdition();
         this.rightBtns[2].purchasedEvent.on(btn => {
@@ -8192,8 +8218,18 @@ class PropButton extends Button {
         if (canLevelUp)
             this.updateInfo();
     }
-    showAttachedBubble() {
-        this.scene.pause();
+    // return the propInfo
+    getPropIndex() {
+        let ret = -1;
+        for (let i = 0; i < propInfos.length; i++) {
+            if (propInfos[i] === this.info) {
+                return i;
+            }
+        }
+        return ret;
+    }
+    showAttachedBubble(title) {
+        this.scene.pause(title);
         this.hovered = true;
         if (this.bubble) {
             this.updateBubbleInfo();
@@ -8350,9 +8386,9 @@ class PropButton extends Button {
                 this.hasShownFirstTimeBubble = true;
                 if (this.needForceBubble == true) {
                     // console.log('bubble show');
-                    this.showAttachedBubble();
+                    this.showAttachedBubble(this.info.pauseTitle);
                     if (this.firstTimeBubbleCallback)
-                        this.firstTimeBubbleCallback();
+                        this.firstTimeBubbleCallback(this.getPropIndex());
                 }
             }
             if (this.promptImg) {

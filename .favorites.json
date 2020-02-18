@@ -1,24 +1,6 @@
 [
     {
         "type": "File",
-        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\enemy-manager.ts",
-        "parent_id": null,
-        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\enemy-manager.ts",
-        "workspaceRoot": null,
-        "workspacePath": null,
-        "id": "itmYxgMErjwyRAQL"
-    },
-    {
-        "type": "File",
-        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\clicker-config.ts",
-        "parent_id": null,
-        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\clicker-config.ts",
-        "workspaceRoot": null,
-        "workspacePath": null,
-        "id": "uX42wspkofYjgF05"
-    },
-    {
-        "type": "File",
         "name": "d:\\Experiments\\experiments\\static\\js\\scenes\\scene-1-4.ts",
         "parent_id": null,
         "fsPath": "d:\\Experiments\\experiments\\static\\js\\scenes\\scene-1-4.ts",
@@ -28,29 +10,38 @@
     },
     {
         "type": "File",
-        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\spawn-strategy-clicker.ts",
+        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\ui\\clicker-config.ts",
         "parent_id": null,
-        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\spawn-strategy-clicker.ts",
+        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\ui\\clicker-config.ts",
         "workspaceRoot": null,
         "workspacePath": null,
-        "id": "RunmaLt4BrNlA3kJ"
+        "id": "XrHhyOE5LCvPas8K"
     },
     {
         "type": "File",
-        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\clicker-info-panel.ts",
+        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\strategy\\spawn-strategy-clicker.ts",
         "parent_id": null,
-        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\clicker-info-panel.ts",
+        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\strategy\\spawn-strategy-clicker.ts",
         "workspaceRoot": null,
         "workspacePath": null,
-        "id": "rhwucHVWTmFiI1SN"
+        "id": "kXRy1KpDZ3iS5NBm"
     },
     {
         "type": "File",
-        "name": "d:\\Experiments\\experiments\\static\\js\\review-wall.js",
+        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\ui\\hud.ts",
         "parent_id": null,
-        "fsPath": "d:\\Experiments\\experiments\\static\\js\\review-wall.js",
+        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\ui\\hud.ts",
         "workspaceRoot": null,
         "workspacePath": null,
-        "id": "ZWHT9OiX6xb1kQRM"
+        "id": "S8aZ140rCzNKO6JH"
+    },
+    {
+        "type": "File",
+        "name": "d:\\Experiments\\experiments\\static\\js\\objects\\ui\\prop-button.ts",
+        "parent_id": null,
+        "fsPath": "d:\\Experiments\\experiments\\static\\js\\objects\\ui\\prop-button.ts",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "CSWUEmD3tbL6hYiV"
     }
 ]

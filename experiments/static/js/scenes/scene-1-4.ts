@@ -35,8 +35,15 @@ class Scene1L4 extends Scene1 {
         this.createBtns();
 
 
-        this.ui.hud.rightBtns[0].firstTimeBubbleCallback = ()=>{this.firstTimeBubbleAutoBad()};
+        this.addCallbackForFirstTimeBubble();
         // this.overlay.showReviewForm();
+    }
+
+    addCallbackForFirstTimeBubble() {
+        for(let i = 0; i < this.ui.hud.rightBtns.length; i++) {
+            this.ui.hud.rightBtns[i].firstTimeBubbleCallback = (idx)=>{this.firstTimeBubbleAutoBad(idx)};
+        }
+        
     }
 
     createBtns() {
@@ -51,6 +58,7 @@ class Scene1L4 extends Scene1 {
         this.initStateIdle();
         this.initStMock();
         this.initStPromptAutoBad();
+        this.initStPrmoptAutoTyper();
         this.updateObjects.push(this.normalGameFsm);
     }
 
@@ -98,7 +106,8 @@ class Scene1L4 extends Scene1 {
              * Pause at first because all the forked logic is originated from 'Idle' state
              * We need to exclude any possible player input here
              */
-            this.pause(null, 0);   
+            this.pause('　　　', 0);
+            //this.pause(null, 0);   
         })
 
         state.setOnExit(s=>{            
@@ -191,8 +200,32 @@ class Scene1L4 extends Scene1 {
         // state.addSubtitleAction(this.subtitle, "Voice from Tron & Rachel: Hi, this is our current thesis progress. \n Thank you for playing!", false);
     }
 
-    firstTimeBubbleAutoBad() {
-        this.normalGameFsm.event('TO_PROMPT_COMPLETE_BAD');
+    firstTimeBubbleAutoBad(idx) {        
+        console.log(idx);
+        let eventNames = [
+            'TO_PROMPT_COMPLETE_BAD',
+            'TO_PROMPT_AUTO_BAD',
+        ];
+        this.normalGameFsm.event(eventNames[idx]);
+    }
+
+    addYesOrNoAction(s: FsmState, targetBtn: PropButton) {
+        s.addAction((s: FsmState, result, resolve, reject) => {
+            // Turn the original pause title to " 'Y' / 'N' "
+            this.pauseLayer.title.text = cYesOrNo;
+            s.autoOn($(document), 'keypress', (event)=>{
+                var code = String.fromCharCode(event.keyCode).toUpperCase();                
+                if(code == 'Y') {
+                    targetBtn.click();
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('YES');
+                }
+                else if(code == 'N') {
+                    this.subtitle.forceStopAndHideSubtitles();
+                    resolve('NO');                    
+                }
+            });
+        })
     }
 
     initStPromptAutoBad() {
@@ -207,20 +240,9 @@ class Scene1L4 extends Scene1 {
             .setBoolCondition(s=>this.firstIntoNormalMode(), true)
 //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
         state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly()
-        state.addAction((s: FsmState, result, resolve, reject) => {
-            s.autoOn($(document), 'keypress', (event)=>{
-                var code = String.fromCharCode(event.keyCode).toUpperCase();                
-                if(code == 'Y') {
-                    targetBtn.click();
-                    this.subtitle.forceStopAndHideSubtitles();
-                    resolve('123');
-                }
-                else if(code == 'N') {
-                    this.subtitle.forceStopAndHideSubtitles();
-                    resolve('123');                    
-                }
-            });
-        })
+        
+        this.addYesOrNoAction(state, targetBtn);
+
         state.addFinishAction();
         state.setOnExit(s=>{            
             targetBtn.hideAttachedBubble();
@@ -229,7 +251,15 @@ class Scene1L4 extends Scene1 {
 
     initStPrmoptAutoTyper() {
         let state = this.normalGameFsm.getState("PromptAutoBad");
-        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous play tester. \n Seldom of them have the patient to listen carefully what I'm saying", false);
-        state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you", false);
+        let targetBtn = this.ui.hud.rightBtns[1];
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
+        state.addSubtitleAction(this.subtitle, "This time, an automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s=>{            
+            targetBtn.hideAttachedBubble();
+        })
+
     }
 }

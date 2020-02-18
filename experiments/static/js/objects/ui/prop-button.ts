@@ -44,11 +44,20 @@ class PropButton extends Button {
     bubbleAnchor: PosiGen;
     bubbleContent: StrGen;
 
-    
+    // return the propInfo
+    getPropIndex() {
+        let ret = -1;
+        for(let i = 0; i < propInfos.length; i++) {
+            if(propInfos[i] === this.info) {
+                return i;
+            }
+        }
+        return ret;
+    }
 
 
-    showAttachedBubble() {
-        (this.scene as Scene1).pause();    
+    showAttachedBubble(title?: string) {
+        (this.scene as Scene1).pause(title);    
         this.hovered = true;       
 
         if(this.bubble) {
@@ -338,7 +347,7 @@ class PropButton extends Button {
     }
 
     needForceBubble = false;
-    firstTimeBubbleCallback: any;
+    firstTimeBubbleCallback: (idx: number) => any;
 
     needConsiderHP: boolean = false;
     /**
@@ -364,9 +373,9 @@ class PropButton extends Button {
                 this.hasShownFirstTimeBubble = true;
                 if(this.needForceBubble == true) {
                     // console.log('bubble show');
-                    this.showAttachedBubble();
+                    this.showAttachedBubble(this.info.pauseTitle);
                     if(this.firstTimeBubbleCallback)
-                        this.firstTimeBubbleCallback();
+                        this.firstTimeBubbleCallback(this.getPropIndex());
                 }
                     
             }

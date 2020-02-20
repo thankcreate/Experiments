@@ -719,6 +719,9 @@ class Scene1 extends BaseScene {
     needHud() {
         return true;
     }
+    isPausedOrDied() {
+        return this.pauseLayer.inShown || this.died.inShown;
+    }
 }
 class Scene1L0 extends Scene1 {
     constructor() {
@@ -1469,6 +1472,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "Anyway, thank you for participating in my experiment.\n We are not done yet", true);
         state.addSubtitleAction(this.subtitle, "Before we move on,\n would you kindly fill in this beautiful forms for me please?", true, null, 50);
         state.addAction(s => {
+            this.pause();
             Overlay.getInstance().showFormRating(true);
         });
         // state.addSubtitleAction(this.subtitle, "Well, I don't want to argue with you about that. \n It's just so gross!", true);
@@ -1589,7 +1593,7 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
-        this.COUNT_ALL_TIME = 3;
+        this.COUNT_ALL_TIME = 30;
         this.paperWidth = 1000;
         this.paperHeight = 900;
         this.confirmCount = 0;
@@ -2932,6 +2936,8 @@ class Enemy {
     }
     checkIfNeedShowAutoBadBadge(time, dt) {
         if (!this.isSensative())
+            return;
+        if (this.scene.isPausedOrDied())
             return;
         if (this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {
             if (time - this.lastAutoBadge > autoBadgeInterval) {
@@ -5319,7 +5325,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
     create() {
         this.creatCount++;
-        if (this.creatCount == 6) {
+        if (this.creatCount == startMockNum) {
             this.sc1().normalGameFsm.event('MOCK');
         }
         let e = this.spawnNormal();
@@ -5974,7 +5980,8 @@ class CenterProgress extends Wrapper {
 let initScore = 0;
 let baseScore = 500;
 let normalFreq1 = 7;
-let startWarnNum = 1;
+let startWarnNum = 4;
+let startMockNum = 4;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 3;
@@ -6158,6 +6165,7 @@ class ClickerInfoPanel extends Wrapper {
 class Died extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
+        this.inShown = false;
         // Big banner
         this.banner = new Rect(this.scene, this.inner, 0, 0, {
             originX: 0.5,
@@ -6179,10 +6187,12 @@ class Died extends Wrapper {
         this.restartBtn.text.setFontSize(44);
     }
     hide() {
+        this.inShown = false;
         this.inner.setVisible(false);
         this.restartBtn.setEnable(false, false);
     }
     show() {
+        this.inShown = true;
         this.inner.setVisible(true);
         this.inner.alpha = 0;
         this.restartBtn.setEnable(true, false);
@@ -6799,7 +6809,7 @@ class Hud extends Wrapper {
         this.popupBubbleRight.hide();
         let startY = 0;
         let intervalY = 100;
-        let tempHotkey = ['1', '2', '3', '4', '5'];
+        let tempHotkey = ['7', '8', '9', '0', '-'];
         for (let i = 0; i < propInfos.length; i++) {
             let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', info, false, 100, 100, false);
@@ -6899,7 +6909,7 @@ class Hud extends Wrapper {
         titleStyle.fill = '#1A1A1A';
         let title = this.scene.add.text(0, -btnWidth / 2 - 15, 'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
-        let tempHotkey = ['6', '7', '8', '9', '0', '-'];
+        let tempHotkey = ['1', '2', '3', '4', '5', '6'];
         for (let i = 0; i < badInfos.length; i++) {
             let info = badInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i, 'rounded_btn', badInfos[i], true, 100, 105, false);
@@ -7732,6 +7742,7 @@ class Paper extends Figure {
 class PauseLayer extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
+        this.inShown = false;
         // Big banner
         this.bkg = new Rect(this.scene, this.inner, 0, 0, {
             originX: 0.5,
@@ -7752,6 +7763,7 @@ class PauseLayer extends Wrapper {
         this.inner.add(this.title);
     }
     hide() {
+        this.inShown = false;
         this.inner.setVisible(false);
         if (this.tw)
             this.tw.stop();
@@ -7762,6 +7774,7 @@ class PauseLayer extends Wrapper {
         });
     }
     show(title, alpha) {
+        this.inShown = true;
         if (notSet(title)) {
             title = ' Paused ';
         }

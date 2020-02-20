@@ -14,7 +14,8 @@ let initScore = 0;
 let baseScore = 500;
 let normalFreq1 = 7;
 
-let startWarnNum = 1;
+let startWarnNum = 4;
+let startMockNum = 4;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;

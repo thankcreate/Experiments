@@ -196,6 +196,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "Anyway, thank you for participating in my experiment.\n We are not done yet", true);
         state.addSubtitleAction(this.subtitle, "Before we move on,\n would you kindly fill in this beautiful forms for me please?", true, null, 50);
         state.addAction(s=>{
+            this.pause();
             Overlay.getInstance().showFormRating(true);
         })
 

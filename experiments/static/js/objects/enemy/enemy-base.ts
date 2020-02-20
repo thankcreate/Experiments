@@ -428,7 +428,12 @@ class Enemy {
     checkIfNeedShowAutoBadBadge(time, dt) {
         if(!this.isSensative())
             return;
-        if(this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {            
+
+        if(this.scene.isPausedOrDied())              
+            return;
+        
+        if(this.scene.enemyManager.curStrategyID == SpawnStrategyType.ClickerGame) {      
+            
             if(time - this.lastAutoBadge > autoBadgeInterval) {                
                 let avi = [];
                 for(let i in badInfos) {

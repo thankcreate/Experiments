@@ -195,7 +195,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     create() {
         this.creatCount++;
 
-        if(this.creatCount == 6) {
+        if(this.creatCount == startMockNum) {
             this.sc1().normalGameFsm.event('MOCK');
         }
         let e = this.spawnNormal();

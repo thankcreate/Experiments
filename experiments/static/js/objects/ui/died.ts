@@ -31,12 +31,15 @@ class Died extends Wrapper<PhText> {
         this.restartBtn.text.setFontSize(44);
     }
 
+    inShown = false;
     hide() {
+        this.inShown = false;
         this.inner.setVisible(false);
         this.restartBtn.setEnable(false, false);
     }
 
     show(): Pany{
+        this.inShown = true;
         this.inner.setVisible(true);
         this.inner.alpha = 0;
         this.restartBtn.setEnable(true, false);

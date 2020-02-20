@@ -841,5 +841,9 @@ class Scene1 extends BaseScene {
     needHud() : boolean{
         return true;
     }    
+
+    isPausedOrDied() {
+        return this.pauseLayer.inShown || this.died.inShown;
+    }
 }
 

@@ -31,7 +31,9 @@ class PauseLayer extends Wrapper<PhText> {
     }
 
     tw: PhTween;
+    inShown: boolean = false;
     hide() {
+        this.inShown = false;
         this.inner.setVisible(false);        
         if(this.tw)
             this.tw.stop();
@@ -43,6 +45,7 @@ class PauseLayer extends Wrapper<PhText> {
     }
 
     show(title?, alpha?) {        
+        this.inShown = true;
         if(notSet(title)) {
             title = ' Paused ';
         }

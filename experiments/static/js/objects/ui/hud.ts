@@ -101,7 +101,7 @@ class Hud extends Wrapper<PhText> {
         let startY = 0;
         let intervalY = 100;
 
-        let tempHotkey = ['1', '2', '3', '4', '5'];
+        let tempHotkey = ['7', '8', '9', '0', '-'];
         for(let i = 0; i < propInfos.length; i++) {       
             let info = propInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
@@ -231,7 +231,7 @@ class Hud extends Wrapper<PhText> {
         titleStyle.fill = '#1A1A1A'
         let title = this.scene.add.text(0, -btnWidth / 2 - 15,'Auto Bad', titleStyle).setOrigin(0.5, 1);
         this.toolMenuContainerLeft.add(title);
-        let tempHotkey = ['6', '7', '8', '9', '0', '-'];
+        let tempHotkey = ['1', '2', '3', '4', '5', '6'];
         for(let i = 0; i < badInfos.length; i++) {    
             let info = badInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerLeft.inner, this.toolMenuContainerLeft, this, 0, startY + intervalY * i,

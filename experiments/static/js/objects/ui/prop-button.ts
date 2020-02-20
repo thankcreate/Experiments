@@ -357,6 +357,20 @@ class PropButton extends Button {
         if(this.group && !this.group.isShown) {
             return false;
         }
+
+        let propIdx = this.getPropIndex();
+        if(propIdx >= 0) {
+            /**
+             * >=0 means this is a btn in the right prop group
+             * For the props, it can only be purchased when the previous one is purchased
+             */
+            if(propIdx >= 1) {
+                if(!propInfos[propIdx - 1].consumed) {
+                    return false;
+                }
+            }
+        }
+
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
 
@@ -368,6 +382,11 @@ class PropButton extends Button {
      * Refresh if can click
      */
     refreshState() : boolean {
+        let idx = this.getPropIndex();
+        if(idx == 1) {
+            let i = 1;
+            i++;
+        }
         if(this.text.text == 'Evil') {
             let i = 1;
             i++;

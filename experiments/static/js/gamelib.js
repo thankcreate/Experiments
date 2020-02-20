@@ -1534,7 +1534,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[1];
-        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patience to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
         state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
@@ -5959,7 +5959,7 @@ class CenterProgress extends Wrapper {
     }
 }
 let initScore = 0;
-let baseScore = 200;
+let baseScore = 100;
 let normalFreq1 = 7;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
@@ -6030,6 +6030,9 @@ let propInfos = [
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
     return resId;
+}
+function getCompleteBadInfo() {
+    return propInfos[0];
 }
 function getAutoTypeInfo() {
     return propInfos[1];
@@ -6800,6 +6803,7 @@ class Hud extends Wrapper {
         // auto 'Bad' Btn click
         this.rightBtns[0].purchasedEvent.on(btn => {
             this.scene.centerObject.playerInputText.addAutoKeywords('Bad');
+            getCompleteBadInfo().consumed = true;
         });
         this.rightBtns[0].needForceBubble = true;
         // 'Auto'
@@ -8434,12 +8438,29 @@ class PropButton extends Button {
         if (this.group && !this.group.isShown) {
             return false;
         }
+        let propIdx = this.getPropIndex();
+        if (propIdx >= 0) {
+            /**
+             * >=0 means this is a btn in the right prop group
+             * For the props, it can only be purchased when the previous one is purchased
+             */
+            if (propIdx >= 1) {
+                if (!propInfos[propIdx - 1].consumed) {
+                    return false;
+                }
+            }
+        }
         return this.hud.score >= this.priceTag && this.priceTag != 0;
     }
     /**
      * Refresh if can click
      */
     refreshState() {
+        let idx = this.getPropIndex();
+        if (idx == 1) {
+            let i = 1;
+            i++;
+        }
         if (this.text.text == 'Evil') {
             let i = 1;
             i++;

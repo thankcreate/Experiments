@@ -11,7 +11,7 @@ interface PropInfo {
 
 
 let initScore = 0;
-let baseScore = 200;
+let baseScore = 100;
 let normalFreq1 = 7;
 
 let autoBadgeInterval = 400;
@@ -110,6 +110,10 @@ let propInfos = [
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase(); 
     return resId;
+}
+
+function getCompleteBadInfo() {
+    return propInfos[0];
 }
 
 function getAutoTypeInfo() {

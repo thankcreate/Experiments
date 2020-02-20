@@ -124,7 +124,8 @@ class Hud extends Wrapper<PhText> {
         
         // auto 'Bad' Btn click
         this.rightBtns[0].purchasedEvent.on(btn=>{    
-            (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad');            
+            (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad'); 
+            getCompleteBadInfo().consumed = true;           
         });
         this.rightBtns[0].needForceBubble = true;
 

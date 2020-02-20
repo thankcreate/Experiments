@@ -14,6 +14,12 @@ var normal_1_4 = {
         {name: 'FINISHED', from:'PromptCompleteBad', to:'Idle'},
         {name: 'TO_PROMPT_AUTO_BAD', from:'Idle', to:'PromptAutoBad'},        
         {name: 'FINISHED', from:'PromptAutoBad', to:'Idle'},
+        {name: 'TO_PROMPT_TURN', from:'Idle', to:'PromptTurn'},
+        {name: 'FINISHED', from:'PromptTurn', to:'Idle'},
+        {name: 'TO_PROMPT_AUTO_TURN', from:'Idle', to:'PromptAutoTurn'},
+        {name: 'FINISHED', from:'PromptAutoTurn', to:'Idle'},
+        {name: 'TO_PROMPT_CREATOR', from:'Idle', to:'PromptCreator'},
+        {name: 'FINISHED', from:'PromptCreator', to:'Idle'},
     ],
     states: [
         {name: 'Idle', color:'Green'}

@@ -57,10 +57,16 @@ class Scene1L4 extends Scene1 {
         this.initWarn();
         this.initStateIdle();
         this.initStMock();
+
         this.initStPromptAutoBad();
         this.initStPrmoptAutoTyper();
+        this.initStPromptTurn();
+        this.initStPrmoptAutoTurn();
+        this.initStPrmoptCreator();
+
         this.updateObjects.push(this.normalGameFsm);
     }
+
 
     needShowEcoAboutAtStartup(): boolean {
         if (isEconomicSpecialEdition()) {
@@ -205,6 +211,9 @@ class Scene1L4 extends Scene1 {
         let eventNames = [
             'TO_PROMPT_COMPLETE_BAD',
             'TO_PROMPT_AUTO_BAD',
+            'TO_PROMPT_TURN',
+            'TO_PROMPT_AUTO_TURN',
+            'TO_PROMPT_CREATOR',
         ];
         this.normalGameFsm.event(eventNames[idx]);
     }
@@ -266,12 +275,56 @@ class Scene1L4 extends Scene1 {
         let targetBtn = this.ui.hud.rightBtns[1];
         state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
-        state.addSubtitleAction(this.subtitle, "This time, an automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
+        state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s=>{            
             targetBtn.hideAttachedBubble();
         })
 
+    }
+
+
+    
+    initStPromptTurn() {
+        let state = this.normalGameFsm.getState("PromptTurn");
+        state.setOnEnter(s=>{
+            targetBtn.hasNoActualClick = true;
+        });
+        let targetBtn = this.ui.hud.rightBtns[2];
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-404s into 404?", false).finishImmediatly()
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s=>{            
+            targetBtn.hideAttachedBubble();
+        })
+    }
+
+    initStPrmoptAutoTurn() {
+        let state = this.normalGameFsm.getState("PromptAutoTurn");
+        state.setOnEnter(s=>{
+            targetBtn.hasNoActualClick = true;
+        });
+        let targetBtn = this.ui.hud.rightBtns[3];
+        state.addSubtitleAction(this.subtitle, "Tired of turning them manually?", false).finishImmediatly()
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s=>{            
+            targetBtn.hideAttachedBubble();
+        })
+    }
+    
+    initStPrmoptCreator() {
+        let state = this.normalGameFsm.getState("PromptCreator");
+        state.setOnEnter(s=>{
+            targetBtn.hasNoActualClick = true;
+        });
+        let targetBtn = this.ui.hud.rightBtns[4];
+        // state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s=>{            
+            targetBtn.hideAttachedBubble();
+        })
     }
 }

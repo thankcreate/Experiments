@@ -161,11 +161,13 @@ class Hud extends Wrapper<PhText> {
                 + '\n\nTurn value to Non-404 per "Turn": 1'
                 + "\n\nPrice: " + myNum(info.price);
         } 
+        this.rightBtns[2].needForceBubble = true;
 
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn=>{      
             getAutoTurnInfo().consumed = true;
         });
+        
 
         this.rightBtns[3].bubbleContent = ()=>{
             let info = this.rightBtns[3].info;
@@ -173,13 +175,14 @@ class Hud extends Wrapper<PhText> {
                 + "\n\nDPS(Non-404): 1 / " + autoTurnDpsFactor + " of MaxHP"
                 + "\n\nPrice: " + myNum(info.price);
         } 
+        this.rightBtns[3].needForceBubble = true;
 
         // Create a new world
         this.rightBtns[4].purchasedEvent.on(btn=>{
             getCreatePropInfo().consumed = true;
             this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());            
         });
-        
+        this.rightBtns[4].needForceBubble = true;
         
     }
 

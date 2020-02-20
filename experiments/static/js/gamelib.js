@@ -1361,6 +1361,9 @@ class Scene1L4 extends Scene1 {
         this.initStMock();
         this.initStPromptAutoBad();
         this.initStPrmoptAutoTyper();
+        this.initStPromptTurn();
+        this.initStPrmoptAutoTurn();
+        this.initStPrmoptCreator();
         this.updateObjects.push(this.normalGameFsm);
     }
     needShowEcoAboutAtStartup() {
@@ -1478,6 +1481,9 @@ class Scene1L4 extends Scene1 {
         let eventNames = [
             'TO_PROMPT_COMPLETE_BAD',
             'TO_PROMPT_AUTO_BAD',
+            'TO_PROMPT_TURN',
+            'TO_PROMPT_AUTO_TURN',
+            'TO_PROMPT_CREATOR',
         ];
         this.normalGameFsm.event(eventNames[idx]);
     }
@@ -1530,7 +1536,46 @@ class Scene1L4 extends Scene1 {
         let targetBtn = this.ui.hud.rightBtns[1];
         state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patient to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
-        state.addSubtitleAction(this.subtitle, "This time, an automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly();
+        state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly();
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s => {
+            targetBtn.hideAttachedBubble();
+        });
+    }
+    initStPromptTurn() {
+        let state = this.normalGameFsm.getState("PromptTurn");
+        state.setOnEnter(s => {
+            targetBtn.hasNoActualClick = true;
+        });
+        let targetBtn = this.ui.hud.rightBtns[2];
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-404s into 404?", false).finishImmediatly();
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s => {
+            targetBtn.hideAttachedBubble();
+        });
+    }
+    initStPrmoptAutoTurn() {
+        let state = this.normalGameFsm.getState("PromptAutoTurn");
+        state.setOnEnter(s => {
+            targetBtn.hasNoActualClick = true;
+        });
+        let targetBtn = this.ui.hud.rightBtns[3];
+        state.addSubtitleAction(this.subtitle, "Tired of turning them manually?", false).finishImmediatly();
+        this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s => {
+            targetBtn.hideAttachedBubble();
+        });
+    }
+    initStPrmoptCreator() {
+        let state = this.normalGameFsm.getState("PromptCreator");
+        state.setOnEnter(s => {
+            targetBtn.hasNoActualClick = true;
+        });
+        let targetBtn = this.ui.hud.rightBtns[4];
+        // state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s => {
@@ -4478,6 +4523,12 @@ var normal_1_4 = {
         { name: 'FINISHED', from: 'PromptCompleteBad', to: 'Idle' },
         { name: 'TO_PROMPT_AUTO_BAD', from: 'Idle', to: 'PromptAutoBad' },
         { name: 'FINISHED', from: 'PromptAutoBad', to: 'Idle' },
+        { name: 'TO_PROMPT_TURN', from: 'Idle', to: 'PromptTurn' },
+        { name: 'FINISHED', from: 'PromptTurn', to: 'Idle' },
+        { name: 'TO_PROMPT_AUTO_TURN', from: 'Idle', to: 'PromptAutoTurn' },
+        { name: 'FINISHED', from: 'PromptAutoTurn', to: 'Idle' },
+        { name: 'TO_PROMPT_CREATOR', from: 'Idle', to: 'PromptCreator' },
+        { name: 'FINISHED', from: 'PromptCreator', to: 'Idle' },
     ],
     states: [
         { name: 'Idle', color: 'Green' }
@@ -5968,13 +6019,13 @@ let hpPropInfos = [
 ];
 let cYesOrNo = " 'Y' / 'N' ";
 let propInfos = [
-    { title: "B**", consumed: false, pauseTitle: ' Paused ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
+    { title: "B**", consumed: false, pauseTitle: '  ^_^  ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
     { title: "Auto\nBad", consumed: false, pauseTitle: '  >_<  ', price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "T**", consumed: false, pauseTitle: cYesOrNo, price: 2000, size: 30,
+    { title: "T**", consumed: false, pauseTitle: '  o_o  ', price: 2000, size: 30,
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
-    { title: "Auto\nTurn", consumed: false, pauseTitle: cYesOrNo, price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, pauseTitle: cYesOrNo, price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+    { title: "Auto\nTurn", consumed: false, pauseTitle: '  ^_^  ', price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "The\nCreator", consumed: false, pauseTitle: '  ._.  ', price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -6779,6 +6830,7 @@ class Hud extends Wrapper {
                 + '\n\nTurn value to Non-404 per "Turn": 1'
                 + "\n\nPrice: " + myNum(info.price);
         };
+        this.rightBtns[2].needForceBubble = true;
         // Auto Turn 
         this.rightBtns[3].purchasedEvent.on(btn => {
             getAutoTurnInfo().consumed = true;
@@ -6789,11 +6841,13 @@ class Hud extends Wrapper {
                 + "\n\nDPS(Non-404): 1 / " + autoTurnDpsFactor + " of MaxHP"
                 + "\n\nPrice: " + myNum(info.price);
         };
+        this.rightBtns[3].needForceBubble = true;
         // Create a new world
         this.rightBtns[4].purchasedEvent.on(btn => {
             getCreatePropInfo().consumed = true;
             this.sc1().centerObject.playerInputText.addAutoKeywords(getCreateKeyword());
         });
+        this.rightBtns[4].needForceBubble = true;
     }
     createMenuLeft() {
         let btnWidth = 90;

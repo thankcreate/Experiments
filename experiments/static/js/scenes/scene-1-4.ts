@@ -148,7 +148,7 @@ class Scene1L4 extends Scene1 {
             
         });
         state.setOnUpdate(s => {
-            if (this.getCurClickerStrategy().normalNormalCount >= 2 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
+            if (this.getCurClickerStrategy().normalNormalCount >= startWarnNum && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
                 this.normalGameFsm.setVar(this.hasWarnKey, true);
                 s.event('WARN');
             }
@@ -215,7 +215,8 @@ class Scene1L4 extends Scene1 {
             'TO_PROMPT_AUTO_TURN',
             'TO_PROMPT_CREATOR',
         ];
-        this.normalGameFsm.event(eventNames[idx]);
+        // global event
+        this.normalGameFsm.event(eventNames[idx], true);
     }
 
 
@@ -284,7 +285,8 @@ class Scene1L4 extends Scene1 {
 
     }
 
-
+    // TODO: maybe the showPause should be put into the state onEnter
+    // TODO: the prompt of hinting the player not to do the word mathing should be put into a more flexible state
     
     initStPromptTurn() {
         let state = this.normalGameFsm.getState("PromptTurn");

@@ -1428,7 +1428,7 @@ class Scene1L4 extends Scene1 {
         state.setOnEnter(s => {
         });
         state.setOnUpdate(s => {
-            if (this.getCurClickerStrategy().normalNormalCount >= 2 && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
+            if (this.getCurClickerStrategy().normalNormalCount >= startWarnNum && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
                 this.normalGameFsm.setVar(this.hasWarnKey, true);
                 s.event('WARN');
             }
@@ -1485,7 +1485,8 @@ class Scene1L4 extends Scene1 {
             'TO_PROMPT_AUTO_TURN',
             'TO_PROMPT_CREATOR',
         ];
-        this.normalGameFsm.event(eventNames[idx]);
+        // global event
+        this.normalGameFsm.event(eventNames[idx], true);
     }
     addYesOrNoAction(s, targetBtn) {
         s.addAction((s, result, resolve, reject) => {
@@ -1543,6 +1544,8 @@ class Scene1L4 extends Scene1 {
             targetBtn.hideAttachedBubble();
         });
     }
+    // TODO: maybe the showPause should be put into the state onEnter
+    // TODO: the prompt of hinting the player not to do the word mathing should be put into a more flexible state
     initStPromptTurn() {
         let state = this.normalGameFsm.getState("PromptTurn");
         state.setOnEnter(s => {
@@ -3991,13 +3994,23 @@ class Fsm {
      * invoke a event
      * @param key
      */
-    event(key) {
+    event(key, isGlobal = false) {
         if (key.toUpperCase() !== key) {
             console.warn("FSM event is not all capitalized: " + key + "\nDid you used the state's name as the event's name by mistake?");
         }
         if (this.curState) {
-            if (this.curState.eventRoute.has(key)) {
-                let targetName = this.curState.eventRoute.get(key);
+            let targetName = null;
+            if (isGlobal) {
+                this.states.forEach((stateOb, stateName) => {
+                    if (stateOb.eventRoute.has(key)) {
+                        targetName = stateOb.eventRoute.get(key);
+                    }
+                });
+            }
+            else {
+                targetName = this.curState.eventRoute.get(key);
+            }
+            if (targetName) {
                 let state = this.states.get(targetName);
                 state.fromEvent = key;
                 this.runState(state);
@@ -5959,8 +5972,9 @@ class CenterProgress extends Wrapper {
     }
 }
 let initScore = 0;
-let baseScore = 100;
+let baseScore = 500;
 let normalFreq1 = 7;
+let startWarnNum = 1;
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;
 let hpRegFactor = 3;

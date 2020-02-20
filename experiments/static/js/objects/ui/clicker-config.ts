@@ -11,8 +11,10 @@ interface PropInfo {
 
 
 let initScore = 0;
-let baseScore = 100;
+let baseScore = 500;
 let normalFreq1 = 7;
+
+let startWarnNum = 1;
 
 let autoBadgeInterval = 400;
 let autoTurnInterval = 1000;

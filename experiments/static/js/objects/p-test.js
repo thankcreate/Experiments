@@ -23,29 +23,35 @@
 
 // firstRes('fuckyou');
 
-let outResolve;
-let chain = Promise.resolve(1)
-.then(res => {
-    return new Promise((resolve, rej) => {
+// let outResolve;
+// let chain = Promise.resolve(1)
+// .then(res => {
+//     return new Promise((resolve, rej) => {
         
-        console.log('log1');
-        resolve('1');
-        console.log('log2');
-        outResolve = resolve;
-        setTimeout(() => {
-            console.log('delay');
-            resolve('haha');
-        }, 2000);
-    });
-})
-.then(res => {
-    console.log(res);
-})
-.catch(reason => {
-    console.log('catch here');
-});
+//         console.log('log1');
+//         resolve('1');
+//         console.log('log2');
+//         outResolve = resolve;
+//         setTimeout(() => {
+//             console.log('delay');
+//             resolve('haha');
+//         }, 2000);
+//     });
+// })
+// .then(res => {
+//     console.log(res);
+// })
+// .catch(reason => {
+//     console.log('catch here');
+// });
 
-
+function logMapElements(value, key, map) {
+    console.log(`m[${key}] = ${value}`);
+  }
+  
+new Map([['foo', 3], ['bar', {}], ['baz', undefined]])
+.forEach(logMapElements);
+console.log('123');
 
 
 // function testFunc(func) {

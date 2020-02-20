@@ -139,21 +139,32 @@ class Fsm {
      * invoke a event
      * @param key 
      */
-    event(key: string): void {
+    event(key: string, isGlobal: boolean = false): void {
         if(key.toUpperCase() !== key) {
             console.warn("FSM event is not all capitalized: " + key + "\nDid you used the state's name as the event's name by mistake?");
         }
 
         if (this.curState) {
-            if (this.curState.eventRoute.has(key)) {               
-                
-                let targetName = this.curState.eventRoute.get(key);
+            let targetName = null;
+
+            if(isGlobal) {
+                this.states.forEach((stateOb, stateName) =>{
+                    if(stateOb.eventRoute.has(key)) {
+                        targetName = stateOb.eventRoute.get(key);
+                    }
+                })
+            }
+            else {
+                targetName = this.curState.eventRoute.get(key);
+            }                
+
+
+            if (targetName) {          
                 let state = this.states.get(targetName);
                 state.fromEvent = key;
                 this.runState(state);
             }
         }
-
     }
 
     runState(state: FsmState) {

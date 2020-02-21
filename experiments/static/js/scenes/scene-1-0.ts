@@ -45,7 +45,7 @@ class Scene1L0 extends BaseScene {
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         s_youtubeFinishCallback = ()=>{
-            window.location.replace(window.location.origin + "?level=1");
+            this.getController().gotoNextScene();
         };
     }
 

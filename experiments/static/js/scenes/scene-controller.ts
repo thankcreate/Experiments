@@ -28,6 +28,16 @@ class MyInput {
 declare var WebFont: any;
 class Controller extends Phaser.Scene {
 
+    sceneSeq = [
+        '1-0',
+        '1-1',
+        '1-2',
+        '1-3',
+        '1-Paper',
+        '1-4',
+    ]
+    
+
     speechManager: SpeechManager;
     myInput: MyInput;
 
@@ -63,8 +73,25 @@ class Controller extends Phaser.Scene {
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
         // this.scene.launch('Scene1L2');      
-        let index = getCurrentLevelRaw();        
-        this.scene.launch('Scene1L' + index);      
+        let level = getCurrentLevelRaw().split('-');        
+
+        let sceneName = `Scene${level[0]}L${level[1]}` ;
+        console.log(sceneName);
+        this.scene.launch(sceneName);      
+    }    
+
+    gotoNextScene() {
+        let level = getCurrentLevelRaw();
+        let idx = 0;
+        for(let i = 0; i < this.sceneSeq.length; i++) {
+            if(this.sceneSeq[i] == level) {
+                idx = i;
+                break;
+            }
+        }
+        if(idx != this.sceneSeq.length - 1) {
+            window.location.replace(window.location.origin + `?level=${this.sceneSeq[idx + 1]}`);
+        }            
     }
 
     playSpeechInController(text: string, timeOut:number = 4000) : Pany {

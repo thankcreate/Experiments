@@ -205,7 +205,7 @@ class Scene1L1 extends Scene1 {
                 // }
 
                 // ignore for the demo
-                window.location.replace(window.location.origin + "?level=2");
+                this.getController().gotoNextScene();
             })
             .addFinishAction().setFinally();
     }

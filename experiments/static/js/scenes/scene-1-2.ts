@@ -65,7 +65,7 @@ class Scene1L2 extends Scene1 {
             .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just tell you the secret of universe.", false)
             .addDelayAction(this, 10000)
             .addAction(s=>{
-                window.location.replace(window.location.origin + "?level=3");
+                this.getController().gotoNextScene();
             })
 
     }

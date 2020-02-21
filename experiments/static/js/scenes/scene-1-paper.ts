@@ -44,7 +44,8 @@ class Scene1LPaper extends BaseScene {
         this.nextLevelBtn = btn;
 
         btn.clickedEvent.on(()=>{
-            window.location.replace(window.location.origin + "?level=4");
+            this.getController().gotoNextScene();
+            // window.location.replace(window.location.origin + "?level=4");
         });
     }
     

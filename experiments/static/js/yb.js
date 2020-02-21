@@ -7,7 +7,7 @@ function onYouTubePlayerAPIReady() {
         height: '480',
         width: '640',
         videoId: '7YL_-y7fc3I',
-        playerVars: { 'autoplay': 0, 'controls': 0 },
+        playerVars: { 'autoplay': 0, 'controls':1 },
         events: {
         'onReady': onPlayerReady,
         'onStateChange': onPlayerStateChange

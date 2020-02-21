@@ -43,7 +43,11 @@ function getCurrentLevelRaw() : string {
     let index = 0;
     let ret = params['level'];
     if(!ret) {
-        return '0';
+        return '1-0';
+    }
+
+    if(ret.split('-').length < 2) {
+        ret = '1-' + ret;
     }
     return ret;
 }
@@ -53,16 +57,17 @@ function getCurrentLevelRaw() : string {
  * otherwise, return the given number
  */
 function getCurLevelIndex() : number{        
-    let params = getUrlParams();
-    let index = 1;
+    
+    let rawLevel = getCurrentLevelRaw();
 
-    let rawLevel = params['level'] as string;
-    if(rawLevel == 'Paper') {
+    let splits = rawLevel.split('-');
+    if(splits[1] == 'Paper') {
         return -1;
     }
-
-    if(params['level'] != null) {
-        index = parseInt(params['level']);
+    let index = 0;
+    let smalllvl = splits[1];
+    if(smalllvl != null) {
+        index = parseInt(smalllvl);
     }
     return index;
 }

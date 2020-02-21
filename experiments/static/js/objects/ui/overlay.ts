@@ -440,6 +440,10 @@ function s_commentSubmit() {
     Overlay.getInstance().commentSubmit();
 }
 
+function s_nextLevel() {
+    Overlay.getInstance().scene.getController().gotoNextScene();
+}
+
 
 function listenToRadio() {    
     $(':radio').change(() =>{

@@ -717,7 +717,7 @@ class Scene1L0 extends BaseScene {
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         s_youtubeFinishCallback = () => {
-            window.location.replace(window.location.origin + "?level=1");
+            this.getController().gotoNextScene();
         };
     }
     initNormalGameFsm() {
@@ -996,7 +996,7 @@ class Scene1L1 extends Scene1 {
             //     this.backBtn.clickedEvent.emit(this.backBtn);
             // }
             // ignore for the demo
-            window.location.replace(window.location.origin + "?level=2");
+            this.getController().gotoNextScene();
         })
             .addFinishAction().setFinally();
     }
@@ -1093,7 +1093,7 @@ class Scene1L2 extends Scene1 {
             .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just tell you the secret of universe.", false)
             .addDelayAction(this, 10000)
             .addAction(s => {
-            window.location.replace(window.location.origin + "?level=3");
+            this.getController().gotoNextScene();
         });
     }
 }
@@ -1342,7 +1342,7 @@ class Scene1L3 extends Scene1 {
             .addAction(s => {
             this.backBtn.clickedEvent.emit(this.backBtn);
             setTimeout(() => {
-                window.location.replace(window.location.origin + "?level=Paper");
+                this.getController().gotoNextScene();
             }, 2000);
         });
     }
@@ -1653,7 +1653,8 @@ class Scene1LPaper extends BaseScene {
         btn.setEnable(false, false);
         this.nextLevelBtn = btn;
         btn.clickedEvent.on(() => {
-            window.location.replace(window.location.origin + "?level=4");
+            this.getController().gotoNextScene();
+            // window.location.replace(window.location.origin + "?level=4");
         });
     }
     initPaperButtonCallback() {
@@ -1885,6 +1886,14 @@ class MyInput {
 class Controller extends Phaser.Scene {
     constructor() {
         super('Controller');
+        this.sceneSeq = [
+            '1-0',
+            '1-1',
+            '1-2',
+            '1-3',
+            '1-Paper',
+            '1-4',
+        ];
     }
     preload() {
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
@@ -1908,8 +1917,23 @@ class Controller extends Phaser.Scene {
     gotoFirstScene() {
         // console.log("origin: " + window.location.origin);        
         // this.scene.launch('Scene1L2');      
-        let index = getCurrentLevelRaw();
-        this.scene.launch('Scene1L' + index);
+        let level = getCurrentLevelRaw().split('-');
+        let sceneName = `Scene${level[0]}L${level[1]}`;
+        console.log(sceneName);
+        this.scene.launch(sceneName);
+    }
+    gotoNextScene() {
+        let level = getCurrentLevelRaw();
+        let idx = 0;
+        for (let i = 0; i < this.sceneSeq.length; i++) {
+            if (this.sceneSeq[i] == level) {
+                idx = i;
+                break;
+            }
+        }
+        if (idx != this.sceneSeq.length - 1) {
+            window.location.replace(window.location.origin + `?level=${this.sceneSeq[idx + 1]}`);
+        }
     }
     playSpeechInController(text, timeOut = 4000) {
         // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
@@ -2279,7 +2303,10 @@ function getCurrentLevelRaw() {
     let index = 0;
     let ret = params['level'];
     if (!ret) {
-        return '0';
+        return '1-0';
+    }
+    if (ret.split('-').length < 2) {
+        ret = '1-' + ret;
     }
     return ret;
 }
@@ -2288,14 +2315,15 @@ function getCurrentLevelRaw() {
  * otherwise, return the given number
  */
 function getCurLevelIndex() {
-    let params = getUrlParams();
-    let index = 1;
-    let rawLevel = params['level'];
-    if (rawLevel == 'Paper') {
+    let rawLevel = getCurrentLevelRaw();
+    let splits = rawLevel.split('-');
+    if (splits[1] == 'Paper') {
         return -1;
     }
-    if (params['level'] != null) {
-        index = parseInt(params['level']);
+    let index = 0;
+    let smalllvl = splits[1];
+    if (smalllvl != null) {
+        index = parseInt(smalllvl);
     }
     return index;
 }
@@ -7685,6 +7713,9 @@ function s_ratingNext() {
 }
 function s_commentSubmit() {
     Overlay.getInstance().commentSubmit();
+}
+function s_nextLevel() {
+    Overlay.getInstance().scene.getController().gotoNextScene();
 }
 function listenToRadio() {
     $(':radio').change(() => {

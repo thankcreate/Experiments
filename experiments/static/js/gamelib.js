@@ -314,15 +314,17 @@ class BaseScene extends Phaser.Scene {
     forceDirectIntoGame() {
         return false;
     }
-    initStFirstMeet() {
-        this.mainFsm.getState("FirstMeet")
-            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            .addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
+    sceneAddFirstMeetGreetingActinos(s) {
+        s.addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
             .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-            .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
-            // Rotate the center object to normal angle   
-            .addTweenAction(this, {
+            .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly();
+        return s;
+    }
+    initStFirstMeet() {
+        let state = this.mainFsm.getState("FirstMeet");
+        this.sceneAddFirstMeetGreetingActinos(state);
+        // Rotate the center object to normal angle   
+        state.addTweenAction(this, {
             targets: this.centerObject.inner,
             rotation: 0,
             duration: 600,
@@ -363,9 +365,15 @@ class BaseScene extends Phaser.Scene {
         let state = this.mainFsm.getState("SecondMeet");
         state
             .addSubtitleAction(this.subtitle, s => {
-            return 'Welcome back! ' + this.getUserName() + '. \nWant to play again?';
-        }, false).finishImmediatly()
-            .addFinishAction();
+            return 'Welcome back! ' + this.getUserName();
+        }, false);
+        if (this.needModeSelect()) {
+            state.finishImmediatly();
+        }
+        state.addFinishAction();
+    }
+    needModeSelect() {
+        return true;
     }
     initStModeSelect() {
         //* Enter Actions
@@ -385,21 +393,26 @@ class BaseScene extends Phaser.Scene {
         }).setBoolCondition(s => this.centerObject.inner.rotation !== 0)
             // Show Mode Select Buttons
             .addAction((s, result, resolve, reject) => {
-            this.centerObject.btnMode0.setEnable(true, true);
-            this.centerObject.btnMode1.setEnable(true, true);
-            this.centerObject.modeToggles.initFocus();
-            s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
-                this.setMode(GameMode.Normal);
-                s.removeAutoRemoveListners(); // in case the player clicked both buttons quickly
+            if (this.needModeSelect()) {
+                this.centerObject.btnMode0.setEnable(true, true);
+                this.centerObject.btnMode1.setEnable(true, true);
+                this.centerObject.modeToggles.initFocus();
+                s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
+                    this.setMode(GameMode.Normal);
+                    s.removeAutoRemoveListners(); // in case the player clicked both buttons quickly
+                    resolve('clicked');
+                });
+                s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
+                    this.setMode(GameMode.Zen);
+                    s.removeAutoRemoveListners();
+                    resolve('clicked');
+                });
+            }
+            else {
                 resolve('clicked');
-            });
-            s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
-                this.setMode(GameMode.Zen);
-                s.removeAutoRemoveListners();
-                resolve('clicked');
-            });
+            }
         })
-            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome())
+            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome() && this.needModeSelect())
             .addAction(() => {
             this.centerObject.btnMode0.setEnable(false, true);
             this.centerObject.btnMode1.setEnable(false, true);
@@ -412,8 +425,14 @@ class BaseScene extends Phaser.Scene {
                 duration: 400
             }
         ]).finishImmediatly()
-            .addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!'; }, true, null, null, 1)
+            .addDelayAction(this, 1000).setBoolCondition(o => !this.needModeSelect());
+        // 'Voiceover: Normal Mode Start'
+        this.sceneAddModeStartAction(state)
             .addFinishAction();
+    }
+    sceneAddModeStartAction(s) {
+        s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!'; }, true, null, null, 1);
+        return s;
     }
     needChangeUiWhenIntoGame() {
         return true;
@@ -783,6 +802,12 @@ class Scene1 extends BaseScene {
     unPauseInnner() {
         super.unPauseInnner();
         this.enemyManager.unFreezeAllEnemies();
+    }
+    sceneAddFirstMeetGreetingActinos(s) {
+        s.addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
+            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+            .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly();
+        return s;
     }
 }
 /// <reference path="scene-1.ts" />

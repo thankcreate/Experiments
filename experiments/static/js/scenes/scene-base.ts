@@ -479,66 +479,79 @@ class BaseScene extends Phaser.Scene {
         return false;
     }
 
+    sceneAddFirstMeetGreetingActinos(s: FsmState) :FsmState {
+        s.addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)        
+        .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+        .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
+        return s;
+    }
+
+
     initStFirstMeet() {
         
-        this.mainFsm.getState("FirstMeet")
-            // .addSubtitleAction(this.subtitle, 'TronTron!', true)
-            .addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)
+        let state = this.mainFsm.getState("FirstMeet");
+        this.sceneAddFirstMeetGreetingActinos(state);
+                    
+        // Rotate the center object to normal angle   
+        state.addTweenAction(this, {
+            targets: this.centerObject.inner,
+            rotation: 0,
+            duration: 600,
+        }).finishImmediatly()
+        // Hide title
+        .addAction((s, result, resolve, reject) => {
+            // this.centerObject.playerInputText.hideTitle();
+            this.centerObject.prepareToGame();
 
-            // .addSubtitleAction(this.subtitle, "This is terminal 65536.\nWhich experiment do you like to take?", true)
-            .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-            .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
-            // Rotate the center object to normal angle   
-            .addTweenAction(this, {
-                targets: this.centerObject.inner,
-                rotation: 0,
-                duration: 600,
-            }).finishImmediatly()
-            // Hide title
-            .addAction((s, result, resolve, reject) => {
-                // this.centerObject.playerInputText.hideTitle();
-                this.centerObject.prepareToGame();
+            // Player input
+            s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+            s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+            s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
+                this.playerName = word;
+                setCookie('name', word);
+                console.log('just in time check: ' + getCookie('name'));
+                resolve(word);
+            });
+        })
+        .addAction((s, result) => {
+            // Disable input listener
+            s.removeAutoRemoveListners();
 
-                // Player input
-                s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
-                s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-                s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
-                    this.playerName = word;
-                    setCookie('name', word);
-                    console.log('just in time check: ' + getCookie('name'));
-                    resolve(word);
-                });
-            })
-            .addAction((s, result) => {
-                // Disable input listener
-                s.removeAutoRemoveListners();
+            // reset speaker, hide input
+            this.centerObject.prepareToHome();
 
-                // reset speaker, hide input
-                this.centerObject.prepareToHome();
+            // prepareToHome don't show the title back
+            // need to show title manually
+            this.centerObject.playerInputText.showTitle(false);
 
-                // prepareToHome don't show the title back
-                // need to show title manually
-                this.centerObject.playerInputText.showTitle(false);
+            // pretend the AI is thinking
+            this.subtitle.hideText();
+        })
+        .addDelayAction(this, 800)
+        .addSubtitleAction(this.subtitle, s => {
+            return this.playerName + "? That sounds good."
+        }, true, 2000, 3000, 300)
+        .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
 
-                // pretend the AI is thinking
-                this.subtitle.hideText();
-            })
-            .addDelayAction(this, 800)
-            .addSubtitleAction(this.subtitle, s => {
-                return this.playerName + "? That sounds good."
-            }, true, 2000, 3000, 300)
-            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
-
-            .addFinishAction();
+        .addFinishAction();
     }
 
     initStSecondMeet() {
         let state = this.mainFsm.getState("SecondMeet");
         state
             .addSubtitleAction(this.subtitle, s=>{
-                return 'Welcome back! ' + this.getUserName() + '. \nWant to play again?';
-            }, false).finishImmediatly()
-            .addFinishAction()
+                return 'Welcome back! ' + this.getUserName() ;
+            }, false)
+        
+        if(this.needModeSelect()) {
+            state.finishImmediatly();
+        }
+        
+        state.addFinishAction()
+    }
+
+    needModeSelect() : boolean{
+        return true;
     }
 
     initStModeSelect() {
@@ -562,27 +575,32 @@ class BaseScene extends Phaser.Scene {
             }).setBoolCondition(s => this.centerObject.inner.rotation !== 0)
             // Show Mode Select Buttons
             .addAction((s: FsmState, result, resolve, reject) => {
-                this.centerObject.btnMode0.setEnable(true, true);
-                this.centerObject.btnMode1.setEnable(true, true);
-                this.centerObject.modeToggles.initFocus();
-
-
-                s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
-                    this.setMode(GameMode.Normal);
-                    s.removeAutoRemoveListners();  // in case the player clicked both buttons quickly
-                    resolve('clicked');     
-
-                              
-                });
-
-                s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
-                    this.setMode(GameMode.Zen);
-                    s.removeAutoRemoveListners();
+                if(this.needModeSelect()) {
+                    this.centerObject.btnMode0.setEnable(true, true);
+                    this.centerObject.btnMode1.setEnable(true, true);
+                    this.centerObject.modeToggles.initFocus();
+    
+    
+                    s.autoOn(this.centerObject.btnMode0.clickedEvent, null, () => {
+                        this.setMode(GameMode.Normal);
+                        s.removeAutoRemoveListners();  // in case the player clicked both buttons quickly
+                        resolve('clicked');     
+    
+                                  
+                    });
+    
+                    s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
+                        this.setMode(GameMode.Zen);
+                        s.removeAutoRemoveListners();
+                        resolve('clicked');
+    
+                    });
+                }
+                else {
                     resolve('clicked');
-
-                });
+                }               
             })
-            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome())
+            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome() && this.needModeSelect())
             .addAction(() => {
                 this.centerObject.btnMode0.setEnable(false, true);
                 this.centerObject.btnMode1.setEnable(false, true);
@@ -595,9 +613,16 @@ class BaseScene extends Phaser.Scene {
                     duration: 400
                 }
             ]).finishImmediatly()
-            .addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
-                , true, null, null, 1)
+            .addDelayAction(this, 1000).setBoolCondition(o=>!this.needModeSelect())
+            // 'Voiceover: Normal Mode Start'
+            this.sceneAddModeStartAction(state)
             .addFinishAction();
+    }
+
+    sceneAddModeStartAction(s: FsmState) : FsmState {
+        s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
+            , true, null, null, 1)
+        return s;
     }
 
 

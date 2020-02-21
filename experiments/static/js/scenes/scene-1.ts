@@ -82,4 +82,11 @@ class Scene1 extends BaseScene {
         this.enemyManager.unFreezeAllEnemies();
     }
     
+
+    sceneAddFirstMeetGreetingActinos(s: FsmState) :FsmState {
+        s.addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)        
+        .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
+        .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
+        return s;
+    }
 }

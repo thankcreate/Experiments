@@ -35,6 +35,7 @@ class Controller extends Phaser.Scene {
         '1-3',
         '1-Paper',
         '1-4',
+        '2-0'
     ]
     
 

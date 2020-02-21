@@ -201,6 +201,14 @@ class Overlay extends Wrapper<PhText> {
         });
     }
 
+    showTempMask(alpha?) {
+
+        if(notSet(alpha)) {
+            alpha=  0;
+        }
+        this.bkg.setFillAlpha(alpha);
+        this.show();
+    }
 
     showAiDialog() {
         this.showFormRating(true);

@@ -685,9 +685,9 @@ class BaseScene extends Phaser.Scene {
     }
 }
 /// <reference path="scene-base.ts" />
-class Scene1L0 extends BaseScene {
-    constructor() {
-        super('Scene1L0');
+class SceneTrailor extends BaseScene {
+    constructor(config) {
+        super(config);
         this.camAllowed = false;
     }
     create() {
@@ -698,6 +698,7 @@ class Scene1L0 extends BaseScene {
         this.anyKeyEvent.on((s) => {
             playYoutubeVideo();
             $('#yb-player').css('visibility', 'visible');
+            this.overlay.showTempMask();
         });
         this.subtitle.inner.alpha = 0;
         let offsetX = getLogicWidth() * 11.8 / 100;
@@ -744,6 +745,12 @@ class Scene1L0 extends BaseScene {
     }
     needHud() {
         return false;
+    }
+}
+/// <reference path="scene-trailor.ts" />
+class Scene1L0 extends SceneTrailor {
+    constructor() {
+        super('Scene1L0');
     }
 }
 class Scene1 extends BaseScene {
@@ -1893,6 +1900,7 @@ class Controller extends Phaser.Scene {
             '1-3',
             '1-Paper',
             '1-4',
+            '2-0'
         ];
     }
     preload() {
@@ -1940,6 +1948,12 @@ class Controller extends Phaser.Scene {
         return this.speechManager.staticLoadAndPlay(text, true, timeOut);
     }
 }
+/// <reference path="scene-trailor.ts" />
+class Scene2L0 extends SceneTrailor {
+    constructor() {
+        super('Scene2L0');
+    }
+}
 /// <reference path="scenes/scene-base.ts" />
 /// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
@@ -1948,6 +1962,7 @@ class Controller extends Phaser.Scene {
 /// <reference path="scenes/scene-1-4.ts" />
 /// <reference path="scenes/scene-1-paper.ts" />
 /// <reference path="scenes/scene-controller.ts" />
+/// <reference path="scenes/scene-2-0.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
     spawnInterval: 8000,
@@ -1996,7 +2011,8 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1L0, BaseScene, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
+    scene: [Controller, Scene1L0, BaseScene, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper,
+        Scene2L0]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -7523,6 +7539,13 @@ class Overlay extends Wrapper {
             this.hide();
             this.leaderboardDialog.hide();
         });
+    }
+    showTempMask(alpha) {
+        if (notSet(alpha)) {
+            alpha = 0;
+        }
+        this.bkg.setFillAlpha(alpha);
+        this.show();
     }
     showAiDialog() {
         this.showFormRating(true);

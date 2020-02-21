@@ -1,9 +1,10 @@
 /// <reference path="scene-trailor.ts" />
 
-class Scene1L0 extends SceneTrailor {
+
+class Scene2L0 extends SceneTrailor {
     
     constructor() {
-        super('Scene1L0');
+        super('Scene2L0');
     }
 
 }

@@ -33,7 +33,7 @@ class Scene1 extends BaseScene {
                 }, null, null);
         });
     }
-
+    
     update(time, dt) {
         super.update(time, dt);
 

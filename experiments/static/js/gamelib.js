@@ -189,11 +189,11 @@ class BaseScene extends Phaser.Scene {
     }
     update(time, dt) {
         super.update(time, dt);
-        this.curTime = time;
-        dt = dt / 1000;
         this.updateObjects.forEach(e => {
             e.update(time, dt);
         });
+        this.curTime = time;
+        dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);

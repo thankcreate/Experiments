@@ -1,10 +1,11 @@
-/// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scenes/scene-base.ts" />
 /// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-1-3.ts" />
 /// <reference path="scenes/scene-1-4.ts" />
 /// <reference path="scenes/scene-1-paper.ts" />
+/// <reference path="scenes/scene-controller.ts" />
 
 
 
@@ -73,5 +74,5 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1L0, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
+    scene: [Controller, Scene1L0, BaseScene, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
 };

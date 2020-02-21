@@ -1,6 +1,8 @@
+/// <reference path="scene-base.ts" />
+
 declare function playYoutubeVideo();
 declare var s_youtubeFinishCallback;
-class Scene1L0 extends Scene1 {
+class Scene1L0 extends BaseScene {
     
     constructor() {
         super('Scene1L0');

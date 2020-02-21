@@ -124,7 +124,7 @@ class Hud extends Wrapper<PhText> {
         
         // auto 'Bad' Btn click
         this.rightBtns[0].purchasedEvent.on(btn=>{    
-            (this.scene as Scene1).centerObject.playerInputText.addAutoKeywords('Bad'); 
+            (this.scene as BaseScene).centerObject.playerInputText.addAutoKeywords('Bad'); 
             getCompleteBadInfo().consumed = true;           
         });
         this.rightBtns[0].needForceBubble = true;
@@ -143,7 +143,7 @@ class Hud extends Wrapper<PhText> {
         
         this.rightBtns[2].needConfirm = !isEconomicSpecialEdition();
         this.rightBtns[2].purchasedEvent.on(btn=>{    
-            let sc = (this.scene as Scene1);
+            let sc = (this.scene as BaseScene);
             sc.centerObject.playerInputText.addAutoKeywords(turnInfos[0].title);
             getTurnInfo().consumed = true;            
             (this.scene as Scene1L4).playOpenTurnBgm();
@@ -383,7 +383,7 @@ class Hud extends Wrapper<PhText> {
 
         
         let scaleTo = 1.2;
-        let sc = this.scene as Scene1;
+        let sc = this.scene as BaseScene;
         if(this.comboHit == 2) {
             sc.sfxMatches[0].play();
         }
@@ -408,7 +408,7 @@ class Hud extends Wrapper<PhText> {
     }
 
     update(time, dt) {
-        let sc = this.scene as Scene1;
+        let sc = this.scene as BaseScene;
         if(this.comboHit > 0 && sc.curTime - this.lastTimeAddCombo > 7000) {
             
             if(sc.needFeedback) {
@@ -464,7 +464,7 @@ class Hud extends Wrapper<PhText> {
 
         
         // this.inner.add(lbl);
-        let parentContainer = (this.scene as Scene1).midContainder;
+        let parentContainer = (this.scene as BaseScene).midContainder;
         parentContainer.add(lbl);
         let dt = 2000;
 
@@ -502,7 +502,7 @@ class Hud extends Wrapper<PhText> {
         else if(mode == GameMode.Zen) 
             tg = [this.scoreText]       
 
-        if(!(this.scene as Scene1).needHud()){
+        if(!(this.scene as BaseScene).needHud()){
             tg = [];
         }
 
@@ -556,7 +556,7 @@ class Hud extends Wrapper<PhText> {
         else
             tg = [this.scoreText]
 
-        if(!(this.scene as Scene1).needHud()){
+        if(!(this.scene as BaseScene).needHud()){
             tg = [];
         }
             

@@ -1,53 +1,4 @@
-class BaseScene extends Phaser.Scene {
-
-    updateObjects: Updatable[] = [];
-
-    needFeedback: boolean = false;
-
-    getController(): Controller {
-        let controller: Controller = <Controller> this.scene.get("Controller");
-        return controller;
-    }
-
-    getSpeechManager() : SpeechManager {
-        return this.getController().speechManager;
-    }
-
-    playSpeech(text: string, timeOut: number = 4000) : Pany {
-        let controller: Controller = <Controller> this.scene.get("Controller");
-        return controller.playSpeechInController(text, timeOut);
-    }
-
-    /**
-     * The hover state check here take overlapping into consideration
-     * Only return true if there is no other interactive object above it.
-     * @param target 
-     */
-    isObjectHovered(target: PhGO) {
-        if(notSet(target)) 
-            return false;
-
-        return this.getHoverTopMostObject() === target;
-    }
-
-    getHoverTopMostObject(): PhGO {
-        let mp = this.input.mousePointer;
-        let obs = this.input.hitTestPointer(mp);
-        let sorted = this.input.sortGameObjects(obs);
-        return sorted[0];
-    }
-
-    /**
-     * Muse sure called super first
-     * @param time 
-     * @param dt 
-     */
-    update(time, dt) {
-        this.updateObjects.forEach(e=>{
-            e.update(time, dt);
-        });        
-    }    
-}
+/// <reference path="scene-base.ts" />
 
 class MyInput {
     
@@ -75,7 +26,7 @@ class MyInput {
 
 }
 declare var WebFont: any;
-class Controller extends BaseScene {
+class Controller extends Phaser.Scene {
 
     speechManager: SpeechManager;
     myInput: MyInput;

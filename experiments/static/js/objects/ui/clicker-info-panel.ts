@@ -59,7 +59,7 @@ class ClickerInfoPanel extends Wrapper<PhText> {
 
 
 
-        let sc = (this.scene as Scene1);
+        let sc = (this.scene as BaseScene);
         let em = sc.enemyManager;
         if(em.curStrategyID == SpawnStrategyType.ClickerGame) {
             if(em.curStrategy) {

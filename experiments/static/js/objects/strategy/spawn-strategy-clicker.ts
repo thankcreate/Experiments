@@ -288,13 +288,13 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         let clickerType = enemy.clickerType;
         if(clickerType == ClickerType.Bad || clickerType == ClickerType.BadFromNormal) {            
             let sc = this.getAwardFor404();
-            (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
+            (this.enemyManager.scene as BaseScene).hud.addScore(sc, enemy);
         }
         else if(clickerType == ClickerType.Normal) {
             // by turn
             if(!isReservedTurnKeyword(damagedBy)) {
                 let sc = this.getAwardForNormal();
-                (this.enemyManager.scene as Scene1).hud.addScore(sc, enemy);
+                (this.enemyManager.scene as BaseScene).hud.addScore(sc, enemy);
                 this.normalNormalCount++;
             }
             // by match

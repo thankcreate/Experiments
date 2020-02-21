@@ -195,7 +195,7 @@ class PlayerInputText {
     }
 
     handleHotkey(c: string) : boolean{
-        return (this.scene as Scene1).hud.handleHotkey(c);        
+        return (this.scene as BaseScene).hud.handleHotkey(c);        
     }
 
     // keypress to handle all the valid characters
@@ -523,7 +523,7 @@ class PlayerInputText {
     }
 
     getCanAcceptInput(): boolean {
-        if((this.scene as Scene1).enemyManager.isPaused) {
+        if((this.scene as BaseScene).enemyManager.isPaused) {
             return false;
         }
 

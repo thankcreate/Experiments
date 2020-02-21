@@ -110,7 +110,7 @@ class Subtitle extends Wrapper<PhText> {
 
 
         this.scene.tweens.add({
-            targets: (this.scene as Scene1).bgm,
+            targets: (this.scene as BaseScene).bgm,
             volume: 0.15,
             duration: 250,
         });
@@ -135,7 +135,7 @@ class Subtitle extends Wrapper<PhText> {
             });
 
             this.scene.tweens.add({
-                targets: (this.scene as Scene1).bgm,
+                targets: (this.scene as BaseScene).bgm,
                 volume: 1,
                 duration: 250,
             });

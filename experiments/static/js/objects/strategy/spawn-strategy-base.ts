@@ -22,7 +22,7 @@ class SpawnStrategy {
 
     needHandleRewardExclusively: boolean = false;
 
-    sc1() : Scene1{
+    sc1() : BaseScene{
         return this.enemyManager.scene;
     }
 

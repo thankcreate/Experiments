@@ -57,7 +57,7 @@ class PropButton extends Button {
 
 
     showAttachedBubble(title?: string) {
-        (this.scene as Scene1).pause(title);    
+        (this.scene as BaseScene).pause(title);    
         this.hovered = true;       
 
         if(this.bubble) {
@@ -69,7 +69,7 @@ class PropButton extends Button {
     }
 
     hideAttachedBubble() {
-        (this.scene as Scene1).unPause();
+        (this.scene as BaseScene).unPause();
         this.hovered = false;
         
         if(this.bubble) {                
@@ -143,9 +143,9 @@ class PropButton extends Button {
                 }
 
                 if(this.needConfirm) {
-                    let dialog = (this.scene as Scene1).overlay.showTurnCautionDialog();
+                    let dialog = (this.scene as BaseScene).overlay.showTurnCautionDialog();
                     // (this.scene as Scene1).enemyManager.freezeAllEnemies();
-                    (this.scene as Scene1).pause();
+                    (this.scene as BaseScene).pause();
 
                     dialog.singleUseConfirmEvent.on(() => {
                         this.doPurchased();
@@ -153,7 +153,7 @@ class PropButton extends Button {
 
                     dialog.singleUseClosedEvent.on(() => {
                         // (this.scene as Scene1).enemyManager.unFreezeAllEnemies();
-                        (this.scene as Scene1).unPause();
+                        (this.scene as BaseScene).unPause();
                     })
                 }
                 else {
@@ -418,7 +418,7 @@ class PropButton extends Button {
                     this.promptImg.inner.setVisible(false);
                 else{
                     if(this.needConsiderHP) {
-                        if((this.scene as Scene1).hud.hp.currHealth <= (this.scene as Scene1).hud.hp.maxHealth / 2) {
+                        if((this.scene as BaseScene).hud.hp.currHealth <= (this.scene as BaseScene).hud.hp.maxHealth / 2) {
                             this.promptImg.inner.setVisible(true);    
                         }
                         else {

@@ -2,7 +2,7 @@
 declare function initFace();
 declare var detector;
 
-class Scene1LPaper extends Scene1 {
+class Scene1LPaper extends BaseScene {
     
     paper: Paper;
 

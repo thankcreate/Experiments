@@ -1,4 +1,4 @@
-class Scene1L1 extends Scene1 {
+class Scene1L1 extends BaseScene {
     constructor() {
         super('Scene1L1');
 

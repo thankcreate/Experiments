@@ -1,105 +1,8 @@
 "use strict";
-class BaseScene extends Phaser.Scene {
-    constructor() {
-        super(...arguments);
-        this.updateObjects = [];
-        this.needFeedback = false;
-    }
-    getController() {
-        let controller = this.scene.get("Controller");
-        return controller;
-    }
-    getSpeechManager() {
-        return this.getController().speechManager;
-    }
-    playSpeech(text, timeOut = 4000) {
-        let controller = this.scene.get("Controller");
-        return controller.playSpeechInController(text, timeOut);
-    }
-    /**
-     * The hover state check here take overlapping into consideration
-     * Only return true if there is no other interactive object above it.
-     * @param target
-     */
-    isObjectHovered(target) {
-        if (notSet(target))
-            return false;
-        return this.getHoverTopMostObject() === target;
-    }
-    getHoverTopMostObject() {
-        let mp = this.input.mousePointer;
-        let obs = this.input.hitTestPointer(mp);
-        let sorted = this.input.sortGameObjects(obs);
-        return sorted[0];
-    }
-    /**
-     * Muse sure called super first
-     * @param time
-     * @param dt
-     */
-    update(time, dt) {
-        this.updateObjects.forEach(e => {
-            e.update(time, dt);
-        });
-    }
-}
-class MyInput {
-    constructor(scene) {
-        this.lastPointerPosi = new PhPointClass(0, 0);
-        this.controller = scene;
-        this.canvas = this.controller.game.canvas;
-        console.log(this.canvas);
-        this.canvas.addEventListener('mousemove', evt => {
-            let rect = this.canvas.getBoundingClientRect();
-            let scaleX = this.canvas.width / rect.width;
-            let scaleY = this.canvas.height / rect.height;
-            let x = (evt.clientX - rect.left) * scaleX;
-            let y = (evt.clientY - rect.top) * scaleY;
-            this.lastPointerPosi.x = x;
-            this.lastPointerPosi.y = y;
-        }, false);
-    }
-}
-class Controller extends BaseScene {
-    constructor() {
-        super('Controller');
-    }
-    preload() {
-        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
-    }
-    create() {
-        myResize(this.game);
-        this.speechManager = new SpeechManager(this);
-        WebFont.load({
-            google: {
-                families: ['Averia Serif Libre']
-            },
-            active: () => {
-                this.gotoFirstScene();
-            },
-            inactive: () => {
-                this.gotoFirstScene();
-            }
-        });
-        // this.myInput = new MyInput(this);
-    }
-    gotoFirstScene() {
-        // console.log("origin: " + window.location.origin);        
-        // this.scene.launch('Scene1L2');      
-        let index = getCurrentLevelRaw();
-        this.scene.launch('Scene1L' + index);
-    }
-    playSpeechInController(text, timeOut = 4000) {
-        // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
-        return this.speechManager.staticLoadAndPlay(text, true, timeOut);
-    }
-}
-/// <reference path="scene-controller.ts" />
 /**
  * Game Mode is what you choose from home mode select
  */
 var GameMode;
-/// <reference path="scene-controller.ts" />
 /**
  * Game Mode is what you choose from home mode select
  */
@@ -130,9 +33,11 @@ var Counter;
     Counter[Counter["IntoZenMode"] = 3] = "IntoZenMode";
     Counter[Counter["Story0Finished"] = 4] = "Story0Finished";
 })(Counter || (Counter = {}));
-class Scene1 extends BaseScene {
+class BaseScene extends Phaser.Scene {
     constructor(config) {
         super(config);
+        this.updateObjects = [];
+        this.needFeedback = false;
         this.initDwitterScale = 0.52;
         this.mode = GameMode.Normal;
         this.entryPoint = EntryPoint.FromHome;
@@ -145,11 +50,12 @@ class Scene1 extends BaseScene {
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
-        this.container;
-        this.enemyManager;
+    }
+    get hud() {
+        return this.ui.hud;
     }
     get hp() {
-        return this.hud.hp;
+        return this.ui.hud.hp;
     }
     preload() {
         this.load.image('circle', 'assets/circle.png');
@@ -240,9 +146,9 @@ class Scene1 extends BaseScene {
         // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
         // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         // this.hp.inner.y += 250;
-        this.hud = new Hud(this, this.abContainer, 0, 0);
+        let hud = new Hud(this, this.abContainer, 0, 0);
         this.ui = new UI(this, this.abContainer, 0, 0);
-        this.ui.hud = this.hud;
+        this.ui.hud = hud;
         // Pause Layer
         this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
         this.pauseLayer.hide();
@@ -287,6 +193,9 @@ class Scene1 extends BaseScene {
     }
     update(time, dt) {
         super.update(time, dt);
+        this.updateObjects.forEach(e => {
+            e.update(time, dt);
+        });
         this.curTime = time;
         dt = dt / 1000;
         var w = getLogicWidth();
@@ -297,7 +206,7 @@ class Scene1 extends BaseScene {
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.enemyManager.update(time, dt);
         this.centerObject.update(time, dt);
-        this.hud.update(time, dt);
+        this.ui.hud.update(time, dt);
         // this.checkDuckVolumn();
     }
     // checkDuckVolumn() {
@@ -558,7 +467,7 @@ class Scene1 extends BaseScene {
         });
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
-            this.hud.reset();
+            this.ui.hud.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             this.zenFsm.start();
@@ -722,8 +631,37 @@ class Scene1 extends BaseScene {
     isPausedOrDied() {
         return this.pauseLayer.inShown || this.died.inShown;
     }
+    //
+    getController() {
+        let controller = this.scene.get("Controller");
+        return controller;
+    }
+    getSpeechManager() {
+        return this.getController().speechManager;
+    }
+    playSpeech(text, timeOut = 4000) {
+        let controller = this.scene.get("Controller");
+        return controller.playSpeechInController(text, timeOut);
+    }
+    /**
+     * The hover state check here take overlapping into consideration
+     * Only return true if there is no other interactive object above it.
+     * @param target
+     */
+    isObjectHovered(target) {
+        if (notSet(target))
+            return false;
+        return this.getHoverTopMostObject() === target;
+    }
+    getHoverTopMostObject() {
+        let mp = this.input.mousePointer;
+        let obs = this.input.hitTestPointer(mp);
+        let sorted = this.input.sortGameObjects(obs);
+        return sorted[0];
+    }
 }
-class Scene1L0 extends Scene1 {
+/// <reference path="scene-base.ts" />
+class Scene1L0 extends BaseScene {
     constructor() {
         super('Scene1L0');
         this.camAllowed = false;
@@ -784,7 +722,7 @@ class Scene1L0 extends Scene1 {
         return false;
     }
 }
-class Scene1L1 extends Scene1 {
+class Scene1L1 extends BaseScene {
     constructor() {
         super('Scene1L1');
     }
@@ -1014,7 +952,7 @@ class Scene1L1 extends Scene1 {
         }, true, 2000, 3000, 1500);
     }
 }
-class Scene1L2 extends Scene1 {
+class Scene1L2 extends BaseScene {
     constructor() {
         super('Scene1L2');
     }
@@ -1069,7 +1007,7 @@ class Scene1L2 extends Scene1 {
         });
     }
 }
-class Scene1L3 extends Scene1 {
+class Scene1L3 extends BaseScene {
     constructor() {
         super('Scene1L3');
         this.loopTime = 454.5;
@@ -1313,13 +1251,14 @@ class Scene1L3 extends Scene1 {
             .addAction(s => {
             this.backBtn.clickedEvent.emit(this.backBtn);
             setTimeout(() => {
-                window.location.replace(window.location.origin + "?level=4");
+                window.location.replace(window.location.origin + "?level=Paper");
             }, 2000);
         });
     }
 }
 // 123
-class Scene1L4 extends Scene1 {
+/// <reference path="scene-base.ts" />
+class Scene1L4 extends BaseScene {
     constructor() {
         super('Scene1L4');
         this.hasWarnKey = 'HasWarn';
@@ -1590,7 +1529,7 @@ class Scene1L4 extends Scene1 {
         });
     }
 }
-class Scene1LPaper extends Scene1 {
+class Scene1LPaper extends BaseScene {
     constructor() {
         super('Scene1LPaper');
         this.COUNT_ALL_TIME = 30;
@@ -1834,13 +1773,66 @@ class Scene1LPaper extends Scene1 {
         return false;
     }
 }
-/// <reference path="scenes/scenes-1.ts" />
+/// <reference path="scene-base.ts" />
+class MyInput {
+    constructor(scene) {
+        this.lastPointerPosi = new PhPointClass(0, 0);
+        this.controller = scene;
+        this.canvas = this.controller.game.canvas;
+        console.log(this.canvas);
+        this.canvas.addEventListener('mousemove', evt => {
+            let rect = this.canvas.getBoundingClientRect();
+            let scaleX = this.canvas.width / rect.width;
+            let scaleY = this.canvas.height / rect.height;
+            let x = (evt.clientX - rect.left) * scaleX;
+            let y = (evt.clientY - rect.top) * scaleY;
+            this.lastPointerPosi.x = x;
+            this.lastPointerPosi.y = y;
+        }, false);
+    }
+}
+class Controller extends Phaser.Scene {
+    constructor() {
+        super('Controller');
+    }
+    preload() {
+        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
+    }
+    create() {
+        myResize(this.game);
+        this.speechManager = new SpeechManager(this);
+        WebFont.load({
+            google: {
+                families: ['Averia Serif Libre']
+            },
+            active: () => {
+                this.gotoFirstScene();
+            },
+            inactive: () => {
+                this.gotoFirstScene();
+            }
+        });
+        // this.myInput = new MyInput(this);
+    }
+    gotoFirstScene() {
+        // console.log("origin: " + window.location.origin);        
+        // this.scene.launch('Scene1L2');      
+        let index = getCurrentLevelRaw();
+        this.scene.launch('Scene1L' + index);
+    }
+    playSpeechInController(text, timeOut = 4000) {
+        // return this.speechManager.quickLoadAndPlay(text, true, timeOut);
+        return this.speechManager.staticLoadAndPlay(text, true, timeOut);
+    }
+}
+/// <reference path="scenes/scene-base.ts" />
 /// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
 /// <reference path="scenes/scene-1-2.ts" />
 /// <reference path="scenes/scene-1-3.ts" />
 /// <reference path="scenes/scene-1-4.ts" />
 /// <reference path="scenes/scene-1-paper.ts" />
+/// <reference path="scenes/scene-controller.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
     spawnInterval: 8000,
@@ -1889,7 +1881,7 @@ var phaserConfig = {
         minWidth: 1200
     },
     canvasStyle: "vertical-align: middle;",
-    scene: [Controller, Scene1L0, Scene1, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
+    scene: [Controller, Scene1L0, BaseScene, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -5978,7 +5970,7 @@ class CenterProgress extends Wrapper {
     }
 }
 let initScore = 0;
-let baseScore = 500;
+let baseScore = 100;
 let normalFreq1 = 7;
 let startWarnNum = 4;
 let startMockNum = 4;

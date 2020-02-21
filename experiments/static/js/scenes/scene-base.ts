@@ -1,4 +1,4 @@
-/// <reference path="scene-controller.ts" />
+
 
 /**
  * Game Mode is what you choose from home mode select
@@ -27,7 +27,12 @@ enum Counter {
     Story0Finished
 }
 
-class Scene1 extends BaseScene {
+class BaseScene extends Phaser.Scene {
+
+    updateObjects: Updatable[] = [];
+
+    needFeedback: boolean = false;
+
 
     circle: Phaser.GameObjects.Image;
     labels;
@@ -85,8 +90,6 @@ class Scene1 extends BaseScene {
 
     ui: UI;
 
-    hud: Hud;
-    private _hp: HP;
     died: Died;
     pauseLayer: PauseLayer;
 
@@ -109,20 +112,20 @@ class Scene1 extends BaseScene {
     
     anyKeyEvent: TypedEvent<string> = new TypedEvent();
 
+    get hud() {
+        return this.ui.hud;
+    }
+
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {        
         super(config);
 
         this.circle;
         this.labels = ["Toothbrush", "Hamburger", "Hotel", "Teacher", "Paper", "Basketball", "Frozen", "Scissors", "Shoe"];
-        this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };
-
-        this.container;
-
-        this.enemyManager;
+        this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };                
     }
 
     get hp(): HP {
-        return this.hud.hp;
+        return this.ui.hud.hp;
     }
 
     preload() {
@@ -223,9 +226,6 @@ class Scene1 extends BaseScene {
         this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
 
 
-
-
-
         // Back button
         this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
         this.backBtn.text.setColor('#000000');
@@ -239,10 +239,10 @@ class Scene1 extends BaseScene {
         // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
         // this.hp.inner.y += 250;
 
-        this.hud = new Hud(this, this.abContainer, 0, 0);
+        let hud =  new Hud(this, this.abContainer, 0, 0);        
 
         this.ui = new UI(this, this.abContainer, 0, 0);
-        this.ui.hud = this.hud;
+        this.ui.hud = hud;
 
         // Pause Layer
         this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
@@ -314,6 +314,9 @@ class Scene1 extends BaseScene {
     update(time, dt) {
         
         super.update(time, dt);
+        this.updateObjects.forEach(e=>{
+            e.update(time, dt);
+        });    
         this.curTime =  time;
         dt = dt / 1000;
         var w = getLogicWidth();
@@ -326,7 +329,7 @@ class Scene1 extends BaseScene {
 
         this.enemyManager.update(time, dt);
         this.centerObject.update(time, dt);
-        this.hud.update(time, dt);
+        this.ui.hud.update(time, dt);
 
         // this.checkDuckVolumn();
     }
@@ -646,7 +649,7 @@ class Scene1 extends BaseScene {
 
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
-            this.hud.reset();
+            this.ui.hud.reset();
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             this.zenFsm.start();
@@ -845,5 +848,44 @@ class Scene1 extends BaseScene {
     isPausedOrDied() {
         return this.pauseLayer.inShown || this.died.inShown;
     }
+
+
+    //
+    
+    getController(): Controller {
+        let controller: Controller = <Controller> this.scene.get("Controller");
+        return controller;
+    }
+
+    getSpeechManager() : SpeechManager {
+        return this.getController().speechManager;
+    }
+
+    playSpeech(text: string, timeOut: number = 4000) : Pany {
+        let controller: Controller = <Controller> this.scene.get("Controller");
+        return controller.playSpeechInController(text, timeOut);
+    }
+
+    /**
+     * The hover state check here take overlapping into consideration
+     * Only return true if there is no other interactive object above it.
+     * @param target 
+     */
+    isObjectHovered(target: PhGO) {
+        if(notSet(target)) 
+            return false;
+
+        return this.getHoverTopMostObject() === target;
+    }
+
+    getHoverTopMostObject(): PhGO {
+        let mp = this.input.mousePointer;
+        let obs = this.input.hitTestPointer(mp);
+        let sorted = this.input.sortGameObjects(obs);
+        return sorted[0];
+    }
+
+
+   
 }
 

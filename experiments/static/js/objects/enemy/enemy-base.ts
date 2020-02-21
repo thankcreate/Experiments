@@ -31,7 +31,7 @@ interface EnemyConfig {
 
 class Enemy {
 
-    scene: Scene1;
+    scene: BaseScene;
     inner: Phaser.GameObjects.Container; 
     parentContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;
@@ -335,7 +335,7 @@ class Enemy {
             this.eliminated(input);            
         }
         else {
-            let sc = this.scene as Scene1;
+            let sc = this.scene as BaseScene;
             if(sc.needFeedback)
                 this.playHurtAnimation();
         }        

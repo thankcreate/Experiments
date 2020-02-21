@@ -89,4 +89,12 @@ class Scene1 extends BaseScene {
         .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
         return s;
     }
+
+    getOriginalTitle() {
+        return 'Project 65536';
+    }
+
+    getChangedToTitle() {
+        return 'Project 65536'
+    }
 }

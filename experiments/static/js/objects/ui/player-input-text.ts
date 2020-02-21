@@ -448,7 +448,7 @@ class PlayerInputText {
 
     showTitle(showOriginal: boolean = true) {
         let toShowText = showOriginal ? 
-            gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
+            this.scene.getOriginalTitle() : this.scene.getChangedToTitle();
         
         this.title.setText(toShowText);        
         this.pressAnyToStart.setVisible(false);
@@ -464,7 +464,7 @@ class PlayerInputText {
 
     titleOut: PhTween;
     hideTitle() {
-        this.title.setText(gameplayConfig.titleOriginal);
+        this.title.setText(this.scene.getOriginalTitle());
         this.pressAnyToStart.setVisible(true);
 
         if (this.titleIn)
@@ -496,7 +496,7 @@ class PlayerInputText {
      * Transfer to the scene 1 game play
      */
     changeTitleToChanged(): void {
-        this.title.setText(gameplayConfig.titleChangedTo);
+        this.title.setText(this.scene.getChangedToTitle());
 
         if (this.titleOut)
             this.titleOut.stop();       

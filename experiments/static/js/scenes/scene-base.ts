@@ -353,7 +353,8 @@ class BaseScene extends Phaser.Scene {
     }
 
     getNormalGameFsm(): IFsmData {
-        return normalGameFsm;
+        //normalGameFsm
+        return null;
     }
 
     getZenFsm(): IFsmData {
@@ -528,12 +529,17 @@ class BaseScene extends Phaser.Scene {
             this.subtitle.hideText();
         })
         .addDelayAction(this, 800)
-        .addSubtitleAction(this.subtitle, s => {
+        this.sceneAfterNameInput(state)
+        .addFinishAction();
+    }
+
+    sceneAfterNameInput(s: FsmState) : FsmState {
+        s.addSubtitleAction(this.subtitle, s => {
             return this.playerName + "? That sounds good."
         }, true, 2000, 3000, 300)
-        .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
-
-        .addFinishAction();
+        .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.", false, null, null, 10)
+        .addSubtitleAction(this.subtitle, "Which experiment do you like to take?", false, null, null, 10).setBoolCondition(o=>this.needModeSelect())
+        return s;
     }
 
     initStSecondMeet() {
@@ -932,6 +938,12 @@ class BaseScene extends Phaser.Scene {
     }
 
 
-   
+    getOriginalTitle() {
+        return 'Project 65536';
+    }
+
+    getChangedToTitle() {
+        return 'Project 65536'
+    }
 }
 

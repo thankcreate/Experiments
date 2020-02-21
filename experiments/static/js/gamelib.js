@@ -216,7 +216,8 @@ class BaseScene extends Phaser.Scene {
         return mainFsm;
     }
     getNormalGameFsm() {
-        return normalGameFsm;
+        //normalGameFsm
+        return null;
     }
     getZenFsm() {
         return zenFsm;
@@ -354,12 +355,17 @@ class BaseScene extends Phaser.Scene {
             // pretend the AI is thinking
             this.subtitle.hideText();
         })
-            .addDelayAction(this, 800)
-            .addSubtitleAction(this.subtitle, s => {
+            .addDelayAction(this, 800);
+        this.sceneAfterNameInput(state)
+            .addFinishAction();
+    }
+    sceneAfterNameInput(s) {
+        s.addSubtitleAction(this.subtitle, s => {
             return this.playerName + "? That sounds good.";
         }, true, 2000, 3000, 300)
-            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.\nWhich experiment do you like to take?", false, null, null, 10)
-            .addFinishAction();
+            .addSubtitleAction(this.subtitle, "I know this is a weird start, but there's no time to explain.", false, null, null, 10)
+            .addSubtitleAction(this.subtitle, "Which experiment do you like to take?", false, null, null, 10).setBoolCondition(o => this.needModeSelect());
+        return s;
     }
     initStSecondMeet() {
         let state = this.mainFsm.getState("SecondMeet");
@@ -683,6 +689,12 @@ class BaseScene extends Phaser.Scene {
         let sorted = this.input.sortGameObjects(obs);
         return sorted[0];
     }
+    getOriginalTitle() {
+        return 'Project 65536';
+    }
+    getChangedToTitle() {
+        return 'Project 65536';
+    }
 }
 /// <reference path="scene-base.ts" />
 class SceneTrailor extends BaseScene {
@@ -815,6 +827,12 @@ class Scene1 extends BaseScene {
             .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
             .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly();
         return s;
+    }
+    getOriginalTitle() {
+        return 'Project 65536';
+    }
+    getChangedToTitle() {
+        return 'Project 65536';
     }
 }
 /// <reference path="scene-1.ts" />
@@ -1046,6 +1064,9 @@ class Scene1L1 extends Scene1 {
             .addSubtitleAction(this.subtitle, s => {
             return "We have plenty of time. Just enjoy yourself, please.";
         }, true, 2000, 3000, 1500);
+    }
+    getNormalGameFsm() {
+        return normal_1_1;
     }
 }
 /// <reference path="scene-1.ts" />
@@ -1900,7 +1921,8 @@ class Controller extends Phaser.Scene {
             '1-3',
             '1-Paper',
             '1-4',
-            '2-0'
+            '2-0',
+            '2-1'
         ];
     }
     preload() {
@@ -1954,6 +1976,43 @@ class Scene2L0 extends SceneTrailor {
         super('Scene2L0');
     }
 }
+class Scene2 extends BaseScene {
+    constructor(config) {
+        super(config);
+    }
+    sceneAddFirstMeetGreetingActinos(s) {
+        s.addSubtitleAction(this.subtitle, "Oh, hi there!", true)
+            .addSubtitleAction(this.subtitle, "Terminal 65537 is at your service.\n", true)
+            .addSubtitleAction(this.subtitle, "Your name is needed! Human.", false).finishImmediatly();
+        return s;
+    }
+    needModeSelect() {
+        return false;
+    }
+    sceneAfterNameInput(s) {
+        s.addSubtitleAction(this.subtitle, s => {
+            return this.playerName + "? Interesting!";
+        }, true, 2000, 3000, 300)
+            .addSubtitleAction(this.subtitle, "THE EXPERIMENT is waiting for us. Let's get it over with.", false, null, null, 10)
+            .addSubtitleAction(this.subtitle, "Which experiment do you like to take?", false, null, null, 10).setBoolCondition(o => this.needModeSelect());
+        return s;
+    }
+    getOriginalTitle() {
+        return 'Project 65537';
+    }
+    getChangedToTitle() {
+        return 'Project 65537';
+    }
+}
+/// <reference path="scene-2.ts" />
+class Scene2L1 extends Scene2 {
+    constructor() {
+        super('Scene2L1');
+    }
+    getNormalGameFsm() {
+        return normal_2_1;
+    }
+}
 /// <reference path="scenes/scene-base.ts" />
 /// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
@@ -1963,6 +2022,7 @@ class Scene2L0 extends SceneTrailor {
 /// <reference path="scenes/scene-1-paper.ts" />
 /// <reference path="scenes/scene-controller.ts" />
 /// <reference path="scenes/scene-2-0.ts" />
+/// <reference path="scenes/scene-2-1.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
     spawnInterval: 8000,
@@ -1992,8 +2052,6 @@ var gameplayConfig = {
     healthIndicatorWidth: 32,
     drawDataSample: 255,
     drawDataDefaultSize: 150,
-    titleOriginal: "Project 65536",
-    titleChangedTo: "Project 65536",
 };
 var phaserConfig = {
     // type: Phaser.WEBGL,
@@ -2012,7 +2070,7 @@ var phaserConfig = {
     },
     canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1L0, BaseScene, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper,
-        Scene2L0]
+        Scene2L0, Scene2L1]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -4635,6 +4693,21 @@ var normal_1_0 = {
 };
 farray.push(normal_1_0);
 /// <reference path="../fsm/fsm.ts" />
+var normal_1_1 = {
+    name: 'NormalGameFsm',
+    initial: "Default",
+    events: [
+        { name: 'TUTORIAL_START', from: 'Default', to: 'TutorialStart' },
+        { name: 'EXPLAIN_HP', from: 'TutorialStart', to: 'ExplainHp' },
+        { name: 'TO_FLOW_STRATEGY', from: 'ExplainHp', to: 'FlowStrategy' },
+        { name: 'NORMAL_START', from: 'Default', to: 'NormalStart' },
+        { name: 'FINISHED', from: 'NormalStart', to: 'Story0' },
+        { name: 'FINISHED', from: 'FlowStrategy', to: 'Story0' },
+        { name: 'FINISHED', from: 'Story0', to: 'Story1' }
+    ]
+};
+farray.push(normal_1_1);
+/// <reference path="../fsm/fsm.ts" />
 var normal_1_2 = {
     name: 'Normal_1_2',
     initial: "Default",
@@ -4736,21 +4809,6 @@ farray.push(mainFsm);
 //   }
 // });
 /// <reference path="../fsm/fsm.ts" />
-var normalGameFsm = {
-    name: 'NormalGameFsm',
-    initial: "Default",
-    events: [
-        { name: 'TUTORIAL_START', from: 'Default', to: 'TutorialStart' },
-        { name: 'EXPLAIN_HP', from: 'TutorialStart', to: 'ExplainHp' },
-        { name: 'TO_FLOW_STRATEGY', from: 'ExplainHp', to: 'FlowStrategy' },
-        { name: 'NORMAL_START', from: 'Default', to: 'NormalStart' },
-        { name: 'FINISHED', from: 'NormalStart', to: 'Story0' },
-        { name: 'FINISHED', from: 'FlowStrategy', to: 'Story0' },
-        { name: 'FINISHED', from: 'Story0', to: 'Story1' }
-    ]
-};
-farray.push(normalGameFsm);
-/// <reference path="../fsm/fsm.ts" />
 var zenFsm = {
     name: 'ZenFsm',
     initial: "Default",
@@ -4760,6 +4818,15 @@ var zenFsm = {
     ]
 };
 farray.push(zenFsm);
+/// <reference path="../fsm/fsm.ts" />
+var normal_2_1 = {
+    name: 'Normal_2_1',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+    ]
+};
+farray.push(normal_2_1);
 let s_banks = [
     "Master.bank",
     "Master.strings.bank",
@@ -8279,7 +8346,7 @@ class PlayerInputText {
     }
     showTitle(showOriginal = true) {
         let toShowText = showOriginal ?
-            gameplayConfig.titleOriginal : gameplayConfig.titleChangedTo;
+            this.scene.getOriginalTitle() : this.scene.getChangedToTitle();
         this.title.setText(toShowText);
         this.pressAnyToStart.setVisible(false);
         if (this.titleOut)
@@ -8291,7 +8358,7 @@ class PlayerInputText {
         });
     }
     hideTitle() {
-        this.title.setText(gameplayConfig.titleOriginal);
+        this.title.setText(this.scene.getOriginalTitle());
         this.pressAnyToStart.setVisible(true);
         if (this.titleIn)
             this.titleIn.stop();
@@ -8319,7 +8386,7 @@ class PlayerInputText {
      * Transfer to the scene 1 game play
      */
     changeTitleToChanged() {
-        this.title.setText(gameplayConfig.titleChangedTo);
+        this.title.setText(this.scene.getChangedToTitle());
         if (this.titleOut)
             this.titleOut.stop();
     }

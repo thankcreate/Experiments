@@ -1,7 +1,7 @@
 /// <reference path="../fsm/fsm.ts" />
 
 
-var normalGameFsm = {
+var normal_1_1 = {
     name: 'NormalGameFsm',
     initial: "Default",
     events: [
@@ -15,4 +15,4 @@ var normalGameFsm = {
     ]
 }
 
-farray.push(normalGameFsm);
+farray.push(normal_1_1);

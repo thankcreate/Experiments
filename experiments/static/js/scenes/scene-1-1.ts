@@ -255,5 +255,7 @@ class Scene1L1 extends Scene1 {
                 return "We have plenty of time. Just enjoy yourself, please."
             }, true, 2000, 3000, 1500)
     }
-
+    getNormalGameFsm(): IFsmData {        
+        return normal_1_1;
+    }
 }

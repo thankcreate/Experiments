@@ -110,57 +110,9 @@ class BaseScene extends Phaser.Scene {
         });
         this.load.start();
     }
-    create() {
-        this.loadAudio();
-        this.sfxMatches = [];
-        this.sfxMatches.push(this.sound.add("sfx_match_1"));
-        this.sfxMatches.push(this.sound.add("sfx_match_2"));
-        this.sfxMatches.push(this.sound.add("sfx_match_3"));
-        this.container = this.add.container(400, 299);
-        this.subtitleContainer = this.add.container(400, 299);
-        this.midContainder = this.add.container(400, 299);
-        this.abContainer = this.add.container(0, 0);
-        // Center cicle-like object
-        this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
-        // Enemies
-        this.enemyManager = new EnemyManager(this, this.container);
-        // Leaderboard
-        this.leaderboardManager = LeaderboardManager.getInstance();
-        // Add confirmed listener for confirmedEvent to enemyManager
-        this.centerObject.playerInputText.confirmedEvent.on(input => {
-            this.enemyManager.inputTextConfirmed(input);
-            this.time.delayedCall(300, () => {
-                this.dwitterBKG.next();
-            }, null, null);
-        });
-        // Dwitters         
-        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
-        // Back button
-        this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
-        this.backBtn.text.setColor('#000000');
-        this.backBtn.text.setFontSize(44);
-        // HP        
-        // let hpBottom = 36;
-        // let hpLeft = 36;
-        // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
-        // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
-        // this.hp.inner.y += 250;
-        let hud = new Hud(this, this.abContainer, 0, 0);
-        this.ui = new UI(this, this.abContainer, 0, 0);
-        this.ui.hud = hud;
-        // Pause Layer
-        this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
-        this.pauseLayer.hide();
-        // Subtitle
-        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
-        // Overlay
-        this.overlayContainer = this.add.container(400, 299);
-        // Died layer
-        this.died = new Died(this, this.overlayContainer, 0, 0);
-        this.died.hide();
-        // Overlay Dialogs
-        this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
+    createContainerMain() {
+    }
+    postCreate() {
         // Footer click event bind        
         this.ui.footer.badges[0].clickedEvent.on(() => {
             this.overlay.showAiDialog();
@@ -174,12 +126,56 @@ class BaseScene extends Phaser.Scene {
         this.ui.leaderboardBtn.clickedEvent.on(() => {
             this.overlay.showLeaderBoardDialog();
         });
+    }
+    create() {
+        this.loadAudio();
+        this.sfxMatches = [];
+        this.sfxMatches.push(this.sound.add("sfx_match_1"));
+        this.sfxMatches.push(this.sound.add("sfx_match_2"));
+        this.sfxMatches.push(this.sound.add("sfx_match_3"));
+        this.container = this.add.container(400, 299);
+        this.subtitleContainer = this.add.container(400, 299);
+        this.midContainder = this.add.container(400, 299);
+        this.abContainer = this.add.container(0, 0);
+        this.overlayContainer = this.add.container(400, 299);
+        // Center cicle-like object
+        this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+        // Dwitters         
+        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
+        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
+        this.createContainerMain();
+        // Leaderboard
+        this.leaderboardManager = LeaderboardManager.getInstance();
+        // Back button
+        this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
+        this.backBtn.text.setColor('#000000');
+        this.backBtn.text.setFontSize(44);
+        // HP        
+        // let hpBottom = 36;
+        // let hpLeft = 36;
+        // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
+        // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
+        // this.hp.inner.y += 250;
+        let hud = new Hud(this, this.abContainer, 0, 0);
+        this.ui = new UI(this, this.abContainer, 0, 0);
+        this.ui.hud = hud;
+        // Subtitle
+        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
+        // Pause Layer
+        this.pauseLayer = new PauseLayer(this, this.container, 0, 0);
+        this.pauseLayer.hide();
+        // Died layer
+        this.died = new Died(this, this.overlayContainer, 0, 0);
+        this.died.hide();
+        // Overlay Dialogs
+        this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsm());
         this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
         this.zenFsm = new Fsm(this, this.getZenFsm());
         this.initMainFsm();
         // Sub FSM: normal game
+        this.postCreate();
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -193,18 +189,17 @@ class BaseScene extends Phaser.Scene {
     }
     update(time, dt) {
         super.update(time, dt);
+        this.curTime = time;
+        dt = dt / 1000;
         this.updateObjects.forEach(e => {
             e.update(time, dt);
         });
-        this.curTime = time;
-        dt = dt / 1000;
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
         this.subtitleContainer.setPosition(w / 2, h / 2);
         this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
-        this.enemyManager.update(time, dt);
         this.centerObject.update(time, dt);
         this.ui.hud.update(time, dt);
         // this.checkDuckVolumn();
@@ -450,6 +445,8 @@ class BaseScene extends Phaser.Scene {
             .addDelayAction(this, 600)
             .addFinishAction();
     }
+    sceneIntoNormalGame(s) {
+    }
     /**
      * We have 2 paths to get to NormalGame: \
      * Home -> ... -> NormalGame \
@@ -485,13 +482,7 @@ class BaseScene extends Phaser.Scene {
             // Player input
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-            // Damage handling, only in normal mode
-            if (this.mode == GameMode.Normal) {
-                s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
-                    let enemy = e;
-                    this.hp.damageBy(enemy.health);
-                });
-            }
+            this.sceneIntoNormalGame(s);
             // s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
             //     let enemy = <Enemy>e;
             //     // TODO
@@ -501,14 +492,6 @@ class BaseScene extends Phaser.Scene {
             s.autoOn(this.hp.deadEvent, null, e => {
                 s.event("DIED");
             });
-        });
-        state.setOnExit(s => {
-            this.normalGameFsm.stop();
-            this.zenFsm.stop();
-            LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
-            // Stop all subtitle and sounds
-            this.subtitle.forceStopAndHideSubtitles();
-            this.gamePlayExit();
         });
         // Check mode and dispatch
         state.addDelayAction(this, 1500)
@@ -523,6 +506,14 @@ class BaseScene extends Phaser.Scene {
                 s.event('START', this.zenFsm);
             }
         });
+        state.setOnExit(s => {
+            this.normalGameFsm.stop();
+            this.zenFsm.stop();
+            LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
+            // Stop all subtitle and sounds
+            this.subtitle.forceStopAndHideSubtitles();
+            this.gamePlayExit();
+        });
     }
     /**
      * Event: BACK_TO_HOME sent by backBtn (everlasting)
@@ -531,20 +522,23 @@ class BaseScene extends Phaser.Scene {
     initStDied() {
         let state = this.mainFsm.getState("Died");
         state.addAction((s, result, resolve, reject) => {
-            // Stop all enemies
-            this.enemyManager.freezeAllEnemies();
-            // Show the died overlay
-            this.died.show();
-            s.autoOn(this.died.restartBtn.clickedEvent, null, () => {
-                s.event("RESTART");
-                resolve('restart clicked');
-            });
+            this.sceneEnterDied(s, result, resolve, reject);
         });
         state.setOnExit(() => {
-            this.enemyManager.stopSpawnAndClear();
-            this.died.hide();
-            this.normalGameFsm.restart(true);
+            this.sceneExitDied();
         });
+    }
+    sceneEnterDied(s, result, resolve, reject) {
+        // Show the died overlay
+        this.died.show();
+        s.autoOn(this.died.restartBtn.clickedEvent, null, () => {
+            s.event("RESTART");
+            resolve('restart clicked');
+        });
+    }
+    sceneExitDied() {
+        this.died.hide();
+        this.normalGameFsm.restart(true);
     }
     initStRestart() {
         let state = this.mainFsm.getState("Restart");
@@ -552,13 +546,15 @@ class BaseScene extends Phaser.Scene {
             s.event("RESTART_TO_GAME");
         });
     }
+    scenePrepareBackToHome() {
+        this.centerObject.prepareToHome();
+        this.backBtn.setEnable(false, true);
+    }
     initStBackToHomeAnimation() {
         let dt = 1000;
         this.mainFsm.getState("BackToHomeAnimation")
             .addAction(() => {
-            this.centerObject.prepareToHome();
-            this.enemyManager.stopSpawnAndClear();
-            this.backBtn.setEnable(false, true);
+            this.scenePrepareBackToHome();
         })
             .addDelayAction(this, 300)
             .addAction(s => {
@@ -594,17 +590,26 @@ class BaseScene extends Phaser.Scene {
         this.pauseCounter++;
         // console.log('pause: ' + this.pauseCounter);
         if (this.pauseCounter == 1) {
-            this.pauseLayer.show(title, alpha);
-            this.enemyManager.freezeAllEnemies();
+            this.pauseInner(title, alpha);
         }
+    }
+    /**
+     * Don't call directly.
+     * @param title
+     * @param alpha
+     */
+    pauseInner(title, alpha) {
+        this.pauseLayer.show(title, alpha);
     }
     unPause() {
         this.pauseCounter--;
         // console.log('unPause: ' + this.pauseCounter);
         if (this.pauseCounter == 0) {
-            this.pauseLayer.hide();
-            this.enemyManager.unFreezeAllEnemies();
+            this.unPauseInnner();
         }
+    }
+    unPauseInnner() {
+        this.pauseLayer.hide();
     }
     gamePlayStarted() {
         if (this.mode === GameMode.Normal) {
@@ -722,7 +727,66 @@ class Scene1L0 extends BaseScene {
         return false;
     }
 }
-class Scene1L1 extends BaseScene {
+class Scene1 extends BaseScene {
+    constructor(config) {
+        super(config);
+    }
+    createContainerMain() {
+        super.createContainerMain();
+        // Enemies
+        this.enemyManager = new EnemyManager(this, this.container);
+    }
+    postCreate() {
+        super.postCreate();
+        this.centerObject.playerInputText.confirmedEvent.on(input => {
+            this.enemyManager.inputTextConfirmed(input);
+        });
+        // Add confirmed listener for confirmedEvent to enemyManager
+        this.centerObject.playerInputText.confirmedEvent.on(input => {
+            this.time.delayedCall(300, () => {
+                this.dwitterBKG.next();
+            }, null, null);
+        });
+    }
+    update(time, dt) {
+        super.update(time, dt);
+        this.curTime = time;
+        dt = dt / 1000;
+        this.enemyManager.update(time, dt);
+    }
+    sceneIntoNormalGame(s) {
+        super.sceneIntoNormalGame(s);
+        // Damage handling, only in normal mode
+        if (this.mode == GameMode.Normal) {
+            s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
+                let enemy = e;
+                this.hp.damageBy(enemy.health);
+            });
+        }
+    }
+    sceneEnterDied(s, result, resolve, reject) {
+        super.sceneEnterDied(s, result, resolve, reject);
+        this.enemyManager.freezeAllEnemies();
+    }
+    sceneExitDied() {
+        super.sceneExitDied();
+        this.enemyManager.stopSpawnAndClear();
+    }
+    scenePrepareBackToHome() {
+        super.scenePrepareBackToHome();
+        this.enemyManager.stopSpawnAndClear();
+    }
+    pauseInner(title, alpha) {
+        super.pauseInner(title, alpha);
+        this.enemyManager.freezeAllEnemies();
+    }
+    unPauseInnner() {
+        super.unPauseInnner();
+        this.enemyManager.unFreezeAllEnemies();
+    }
+}
+/// <reference path="scene-1.ts" />
+class Scene1L1 extends Scene1 {
     constructor() {
         super('Scene1L1');
     }
@@ -952,7 +1016,8 @@ class Scene1L1 extends BaseScene {
         }, true, 2000, 3000, 1500);
     }
 }
-class Scene1L2 extends BaseScene {
+/// <reference path="scene-1.ts" />
+class Scene1L2 extends Scene1 {
     constructor() {
         super('Scene1L2');
     }
@@ -1007,7 +1072,8 @@ class Scene1L2 extends BaseScene {
         });
     }
 }
-class Scene1L3 extends BaseScene {
+/// <reference path="scene-1.ts" />
+class Scene1L3 extends Scene1 {
     constructor() {
         super('Scene1L3');
         this.loopTime = 454.5;
@@ -1257,8 +1323,8 @@ class Scene1L3 extends BaseScene {
     }
 }
 // 123
-/// <reference path="scene-base.ts" />
-class Scene1L4 extends BaseScene {
+/// <reference path="scene-1.ts" />
+class Scene1L4 extends Scene1 {
     constructor() {
         super('Scene1L4');
         this.hasWarnKey = 'HasWarn';
@@ -8194,7 +8260,8 @@ class PlayerInputText {
         this.canAcceptInput = val;
     }
     getCanAcceptInput() {
-        if (this.scene.enemyManager.isPaused) {
+        if (this.scene.isPausedOrDied()) {
+            // if((this.scene as BaseScene).enemyManager.isPaused) {
             return false;
         }
         return this.canAcceptInput;

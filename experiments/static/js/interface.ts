@@ -51,8 +51,8 @@ class Wrapper<T extends PhGO> {
     inner: PhContainer;
     wrappedObject: T;
 
-    sc1() : BaseScene {
-        return this.scene as BaseScene;
+    sc1() : Scene1 {
+        return this.scene as Scene1;
     }
 
     // copy the following lines to the inherited class

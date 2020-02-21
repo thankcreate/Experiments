@@ -31,7 +31,7 @@ interface EnemyConfig {
 
 class Enemy {
 
-    scene: BaseScene;
+    scene: Scene1;
     inner: Phaser.GameObjects.Container; 
     parentContainer: Phaser.GameObjects.Container;
     enemyManager: EnemyManager;

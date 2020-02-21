@@ -4,7 +4,7 @@ class PlayerInputText {
     confirmedEvent: TypedEvent<string> = new TypedEvent();
     changedEvent: TypedEvent<PlayerInputText> = new TypedEvent();
 
-    scene: PhScene;
+    scene: BaseScene;
     parentContainer: Phaser.GameObjects.Container;
     fontSize = 32;
     lblStyl;
@@ -29,7 +29,7 @@ class PlayerInputText {
     autoText: string;
     inForceMode: boolean = false;
 
-    constructor(scene: PhScene, container: PhContainer, centerObject: CenterObject, dummyTitle: string) {
+    constructor(scene: BaseScene, container: PhContainer, centerObject: CenterObject, dummyTitle: string) {
         this.scene = scene;
         this.parentContainer = container;
         this.centerObject = centerObject;
@@ -523,7 +523,8 @@ class PlayerInputText {
     }
 
     getCanAcceptInput(): boolean {
-        if((this.scene as BaseScene).enemyManager.isPaused) {
+        if(this.scene.isPausedOrDied()) {
+        // if((this.scene as BaseScene).enemyManager.isPaused) {
             return false;
         }
 

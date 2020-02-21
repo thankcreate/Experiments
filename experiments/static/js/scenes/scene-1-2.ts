@@ -1,4 +1,5 @@
-class Scene1L2 extends BaseScene {
+/// <reference path="scene-1.ts" />
+class Scene1L2 extends Scene1 {
     constructor() {
         super('Scene1L2');
     }

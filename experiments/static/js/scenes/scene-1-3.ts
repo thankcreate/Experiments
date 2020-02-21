@@ -1,4 +1,5 @@
-class Scene1L3 extends BaseScene {
+/// <reference path="scene-1.ts" />
+class Scene1L3 extends Scene1 {
 
     shakeTween: PhTween;
     inputTween: PhTween;

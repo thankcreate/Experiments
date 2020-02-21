@@ -1,6 +1,6 @@
-/// <reference path="scene-base.ts" />
+/// <reference path="scene-1.ts" />
 
-class Scene1L4 extends BaseScene {
+class Scene1L4 extends Scene1 {
 
     upgrade1: Button;
 

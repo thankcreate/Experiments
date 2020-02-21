@@ -311,7 +311,7 @@ class Scene1L3 extends Scene1 {
             .addAction(s=>{
                 this.backBtn.clickedEvent.emit(this.backBtn);
                 setTimeout(()=>{
-                    window.location.replace(window.location.origin + "?level=4");
+                    window.location.replace(window.location.origin + "?level=Paper");
                 }, 2000);
             })
     }

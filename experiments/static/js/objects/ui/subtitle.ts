@@ -12,7 +12,7 @@ var monologueList = [
     'Do you like to play games?\nI want to play a game with you',
     "That's wierd, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
     'What time is it now?\nHow long have I been wating like this?',
-    "OK, I give up.\nNo one come to play, no data, no fun",
+    "OK, I give up.\nNo one comes to play, no data, no fun",
 ];
 
 class Subtitle extends Wrapper<PhText> {

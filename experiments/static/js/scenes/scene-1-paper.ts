@@ -6,7 +6,7 @@ class Scene1LPaper extends BaseScene {
     
     paper: Paper;
 
-    COUNT_ALL_TIME = 30;
+    COUNT_ALL_TIME = 3;
     remainingTime: number;
 
     constructor() {
@@ -148,7 +148,7 @@ class Scene1LPaper extends BaseScene {
             // this.beginVideo();
             
             if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                var video = document.getElementById('video') as any;
+                var video = document.getElementById('affdex_video') as any;
                 // Not adding `{ audio: true }` since we only want video now
                 navigator.mediaDevices.getUserMedia({ video: true }).then( stream=> {
                     // video.src = window.URL.createObjectURL(stream);
@@ -232,11 +232,15 @@ class Scene1LPaper extends BaseScene {
         .addSubtitleAction(this.subtitle, s=>this.getUserName() + "! I can see you are still not reading carefully enough.", false)
         .addAction(()=>{
             this.beginVideo();
+
+            setTimeout(() => {
+                CameraManager.getInstance().captureCameraImage();
+            }, 1000);
         })
         .addSubtitleAction(this.subtitle, "Look at you!", false)
         .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)     
-        .addSubtitleAction(this.subtitle, "You know, when my other advisor, Mitu, told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)           
-        .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
+        .addSubtitleAction(this.subtitle, "You know, when Mitu told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)           
+        .addSubtitleAction(this.subtitle, "But the fact proved she's right.", false, null, null, 2000)
         .addSubtitleAction(this.subtitle, s=>"Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
         .addAction(()=>{
             this.nextLevelBtn.setEnable(true, true);

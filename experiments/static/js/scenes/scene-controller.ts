@@ -22,9 +22,8 @@ class MyInput {
             this.lastPointerPosi.y = y;
         }, false);
     }
-
-
 }
+
 declare var WebFont: any;
 class Controller extends Phaser.Scene {
 

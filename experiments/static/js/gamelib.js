@@ -1651,7 +1651,7 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends BaseScene {
     constructor() {
         super('Scene1LPaper');
-        this.COUNT_ALL_TIME = 30;
+        this.COUNT_ALL_TIME = 3;
         this.paperWidth = 1000;
         this.paperHeight = 900;
         this.confirmCount = 0;
@@ -1761,7 +1761,7 @@ class Scene1LPaper extends BaseScene {
             detector.start();
             // this.beginVideo();
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                var video = document.getElementById('video');
+                var video = document.getElementById('affdex_video');
                 // Not adding `{ audio: true }` since we only want video now
                 navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
                     // video.src = window.URL.createObjectURL(stream);
@@ -1834,11 +1834,14 @@ class Scene1LPaper extends BaseScene {
             .addSubtitleAction(this.subtitle, s => this.getUserName() + "! I can see you are still not reading carefully enough.", false)
             .addAction(() => {
             this.beginVideo();
+            setTimeout(() => {
+                CameraManager.getInstance().captureCameraImage();
+            }, 1000);
         })
             .addSubtitleAction(this.subtitle, "Look at you!", false)
             .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)
-            .addSubtitleAction(this.subtitle, "You know, when my other advisor, Mitu, told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)
-            .addSubtitleAction(this.subtitle, "But the fact proved that she's right.", false, null, null, 2000)
+            .addSubtitleAction(this.subtitle, "You know, when Mitu told\n me to put a camera here to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)
+            .addSubtitleAction(this.subtitle, "But the fact proved she's right.", false, null, null, 2000)
             .addSubtitleAction(this.subtitle, s => "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
             .addAction(() => {
             this.nextLevelBtn.setEnable(true, true);
@@ -4827,6 +4830,27 @@ var normal_2_1 = {
     ]
 };
 farray.push(normal_2_1);
+class CameraManager {
+    constructor() {
+    }
+    static getInstance() {
+        if (!CameraManager.instance) {
+            CameraManager.instance = new CameraManager();
+        }
+        return CameraManager.instance;
+    }
+    captureCameraImage() {
+        let video = $('#affdex_video')[0];
+        let scale = 0.25;
+        var canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth * scale;
+        canvas.height = video.videoHeight * scale;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        let img = document.createElement('img');
+        let dataURL = canvas.toDataURL();
+        console.log(dataURL);
+    }
+}
 let s_banks = [
     "Master.bank",
     "Master.strings.bank",
@@ -8914,7 +8938,7 @@ var monologueList = [
     'Do you like to play games?\nI want to play a game with you',
     "That's wierd, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
     'What time is it now?\nHow long have I been wating like this?',
-    "OK, I give up.\nNo one come to play, no data, no fun",
+    "OK, I give up.\nNo one comes to play, no data, no fun",
 ];
 class Subtitle extends Wrapper {
     constructor(scene, parentContainer, x, y) {

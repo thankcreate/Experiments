@@ -81,7 +81,7 @@ class BaseScene extends Phaser.Scene {
     zenFsm: Fsm;
 
     dwitterCenter: Dwitter;
-    dwitterBKG: Dwitter65537
+    dwitterBKG: Dwitter;
 
     initCenterDwitterScale: number;
 
@@ -432,8 +432,8 @@ class BaseScene extends Phaser.Scene {
             this.addCounter(Counter.IntoHome);
             this.centerObject.playerInputText.pressAnyToStart.setVisible(true);
             this.subtitle.startMonologue();
-            this.dwitterBKG.toBlinkMode();
-            this.dwitterBKG.toBlinkMode();
+            this.dwitterBKG.toAutoRunMode();
+            this.dwitterBKG.toAutoRunMode();
 
             LeaderboardManager.getInstance().updateInfo();
 
@@ -454,7 +454,7 @@ class BaseScene extends Phaser.Scene {
                 },
                 e => {
                     this.centerObject.playerInputText.hideTitle();
-                    this.dwitterBKG.toBlinkMode();
+                    this.dwitterBKG.toAutoRunMode();
                 },
                 e => {
                     this.homeEnterInvoked(s);

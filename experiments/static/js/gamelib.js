@@ -278,8 +278,8 @@ class BaseScene extends Phaser.Scene {
             this.addCounter(Counter.IntoHome);
             this.centerObject.playerInputText.pressAnyToStart.setVisible(true);
             this.subtitle.startMonologue();
-            this.dwitterBKG.toBlinkMode();
-            this.dwitterBKG.toBlinkMode();
+            this.dwitterBKG.toAutoRunMode();
+            this.dwitterBKG.toAutoRunMode();
             LeaderboardManager.getInstance().updateInfo();
             let mainImage = this.centerObject.mainImage;
             s.autoOn($(document), 'keypress', () => {
@@ -293,7 +293,7 @@ class BaseScene extends Phaser.Scene {
                 this.dwitterBKG.toStaticMode();
             }, e => {
                 this.centerObject.playerInputText.hideTitle();
-                this.dwitterBKG.toBlinkMode();
+                this.dwitterBKG.toAutoRunMode();
             }, e => {
                 this.homeEnterInvoked(s);
             });
@@ -2007,7 +2007,7 @@ class Scene2 extends BaseScene {
     createDwitters(parentContainer) {
         this.initCenterDwitterScale = 0.52;
         this.dwitterCenter = new DwitterRectBKG(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, parentContainer, 0, 0, 2400, 1400, true);
+        this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);
     }
     preload() {
         super.preload();
@@ -2771,6 +2771,7 @@ var canvasIndex = 0;
 class Dwitter extends Wrapper {
     constructor(scene, parentContainer, x, y, width, height, useImage = true) {
         super(scene, parentContainer, x, y, null);
+        this.lastT = -1;
         this.isRunning = true;
         this.useImage = useImage;
         this.height = height;
@@ -2798,14 +2799,40 @@ class Dwitter extends Wrapper {
         // Push to the scene's update array
         this.scene.updateObjects.push(this);
     }
+    next() {
+        this.frame += 60;
+        let innerTime = this.frame / 60;
+        this.lastT = innerTime;
+        this.u(this.lastT, this.c, this.x);
+    }
+    toAutoRunMode() {
+        this.isRunning = true;
+    }
+    nextWithColorChange() {
+        let typeCount = 4;
+        let colorIndex = Math.floor(this.lastT) % typeCount;
+        let colorAr = [0.03, 0.10, 0.08, 0.12];
+        // onsole.log(this.lastT + "  " + colorIndex);
+        this.inner.alpha = colorAr[colorIndex];
+        this.next();
+    }
+    toStaticMode() {
+        this.isRunning = false;
+    }
     update(time, dt) {
         if (!this.isRunning)
             return;
-        let innerTime = this.frame / 60;
         this.frame++;
+        let innerTime = this.frame / 60;
         if (this.inner.alpha == 0)
             return;
+        if (innerTime === this.lastT) {
+            return;
+        }
+        this.lastT = innerTime;
         this.u(innerTime, this.c, this.x);
+    }
+    u(t, c, x) {
     }
     setOrigin(xOri, yOri) {
         if (this.useImage) {
@@ -2814,9 +2841,6 @@ class Dwitter extends Wrapper {
         else {
             console.error("Graphics mode in dwitter is not allowed now");
         }
-    }
-    u(t, c, x) {
-        // In inheritance
     }
 }
 /**
@@ -2858,46 +2882,22 @@ class Dwitter65537 extends Dwitter {
         super(...arguments);
         this.freq = 5; // frequency
         this.phase = 5; // initial phase
-        this.lastT = -1;
     }
     dwitterInit() {
         super.dwitterInit();
         this.inner.alpha = 0.03;
-        // this.inner.alpha = 1;
-        this.needModify = true;
         this.param1 = 25;
         this.needStopOnFirstShow = false;
     }
-    u(t, c, x) {
-        if (t === this.lastT) {
-            return;
-        }
-        this.lastT = t;
-        this._u(t, c, x);
-    }
-    next() {
-        this.lastT++;
-        this._u(this.lastT, this.c, this.x);
-    }
-    nextWithColorChange() {
-        let typeCount = 4;
-        let colorIndex = Math.floor(this.lastT) % typeCount;
-        let colorAr = [0.03, 0.10, 0.08, 0.12];
-        // onsole.log(this.lastT + "  " + colorIndex);
-        this.inner.alpha = colorAr[colorIndex];
-        this.next();
-    }
-    toBlinkMode() {
-        this.isRunning = true;
-        this.needModify = false;
+    toAutoRunMode() {
+        super.toAutoRunMode();
         this.param1 = 200;
     }
     toStaticMode() {
-        this.isRunning = false;
-        this.needModify = true;
+        super.toStaticMode();
         this.param1 = 25;
     }
-    _u(t, c, x) {
+    u(t, c, x) {
         if (this.needStopOnFirstShow) {
             this.needStopOnFirstShow = false;
             this.isRunning = false;

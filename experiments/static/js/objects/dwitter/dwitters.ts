@@ -9,6 +9,8 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     height: number;
     frame: number;
 
+    lastT = -1;
+
     c: any;
     x: any;
 
@@ -54,19 +56,54 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
         this.scene.updateObjects.push(this);
     }
 
+    next() {
+        this.frame += 60;
+        let innerTime = this.frame / 60;
+        this.lastT = innerTime;
+        this.u(this.lastT, this.c, this.x);
+    }
+
+    toAutoRunMode() {
+        this.isRunning = true;                
+    }
+
+    nextWithColorChange() {
+        let typeCount = 4;
+        let colorIndex  = Math.floor(this.lastT) % typeCount;
+        let colorAr = [0.03, 0.10, 0.08, 0.12];
+
+        // onsole.log(this.lastT + "  " + colorIndex);
+        this.inner.alpha = colorAr[colorIndex];
+        this.next();
+    }
     
+
+    toStaticMode() {
+        this.isRunning = false;                
+    }
+
 
     update(time, dt) {
         if(!this.isRunning)
             return;
-        let innerTime = this.frame / 60;
         this.frame++;
+        let innerTime = this.frame / 60;
 
         if(this.inner.alpha == 0)
             return;
 
+
+        if(innerTime === this.lastT) {           
+            return;
+        } 
+        this.lastT = innerTime;       
         this.u(innerTime, this.c, this.x);
     }
+
+    u(t, c, x) {      
+       
+    }
+
 
     setOrigin(xOri: number, yOri: number) {
         if (this.useImage) {
@@ -77,9 +114,7 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
         }
     }
 
-    u(t, c: any, x) {
-        // In inheritance
-    }
+    
 }
 
 /**
@@ -128,62 +163,35 @@ class Dwitter65537 extends Dwitter {
 
     freq = 5        // frequency
     phase = 5;      // initial phase
-    lastT = -1;
-
-    needModify;
+    
     param1;    
     needStopOnFirstShow;
    
 
     dwitterInit() {
         super.dwitterInit();
-        this.inner.alpha = 0.03;
-        // this.inner.alpha = 1;
+        this.inner.alpha = 0.03;  
 
-        this.needModify = true;
         this.param1 = 25;       
         this.needStopOnFirstShow = false;
     }
 
-    u(t, c, x) {      
-        if(t === this.lastT) {           
-            return;
-        }            
 
-        this.lastT = t;        
-        this._u(t, c, x);
-    }
 
-    next() {
-        this.lastT++;
-        this._u(this.lastT, this.c, this.x);
-    }
 
-    nextWithColorChange() {
-        let typeCount = 4;
-        let colorIndex  = Math.floor(this.lastT) % typeCount;
-        let colorAr = [0.03, 0.10, 0.08, 0.12];
 
-        // onsole.log(this.lastT + "  " + colorIndex);
-        this.inner.alpha = colorAr[colorIndex];
-        this.next();
-    }
-
-    toBlinkMode() {
-        this.isRunning = true;
-        this.needModify = false;
+    toAutoRunMode() {
+        super.toAutoRunMode();
         this.param1 = 200;        
     }
 
     toStaticMode() {
-        this.isRunning = false;
-        this.needModify = true;        
+        super.toStaticMode();
         this.param1 = 25;        
     }
 
 
-
-    _u(t, c , x) {
+    u(t, c , x) {
         
         if(this.needStopOnFirstShow ){
             this.needStopOnFirstShow = false;

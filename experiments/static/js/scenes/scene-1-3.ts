@@ -305,7 +305,7 @@ class Scene1L3 extends Scene1 {
                 this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory); 
             })
             .addSubtitleAction(this.subtitle, "Great, you've just eliminated your first BAD word", false)
-            .addSubtitleAction(this.subtitle, "You're not sure what BAD means?\n All I can tell you is that they are BAD!\nVery very BAD!", false)
+            .addSubtitleAction(this.subtitle, "Not sure what BAD means?\n All I can tell you is that they are BAD!\nVery very BAD!", false)
             .addSubtitleAction(this.subtitle, "It's so bad that everyone should recognize it at first glance.", false)
             .addSubtitleAction(this.subtitle, "As you can see, our experiment is still under construction.\nI think we'd better stop here", false, null, null, 5000)
             .addSubtitleAction(this.subtitle, "I think I said we should stop here.\nWhat are you waiting for? Bye!", false)

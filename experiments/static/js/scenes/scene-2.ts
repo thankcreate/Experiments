@@ -9,8 +9,8 @@ class Scene2 extends BaseScene {
 
     createDwitters(parentContainer: PhContainer) {
         this.initCenterDwitterScale = 0.52;
-        this.dwitterCenter = new Dwitter65536(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
-        this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);        
+        this.dwitterCenter = new DwitterRectBKG(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new Dwitter65537(this, parentContainer, 0, 0, 2400, 1400, true);        
     }
 
     preload() {

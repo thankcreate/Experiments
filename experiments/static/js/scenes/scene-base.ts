@@ -81,7 +81,7 @@ class BaseScene extends Phaser.Scene {
     zenFsm: Fsm;
 
     dwitterCenter: Dwitter;
-    dwitterBKG: Dwitter;
+    dwitterBKG: Dwitter65537
 
     initCenterDwitterScale: number;
 

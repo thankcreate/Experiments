@@ -38,7 +38,6 @@ class BaseScene extends Phaser.Scene {
         super(config);
         this.updateObjects = [];
         this.needFeedback = false;
-        this.initDwitterScale = 0.52;
         this.mode = GameMode.Normal;
         this.entryPoint = EntryPoint.FromHome;
         this.homeCounter = 0;
@@ -58,7 +57,6 @@ class BaseScene extends Phaser.Scene {
         return this.ui.hud.hp;
     }
     preload() {
-        this.load.image('circle', 'assets/circle.png');
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('arrow_rev', 'assets/arrow_rev.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
@@ -127,6 +125,14 @@ class BaseScene extends Phaser.Scene {
             this.overlay.showLeaderBoardDialog();
         });
     }
+    createCenter(parentContainer) {
+        return new CenterObject(this, parentContainer, MakePoint2(220, 220));
+    }
+    createDwitters(parentContainer) {
+        this.initCenterDwitterScale = 0.52;
+        this.dwitterCenter = new Dwitter65536(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new Dwitter65537(this, parentContainer, 0, 0, 2400, 1400, true);
+    }
     create() {
         this.loadAudio();
         this.sfxMatches = [];
@@ -138,11 +144,10 @@ class BaseScene extends Phaser.Scene {
         this.midContainder = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         this.overlayContainer = this.add.container(400, 299);
-        // Center cicle-like object
-        this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+        // Center cicle-like object        
+        this.centerObject = this.createCenter(this.container);
         // Dwitters         
-        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);
+        this.createDwitters(this.container);
         this.createContainerMain();
         // Leaderboard
         this.leaderboardManager = LeaderboardManager.getInstance();
@@ -443,32 +448,18 @@ class BaseScene extends Phaser.Scene {
     needChangeUiWhenIntoGame() {
         return true;
     }
+    sceneHomeTogameAnimation(s) {
+        return s;
+    }
     initStHomeToGameAnimation() {
-        let dt = 1000;
         let state = this.mainFsm.getState("HomeToGameAnimation");
-        state
-            .addAction(s => {
+        state.addAction(s => {
             if (this.needChangeUiWhenIntoGame())
                 this.ui.gotoGame(this.mode);
-        })
-            .addTweenAllAction(this, [
-            // Rotate center to normal angle
-            {
-                targets: this.centerObject.inner,
-                rotation: 0,
-                scale: this.centerObject.gameScale,
-                duration: dt,
-            },
-            // Scale out the outter dwitter
-            {
-                targets: this.dwitterCenter.inner,
-                alpha: 0,
-                scale: 2,
-                duration: dt,
-            },
-        ])
-            .addDelayAction(this, 600)
-            .addFinishAction();
+        });
+        this.sceneHomeTogameAnimation(state);
+        state.addDelayAction(this, 600);
+        state.addFinishAction();
     }
     sceneIntoNormalGame(s) {
     }
@@ -489,34 +480,23 @@ class BaseScene extends Phaser.Scene {
         });
         let state = this.mainFsm.getState("NormalGame");
         state.setOnEnter(s => {
-            this.ui.hud.reset();
+            // FSM 
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             this.zenFsm.start();
-            // Hide title and show speaker dots
-            this.centerObject.prepareToGame();
+            // UI reset
+            this.ui.hud.reset();
+            // Back
             if (this.needChangeUiWhenIntoGame())
                 this.backBtn.setEnable(true, true);
-            this.gamePlayStarted();
-            // Back
             s.autoOn($(document), 'keydown', e => {
                 if (!this.overlay.isInShow() && e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BACK_TO_HOME"); // <-------------
                 }
             });
-            // Player input
-            s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
-            s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+            // Delegates
+            this.gamePlayStarted();
             this.sceneIntoNormalGame(s);
-            // s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
-            //     let enemy = <Enemy>e;
-            //     // TODO
-            //     // this.hud.addScore(baseScore);
-            // });
-            // Dead event handling
-            s.autoOn(this.hp.deadEvent, null, e => {
-                s.event("DIED");
-            });
         });
         // Check mode and dispatch
         state.addDelayAction(this, 1500)
@@ -595,7 +575,7 @@ class BaseScene extends Phaser.Scene {
             {
                 targets: this.dwitterCenter.inner,
                 alpha: 1,
-                scale: this.initDwitterScale,
+                scale: this.initCenterDwitterScale,
                 duration: dt,
             },
         ])
@@ -702,6 +682,10 @@ class SceneTrailor extends BaseScene {
         super(config);
         this.camAllowed = false;
     }
+    preload() {
+        super.preload();
+        this.load.image('circle', 'assets/circle.png');
+    }
     create() {
         deleteAllCookie();
         super.create();
@@ -769,6 +753,10 @@ class Scene1 extends BaseScene {
     constructor(config) {
         super(config);
     }
+    preload() {
+        super.preload();
+        this.load.image('circle', 'assets/circle.png');
+    }
     createContainerMain() {
         super.createContainerMain();
         // Enemies
@@ -794,6 +782,15 @@ class Scene1 extends BaseScene {
     }
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
+        // Hide title and show speaker dots
+        this.centerObject.prepareToGame();
+        // Player input
+        s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+        s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+        // Dead event handling
+        s.autoOn(this.hp.deadEvent, null, e => {
+            s.event("DIED");
+        });
         // Damage handling, only in normal mode
         if (this.mode == GameMode.Normal) {
             s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
@@ -833,6 +830,27 @@ class Scene1 extends BaseScene {
     }
     getChangedToTitle() {
         return 'Project 65536';
+    }
+    sceneHomeTogameAnimation(s) {
+        super.sceneHomeTogameAnimation(s);
+        let dt = 1000;
+        s.addTweenAllAction(this, [
+            // Rotate center to normal angle
+            {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: this.centerObject.gameScale,
+                duration: dt,
+            },
+            // Scale out the outter dwitter
+            {
+                targets: this.dwitterCenter.inner,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            },
+        ]);
+        return s;
     }
 }
 /// <reference path="scene-1.ts" />
@@ -1986,11 +2004,23 @@ class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
     }
+    createDwitters(parentContainer) {
+        this.initCenterDwitterScale = 0.52;
+        this.dwitterCenter = new Dwitter65536(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);
+    }
+    preload() {
+        super.preload();
+        this.load.image('center_rect', 'assets/center_rect.png');
+    }
     sceneAddFirstMeetGreetingActinos(s) {
         s.addSubtitleAction(this.subtitle, "Oh, hi there!", true)
             .addSubtitleAction(this.subtitle, "Terminal 65537 is at your service.\n", true)
             .addSubtitleAction(this.subtitle, "Your name is needed! Human.", false).finishImmediatly();
         return s;
+    }
+    createCenter(parentContainer) {
+        return new CenterObject(this, parentContainer, MakePoint2(220, 220), CenterType.Rect);
     }
     needModeSelect() {
         return false;
@@ -2008,6 +2038,37 @@ class Scene2 extends BaseScene {
     }
     getChangedToTitle() {
         return 'Project 65537';
+    }
+    sceneHomeTogameAnimation(s) {
+        super.sceneHomeTogameAnimation(s);
+        let dt = 1000;
+        s.addTweenAllAction(this, [
+            // Rotate center to normal angle
+            {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: 0,
+                duration: dt,
+            },
+            // Scale out the outter dwitter
+            {
+                targets: this.dwitterCenter.inner,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            },
+        ]);
+        return s;
+    }
+    sceneIntoNormalGame(s) {
+        super.sceneIntoNormalGame(s);
+        // // Player input
+        // s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+        // s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+        // // Dead event handling
+        // s.autoOn(this.hp.deadEvent, null, e => {
+        //     s.event("DIED");
+        // })        
     }
 }
 /// <reference path="scene-2.ts" />
@@ -2758,6 +2819,9 @@ class Dwitter extends Wrapper {
         // In inheritance
     }
 }
+/**
+ * Round Center
+ */
 class Dwitter65536 extends Dwitter {
     u(t, c, x) {
         let a = 0;
@@ -2769,6 +2833,26 @@ class Dwitter65536 extends Dwitter {
         x.stroke();
     }
 }
+/**
+ * Rect bkg
+ */
+class DwitterRectBKG extends Dwitter {
+    dwitterInit() {
+        super.dwitterInit();
+        this.inner.alpha = 0.03;
+    }
+    u(t, c, x) {
+        let k = 0;
+        let i = 0;
+        c.width |= k = i = 960;
+        for (; i--; x.strokeRect(k - i, 540 - i, i * 2, i * 2))
+            x.setLineDash([t + k / i & 1 ? i / 5 : i]);
+        x.stroke();
+    }
+}
+/**
+ * Radial from center
+ */
 class Dwitter65537 extends Dwitter {
     constructor() {
         super(...arguments);
@@ -2785,17 +2869,10 @@ class Dwitter65537 extends Dwitter {
         this.needStopOnFirstShow = false;
     }
     u(t, c, x) {
-        // console.log(t);
-        if (this.needModify) {
-            t = ~~(t / this.freq);
-            t += this.phase;
-        }
         if (t === this.lastT) {
-            // console.log("same return " + t +"   "+ this.lastT);
             return;
         }
         this.lastT = t;
-        // console.log("here");
         this._u(t, c, x);
     }
     next() {
@@ -2817,11 +2894,6 @@ class Dwitter65537 extends Dwitter {
     }
     toStaticMode() {
         this.isRunning = false;
-        this.needModify = true;
-        this.param1 = 25;
-    }
-    toSlowStepMode() {
-        this.isRunning = true;
         this.needModify = true;
         this.param1 = 25;
     }
@@ -6002,6 +6074,11 @@ class Button {
         this.needTextTransferAnimation = true;
     }
 }
+var CenterType;
+(function (CenterType) {
+    CenterType[CenterType["Round"] = 0] = "Round";
+    CenterType[CenterType["Rect"] = 1] = "Rect";
+})(CenterType || (CenterType = {}));
 class SpeakerButton extends ImageWrapperClass {
     init() {
         this.icon = this.scene.add.image(0, 0, 'speaker_dot').setAlpha(0);
@@ -6023,7 +6100,7 @@ class SpeakerButton extends ImageWrapperClass {
     }
 }
 class CenterObject {
-    constructor(scene, parentContainer, designSize) {
+    constructor(scene, parentContainer, designSize, type = CenterType.Round) {
         this.speakerRight = 56;
         this.speakerLeft = -56;
         this.homeScale = 1.3;
@@ -6035,9 +6112,13 @@ class CenterObject {
         this.designSize = cpp(designSize);
         this.inner = this.scene.add.container(0, 0);
         this.parentContainer.add(this.inner);
-        this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
+        let mainFileName = type == CenterType.Round ? 'circle' : 'center_rect';
+        this.mainImage = this.scene.add.image(0, 0, mainFileName).setInteractive();
         this.inner.add(this.mainImage);
         this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(0, 0, "speaker"));
+        if (type == CenterType.Rect) {
+            this.speakerBtn.inner.alpha = 0;
+        }
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");
         this.playerInputText.changedEvent.on((inputControl) => { this.playerInputChanged(inputControl); });

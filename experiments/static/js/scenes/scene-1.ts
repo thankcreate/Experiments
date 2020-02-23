@@ -8,6 +8,10 @@ class Scene1 extends BaseScene {
 
     }
 
+    preload() {
+        super.preload();
+        this.load.image('circle', 'assets/circle.png');
+    }
 
     
     createContainerMain() {
@@ -45,7 +49,20 @@ class Scene1 extends BaseScene {
 
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
-          // Damage handling, only in normal mode
+
+        // Hide title and show speaker dots
+        this.centerObject.prepareToGame();
+
+        // Player input
+        s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
+        s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+
+        // Dead event handling
+        s.autoOn(this.hp.deadEvent, null, e => {
+            s.event("DIED");
+        })
+
+        // Damage handling, only in normal mode
         if (this.mode == GameMode.Normal) {
             s.autoOn(this.enemyManager.enemyReachedCoreEvent, null, e => {
                 let enemy = <Enemy>e;
@@ -96,5 +113,27 @@ class Scene1 extends BaseScene {
 
     getChangedToTitle() {
         return 'Project 65536'
+    }
+
+    sceneHomeTogameAnimation(s: FsmState): FsmState{
+        super.sceneHomeTogameAnimation(s);
+        let dt = 1000;
+        s.addTweenAllAction(this, [
+            // Rotate center to normal angle
+            {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: this.centerObject.gameScale,
+                duration: dt,
+            },
+            // Scale out the outter dwitter
+            {
+                targets: this.dwitterCenter.inner,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            },
+        ])
+        return s;
     }
 }

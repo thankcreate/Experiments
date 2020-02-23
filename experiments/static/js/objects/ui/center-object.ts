@@ -1,3 +1,10 @@
+enum CenterType {
+    Round,
+    Rect
+}
+
+
+
 class SpeakerButton extends ImageWrapperClass {
     icon: PhImage;
 
@@ -58,7 +65,7 @@ class CenterObject {
     centerProgres: CenterProgress;
 
 
-    constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint) {
+    constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint, type: CenterType = CenterType.Round) {
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.designSize = cpp(designSize);
@@ -67,12 +74,16 @@ class CenterObject {
         this.parentContainer.add(this.inner);
 
 
-        this.mainImage = this.scene.add.image(0, 0, "circle").setInteractive();
+        let mainFileName = type == CenterType.Round ? 'circle' : 'center_rect';
+        this.mainImage = this.scene.add.image(0, 0, mainFileName).setInteractive();
         this.inner.add(this.mainImage);
 
         this.speakerBtn = new SpeakerButton(this.scene, this.inner, this.speakerRight, 28, this.scene.add.image(
             0, 0, "speaker"
         ));
+        if(type == CenterType.Rect) {
+            this.speakerBtn.inner.alpha = 0;
+        }
 
         this.playerInputText = new PlayerInputText(this.scene, this.inner, this, "Project 65535");
         this.playerInputText.init("");

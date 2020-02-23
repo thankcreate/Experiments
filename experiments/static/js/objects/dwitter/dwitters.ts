@@ -82,6 +82,9 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     }
 }
 
+/**
+ * Round Center
+ */
 class Dwitter65536 extends Dwitter {
     u(t, c: any, x) {
 
@@ -98,6 +101,29 @@ class Dwitter65536 extends Dwitter {
 }
 
 
+/**
+ * Rect bkg
+ */
+class DwitterRectBKG extends Dwitter {
+    dwitterInit() {
+        super.dwitterInit();
+        this.inner.alpha = 0.03;
+    }
+
+    u(t, c: any, x) {
+        
+        let k = 0;
+        let i = 0;
+        c.width|=k=i=960
+
+        for(;i--;x.strokeRect(k-i,540-i,i*2,i*2))x.setLineDash([t+k/i&1?i/5:i])
+        x.stroke();
+    }
+}
+
+/**
+ * Radial from center
+ */
 class Dwitter65537 extends Dwitter {
 
     freq = 5        // frequency
@@ -119,24 +145,12 @@ class Dwitter65537 extends Dwitter {
         this.needStopOnFirstShow = false;
     }
 
-
-
-
-    u(t, c, x) {
-        // console.log(t);
-        if(this.needModify) {
-            t = ~~(t / this.freq);
-            t += this.phase;
-        }
-      
-        if(t === this.lastT) {
-           // console.log("same return " + t +"   "+ this.lastT);
+    u(t, c, x) {      
+        if(t === this.lastT) {           
             return;
-        }
-            
+        }            
 
-        this.lastT = t;
-        // console.log("here");
+        this.lastT = t;        
         this._u(t, c, x);
     }
 
@@ -167,13 +181,10 @@ class Dwitter65537 extends Dwitter {
         this.param1 = 25;        
     }
 
-    toSlowStepMode() {
-        this.isRunning = true;
-        this.needModify = true;
-        this.param1 = 25;    
-    }
+
 
     _u(t, c , x) {
+        
         if(this.needStopOnFirstShow ){
             this.needStopOnFirstShow = false;
             this.isRunning = false;
@@ -191,3 +202,5 @@ class Dwitter65537 extends Dwitter {
     }
 
 }
+
+

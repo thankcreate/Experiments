@@ -8,6 +8,11 @@ class SceneTrailor extends BaseScene {
         super(config);        
     }
 
+    preload() {
+        super.preload();
+        this.load.image('circle', 'assets/circle.png');
+    }
+
     create() {
         deleteAllCookie();
 

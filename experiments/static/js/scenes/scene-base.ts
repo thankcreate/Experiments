@@ -81,9 +81,9 @@ class BaseScene extends Phaser.Scene {
     zenFsm: Fsm;
 
     dwitterCenter: Dwitter;
-    dwitterBKG: Dwitter65537
+    dwitterBKG: Dwitter;
 
-    initDwitterScale: number = 0.52;
+    initCenterDwitterScale: number;
 
     subtitle: Subtitle;
     backBtn: Button;
@@ -129,7 +129,7 @@ class BaseScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('circle', 'assets/circle.png');
+        
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('arrow_rev', 'assets/arrow_rev.png');
         this.load.image('speaker_dot', 'assets/speaker_dot.png');
@@ -212,6 +212,16 @@ class BaseScene extends Phaser.Scene {
         });
     }
 
+    createCenter(parentContainer: PhContainer): CenterObject {
+        return new CenterObject(this, parentContainer, MakePoint2(220, 220));
+    }
+
+    createDwitters(parentContainer: PhContainer) {
+        this.initCenterDwitterScale = 0.52;
+        this.dwitterCenter = new Dwitter65536(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new Dwitter65537(this, parentContainer, 0, 0, 2400, 1400, true);        
+    }
+
     create() {
         this.loadAudio();        
         this.sfxMatches = [];
@@ -225,12 +235,11 @@ class BaseScene extends Phaser.Scene {
         this.abContainer = this.add.container(0, 0);
         this.overlayContainer = this.add.container(400, 299);
 
-        // Center cicle-like object
-        this.centerObject = new CenterObject(this, this.container, MakePoint2(220, 220));
+        // Center cicle-like object        
+        this.centerObject = this.createCenter(this.container);
 
         // Dwitters         
-        this.dwitterCenter = new Dwitter65536(this, this.container, 0, 0, 1920, 1080, true).setScale(this.initDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, this.container, 0, 0, 2400, 1400, true);        
+        this.createDwitters(this.container);
         
         this.createContainerMain();
        
@@ -636,34 +645,20 @@ class BaseScene extends Phaser.Scene {
         return true;
     }
 
+    sceneHomeTogameAnimation(s: FsmState): FsmState{
+        return s;
+    }
+
     initStHomeToGameAnimation() {
-        let dt = 1000;
+        
         let state = this.mainFsm.getState("HomeToGameAnimation")
-        state
-            .addAction(s => {
-                if(this.needChangeUiWhenIntoGame())
-                    this.ui.gotoGame(this.mode);
-            })
-            .addTweenAllAction(this, [
-                // Rotate center to normal angle
-                {
-                    targets: this.centerObject.inner,
-                    rotation: 0,
-                    scale: this.centerObject.gameScale,
-                    duration: dt,
-                },
-                // Scale out the outter dwitter
-                {
-                    targets: this.dwitterCenter.inner,
-                    alpha: 0,
-                    scale: 2,
-                    duration: dt,
-                },
-            ])
-            .addDelayAction(this, 600)
-            .addFinishAction();
-
-
+        state.addAction(s => {
+            if(this.needChangeUiWhenIntoGame())
+                this.ui.gotoGame(this.mode);
+        })
+        this.sceneHomeTogameAnimation(state);
+        state.addDelayAction(this, 600)
+        state.addFinishAction();
     }
 
     sceneIntoNormalGame(s) {
@@ -687,45 +682,32 @@ class BaseScene extends Phaser.Scene {
         });
 
         let state = this.mainFsm.getState("NormalGame");
-        state.setOnEnter(s => {
-            this.ui.hud.reset();
+        state.setOnEnter(s => {                       
+            // FSM 
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.normalGameFsm.start();
             this.zenFsm.start();
-            // Hide title and show speaker dots
-            this.centerObject.prepareToGame();
-
-            if(this.needChangeUiWhenIntoGame())
-                this.backBtn.setEnable(true, true);
             
-            this.gamePlayStarted();
 
+
+            // UI reset
+            this.ui.hud.reset();
 
             // Back
+            if(this.needChangeUiWhenIntoGame())
+                this.backBtn.setEnable(true, true);
+
             s.autoOn($(document), 'keydown', e => {
                 if (!this.overlay.isInShow() && e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
                     s.event("BACK_TO_HOME");   // <-------------
                 }
             });
 
-            // Player input
-            s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
-            s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
 
-
+            // Delegates
+            this.gamePlayStarted();
             this.sceneIntoNormalGame(s);
- 
 
-            // s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
-            //     let enemy = <Enemy>e;
-            //     // TODO
-            //     // this.hud.addScore(baseScore);
-            // });
-
-            // Dead event handling
-            s.autoOn(this.hp.deadEvent, null, e => {
-                s.event("DIED");
-            })
         });
 
         // Check mode and dispatch
@@ -816,7 +798,7 @@ class BaseScene extends Phaser.Scene {
                 {
                     targets: this.dwitterCenter.inner,
                     alpha: 1,
-                    scale: this.initDwitterScale,
+                    scale: this.initCenterDwitterScale,
                     duration: dt,
                 },
 
@@ -891,7 +873,7 @@ class BaseScene extends Phaser.Scene {
         let un = getUserName();
         console.log(un);
         return un;
-    }
+    }   
 
     needHud() : boolean{
         return true;

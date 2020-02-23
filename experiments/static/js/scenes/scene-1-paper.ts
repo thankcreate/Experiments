@@ -235,7 +235,7 @@ class Scene1LPaper extends BaseScene {
 
             setTimeout(() => {
                 CameraManager.getInstance().captureCameraImage();
-            }, 1000);
+            }, 2000);
         })
         .addSubtitleAction(this.subtitle, "Look at you!", false)
         .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)     

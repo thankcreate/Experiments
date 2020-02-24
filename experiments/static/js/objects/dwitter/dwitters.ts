@@ -9,7 +9,7 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     height: number;
     frame: number;
 
-    lastT = -1;
+    lastInnerTime = -1;
 
     c: any;
     x: any;
@@ -59,8 +59,8 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     next() {
         this.frame += 60;
         let innerTime = this.frame / 60;
-        this.lastT = innerTime;
-        this.u(this.lastT, this.c, this.x);
+        this.lastInnerTime = innerTime;
+        this.u(this.lastInnerTime, this.c, this.x);
     }
 
     toAutoRunMode() {
@@ -69,7 +69,7 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
 
     nextWithColorChange() {
         let typeCount = 4;
-        let colorIndex  = Math.floor(this.lastT) % typeCount;
+        let colorIndex  = Math.floor(this.lastInnerTime) % typeCount;
         let colorAr = [0.03, 0.10, 0.08, 0.12];
 
         // onsole.log(this.lastT + "  " + colorIndex);
@@ -86,17 +86,18 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     update(time, dt) {
         if(!this.isRunning)
             return;
-        this.frame++;
-        let innerTime = this.frame / 60;
 
         if(this.inner.alpha == 0)
             return;
 
+        this.frame++;
+        let innerTime = this.frame / 60;
 
-        if(innerTime === this.lastT) {           
+        if(innerTime === this.lastInnerTime) {           
             return;
         } 
-        this.lastT = innerTime;       
+        
+        this.lastInnerTime = innerTime;       
         this.u(innerTime, this.c, this.x);
     }
 
@@ -120,7 +121,7 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
 /**
  * Round Center
  */
-class Dwitter65536 extends Dwitter {
+class DwitterCenterCircle extends Dwitter {
     u(t, c: any, x) {
 
         let a = 0;
@@ -149,17 +150,41 @@ class DwitterRectBKG extends Dwitter {
         
         let k = 0;
         let i = 0;
-        c.width|=k=i=960
+        c.width|=k=i=this.width/2
 
-        for(;i--;x.strokeRect(k-i,540-i,i*2,i*2))x.setLineDash([t+k/i&1?i/5:i])
+        for(;i--;x.strokeRect(k-i,this.height/2-i,i*2,i*2))x.setLineDash([t+k/i&1?i/5:i])
         x.stroke();
     }
+}
+
+
+class DwitterHoriaontalRect extends Dwitter{
+    u(t, c , x) {        
+        t/=2;
+        let w = 8;
+        let i = 0;
+        for(c.width|=i=0; i++ < 20;){
+            for(let j = 10; j--; ){
+                let z=(j+2)/2;
+                let xOffset = i*100+((i-10)*j*30)-S(t/3)*500*z
+
+                let alpha = (0.5 - Math.abs(xOffset  / this.width - 0.5)) * 1;
+                let cA = clamp(alpha, 0, 1);
+
+                
+                x.globalAlpha = Math.pow(Math.sin(cA * Math.PI / 2), 1/1.5);
+                x.fillRect(xOffset, j*20+750+S(t*2-i+j/2)*50, 8*z,8*z)
+
+            }
+        }
+    }
+
 }
 
 /**
  * Radial from center
  */
-class Dwitter65537 extends Dwitter {
+class DwitterRadialBKG extends Dwitter {
 
     freq = 5        // frequency
     phase = 5;      // initial phase

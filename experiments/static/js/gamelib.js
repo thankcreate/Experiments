@@ -130,8 +130,8 @@ class BaseScene extends Phaser.Scene {
     }
     createDwitters(parentContainer) {
         this.initCenterDwitterScale = 0.52;
-        this.dwitterCenter = new Dwitter65536(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, parentContainer, 0, 0, 2400, 1400, true);
+        this.dwitterCenter = new DwitterCenterCircle(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new DwitterRadialBKG(this, parentContainer, 0, 0, 2400, 1400, true);
     }
     create() {
         this.loadAudio();
@@ -144,10 +144,10 @@ class BaseScene extends Phaser.Scene {
         this.midContainder = this.add.container(400, 299);
         this.abContainer = this.add.container(0, 0);
         this.overlayContainer = this.add.container(400, 299);
-        // Center cicle-like object        
-        this.centerObject = this.createCenter(this.container);
         // Dwitters         
         this.createDwitters(this.container);
+        // Center cicle-like object        
+        this.centerObject = this.createCenter(this.container);
         this.createContainerMain();
         // Leaderboard
         this.leaderboardManager = LeaderboardManager.getInstance();
@@ -199,6 +199,7 @@ class BaseScene extends Phaser.Scene {
         });
         this.curTime = time;
         dt = dt / 1000;
+        console.log(1 / dt);
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
@@ -2005,8 +2006,9 @@ class Scene2 extends BaseScene {
         super(config);
     }
     createDwitters(parentContainer) {
+        // super.createDwitters(parentContainer);
         this.initCenterDwitterScale = 0.52;
-        this.dwitterCenter = new DwitterRectBKG(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);
     }
     preload() {
@@ -2771,7 +2773,7 @@ var canvasIndex = 0;
 class Dwitter extends Wrapper {
     constructor(scene, parentContainer, x, y, width, height, useImage = true) {
         super(scene, parentContainer, x, y, null);
-        this.lastT = -1;
+        this.lastInnerTime = -1;
         this.isRunning = true;
         this.useImage = useImage;
         this.height = height;
@@ -2802,15 +2804,15 @@ class Dwitter extends Wrapper {
     next() {
         this.frame += 60;
         let innerTime = this.frame / 60;
-        this.lastT = innerTime;
-        this.u(this.lastT, this.c, this.x);
+        this.lastInnerTime = innerTime;
+        this.u(this.lastInnerTime, this.c, this.x);
     }
     toAutoRunMode() {
         this.isRunning = true;
     }
     nextWithColorChange() {
         let typeCount = 4;
-        let colorIndex = Math.floor(this.lastT) % typeCount;
+        let colorIndex = Math.floor(this.lastInnerTime) % typeCount;
         let colorAr = [0.03, 0.10, 0.08, 0.12];
         // onsole.log(this.lastT + "  " + colorIndex);
         this.inner.alpha = colorAr[colorIndex];
@@ -2822,14 +2824,14 @@ class Dwitter extends Wrapper {
     update(time, dt) {
         if (!this.isRunning)
             return;
-        this.frame++;
-        let innerTime = this.frame / 60;
         if (this.inner.alpha == 0)
             return;
-        if (innerTime === this.lastT) {
+        this.frame++;
+        let innerTime = this.frame / 60;
+        if (innerTime === this.lastInnerTime) {
             return;
         }
-        this.lastT = innerTime;
+        this.lastInnerTime = innerTime;
         this.u(innerTime, this.c, this.x);
     }
     u(t, c, x) {
@@ -2846,7 +2848,7 @@ class Dwitter extends Wrapper {
 /**
  * Round Center
  */
-class Dwitter65536 extends Dwitter {
+class DwitterCenterCircle extends Dwitter {
     u(t, c, x) {
         let a = 0;
         c.width |= c.style.background = "#CDF";
@@ -2868,16 +2870,33 @@ class DwitterRectBKG extends Dwitter {
     u(t, c, x) {
         let k = 0;
         let i = 0;
-        c.width |= k = i = 960;
-        for (; i--; x.strokeRect(k - i, 540 - i, i * 2, i * 2))
+        c.width |= k = i = this.width / 2;
+        for (; i--; x.strokeRect(k - i, this.height / 2 - i, i * 2, i * 2))
             x.setLineDash([t + k / i & 1 ? i / 5 : i]);
         x.stroke();
+    }
+}
+class DwitterHoriaontalRect extends Dwitter {
+    u(t, c, x) {
+        t /= 2;
+        let w = 8;
+        let i = 0;
+        for (c.width |= i = 0; i++ < 20;) {
+            for (let j = 10; j--;) {
+                let z = (j + 2) / 2;
+                let xOffset = i * 100 + ((i - 10) * j * 30) - S(t / 3) * 500 * z;
+                let alpha = (0.5 - Math.abs(xOffset / this.width - 0.5)) * 1;
+                let cA = clamp(alpha, 0, 1);
+                x.globalAlpha = Math.pow(Math.sin(cA * Math.PI / 2), 1 / 1.5);
+                x.fillRect(xOffset, j * 20 + 750 + S(t * 2 - i + j / 2) * 50, 8 * z, 8 * z);
+            }
+        }
     }
 }
 /**
  * Radial from center
  */
-class Dwitter65537 extends Dwitter {
+class DwitterRadialBKG extends Dwitter {
     constructor() {
         super(...arguments);
         this.freq = 5; // frequency

@@ -218,8 +218,8 @@ class BaseScene extends Phaser.Scene {
 
     createDwitters(parentContainer: PhContainer) {
         this.initCenterDwitterScale = 0.52;
-        this.dwitterCenter = new Dwitter65536(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
-        this.dwitterBKG = new Dwitter65537(this, parentContainer, 0, 0, 2400, 1400, true);        
+        this.dwitterCenter = new DwitterCenterCircle(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new DwitterRadialBKG(this, parentContainer, 0, 0, 2400, 1400, true);        
     }
 
     create() {
@@ -235,11 +235,13 @@ class BaseScene extends Phaser.Scene {
         this.abContainer = this.add.container(0, 0);
         this.overlayContainer = this.add.container(400, 299);
 
-        // Center cicle-like object        
-        this.centerObject = this.createCenter(this.container);
 
         // Dwitters         
         this.createDwitters(this.container);
+
+        // Center cicle-like object        
+        this.centerObject = this.createCenter(this.container);
+
         
         this.createContainerMain();
        
@@ -328,7 +330,7 @@ class BaseScene extends Phaser.Scene {
         
         this.curTime =  time;
         dt = dt / 1000;
-
+        console.log(1/dt);
 
 
 

@@ -7,7 +7,7 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
 
     width: number;
     height: number;
-    frame: number;
+    // frame: number;
 
     lastInnerTime = -1;
 
@@ -50,16 +50,18 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     dwitterInit() {
         // Default origin set to 0.5
         this.setOrigin(0.5, 0.5);
-        this.frame = 0;
+        // this.frame = 0;
+        this.lastInnerTime = 0;
 
         // Push to the scene's update array
         this.scene.updateObjects.push(this);
     }
 
     next() {
-        this.frame += 60;
-        let innerTime = this.frame / 60;
-        this.lastInnerTime = innerTime;
+        // this.frame += 60;
+        // let innerTime = this.frame / 60;        
+        //this.lastInnerTime = innerTime;
+        this.lastInnerTime += 1;
         this.u(this.lastInnerTime, this.c, this.x);
     }
 
@@ -90,15 +92,17 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
         if(this.inner.alpha == 0)
             return;
 
-        this.frame++;
-        let innerTime = this.frame / 60;
+        // this.frame++;
+        // let innerTime = this.frame / 60;
 
-        if(innerTime === this.lastInnerTime) {           
-            return;
-        } 
+        // if(innerTime === this.lastInnerTime) {           
+        //     return;
+        // } 
+        // this.lastInnerTime = innerTime;       
         
-        this.lastInnerTime = innerTime;       
-        this.u(innerTime, this.c, this.x);
+        this.lastInnerTime += dt / 1000;        
+        
+        this.u(this.lastInnerTime, this.c, this.x);
     }
 
     u(t, c, x) {      

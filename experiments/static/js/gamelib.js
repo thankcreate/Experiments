@@ -2773,6 +2773,7 @@ var canvasIndex = 0;
 class Dwitter extends Wrapper {
     constructor(scene, parentContainer, x, y, width, height, useImage = true) {
         super(scene, parentContainer, x, y, null);
+        // frame: number;
         this.lastInnerTime = -1;
         this.isRunning = true;
         this.useImage = useImage;
@@ -2797,14 +2798,16 @@ class Dwitter extends Wrapper {
     dwitterInit() {
         // Default origin set to 0.5
         this.setOrigin(0.5, 0.5);
-        this.frame = 0;
+        // this.frame = 0;
+        this.lastInnerTime = 0;
         // Push to the scene's update array
         this.scene.updateObjects.push(this);
     }
     next() {
-        this.frame += 60;
-        let innerTime = this.frame / 60;
-        this.lastInnerTime = innerTime;
+        // this.frame += 60;
+        // let innerTime = this.frame / 60;        
+        //this.lastInnerTime = innerTime;
+        this.lastInnerTime += 1;
         this.u(this.lastInnerTime, this.c, this.x);
     }
     toAutoRunMode() {
@@ -2826,13 +2829,14 @@ class Dwitter extends Wrapper {
             return;
         if (this.inner.alpha == 0)
             return;
-        this.frame++;
-        let innerTime = this.frame / 60;
-        if (innerTime === this.lastInnerTime) {
-            return;
-        }
-        this.lastInnerTime = innerTime;
-        this.u(innerTime, this.c, this.x);
+        // this.frame++;
+        // let innerTime = this.frame / 60;
+        // if(innerTime === this.lastInnerTime) {           
+        //     return;
+        // } 
+        // this.lastInnerTime = innerTime;       
+        this.lastInnerTime += dt / 1000;
+        this.u(this.lastInnerTime, this.c, this.x);
     }
     u(t, c, x) {
     }

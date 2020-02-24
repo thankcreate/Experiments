@@ -432,7 +432,7 @@ class BaseScene extends Phaser.Scene {
             // Show back the content of centerObject
             .addTweenAllAction(this, [
             {
-                targets: [this.centerObject.speakerBtn.inner, this.centerObject.playerInputText.title],
+                targets: this.centerObject.getFadeInAndOutCoreObjectes(),
                 alpha: 1,
                 duration: 400
             }
@@ -742,6 +742,27 @@ class SceneTrailor extends BaseScene {
     }
     needHud() {
         return false;
+    }
+    sceneHomeTogameAnimation(s) {
+        super.sceneHomeTogameAnimation(s);
+        let dt = 1000;
+        s.addTweenAllAction(this, [
+            // Rotate center to normal angle
+            {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: this.centerObject.gameScale,
+                duration: dt,
+            },
+            // Scale out the outter dwitter
+            {
+                targets: this.dwitterCenter.inner,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            },
+        ]);
+        return s;
     }
 }
 /// <reference path="scene-trailor.ts" />
@@ -1999,6 +2020,25 @@ class Controller extends Phaser.Scene {
 class Scene2L0 extends SceneTrailor {
     constructor() {
         super('Scene2L0');
+    }
+    preload() {
+        super.preload();
+        this.load.image('center_rect', 'assets/center_rect.png');
+    }
+    createCenter(parentContainer) {
+        return new CenterObject(this, parentContainer, MakePoint2(220, 220), CenterType.Rect);
+    }
+    createDwitters(parentContainer) {
+        // super.createDwitters(parentContainer);
+        this.initCenterDwitterScale = 0.52;
+        this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
+        this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2800, 1400, true);
+    }
+    getOriginalTitle() {
+        return 'Project 65537';
+    }
+    getChangedToTitle() {
+        return 'Project 65537';
     }
 }
 class Scene2 extends BaseScene {
@@ -6133,6 +6173,7 @@ class CenterObject {
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.designSize = cpp(designSize);
+        this.type = type;
         this.inner = this.scene.add.container(0, 0);
         this.parentContainer.add(this.inner);
         let mainFileName = type == CenterType.Round ? 'circle' : 'center_rect';
@@ -6204,8 +6245,10 @@ class CenterObject {
     }
     prepareToGame() {
         this.playerInputText.prepareToGame();
-        this.speakerBtn.toSpeakerMode(1000);
-        this.speakerBtn.inner.x = this.speakerRight;
+        if (this.type == CenterType.Round) {
+            this.speakerBtn.toSpeakerMode(1000);
+            this.speakerBtn.inner.x = this.speakerRight;
+        }
     }
     prepareToHome() {
         this.playerInputText.prepareToHome();
@@ -6213,11 +6256,13 @@ class CenterObject {
         // this.speakerBtn.inner.x = this.speakerRight;
         if (this.backToZeroTween)
             this.backToZeroTween.stop();
-        this.backToZeroTween = this.scene.tweens.add({
-            targets: this.speakerBtn.inner,
-            x: this.speakerRight,
-            duration: 150
-        });
+        if (this.type == CenterType.Round) {
+            this.backToZeroTween = this.scene.tweens.add({
+                targets: this.speakerBtn.inner,
+                x: this.speakerRight,
+                duration: 150
+            });
+        }
     }
     u3(t, c, x) {
         let Y = 0;
@@ -6225,6 +6270,14 @@ class CenterObject {
         let r = 140 - 16 * (t < 10 ? t : 0);
         for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))
             X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0;
+    }
+    getFadeInAndOutCoreObjectes() {
+        let ret = [];
+        if (this.type == CenterType.Round) {
+            ret.push(this.speakerBtn.inner);
+        }
+        ret.push(this.playerInputText.title);
+        return ret;
     }
 }
 class CenterProgress extends Wrapper {

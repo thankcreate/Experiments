@@ -88,4 +88,27 @@ class SceneTrailor extends BaseScene {
     needHud() : boolean{
         return false;
     }   
+
+
+    sceneHomeTogameAnimation(s: FsmState): FsmState{
+        super.sceneHomeTogameAnimation(s);
+        let dt = 1000;
+        s.addTweenAllAction(this, [
+            // Rotate center to normal angle
+            {
+                targets: this.centerObject.inner,
+                rotation: 0,
+                scale: this.centerObject.gameScale,
+                duration: dt,
+            },
+            // Scale out the outter dwitter
+            {
+                targets: this.dwitterCenter.inner,
+                alpha: 0,
+                scale: 2,
+                duration: dt,
+            },
+        ])
+        return s;
+    }
 }

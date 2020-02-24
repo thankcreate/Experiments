@@ -349,3 +349,75 @@ input[type="submit"]:active {
   font-size: 40px;
   color: #7f7f7f;
 }
+
+
+#newspaper-layer{
+  /* display: none; */
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  left: 0;
+  top: 0;
+}
+
+#newspaper-page{
+  position: absolute;
+  display: block;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  
+  background-color: #ffffff;  
+
+  border-color: black;
+  border-width: 6px;
+  border-style: solid;
+}
+
+#newspaper-inner-frame{
+  margin: 15px;
+  min-height: 300px;
+  width: 400px;
+  border-color: black;
+  border-width: 5px;
+  border-style: double;
+  background-color: #ededed;
+  padding: 10px;
+}
+
+
+#newspaper-title{
+  font-family: Georgia, serif;
+  font-size: 50px;
+  text-align: center;
+}
+
+#newspaper-layer hr{
+  width: 90%;
+  border-color: black;
+  border-width: 1px;
+  margin-block-start: 2px;
+  margin-block-end: 2px;
+}
+
+#newspaper-content{
+  font-size: 16px;
+  margin: 15px 20px;
+  font-size: 16px;
+}
+
+#newspaper-thumbnail{
+  float: right;
+  width: 100px;
+}
+
+
+#newspaper-content-text{
+  margin-block-start: 2px;
+}
+
+
+#clear-helper{
+  clear:both;
+}

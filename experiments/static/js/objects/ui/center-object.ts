@@ -64,11 +64,14 @@ class CenterObject {
 
     centerProgres: CenterProgress;
 
+    type: CenterType;
+
 
     constructor(scene: BaseScene, parentContainer: PhContainer, designSize: PhPoint, type: CenterType = CenterType.Round) {
         this.scene = scene;
         this.parentContainer = parentContainer;
         this.designSize = cpp(designSize);
+        this.type = type;
 
         this.inner = this.scene.add.container(0, 0);
         this.parentContainer.add(this.inner);
@@ -176,8 +179,11 @@ class CenterObject {
 
     prepareToGame() {
         this.playerInputText.prepareToGame();
-        this.speakerBtn.toSpeakerMode(1000);
-        this.speakerBtn.inner.x = this.speakerRight;
+
+        if(this.type == CenterType.Round) {
+            this.speakerBtn.toSpeakerMode(1000);
+            this.speakerBtn.inner.x = this.speakerRight;    
+        }        
     }
 
     prepareToHome() {
@@ -188,11 +194,13 @@ class CenterObject {
         if (this.backToZeroTween)
             this.backToZeroTween.stop();
 
-        this.backToZeroTween = this.scene.tweens.add({
-            targets: this.speakerBtn.inner,
-            x: this.speakerRight,
-            duration: 150
-        });
+        if(this.type == CenterType.Round) {
+            this.backToZeroTween = this.scene.tweens.add({
+                targets: this.speakerBtn.inner,
+                x: this.speakerRight,
+                duration: 150
+            });
+        }        
     }
 
 
@@ -201,5 +209,14 @@ class CenterObject {
         let X = 0;
         let r = 140 - 16 * (t < 10 ? t : 0);
         for (let U = 0; U < 44; (r < 8 ? "䃀䀰䜼䚬䶴伙倃匞䖴䚬䞜䆀䁠".charCodeAt(Y - 61) >> X - 18 & 1 : 0) || x.fillRect(8 * X, 8 * Y, 8, 8))X = 120 + r * C(U += .11) | 0, Y = 67 + r * S(U) | 0
+    }
+
+    getFadeInAndOutCoreObjectes() : any[]{
+        let ret = [];
+        if(this.type == CenterType.Round){
+            ret.push(this.speakerBtn.inner);
+        }        
+        ret.push(this.playerInputText.title);
+        return ret;
     }
 }

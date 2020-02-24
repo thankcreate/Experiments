@@ -625,7 +625,7 @@ class BaseScene extends Phaser.Scene {
             // Show back the content of centerObject
             .addTweenAllAction(this, [
                 {
-                    targets: [this.centerObject.speakerBtn.inner, this.centerObject.playerInputText.title],
+                    targets: this.centerObject.getFadeInAndOutCoreObjectes(),
                     alpha: 1,
                     duration: 400
                 }
@@ -929,5 +929,6 @@ class BaseScene extends Phaser.Scene {
     getChangedToTitle() {
         return 'Project 65536'
     }
+    
 }
 

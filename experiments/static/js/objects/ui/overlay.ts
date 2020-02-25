@@ -332,7 +332,7 @@ class Overlay extends Wrapper<PhText> {
         }
 
         // show comment dialog
-
+        $('#username').val(this.scene.getUserName());
         $('#form-comment').css('display', 'block');
         setTimeout(() => {
             $('#form-rating').animate({ opacity: '0' }, 400, () => {

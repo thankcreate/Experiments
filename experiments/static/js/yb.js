@@ -6,7 +6,8 @@ function onYouTubePlayerAPIReady() {
     s_youtubePlayer = new YT.Player('yb-player', {
         height: '480',
         width: '640',
-        videoId: '7YL_-y7fc3I',
+        // videoId: '7YL_-y7fc3I',
+        videoId: '61l_pKCIrcw',
         playerVars: { 'autoplay': 0, 'controls':0 },
         events: {
         'onReady': onPlayerReady,

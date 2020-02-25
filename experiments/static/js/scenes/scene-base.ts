@@ -330,7 +330,7 @@ class BaseScene extends Phaser.Scene {
         
         this.curTime =  time;
         dt = dt / 1000;
-        console.log(1/dt);
+        // console.log(1/dt);
 
 
 

@@ -23,7 +23,11 @@ class Scene1L4 extends Scene1 {
     }
 
     playOpenTurnBgm() {
+
         this.playAsBgm(this.openTurn);
+
+        // TODO: Should be extracted to its own logic        
+        // change the dwitter        
     }
 
     create() {
@@ -99,7 +103,7 @@ class Scene1L4 extends Scene1 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
-
+            
             
             // this.enemyManager.sensetiveDuration = 60000;
             // // this.needFeedback = true;
@@ -297,7 +301,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[2];
-        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-404s into 404?", false).finishImmediatly()
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-4O4s into 4O4?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s=>{            

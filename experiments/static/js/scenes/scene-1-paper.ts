@@ -6,7 +6,7 @@ class Scene1LPaper extends Scene1 {
     
     paper: Paper;
 
-    COUNT_ALL_TIME = 3;
+    COUNT_ALL_TIME = 30;
     remainingTime: number;
 
     constructor() {
@@ -30,6 +30,10 @@ class Scene1LPaper extends Scene1 {
         // $('#affdex_elements').css('display', 'inline');
 
         // this.beginVideo();
+
+        
+        this.dwitterBKG.changeTo(1);
+        
     }
 
     nextLevelBtn: Button;

@@ -119,7 +119,12 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
         }
     }
 
-    
+
+    toIndex: number = 0;
+    changeTo(idx: number) {
+        this.toIndex = idx;
+        this.next();
+    }
 }
 
 /**
@@ -227,15 +232,31 @@ class DwitterRadialBKG extends Dwitter {
             this.isRunning = false;
         }
 
-
-        let a = 0;
-        c.width |= 0
-
-        for (let i = 1e3; i--; ) {
-            x.arc(this.width / 2, this.height / 2, i ^ (t * this.param1 % 600), i / 100, i / 100 + .03);
-            x.stroke();
-            x.beginPath(x.lineWidth = 70);
+        if(this.toIndex == 0) {
+            let a = 0;
+            c.width |= 0
+    
+            
+            for (let i = 1e3; i--; ) {
+                x.arc(this.width / 2, this.height / 2, i ^ (t * this.param1 % 600), i / 100, i / 100 + .03);
+                x.stroke();
+                x.beginPath(x.lineWidth = 70);
+            }    
         }
+        else {
+            let i = 0;
+            let j = 0;
+            let r = 0;
+            let a = 0;
+            for (c.width |= j = 21, x.scale(5, 5), x.lineJoin = "round"; j--;)for (i = 26; i--;)x.arc(this.width / 10, this.height / 10, 1.3 ** (r = j + i % 2 + t % 2), a = (i + j) % 24 / 3.8197 + C(r) / 2, a); x.stroke()
+        }
+        // else {            
+        //     let i = 0;
+        //     let j = 0;
+        //     for(c.width|=i=50,S=Math.sin;i--;)for(j=50;j--;)x.arc(this.width / 2,this.height / 2,200*(S(t)/2+2)*(S(i)+1),(t%2)+j,(S(t)+1)*i+j);x.stroke()            
+        // }
+
+        
     }
 
 }

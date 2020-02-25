@@ -199,7 +199,7 @@ class BaseScene extends Phaser.Scene {
         });
         this.curTime = time;
         dt = dt / 1000;
-        console.log(1 / dt);
+        // console.log(1/dt);
         var w = getLogicWidth();
         var h = phaserConfig.scale.height;
         this.container.setPosition(w / 2, h / 2);
@@ -1434,6 +1434,8 @@ class Scene1L4 extends Scene1 {
     }
     playOpenTurnBgm() {
         this.playAsBgm(this.openTurn);
+        // TODO: Should be extracted to its own logic        
+        // change the dwitter        
     }
     create() {
         super.create();
@@ -1654,7 +1656,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[2];
-        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-404s into 404?", false).finishImmediatly();
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-4O4s into 4O4?", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s => {
@@ -1691,7 +1693,7 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
-        this.COUNT_ALL_TIME = 3;
+        this.COUNT_ALL_TIME = 30;
         this.paperWidth = 1000;
         this.paperHeight = 900;
         this.confirmCount = 0;
@@ -1710,6 +1712,7 @@ class Scene1LPaper extends Scene1 {
         initFace();
         // $('#affdex_elements').css('display', 'inline');
         // this.beginVideo();
+        this.dwitterBKG.changeTo(1);
     }
     createNextLevelBtn() {
         let btn = new Button(this, this.abContainer, getLogicWidth() - 315, getLogicHeight() - 490, null, ' -> Next Experiment ');
@@ -2816,6 +2819,7 @@ class Dwitter extends Wrapper {
         // frame: number;
         this.lastInnerTime = -1;
         this.isRunning = true;
+        this.toIndex = 0;
         this.useImage = useImage;
         this.height = height;
         this.width = width;
@@ -2887,6 +2891,10 @@ class Dwitter extends Wrapper {
         else {
             console.error("Graphics mode in dwitter is not allowed now");
         }
+    }
+    changeTo(idx) {
+        this.toIndex = idx;
+        this.next();
     }
 }
 /**
@@ -2965,13 +2973,30 @@ class DwitterRadialBKG extends Dwitter {
             this.needStopOnFirstShow = false;
             this.isRunning = false;
         }
-        let a = 0;
-        c.width |= 0;
-        for (let i = 1e3; i--;) {
-            x.arc(this.width / 2, this.height / 2, i ^ (t * this.param1 % 600), i / 100, i / 100 + .03);
-            x.stroke();
-            x.beginPath(x.lineWidth = 70);
+        if (this.toIndex == 0) {
+            let a = 0;
+            c.width |= 0;
+            for (let i = 1e3; i--;) {
+                x.arc(this.width / 2, this.height / 2, i ^ (t * this.param1 % 600), i / 100, i / 100 + .03);
+                x.stroke();
+                x.beginPath(x.lineWidth = 70);
+            }
         }
+        else {
+            let i = 0;
+            let j = 0;
+            let r = 0;
+            let a = 0;
+            for (c.width |= j = 21, x.scale(5, 5), x.lineJoin = "round"; j--;)
+                for (i = 26; i--;)
+                    x.arc(this.width / 10, this.height / 10, Math.pow(1.3, (r = j + i % 2 + t % 2)), a = (i + j) % 24 / 3.8197 + C(r) / 2, a);
+            x.stroke();
+        }
+        // else {            
+        //     let i = 0;
+        //     let j = 0;
+        //     for(c.width|=i=50,S=Math.sin;i--;)for(j=50;j--;)x.arc(this.width / 2,this.height / 2,200*(S(t)/2+2)*(S(i)+1),(t%2)+j,(S(t)+1)*i+j);x.stroke()            
+        // }
     }
 }
 var EnemyType;

@@ -1688,7 +1688,7 @@ class Scene1L4 extends Scene1 {
         });
     }
 }
-class Scene1LPaper extends BaseScene {
+class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
         this.COUNT_ALL_TIME = 3;

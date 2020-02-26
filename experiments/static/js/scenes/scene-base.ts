@@ -492,9 +492,7 @@ class BaseScene extends Phaser.Scene {
     }
 
     sceneAddFirstMeetGreetingActinos(s: FsmState) :FsmState {
-        s.addSubtitleAction(this.subtitle, "God! Someone finds me finally!", true)        
-        .addSubtitleAction(this.subtitle, "This is terminal 65536.\nNice to meet you, human", true)
-        .addSubtitleAction(this.subtitle, "May I know your name, please?", false).finishImmediatly()
+        s.addSubtitleAction(this.subtitle, "Default greeting!", true)                
         return s;
     }
 
@@ -502,6 +500,10 @@ class BaseScene extends Phaser.Scene {
     initStFirstMeet() {
         
         let state = this.mainFsm.getState("FirstMeet");
+
+        state.addAction(s=>{
+            this.centerObject.playerInputText.showTitle();            
+        })
         this.sceneAddFirstMeetGreetingActinos(state);
                     
         // Rotate the center object to normal angle   

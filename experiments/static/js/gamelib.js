@@ -378,7 +378,7 @@ class BaseScene extends Phaser.Scene {
         state
             .addSubtitleAction(this.subtitle, s => {
             return 'Welcome back! ' + this.getUserName();
-        }, false);
+        }, false, null, 1000, 0);
         if (this.needModeSelect()) {
             state.finishImmediatly();
         }
@@ -393,9 +393,15 @@ class BaseScene extends Phaser.Scene {
         state
             // Hide content of centerObject
             .addAction(() => {
-            this.centerObject.speakerBtn.inner.alpha = 0;
-            this.centerObject.playerInputText.stopTitleTween();
-            this.centerObject.playerInputText.title.alpha = 0;
+            if (this.needModeSelect()) {
+                this.centerObject.speakerBtn.inner.alpha = 0;
+                this.centerObject.playerInputText.stopTitleTween();
+                this.centerObject.playerInputText.title.alpha = 0;
+            }
+            else {
+                this.centerObject.playerInputText.stopTitleTween();
+                this.centerObject.playerInputText.title.alpha = 1;
+            }
         })
             // Rotate the center object to normal angle   
             .addTweenAction(this, {
@@ -437,7 +443,7 @@ class BaseScene extends Phaser.Scene {
                 duration: 400
             }
         ]).finishImmediatly()
-            .addDelayAction(this, 1000).setBoolCondition(o => !this.needModeSelect());
+            .addDelayAction(this, 500).setBoolCondition(o => !this.needModeSelect());
         // 'Voiceover: Normal Mode Start'
         this.sceneAddModeStartAction(state)
             .addFinishAction();
@@ -2107,13 +2113,11 @@ class Scene2 extends BaseScene {
     }
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
-        // // Player input
-        // s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
-        // s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-        // // Dead event handling
-        // s.autoOn(this.hp.deadEvent, null, e => {
-        //     s.event("DIED");
-        // })        
+        this.showPaper(true);
+    }
+    showPaper(show) {
+        $('#newspaper-layer').css('display', show ? 'block' : 'none');
+        $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
     }
 }
 /// <reference path="scene-2.ts" />

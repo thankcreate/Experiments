@@ -75,19 +75,16 @@ class Scene2 extends BaseScene {
         ])
         return s;
     }
+    
 
     sceneIntoNormalGame(s) {
-        super.sceneIntoNormalGame(s);
-
+        super.sceneIntoNormalGame(s);        
         
+        this.showPaper(true);
+    }
 
-        // // Player input
-        // s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
-        // s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
-
-        // // Dead event handling
-        // s.autoOn(this.hp.deadEvent, null, e => {
-        //     s.event("DIED");
-        // })        
+    showPaper(show: boolean) {
+        $('#newspaper-layer').css('display', show? 'block' : 'none');
+        $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
     }
 }

@@ -444,7 +444,7 @@ class BaseScene extends Phaser.Scene {
                 duration: 400
             }
         ]).finishImmediatly()
-            .addDelayAction(this, 500).setBoolCondition(o => !this.needModeSelect());
+            .addDelayAction(this, 200).setBoolCondition(o => !this.needModeSelect());
         // 'Voiceover: Normal Mode Start'
         this.sceneAddModeStartAction(state)
             .addFinishAction();
@@ -2054,6 +2054,10 @@ class Scene2L0 extends SceneTrailor {
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
+        this.paperScale = 0;
+        this.paperRotate = 0;
+        this.paperTranslateX = -50;
+        this.paperTranslateY = -50;
     }
     createDwitters(parentContainer) {
         // super.createDwitters(parentContainer);
@@ -2114,11 +2118,43 @@ class Scene2 extends BaseScene {
     }
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
-        this.showPaper(true);
     }
-    showPaper(show) {
+    showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
         $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
+        // $('#newspaper-page').animate({  borderSpacing:1 },{
+        //     step: function(now, rx) {
+        //         console.log('now: ' + now);
+        //         // $(this).css('transform', 'scale(')
+        //     },
+        //     duration: 2000
+        // })        
+        let dt = 500;
+        this.scaleTween = this.tweens.addCounter({
+            from: 0,
+            to: 1,
+            duration: dt
+        });
+        this.rotateTween = this.tweens.addCounter({
+            from: 0,
+            to: 360,
+            duration: dt
+        });
+    }
+    updatePaperCSS() {
+        if (this.scaleTween) {
+            let val = this.scaleTween.getValue();
+            this.paperScale = val;
+        }
+        if (this.rotateTween) {
+            let val = this.rotateTween.getValue();
+            this.paperRotate = val;
+        }
+        $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
+    }
+    update(time, dt) {
+        super.update(time, dt);
+        this.updatePaperCSS();
     }
 }
 /// <reference path="scene-2.ts" />
@@ -2126,8 +2162,31 @@ class Scene2L1 extends Scene2 {
     constructor() {
         super('Scene2L1');
     }
+    create() {
+        super.create();
+        this.addCounter(Counter.IntoHome, 1);
+        this.initNormalGameFsm();
+    }
+    initNormalGameFsm() {
+        this.initStNormalDefault();
+        this.initStStart();
+        console.log('123');
+        this.updateObjects.push(this.normalGameFsm);
+    }
     getNormalGameFsm() {
         return normal_2_1;
+    }
+    initStNormalDefault() {
+        let state = this.normalGameFsm.getState("Default");
+        state.addDelayAction(this, 500)
+            .addEventAction("START");
+    }
+    initStStart() {
+        let state = this.normalGameFsm.getState("Start");
+        state.setOnEnter(s => {
+            console.log('start');
+            this.showPaper(true);
+        });
     }
 }
 /// <reference path="scenes/scene-base.ts" />

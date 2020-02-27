@@ -80,11 +80,60 @@ class Scene2 extends BaseScene {
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);        
         
-        this.showPaper(true);
+        
     }
 
-    showPaper(show: boolean) {
+    showPaper(show: boolean = true) {
         $('#newspaper-layer').css('display', show? 'block' : 'none');
         $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
+
+        // $('#newspaper-page').animate({  borderSpacing:1 },{
+        //     step: function(now, rx) {
+        //         console.log('now: ' + now);
+        //         // $(this).css('transform', 'scale(')
+        //     },
+        //     duration: 2000
+        // })        
+
+        let dt = 500;
+        this.scaleTween = this.tweens.addCounter({
+            from: 0,
+            to: 1,
+            duration: dt
+        })
+
+        this.rotateTween = this.tweens.addCounter({
+            from: 0,
+            to: 360,
+            duration: dt
+        })
+        
+    }
+    scaleTween: PhTween;
+    rotateTween: PhTween;
+
+    paperScale: number = 0;
+    paperRotate: number = 0;
+
+    paperTranslateX: number = -50;
+    paperTranslateY: number = -50;
+    
+    
+    updatePaperCSS() {
+        if(this.scaleTween) {
+            let val = this.scaleTween.getValue();
+            this.paperScale = val;            
+        }
+
+        if(this.rotateTween) {
+            let val = this.rotateTween.getValue();
+            this.paperRotate = val;            
+        }
+        $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
+    }
+
+    update(time, dt) {
+        super.update(time, dt);
+        this.updatePaperCSS();
     }
 }

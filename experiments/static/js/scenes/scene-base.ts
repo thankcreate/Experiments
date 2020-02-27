@@ -636,7 +636,7 @@ class BaseScene extends Phaser.Scene {
                     duration: 400
                 }
             ]).finishImmediatly()
-            .addDelayAction(this, 500).setBoolCondition(o=>!this.needModeSelect())
+            .addDelayAction(this, 200).setBoolCondition(o=>!this.needModeSelect())
             // 'Voiceover: Normal Mode Start'
             this.sceneAddModeStartAction(state)
             .addFinishAction();

@@ -345,20 +345,8 @@ class BaseScene extends Phaser.Scene {
         
         this.centerObject.update(time, dt);
         this.ui.hud.update(time, dt);
-
-        // this.checkDuckVolumn();
     }
-
-
-    // checkDuckVolumn() {
-    //     if(this.subtitle.isTextInShow()) {
-    //       (this.bgm as any).volume = 0.2;
-    //     }
-    //     else {
-    //         (this.bgm as any).volume = 1;
-    //     }
-    // }
-
+    
     getMainFsm(): IFsmData {
         return mainFsm;
     }

@@ -1705,12 +1705,9 @@ class Scene1LPaper extends Scene1 {
         this.createCountdown();
         this.createNextLevelBtn();
         this.addCounter(Counter.IntoHome, 1);
-        // this.initShake();
         this.initNormalGameFsm();
         this.initPaperButtonCallback();
-        initFace();
-        // $('#affdex_elements').css('display', 'inline');
-        // this.beginVideo();
+        CameraManager.getInstance().initFaceAPI();
         this.dwitterBKG.changeTo(1);
     }
     createNextLevelBtn() {
@@ -1804,8 +1801,7 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s => {
             this.paper.show();
-            detector.start();
-            // this.beginVideo();
+            CameraManager.getInstance().show();
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 var video = document.getElementById('affdex_video');
                 // Not adding `{ audio: true }` since we only want video now
@@ -5118,6 +5114,83 @@ class CameraManager {
         let dataURL = canvas.toDataURL();
         // console.log(dataURL);               
         return dataURL;
+    }
+    //Draw the detected facial feature points on the image
+    drawFeaturePoints(img, featurePoints, timestamp) {
+        this.lastT = timestamp;
+        var contxt = $('#face_video_canvas')[0].getContext('2d');
+        var hRatio = contxt.canvas.width / img.width;
+        var vRatio = contxt.canvas.height / img.height;
+        var ratio = Math.min(hRatio, vRatio);
+        contxt.strokeStyle = "#FF0000";
+        for (var id in featurePoints) {
+            contxt.beginPath();
+            contxt.arc(featurePoints[id].x, featurePoints[id].y, 2, 0, 2 * Math.PI);
+            contxt.stroke();
+        }
+    }
+    handle(exp, emo, ts) {
+    }
+    log(node_name, msg) {
+        console.log('face: ' + node_name + " " + msg);
+    }
+    show() {
+        this.detector.start();
+    }
+    initFaceAPI() {
+        var divRoot = $("#affdex_elements")[0];
+        var width = 400;
+        var height = 300;
+        var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
+        //Construct a CameraDetector and specify the image width / height and face detector mode.
+        let detector = new affdex.CameraDetector(divRoot, width, height, faceMode);
+        this.detector = detector;
+        //Enable detection of all Expressions, Emotions and Emojis classifiers.
+        detector.detectAllEmotions();
+        detector.detectAllExpressions();
+        detector.detectAllEmojis();
+        detector.detectAllAppearance();
+        //Add a callback to notify when the detector is initialized and ready for runing.
+        detector.addEventListener("onInitializeSuccess", () => {
+            this.log('#logs', "The detector reports initialized");
+            //Display canvas instead of video feed because we want to draw the feature points on it
+            $("#face_video_canvas").css("display", "block");
+            $("#face_video").css("display", "none");
+        });
+        detector.addEventListener("onInitializeFailure", () => {
+            this.log('#logs', "The detector reports onInitializeFailure");
+            console.log("onInitializeFailure");
+        });
+        //Add a callback to notify when camera access is allowed
+        detector.addEventListener("onWebcamConnectSuccess", () => {
+            this.log('#logs', "Webcam access allowed");
+        });
+        //Add a callback to notify when camera access is denied
+        detector.addEventListener("onWebcamConnectFailure", () => {
+            this.log('#logs', "webcam denied");
+        });
+        //Add a callback to notify when detector is stopped
+        detector.addEventListener("onStopSuccess", () => {
+            this.log('#logs', "The detector reports stopped");
+            $("#results").html("");
+        });
+        detector.addEventListener("onImageResultsSuccess", (faces, image, timestamp) => {
+            $('#results').html("");
+            if (faces.length > 0) {
+                this.log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, (key, val) => {
+                    return val.toFixed ? Number(val.toFixed(0)) : val;
+                }));
+                let exp = faces[0].expressions;
+                let emo = faces[0].emotions;
+                this.handle(exp, emo, timestamp);
+                this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val) => {
+                    return val.toFixed ? Number(val.toFixed(0)) : val;
+                }));
+                if ($('#face_video_canvas')[0] != null) {
+                    this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
+                }
+            }
+        });
     }
 }
 let s_banks = [

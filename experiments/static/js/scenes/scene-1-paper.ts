@@ -1,7 +1,3 @@
-
-declare function initFace();
-declare var detector;
-
 class Scene1LPaper extends Scene1 {
     
     paper: Paper;
@@ -20,21 +16,15 @@ class Scene1LPaper extends Scene1 {
         this.createNextLevelBtn();
 
         this.addCounter(Counter.IntoHome, 1);
-        // this.initShake();
+        
         this.initNormalGameFsm();              
 
         this.initPaperButtonCallback();
 
-        initFace();
-        
-        // $('#affdex_elements').css('display', 'inline');
-
-        // this.beginVideo();
+        CameraManager.getInstance().initFaceAPI();       
 
         
         this.dwitterBKG.changeTo(1);
-        
-        
     }
 
     nextLevelBtn: Button;
@@ -157,9 +147,8 @@ class Scene1LPaper extends Scene1 {
         state.addAction(s=>{
             this.paper.show();
             
-            detector.start();
+            CameraManager.getInstance().show();
                 
-            // this.beginVideo();
             
             if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 var video = document.getElementById('affdex_video') as any;

@@ -216,6 +216,10 @@ class Scene1LPaper extends Scene1 {
     }
 
     captureAndPrint() {
+        if(!CameraManager.getInstance().camAllowed){
+            return;
+        }
+        
         let imageData = CameraManager.getInstance().captureCameraImage();
         BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nCooperative Level: ' + this.getStars(), imageData);
     }

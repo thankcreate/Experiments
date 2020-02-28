@@ -866,8 +866,7 @@ class BaseScene extends Phaser.Scene {
     }
 
     getUserName() {
-        let un = getUserName();
-        console.log(un);
+        let un = getUserName();    
         return un;
     }   
 

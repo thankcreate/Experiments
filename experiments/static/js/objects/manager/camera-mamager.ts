@@ -18,24 +18,37 @@ class CameraManager {
 
     requestPermission() {
         if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            var video = document.getElementById('affdex_video') as any;
+            // var video = document.getElementById('affdex_video') as any;
             // Not adding `{ audio: true }` since we only want video now
             navigator.mediaDevices.getUserMedia({ video: true }).then( stream=> {
                 // video.src = window.URL.createObjectURL(stream);
-                video.srcObject = stream;
-                //video.play();
+                // video.srcObject = stream;
+                // video.play();
                 this.camAllowed = true;
             })
             .catch(e=>{             
-                console.log(e)       ;
+                console.log(e);
                 this.camAllowed = false;
             });
         }
     }
 
+    showVideo() {
+        if(!this.camAllowed) 
+            return;                 
+        
+        $('#affdex_elements').css('display', 'inline');
+        
+    }
+
+    hideVideo() {
+        $('#affdex_elements').css('display', 'none');
+    }
+    
+
 
     captureCameraImage() : string{
-        let video = $('#affdex_video')[0] as any;
+        let video = $('#face_video')[0] as any;
         let scale = 0.5;
         var canvas = document.createElement("canvas");
         canvas.width = video.videoWidth * scale;
@@ -81,17 +94,7 @@ class CameraManager {
         this.detector.start();
     }
 
-    showVideo() {
-        if(this.camAllowed) {            
-            // $('#video').css('display', 'inline');
-            $('#affdex_elements').css('display', 'inline');
-        }
-    }
 
-    hideVideo() {
-        $('#affdex_elements').css('display', 'none');
-    }
-    
     initFaceAPI() {
         
         var divRoot = $("#affdex_elements")[0];

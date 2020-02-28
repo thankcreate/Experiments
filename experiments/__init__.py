@@ -24,6 +24,9 @@ def create_app(config_class=Config):
     from .review import bp as review_bp
     app.register_blueprint(review_bp)
 
+    from .bird import bp as bd_bp
+    app.register_blueprint(bd_bp)
+
 
     return app
 

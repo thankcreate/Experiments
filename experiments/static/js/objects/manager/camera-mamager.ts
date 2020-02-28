@@ -16,7 +16,7 @@ class CameraManager {
 
     captureCameraImage() {
         let video = $('#affdex_video')[0] as any;
-        let scale = 0.25;
+        let scale = 0.5;
         var canvas = document.createElement("canvas");
         canvas.width = video.videoWidth * scale;
         canvas.height = video.videoHeight * scale;

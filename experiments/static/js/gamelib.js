@@ -208,16 +208,7 @@ class BaseScene extends Phaser.Scene {
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.centerObject.update(time, dt);
         this.ui.hud.update(time, dt);
-        // this.checkDuckVolumn();
     }
-    // checkDuckVolumn() {
-    //     if(this.subtitle.isTextInShow()) {
-    //       (this.bgm as any).volume = 0.2;
-    //     }
-    //     else {
-    //         (this.bgm as any).volume = 1;
-    //     }
-    // }
     getMainFsm() {
         return mainFsm;
     }
@@ -1700,7 +1691,7 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
-        this.COUNT_ALL_TIME = 30;
+        this.COUNT_ALL_TIME = 3;
         this.paperWidth = 1000;
         this.paperHeight = 900;
         this.confirmCount = 0;
@@ -5068,7 +5059,7 @@ class CameraManager {
     }
     captureCameraImage() {
         let video = $('#affdex_video')[0];
-        let scale = 0.25;
+        let scale = 0.5;
         var canvas = document.createElement("canvas");
         canvas.width = video.videoWidth * scale;
         canvas.height = video.videoHeight * scale;

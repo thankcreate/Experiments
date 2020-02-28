@@ -1,5 +1,3 @@
-
-
 #affdex_elements {
     display: none;
     position: absolute;
@@ -9,6 +7,11 @@
     border-top: 4px outset #252525;
     border-left: 4px outset #252525;
     border-right: 4px outset #252525;
+}
+
+#face_video_canvas{
+    width: 400px;
+    height: 300px;
 }
 
 #yb-player-root{

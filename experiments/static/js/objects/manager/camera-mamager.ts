@@ -98,8 +98,8 @@ class CameraManager {
     initFaceAPI() {
         
         var divRoot = $("#affdex_elements")[0];
-        var width = 400;
-        var height = 300;
+        var width = 640;
+        var height = 480;
         var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
         //Construct a CameraDetector and specify the image width / height and face detector mode.
         let detector = new affdex.CameraDetector(divRoot, width, height, faceMode);

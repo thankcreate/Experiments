@@ -38,6 +38,8 @@ class Scene1LPaper extends Scene1 {
         btn.setEnable(false, false);
         this.nextLevelBtn = btn;
 
+        anchorToRight(315, btn.inner);
+
         btn.clickedEvent.on(()=>{
             this.getController().gotoNextScene();
             // window.location.replace(window.location.origin + "?level=4");

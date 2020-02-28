@@ -1717,6 +1717,7 @@ class Scene1LPaper extends Scene1 {
         btn.needInOutAutoAnimation = false;
         btn.setEnable(false, false);
         this.nextLevelBtn = btn;
+        anchorToRight(315, btn.inner);
         btn.clickedEvent.on(() => {
             this.getController().gotoNextScene();
             // window.location.replace(window.location.origin + "?level=4");
@@ -5133,8 +5134,8 @@ class CameraManager {
     }
     initFaceAPI() {
         var divRoot = $("#affdex_elements")[0];
-        var width = 400;
-        var height = 300;
+        var width = 640;
+        var height = 480;
         var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
         //Construct a CameraDetector and specify the image width / height and face detector mode.
         let detector = new affdex.CameraDetector(divRoot, width, height, faceMode);

@@ -80,11 +80,6 @@ function initFace() {
     });
 }
 
-var fixed = false;
-var spanDt = 0;
-var spanDt2 = 0;
-var lastDt;
-var need = 2.5;
 function handle(exp, emo, ts) {
     
 }

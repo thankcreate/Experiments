@@ -2191,7 +2191,7 @@ class Scene2L1 extends Scene2 {
     }
     initStNormalDefault() {
         let state = this.normalGameFsm.getState("Default");
-        state.addDelayAction(this, 500)
+        state.addDelayAction(this, 200)
             .addEventAction("START");
     }
     initStStart() {

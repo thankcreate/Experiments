@@ -432,6 +432,10 @@ function deleteAllCookie() {
     console.log('delete all cookies');
     var cookies = ($ as any).cookie() as any;
     for(var cookie in cookies) {
+        // Important cookies such as important_memobird_device is saved when restart
+        if(cookie.startsWith('important')) {
+            continue;
+        }
         ($ as any).removeCookie(cookie);
     }
 }

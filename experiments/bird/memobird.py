@@ -1,11 +1,11 @@
 #-*-coding:utf-8-*-
 
 import requests
-from base64 import b64encode
-from io import StringIO
+from base64 import b64encode, b64decode
+from io import StringIO, BytesIO
 from datetime import datetime
 from PIL import Image, ImageOps
-
+import re
 
 class ApiError(Exception):
     pass
@@ -28,18 +28,30 @@ class Paper(object):
         text = self._ensure_gbk(text)
         b64 = b64encode(text)
         
-        removedEscape = str(b64)[2:-1]
-        content = 'T:' + removedEscape
+        content = 'T:%s' % b64.decode()
         
         self.contents.append(content)
 
-    def add_image(self, image):
-        output = StringIO()
-        im = Image.open(image)
+
+    def add_image_base64(self, image):
+        output = BytesIO()
+        image_data = re.sub('^data:image/.+;base64,', '', image)
+        im = Image.open(BytesIO(b64decode(image_data)))
+        
         im.thumbnail((384, 384), Image.ANTIALIAS)
         ImageOps.flip(im).convert('1').save(output, 'BMP')
-        content = 'P:%s' % b64encode(output.getvalue())
+
+        content = 'P:%s' % b64encode(output.getvalue()).decode()
+        
         self.contents.append(content)
+    
+    # def add_image(self, image):
+    #     output = StringIO()
+    #     im = Image.open(image)
+    #     im.thumbnail((384, 384), Image.ANTIALIAS)
+    #     ImageOps.flip(im).convert('1').save(output, 'BMP')
+    #     content = 'P:%s' % b64encode(output.getvalue())
+    #     self.contents.append(content)
 
     def encode(self):
         return '|'.join(self.contents)

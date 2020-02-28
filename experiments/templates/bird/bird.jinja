@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block head %}
+  {{ super() }}
+  <script type="text/javascript">
+    function addCookie() {
+        document.cookie = "important_memobird_device=" + document.getElementById('device').value;
+    }
+  </script>
+{% endblock %}
+
+{% block app_content %}
+
+
+<form >
+  <div class="form-inline">
+    <input id='device' class="form-control" type="text" maxlength="100" name="device" placeholder="DeviceID" autofocus value='a35793ead35891d9'>   
+    <button class="btn btn-primary mb-2" type="button" onclick='addCookie()'>Set DeviceID</button>    
+  </div>
+</form>
+
+<br>
+
+{% endblock %}

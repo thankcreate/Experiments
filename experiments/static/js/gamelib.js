@@ -1694,6 +1694,7 @@ class Scene1LPaper extends Scene1 {
         this.COUNT_ALL_TIME = 3;
         this.paperWidth = 1000;
         this.paperHeight = 900;
+        this.startReadTime = 0;
         this.confirmCount = 0;
         this.camAllowed = false;
         this.inCountDown = false;
@@ -1771,6 +1772,7 @@ class Scene1LPaper extends Scene1 {
         this.subtitle.wrappedObject.setBackgroundColor('#000000');
         this.subtitle.wrappedObject.setColor('#ffffff');
         this.paper.continueBtn.setEnable(true, false);
+        this.startReadTime = this.curTime;
     }
     gamePlayExit() {
         super.gamePlayExit();
@@ -1847,6 +1849,9 @@ class Scene1LPaper extends Scene1 {
         });
         state.addAction(s => {
             this.paper.continueBtn.canClick = false;
+            let t = this.curTime - this.startReadTime;
+            let tShow = (t / 1000).toFixed(3);
+            BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nReading Time: ' + tShow + ' seconds');
         });
         state.addSubtitleAction(this.subtitle, s => 'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you  at least 30 seconds to complete the reading.', false);
@@ -1871,6 +1876,23 @@ class Scene1LPaper extends Scene1 {
             .addAction(s => {
         });
     }
+    getStars() {
+        let ret = '';
+        let fullStar = '★';
+        let emptyStar = '☆';
+        let fullCount = Math.floor(Math.random() * 3) + 1; // 1-3        
+        for (let i = 0; i < fullCount; i++) {
+            ret += fullStar;
+        }
+        for (let i = 0; i < 5 - fullCount; i++) {
+            ret += emptyStar;
+        }
+        return ret;
+    }
+    captureAndPrint() {
+        let imageData = CameraManager.getInstance().captureCameraImage();
+        BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nCooperative Level: ' + this.getStars(), imageData);
+    }
     initConfirm2() {
         let state = this.normalGameFsm.getState('Confirm_2');
         state.addAction(() => {
@@ -1879,7 +1901,7 @@ class Scene1LPaper extends Scene1 {
             .addAction(() => {
             this.beginVideo();
             setTimeout(() => {
-                CameraManager.getInstance().captureCameraImage();
+                this.captureAndPrint();
             }, 2000);
         })
             .addSubtitleAction(this.subtitle, "Look at you!", false)
@@ -5052,6 +5074,30 @@ var normal_2_1 = {
     ]
 };
 farray.push(normal_2_1);
+class BirdManager {
+    constructor() {
+    }
+    static getInstance() {
+        if (!BirdManager.instance) {
+            BirdManager.instance = new BirdManager();
+        }
+        return BirdManager.instance;
+    }
+    print(text, img) {
+        let sendOb = {};
+        if (text)
+            sendOb.text = text;
+        if (img)
+            sendOb.img = img;
+        // make sure the request run in async thread
+        // Promise.resolve('hello').then(s=>{
+        //     return apiPromise('api/bird', JSON.stringify(sendOb))
+        // })
+        setTimeout(() => {
+            apiPromise('api/bird', JSON.stringify(sendOb));
+        }, 1);
+    }
+}
 class CameraManager {
     constructor() {
     }
@@ -5070,7 +5116,8 @@ class CameraManager {
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         let img = document.createElement('img');
         let dataURL = canvas.toDataURL();
-        console.log(dataURL);
+        // console.log(dataURL);               
+        return dataURL;
     }
 }
 let s_banks = [

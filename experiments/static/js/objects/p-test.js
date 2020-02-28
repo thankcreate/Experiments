@@ -1,4 +1,18 @@
 
+let fullCount = Math.floor(Math.random() * 4); // 0-3   
+
+console.log(fullCount)
+
+// ob = {
+//   t:'n',
+//   ss:null
+// }
+
+// if(true)
+//   ob.s1 = '123'
+// console.log(JSON.stringify(ob));
+
+
 // let firstRes = null;
 
 // function fp(res, rej) {
@@ -45,13 +59,13 @@
 //     console.log('catch here');
 // });
 
-function logMapElements(value, key, map) {
-    console.log(`m[${key}] = ${value}`);
-  }
+// function logMapElements(value, key, map) {
+//     console.log(`m[${key}] = ${value}`);
+//   }
   
-new Map([['foo', 3], ['bar', {}], ['baz', undefined]])
-.forEach(logMapElements);
-console.log('123');
+// new Map([['foo', 3], ['bar', {}], ['baz', undefined]])
+// .forEach(logMapElements);
+// console.log('123');
 
 
 // function testFunc(func) {

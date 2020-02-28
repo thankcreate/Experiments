@@ -34,6 +34,7 @@ class Scene1LPaper extends Scene1 {
         
         this.dwitterBKG.changeTo(1);
         
+        
     }
 
     nextLevelBtn: Button;
@@ -102,11 +103,16 @@ class Scene1LPaper extends Scene1 {
         this.countDown.setVisible(false);
     }
     
+
+    startReadTime = 0;
+    
     gamePlayStarted() {
         super.gamePlayStarted();
         this.subtitle.wrappedObject.setBackgroundColor('#000000');
         this.subtitle.wrappedObject.setColor('#ffffff');
         this.paper.continueBtn.setEnable(true, false);
+        
+        this.startReadTime = this.curTime;
     }
 
     gamePlayExit() {
@@ -206,6 +212,13 @@ class Scene1LPaper extends Scene1 {
         })
         state.addAction(s=>{
             this.paper.continueBtn.canClick = false;
+
+           
+            let t = this.curTime - this.startReadTime;
+            let tShow = (t/1000).toFixed(3);
+            BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nReading Time: ' + tShow + ' seconds')    
+            
+            
         })
         state.addSubtitleAction(this.subtitle, s=>'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you  at least 30 seconds to complete the reading.', false);        
@@ -232,6 +245,25 @@ class Scene1LPaper extends Scene1 {
         })    
     }
 
+    getStars() {
+        let ret = '';
+        let fullStar = '★';
+        let emptyStar = '☆';
+        let fullCount = Math.floor(Math.random() * 3) + 1; // 1-3        
+        for(let i = 0; i < fullCount; i++) {
+            ret += fullStar;
+        }
+        for(let i = 0; i < 5 - fullCount; i++) {
+            ret += emptyStar;
+        }
+        return ret;
+    }
+
+    captureAndPrint() {
+        let imageData = CameraManager.getInstance().captureCameraImage();
+        BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nCooperative Level: ' + this.getStars(), imageData);
+    }
+
     initConfirm2() {
         let state = this.normalGameFsm.getState('Confirm_2');
         state.addAction(()=>{
@@ -242,7 +274,9 @@ class Scene1LPaper extends Scene1 {
             this.beginVideo();
 
             setTimeout(() => {
-                CameraManager.getInstance().captureCameraImage();
+                this.captureAndPrint();
+
+
             }, 2000);
         })
         .addSubtitleAction(this.subtitle, "Look at you!", false)

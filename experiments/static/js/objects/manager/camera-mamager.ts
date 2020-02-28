@@ -14,7 +14,7 @@ class CameraManager {
     }
 
 
-    captureCameraImage() {
+    captureCameraImage() : string{
         let video = $('#affdex_video')[0] as any;
         let scale = 0.5;
         var canvas = document.createElement("canvas");
@@ -24,7 +24,9 @@ class CameraManager {
 
         let img = document.createElement('img');
         let dataURL = canvas.toDataURL();
-        console.log(dataURL);
-        
+        // console.log(dataURL);               
+        return dataURL;
     }
+
+    
 }

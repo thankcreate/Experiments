@@ -116,7 +116,7 @@ class Scene1LPaper extends Scene1 {
 
         this.countDown.setVisible(false);
 
-        this.hideVideo();
+        CameraManager.getInstance().hideVideo();
         this.nextLevelBtn.setEnable(false, false);
     }
     
@@ -141,54 +141,21 @@ class Scene1LPaper extends Scene1 {
         state.addEventAction('START');
     }    
 
-    camAllowed = false;
+    
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s=>{
             this.paper.show();
             
-            CameraManager.getInstance().show();
+            CameraManager.getInstance().startDectector();
                 
-            
-            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                var video = document.getElementById('affdex_video') as any;
-                // Not adding `{ audio: true }` since we only want video now
-                navigator.mediaDevices.getUserMedia({ video: true }).then( stream=> {
-                    // video.src = window.URL.createObjectURL(stream);
-                    video.srcObject = stream;
-                    //video.play();
-                    this.camAllowed = true;
-                })
-                .catch(e=>{             
-                    console.log(e)       ;
-                    this.camAllowed = false;
-                });
-            }
+            CameraManager.getInstance().requestPermission();
+           
         });
     }
 
-    beginVideo() {
-        // Get access to the camera!
-        // if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        //     var video = document.getElementById('video') as any;
-        //     // Not adding `{ audio: true }` since we only want video now
-        //     navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-        //         // video.src = window.URL.createObjectURL(stream);
-        //         video.srcObject = stream;
-        //         //video.play();
-        //     });
-        // }
 
-        if(this.camAllowed) {            
-            // $('#video').css('display', 'inline');
-            $('#affdex_elements').css('display', 'inline');
-        }
-            
-    }
 
-    hideVideo() {
-        $('#affdex_elements').css('display', 'none');
-    }
 
     countDownInterval: any;
     initConfirm1() {
@@ -260,7 +227,7 @@ class Scene1LPaper extends Scene1 {
         })
         .addSubtitleAction(this.subtitle, s=>this.getUserName() + "! I can see you are still not reading carefully enough.", false)
         .addAction(()=>{
-            this.beginVideo();
+            CameraManager.getInstance().showVideo();
 
             setTimeout(() => {
                 this.captureAndPrint();

@@ -1696,7 +1696,6 @@ class Scene1LPaper extends Scene1 {
         this.paperHeight = 900;
         this.startReadTime = 0;
         this.confirmCount = 0;
-        this.camAllowed = false;
         this.inCountDown = false;
     }
     create() {
@@ -1777,7 +1776,7 @@ class Scene1LPaper extends Scene1 {
         this.subtitle.wrappedObject.setColor('#000000');
         this.paper.hide();
         this.countDown.setVisible(false);
-        this.hideVideo();
+        CameraManager.getInstance().hideVideo();
         this.nextLevelBtn.setEnable(false, false);
     }
     initNormalGameFsm() {
@@ -1801,41 +1800,9 @@ class Scene1LPaper extends Scene1 {
         let state = this.normalGameFsm.getState("Start");
         state.addAction(s => {
             this.paper.show();
-            CameraManager.getInstance().show();
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                var video = document.getElementById('affdex_video');
-                // Not adding `{ audio: true }` since we only want video now
-                navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-                    // video.src = window.URL.createObjectURL(stream);
-                    video.srcObject = stream;
-                    //video.play();
-                    this.camAllowed = true;
-                })
-                    .catch(e => {
-                    console.log(e);
-                    this.camAllowed = false;
-                });
-            }
+            CameraManager.getInstance().startDectector();
+            CameraManager.getInstance().requestPermission();
         });
-    }
-    beginVideo() {
-        // Get access to the camera!
-        // if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        //     var video = document.getElementById('video') as any;
-        //     // Not adding `{ audio: true }` since we only want video now
-        //     navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-        //         // video.src = window.URL.createObjectURL(stream);
-        //         video.srcObject = stream;
-        //         //video.play();
-        //     });
-        // }
-        if (this.camAllowed) {
-            // $('#video').css('display', 'inline');
-            $('#affdex_elements').css('display', 'inline');
-        }
-    }
-    hideVideo() {
-        $('#affdex_elements').css('display', 'none');
     }
     initConfirm1() {
         let state = this.normalGameFsm.getState('Confirm_1');
@@ -1895,7 +1862,7 @@ class Scene1LPaper extends Scene1 {
         })
             .addSubtitleAction(this.subtitle, s => this.getUserName() + "! I can see you are still not reading carefully enough.", false)
             .addAction(() => {
-            this.beginVideo();
+            CameraManager.getInstance().showVideo();
             setTimeout(() => {
                 this.captureAndPrint();
             }, 2000);
@@ -5096,12 +5063,29 @@ class BirdManager {
 }
 class CameraManager {
     constructor() {
+        this.camAllowed = false;
     }
     static getInstance() {
         if (!CameraManager.instance) {
             CameraManager.instance = new CameraManager();
         }
         return CameraManager.instance;
+    }
+    requestPermission() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            var video = document.getElementById('affdex_video');
+            // Not adding `{ audio: true }` since we only want video now
+            navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+                // video.src = window.URL.createObjectURL(stream);
+                video.srcObject = stream;
+                //video.play();
+                this.camAllowed = true;
+            })
+                .catch(e => {
+                console.log(e);
+                this.camAllowed = false;
+            });
+        }
     }
     captureCameraImage() {
         let video = $('#affdex_video')[0];
@@ -5132,10 +5116,19 @@ class CameraManager {
     handle(exp, emo, ts) {
     }
     log(node_name, msg) {
-        console.log('face: ' + node_name + " " + msg);
+        // console.log('face: ' + node_name + " " + msg);
     }
-    show() {
+    startDectector() {
         this.detector.start();
+    }
+    showVideo() {
+        if (this.camAllowed) {
+            // $('#video').css('display', 'inline');
+            $('#affdex_elements').css('display', 'inline');
+        }
+    }
+    hideVideo() {
+        $('#affdex_elements').css('display', 'none');
     }
     initFaceAPI() {
         var divRoot = $("#affdex_elements")[0];

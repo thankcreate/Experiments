@@ -4,7 +4,7 @@ class CameraManager {
     private static instance: CameraManager;
     
     detector: any;
-    
+    camAllowed = false;
     constructor() {
     }
 
@@ -14,6 +14,23 @@ class CameraManager {
             CameraManager.instance = new CameraManager();
         }
         return CameraManager.instance;
+    }
+
+    requestPermission() {
+        if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            var video = document.getElementById('affdex_video') as any;
+            // Not adding `{ audio: true }` since we only want video now
+            navigator.mediaDevices.getUserMedia({ video: true }).then( stream=> {
+                // video.src = window.URL.createObjectURL(stream);
+                video.srcObject = stream;
+                //video.play();
+                this.camAllowed = true;
+            })
+            .catch(e=>{             
+                console.log(e)       ;
+                this.camAllowed = false;
+            });
+        }
     }
 
 
@@ -48,7 +65,6 @@ class CameraManager {
             contxt.arc(featurePoints[id].x,
                 featurePoints[id].y, 2, 0, 2 * Math.PI);
             contxt.stroke();
-
         }
     }
 
@@ -58,11 +74,22 @@ class CameraManager {
     }
     
     log(node_name, msg) {
-        console.log('face: ' + node_name + " " + msg);
+        // console.log('face: ' + node_name + " " + msg);
     }
     
-    show() {
+    startDectector() {
         this.detector.start();
+    }
+
+    showVideo() {
+        if(this.camAllowed) {            
+            // $('#video').css('display', 'inline');
+            $('#affdex_elements').css('display', 'inline');
+        }
+    }
+
+    hideVideo() {
+        $('#affdex_elements').css('display', 'none');
     }
     
     initFaceAPI() {

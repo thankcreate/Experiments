@@ -6,6 +6,17 @@ class Scene2 extends BaseScene {
         super(config);
 
     }
+    
+
+    create() {
+        super.create();
+
+        this.paperCssBinding = new CssBinding($('#newspaper-page'));
+        this.camCssBinding = new CssBinding($('#affdex_elements'));
+
+        this.initPaperCamCss();
+    }
+    
 
     createDwitters(parentContainer: PhContainer) {
         // super.createDwitters(parentContainer);
@@ -83,100 +94,72 @@ class Scene2 extends BaseScene {
         
     }
 
+    paperCssBinding : CssBinding;
+    camCssBinding: CssBinding;
+
+    initPaperCamCss() {
+        this.paperCssBinding.scale = 0;
+        this.paperCssBinding.rotate = 0;
+        this.paperCssBinding.translateX = -50;
+        this.paperCssBinding.translateY = -50;
+        this.paperCssBinding.udpate();
+
+        this.camCssBinding.translateX = -100;
+        this.camCssBinding.translateY = -50;
+        this.camCssBinding.udpate();
+    }
+
     showPaper(show: boolean = true) {
         $('#newspaper-layer').css('display', show? 'block' : 'none');
         $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
 
-        // $('#newspaper-page').animate({  borderSpacing:1 },{
-        //     step: function(now, rx) {
-        //         console.log('now: ' + now);
-        //         // $(this).css('transform', 'scale(')
-        //     },
-        //     duration: 2000
-        // })        
-
         let dt = 500;
-        this.ppScaleTween = this.tweens.addCounter({
-            from: 0,
-            to: 1,
+        
+
+
+        this.tweens.add({
+            targets: this.paperCssBinding,
+            scale: 1,
             duration: dt
         })
 
-        this.ppRotateTween = this.tweens.addCounter({
-            from: 0,
-            to: 360,
+        this.tweens.add({
+            targets: this.paperCssBinding,
+            rotate: 360,
             duration: dt
-        })        
+        }) 
     }
+    
 
     showCam() {
         let dt = 2000;
-        this.camTranslateXTween = this.tweens.addCounter({
-            from: -100,
-            to: 0,
-            duration: dt,
-            onUpdate: ()=>{
-                this.camTranslateX = this.camTranslateXTween.getValue();                
-            }
-        })    
-
-        this.ppTranslateXTween = this.tweens.addCounter({
-            from: -50,
-            to: -70,
+        
+        this.tweens.add({
+            targets: this.camCssBinding,
+            translateX: 0,
             duration: dt
-        })    
-    }
+        })
 
-    camTranslateXTween: PhTween;        
-    camTranslateX: number = -100;
-
-    ppScaleTween: PhTween;
-    ppRotateTween: PhTween;
+        this.tweens.add({
+            targets: this.paperCssBinding,
+            translateX: -70,
+            duration: dt
+        }) 
+    }    
     
+    updateCssBinding() {
 
-    ppTranslateXTween: PhTween;
-    
+        if(this.camCssBinding)
+            this.camCssBinding.udpate()
+        if(this.paperCssBinding) 
+            this.paperCssBinding.udpate();
 
-    paperScale: number = 0;
-    paperRotate: number = 0;
-
-    paperTranslateX: number = -50;
-    paperTranslateY: number = -50;
-    
-
-    camTranslateY: number = -50;
-
-    
-    
-    updatePaperCSS() {
-
-        // let updateList = [
-        //     {
-        //         tween: this.ppScaleTween,
-        //         target: $('#affdex_elements')
-        //     }
-        // ]
-        if(this.ppScaleTween) {
-            let val = this.ppScaleTween.getValue();
-            this.paperScale = val;            
-        }
-
-        if(this.ppRotateTween) {
-            let val = this.ppRotateTween.getValue();
-            this.paperRotate = val;            
-        }
-
-        if(this.ppTranslateXTween) {
-            let val = this.ppTranslateXTween.getValue();
-            this.paperTranslateX = val;
-        }
-
-        $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
-        $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
+        // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
+        // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
 
     update(time, dt) {
         super.update(time, dt);
-        this.updatePaperCSS();
+        this.updateCssBinding();
     }
 }

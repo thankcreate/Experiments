@@ -1,8 +1,14 @@
 
-let fullCount = Math.floor(Math.random() * 4); // 0-3   
+let a;
+if(a === null)
+    console.log('haha')
 
-console.log(fullCount)
 
+// let fullCount = Math.floor(Math.random() * 4); // 0-3   
+
+// console.log(fullCount)
+
+// console.
 // ob = {
 //   t:'n',
 //   ss:null

@@ -15,11 +15,28 @@ class Scene2 extends BaseScene {
         this.camCssBinding = new CssBinding($('#affdex_elements'));
 
         this.initPaperCamCss();
+
+        CameraManager.getInstance().imageResEvent.on((e)=>{
+            this.imageHandler(e);
+        })
+    }
+
+    imageHandler(res: ImageRes) {
+        let face = res.face;
+        let timestamp = res.timestamp;
+        
+        let emotionsDebug = JSON.stringify(face.emotions, (key, val)=> {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+        })
+        let expDebug = JSON.stringify(face.expressions, (key, val)=> {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+        })
+
+        $('#test-info').text(emotionsDebug + '\n' + expDebug);
     }
     
 
-    createDwitters(parentContainer: PhContainer) {
-        // super.createDwitters(parentContainer);
+    createDwitters(parentContainer: PhContainer) {        
         this.initCenterDwitterScale = 0.52;
         this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);        
@@ -132,7 +149,7 @@ class Scene2 extends BaseScene {
     
 
     showCam() {
-        let dt = 2000;
+        let dt = 500;
         
         this.tweens.add({
             targets: this.camCssBinding,

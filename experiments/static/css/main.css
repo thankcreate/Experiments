@@ -8,12 +8,19 @@
 #affdex_elements {
     display: none;
     position: absolute;    
+    font-size: 0;
 }
 
-#face_video_canvas{
+/* #face_video_canvas{
     width: 300px;
     height: 225px;
 }
+
+#face_video{
+    width: 300px;
+    height: 225px;
+} */
+
 
 #yb-player-root{
     pointer-events: none;

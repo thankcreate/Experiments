@@ -1706,7 +1706,6 @@ class Scene1LPaper extends Scene1 {
         this.initNormalGameFsm();
         this.initPaperButtonCallback();
         CameraManager.getInstance().initFaceAPI();
-        CameraManager.getInstance().setPosition(CamPosi.PaperLevel);
         this.dwitterBKG.changeTo(1);
     }
     createNextLevelBtn() {
@@ -1802,6 +1801,7 @@ class Scene1LPaper extends Scene1 {
         state.addAction(s => {
             this.paper.show();
             CameraManager.getInstance().startDectector();
+            CameraManager.getInstance().setPosition(CamPosi.PaperLevel);
             CameraManager.getInstance().requestPermission();
         });
     }
@@ -2040,9 +2040,22 @@ class Scene2 extends BaseScene {
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
         this.camCssBinding = new CssBinding($('#affdex_elements'));
         this.initPaperCamCss();
+        CameraManager.getInstance().imageResEvent.on((e) => {
+            this.imageHandler(e);
+        });
+    }
+    imageHandler(res) {
+        let face = res.face;
+        let timestamp = res.timestamp;
+        let emotionsDebug = JSON.stringify(face.emotions, (key, val) => {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+        });
+        let expDebug = JSON.stringify(face.expressions, (key, val) => {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+        });
+        $('#test-info').text(emotionsDebug + '\n' + expDebug);
     }
     createDwitters(parentContainer) {
-        // super.createDwitters(parentContainer);
         this.initCenterDwitterScale = 0.52;
         this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);
@@ -2127,7 +2140,7 @@ class Scene2 extends BaseScene {
         });
     }
     showCam() {
-        let dt = 2000;
+        let dt = 500;
         this.tweens.add({
             targets: this.camCssBinding,
             translateX: 0,
@@ -2163,9 +2176,13 @@ class Scene2L1 extends Scene2 {
         this.initNormalGameFsm();
         CameraManager.getInstance().requestPermission();
         CameraManager.getInstance().initFaceAPI();
-        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
         CameraManager.getInstance().startDectector();
+        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
         CameraManager.getInstance().showVideo();
+        this.showPaper(true);
+        setTimeout(() => {
+            this.showCam();
+        }, 500);
     }
     initNormalGameFsm() {
         this.initStNormalDefault();
@@ -2184,10 +2201,6 @@ class Scene2L1 extends Scene2 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
-            this.showPaper(true);
-            setTimeout(() => {
-                this.showCam();
-            }, 500);
         });
     }
 }
@@ -5095,6 +5108,7 @@ var CamPosi;
 class CameraManager {
     constructor() {
         this.camAllowed = false;
+        this.imageResEvent = new TypedEvent();
     }
     static getInstance() {
         if (!CameraManager.instance) {
@@ -5126,6 +5140,12 @@ class CameraManager {
     hideVideo() {
         $('#affdex_elements').css('display', 'none');
     }
+    setSize(w, h) {
+        $('#face_video_canvas').css('width', w + 'px');
+        $('#face_video_canvas').css('height', h + 'px');
+        $('#face_video').css('width', w + 'px');
+        $('#face_video').css('height', h + 'px');
+    }
     setPosition(posi) {
         let root = $('#affdex_elements');
         if (posi == CamPosi.PaperLevel) {
@@ -5135,17 +5155,22 @@ class CameraManager {
             root.css('border-top', borderStyl);
             root.css('border-left', borderStyl);
             root.css('border-right', borderStyl);
+            this.width = 400;
+            this.height = 300;
         }
         else {
             let borderStyl = '6px outset black';
             root.css('transform', 'translate(0, -50%)');
             root.css('z-index', '-1');
             root.css('top', '50%');
-            root.css('left', '95%');
+            root.css('left', '98%');
             root.css('border', borderStyl);
             var element = root.detach();
             $('#newspaper-page').append(element);
+            this.width = 300;
+            this.height = 225;
         }
+        this.setSize(this.width, this.height);
     }
     captureCameraImage() {
         let video = $('#face_video')[0];
@@ -5173,10 +5198,8 @@ class CameraManager {
             contxt.stroke();
         }
     }
-    handle(exp, emo, ts) {
-    }
     log(node_name, msg) {
-        // console.log('face: ' + node_name + " " + msg);
+        console.log('face: ' + node_name + " " + msg);
     }
     startDectector() {
         this.detector.start();
@@ -5200,6 +5223,7 @@ class CameraManager {
             //Display canvas instead of video feed because we want to draw the feature points on it
             $("#face_video_canvas").css("display", "block");
             $("#face_video").css("display", "none");
+            this.setSize(this.width, this.height);
         });
         detector.addEventListener("onInitializeFailure", () => {
             this.log('#logs', "The detector reports onInitializeFailure");
@@ -5221,15 +5245,7 @@ class CameraManager {
         detector.addEventListener("onImageResultsSuccess", (faces, image, timestamp) => {
             $('#results').html("");
             if (faces.length > 0) {
-                this.log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, (key, val) => {
-                    return val.toFixed ? Number(val.toFixed(0)) : val;
-                }));
-                let exp = faces[0].expressions;
-                let emo = faces[0].emotions;
-                this.handle(exp, emo, timestamp);
-                // this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val)=> {
-                //     return val.toFixed ? Number(val.toFixed(0)) : val;
-                // }));
+                this.imageResEvent.emit({ face: faces[0], timestamp: timestamp });
                 if ($('#face_video_canvas')[0] != null) {
                     this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
                 }

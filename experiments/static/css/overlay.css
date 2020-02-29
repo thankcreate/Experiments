@@ -428,11 +428,35 @@ input[type="submit"]:active {
 
 #test-info{
   margin-top: 20px;
-  width: 600px;
+  width: 750px;
+  overflow-wrap: break-word   ;
   padding: 4px;
   margin-left: auto;
   margin-right: auto;  
   border-color: black;  
   border-width: thick;
   border-style: dotted;  
+}
+
+
+#top-bar{
+  position: absolute;
+  top: -46px;  
+  height: 40px;
+  background-color: red;
+}
+
+.bar-left-icon{  
+  display: inline-block;
+  width: 40px;
+  height: 100%;
+  background-color: green;
+}
+
+
+.bar-right-progress{
+  display: inline-block;
+  width: 260px;
+  height: 100%;
+  background-color: yellow;
 }

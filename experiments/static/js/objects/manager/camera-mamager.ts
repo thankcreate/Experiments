@@ -4,6 +4,71 @@ enum CamPosi{
     PaperLevel,
     Newspaper
 }
+
+interface ImageRes {
+    face: FaceRes,
+    timestamp: number,
+}
+
+interface FaceRes {
+    emotions: Emotions,
+    expressions: Expressions,
+    emojis: Emojis,
+}
+
+interface Emotions{
+    joy: number
+    sadness: number
+    disgust: number
+    contempt: number
+    anger: number
+    fear: number
+    surprise: number
+    valence: number
+    engagement: number
+}
+
+interface Expressions{
+    smile: number
+    innerBrowRaise: number
+    browRaise: number
+    browFurrow: number
+    noseWrinkle: number
+    upperLipRaise: number
+    lipCornerDepressor: number
+    chinRaise: number
+    lipPucker: number
+    lipPress: number
+    lipSuck:number
+    mouthOpen: number
+    smirk: number
+    eyeClosure: number
+    attention: number
+    lidTighten: number
+    jawDrop: number
+    dimpler: number
+    eyeWiden: number
+    cheekRaise: number
+    lipStretch: number
+}
+
+interface Emojis{
+    relaxed: number
+    smiley: number
+    laughing: number
+    kissing: number
+    disappointed: number
+    rage: number
+    smirk: number
+    wink: number
+    stuckOutTongueWinkingEye: number
+    stuckOutTongue: number
+    flushed: number
+    scream: number
+    dominantEmoji: string
+}
+
+
 class CameraManager {
 
     
@@ -11,6 +76,8 @@ class CameraManager {
     
     detector: any;
     camAllowed = false;
+
+    imageResEvent: TypedEvent<ImageRes> = new TypedEvent();
     constructor() {
     }
 
@@ -51,6 +118,17 @@ class CameraManager {
     }
     
 
+    width:number;
+    height: number;
+
+    setSize(w: number, h: number) {
+        $('#face_video_canvas').css('width', w + 'px');
+        $('#face_video_canvas').css('height', h + 'px');
+        $('#face_video').css('width', w + 'px');
+        $('#face_video').css('height', h + 'px');
+
+    }
+
     setPosition(posi: CamPosi) {
         let root = $('#affdex_elements');
         
@@ -60,19 +138,28 @@ class CameraManager {
             root.css('bottom', '0px');  
             root.css('border-top', borderStyl);  
             root.css('border-left', borderStyl);  
-            root.css('border-right', borderStyl);              
+            root.css('border-right', borderStyl);          
+            
+           
+            this.width = 400;
+            this.height = 300;
         }        
         else {
             let borderStyl = '6px outset black';
             root.css('transform', 'translate(0, -50%)')
             root.css('z-index', '-1');
             root.css('top', '50%')
-            root.css('left', '95%')            
+            root.css('left', '98%')            
             root.css('border', borderStyl);              
             
             var element = root.detach();
             $('#newspaper-page').append(element);
+
+            this.width = 300;
+            this.height = 225;
         }
+
+        this.setSize(this.width, this.height);
     }
 
 
@@ -110,13 +197,10 @@ class CameraManager {
         }
     }
 
-
-    handle(exp, emo, ts) {
     
-    }
     
     log(node_name, msg) {
-        // console.log('face: ' + node_name + " " + msg);
+        console.log('face: ' + node_name + " " + msg);
     }
     
     startDectector() {
@@ -146,6 +230,8 @@ class CameraManager {
             //Display canvas instead of video feed because we want to draw the feature points on it
             $("#face_video_canvas").css("display", "block");
             $("#face_video").css("display", "none");        
+
+            this.setSize(this.width, this.height);
         });
 
         detector.addEventListener("onInitializeFailure", ()=> {
@@ -175,18 +261,8 @@ class CameraManager {
             $('#results').html("");            
             if (faces.length > 0) {                
 
-                this.log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, (key, val)=> {
-                    return val.toFixed ? Number(val.toFixed(0)) : val;
-                }));
-                let exp = faces[0].expressions;
-                let emo = faces[0].emotions
-
-                this.handle(exp, emo, timestamp);
-
-                // this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val)=> {
-                //     return val.toFixed ? Number(val.toFixed(0)) : val;
-                // }));
-
+                this.imageResEvent.emit({face: faces[0] as FaceRes, timestamp: timestamp});
+                
                 if ($('#face_video_canvas')[0] != null) {
                     this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
                 }

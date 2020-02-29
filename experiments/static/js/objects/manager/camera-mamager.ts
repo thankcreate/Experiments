@@ -1,6 +1,12 @@
 declare var affdex;
 
+enum CamPosi{
+    PaperLevel,
+    Newspaper
+}
 class CameraManager {
+
+    
     private static instance: CameraManager;
     
     detector: any;
@@ -34,17 +40,38 @@ class CameraManager {
     }
 
     showVideo() {
-        if(!this.camAllowed) 
-            return;                 
+        // if(!this.camAllowed) 
+        //     return;                 
         
-        $('#affdex_elements').css('display', 'inline');
-        
+        $('#affdex_elements').css('display', 'inline');        
     }
 
     hideVideo() {
         $('#affdex_elements').css('display', 'none');
     }
     
+
+    setPosition(posi: CamPosi) {
+        let root = $('#affdex_elements');
+        let borderStyl = '4px outset #252525';
+        if(posi == CamPosi.PaperLevel) {
+            root.css('right', '20px');  
+            root.css('bottom', '0px');  
+            root.css('border-top', borderStyl);  
+            root.css('border-left', borderStyl);  
+            root.css('border-right', borderStyl);              
+        }        
+        else {
+            // root.css('top', '100%')
+            // root.css('left', '50%')
+            root.css('right', '0');  
+            root.css('bottom', '0');  
+            root.css('border-top', borderStyl);  
+            root.css('border-left', borderStyl);  
+            root.css('border-right', borderStyl);          
+            root.css('border-bottom', borderStyl);               
+        }
+    }
 
 
     captureCameraImage() : string{
@@ -154,9 +181,9 @@ class CameraManager {
 
                 this.handle(exp, emo, timestamp);
 
-                this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val)=> {
-                    return val.toFixed ? Number(val.toFixed(0)) : val;
-                }));
+                // this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val)=> {
+                //     return val.toFixed ? Number(val.toFixed(0)) : val;
+                // }));
 
                 if ($('#face_video_canvas')[0] != null) {
                     this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);

@@ -1,3 +1,10 @@
+#test-box{
+    position: absolute;
+    width: 300px;
+    height: 225px;
+    background-color: red;
+}
+
 #affdex_elements {
     display: none;
     position: absolute;
@@ -10,8 +17,8 @@
 }
 
 #face_video_canvas{
-    width: 400px;
-    height: 300px;
+    width: 300px;
+    height: 225px;
 }
 
 #yb-player-root{

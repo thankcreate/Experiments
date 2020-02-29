@@ -1706,6 +1706,7 @@ class Scene1LPaper extends Scene1 {
         this.initNormalGameFsm();
         this.initPaperButtonCallback();
         CameraManager.getInstance().initFaceAPI();
+        CameraManager.getInstance().setPosition(CamPosi.PaperLevel);
         this.dwitterBKG.changeTo(1);
     }
     createNextLevelBtn() {
@@ -2145,6 +2146,11 @@ class Scene2L1 extends Scene2 {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
         this.initNormalGameFsm();
+        CameraManager.getInstance().requestPermission();
+        CameraManager.getInstance().initFaceAPI();
+        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
+        CameraManager.getInstance().startDectector();
+        CameraManager.getInstance().showVideo();
     }
     initNormalGameFsm() {
         this.initStNormalDefault();
@@ -2163,7 +2169,6 @@ class Scene2L1 extends Scene2 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
-            console.log('start');
             this.showPaper(true);
         });
     }
@@ -5064,6 +5069,11 @@ class BirdManager {
         }, 1);
     }
 }
+var CamPosi;
+(function (CamPosi) {
+    CamPosi[CamPosi["PaperLevel"] = 0] = "PaperLevel";
+    CamPosi[CamPosi["Newspaper"] = 1] = "Newspaper";
+})(CamPosi || (CamPosi = {}));
 class CameraManager {
     constructor() {
         this.camAllowed = false;
@@ -5091,12 +5101,33 @@ class CameraManager {
         }
     }
     showVideo() {
-        if (!this.camAllowed)
-            return;
+        // if(!this.camAllowed) 
+        //     return;                 
         $('#affdex_elements').css('display', 'inline');
     }
     hideVideo() {
         $('#affdex_elements').css('display', 'none');
+    }
+    setPosition(posi) {
+        let root = $('#affdex_elements');
+        let borderStyl = '4px outset #252525';
+        if (posi == CamPosi.PaperLevel) {
+            root.css('right', '20px');
+            root.css('bottom', '0px');
+            root.css('border-top', borderStyl);
+            root.css('border-left', borderStyl);
+            root.css('border-right', borderStyl);
+        }
+        else {
+            // root.css('top', '100%')
+            // root.css('left', '50%')
+            root.css('right', '0');
+            root.css('bottom', '0');
+            root.css('border-top', borderStyl);
+            root.css('border-left', borderStyl);
+            root.css('border-right', borderStyl);
+            root.css('border-bottom', borderStyl);
+        }
     }
     captureCameraImage() {
         let video = $('#face_video')[0];
@@ -5178,9 +5209,9 @@ class CameraManager {
                 let exp = faces[0].expressions;
                 let emo = faces[0].emotions;
                 this.handle(exp, emo, timestamp);
-                this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val) => {
-                    return val.toFixed ? Number(val.toFixed(0)) : val;
-                }));
+                // this.log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, (key, val)=> {
+                //     return val.toFixed ? Number(val.toFixed(0)) : val;
+                // }));
                 if ($('#face_video_canvas')[0] != null) {
                     this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
                 }

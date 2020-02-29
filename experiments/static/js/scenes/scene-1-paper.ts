@@ -21,7 +21,8 @@ class Scene1LPaper extends Scene1 {
 
         this.initPaperButtonCallback();
 
-        CameraManager.getInstance().initFaceAPI();       
+        CameraManager.getInstance().initFaceAPI()
+        CameraManager.getInstance().setPosition(CamPosi.PaperLevel);
 
         
         this.dwitterBKG.changeTo(1);
@@ -149,8 +150,7 @@ class Scene1LPaper extends Scene1 {
         state.addAction(s=>{
             this.paper.show();
             
-            CameraManager.getInstance().startDectector();
-                
+            CameraManager.getInstance().startDectector();                
             CameraManager.getInstance().requestPermission();
            
         });

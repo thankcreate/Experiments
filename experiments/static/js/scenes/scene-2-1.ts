@@ -9,7 +9,16 @@ class Scene2L1 extends Scene2 {
     create() {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
-        this.initNormalGameFsm();               
+        this.initNormalGameFsm();           
+        
+        CameraManager.getInstance().requestPermission();
+        CameraManager.getInstance().initFaceAPI()
+        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
+
+        CameraManager.getInstance().startDectector();   
+        
+
+        CameraManager.getInstance().showVideo();
     }
     
 
@@ -36,9 +45,11 @@ class Scene2L1 extends Scene2 {
 
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
-        state.setOnEnter(s=>{
-            console.log('start');
+        state.setOnEnter(s=>{            
             this.showPaper(true);
+
+
+
         })
     }
 }

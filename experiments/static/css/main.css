@@ -7,13 +7,7 @@
 
 #affdex_elements {
     display: none;
-    position: absolute;
-    right: 20px;
-    bottom: 0;
-    
-    border-top: 4px outset #252525;
-    border-left: 4px outset #252525;
-    border-right: 4px outset #252525;
+    position: absolute;    
 }
 
 #face_video_canvas{

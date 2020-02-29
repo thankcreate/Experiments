@@ -96,21 +96,46 @@ class Scene2 extends BaseScene {
         // })        
 
         let dt = 500;
-        this.scaleTween = this.tweens.addCounter({
+        this.ppScaleTween = this.tweens.addCounter({
             from: 0,
             to: 1,
             duration: dt
         })
 
-        this.rotateTween = this.tweens.addCounter({
+        this.ppRotateTween = this.tweens.addCounter({
             from: 0,
             to: 360,
             duration: dt
-        })
-        
+        })        
     }
-    scaleTween: PhTween;
-    rotateTween: PhTween;
+
+    showCam() {
+        let dt = 2000;
+        this.camTranslateXTween = this.tweens.addCounter({
+            from: -100,
+            to: 0,
+            duration: dt,
+            onUpdate: ()=>{
+                this.camTranslateX = this.camTranslateXTween.getValue();                
+            }
+        })    
+
+        this.ppTranslateXTween = this.tweens.addCounter({
+            from: -50,
+            to: -70,
+            duration: dt
+        })    
+    }
+
+    camTranslateXTween: PhTween;        
+    camTranslateX: number = -100;
+
+    ppScaleTween: PhTween;
+    ppRotateTween: PhTween;
+    
+
+    ppTranslateXTween: PhTween;
+    
 
     paperScale: number = 0;
     paperRotate: number = 0;
@@ -118,17 +143,35 @@ class Scene2 extends BaseScene {
     paperTranslateX: number = -50;
     paperTranslateY: number = -50;
     
+
+    camTranslateY: number = -50;
+
+    
     
     updatePaperCSS() {
-        if(this.scaleTween) {
-            let val = this.scaleTween.getValue();
+
+        // let updateList = [
+        //     {
+        //         tween: this.ppScaleTween,
+        //         target: $('#affdex_elements')
+        //     }
+        // ]
+        if(this.ppScaleTween) {
+            let val = this.ppScaleTween.getValue();
             this.paperScale = val;            
         }
 
-        if(this.rotateTween) {
-            let val = this.rotateTween.getValue();
+        if(this.ppRotateTween) {
+            let val = this.ppRotateTween.getValue();
             this.paperRotate = val;            
         }
+
+        if(this.ppTranslateXTween) {
+            let val = this.ppTranslateXTween.getValue();
+            this.paperTranslateX = val;
+        }
+
+        $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
 

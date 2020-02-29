@@ -2034,10 +2034,12 @@ class Scene2L0 extends SceneTrailor {
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
+        this.camTranslateX = -100;
         this.paperScale = 0;
         this.paperRotate = 0;
         this.paperTranslateX = -50;
         this.paperTranslateY = -50;
+        this.camTranslateY = -50;
     }
     createDwitters(parentContainer) {
         // super.createDwitters(parentContainer);
@@ -2110,26 +2112,53 @@ class Scene2 extends BaseScene {
         //     duration: 2000
         // })        
         let dt = 500;
-        this.scaleTween = this.tweens.addCounter({
+        this.ppScaleTween = this.tweens.addCounter({
             from: 0,
             to: 1,
             duration: dt
         });
-        this.rotateTween = this.tweens.addCounter({
+        this.ppRotateTween = this.tweens.addCounter({
             from: 0,
             to: 360,
             duration: dt
         });
     }
+    showCam() {
+        let dt = 2000;
+        this.camTranslateXTween = this.tweens.addCounter({
+            from: -100,
+            to: 0,
+            duration: dt,
+            onUpdate: () => {
+                this.camTranslateX = this.camTranslateXTween.getValue();
+            }
+        });
+        this.ppTranslateXTween = this.tweens.addCounter({
+            from: -50,
+            to: -70,
+            duration: dt
+        });
+    }
     updatePaperCSS() {
-        if (this.scaleTween) {
-            let val = this.scaleTween.getValue();
+        // let updateList = [
+        //     {
+        //         tween: this.ppScaleTween,
+        //         target: $('#affdex_elements')
+        //     }
+        // ]
+        if (this.ppScaleTween) {
+            let val = this.ppScaleTween.getValue();
             this.paperScale = val;
         }
-        if (this.rotateTween) {
-            let val = this.rotateTween.getValue();
+        if (this.ppRotateTween) {
+            let val = this.ppRotateTween.getValue();
             this.paperRotate = val;
         }
+        if (this.ppTranslateXTween) {
+            let val = this.ppTranslateXTween.getValue();
+            this.paperTranslateX = val;
+        }
+        $('#affdex_elements').css('transform', `translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
     update(time, dt) {
@@ -2170,6 +2199,9 @@ class Scene2L1 extends Scene2 {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
             this.showPaper(true);
+            setTimeout(() => {
+                this.showCam();
+            }, 500);
         });
     }
 }
@@ -5110,8 +5142,8 @@ class CameraManager {
     }
     setPosition(posi) {
         let root = $('#affdex_elements');
-        let borderStyl = '4px outset #252525';
         if (posi == CamPosi.PaperLevel) {
+            let borderStyl = '4px outset #252525';
             root.css('right', '20px');
             root.css('bottom', '0px');
             root.css('border-top', borderStyl);
@@ -5119,14 +5151,14 @@ class CameraManager {
             root.css('border-right', borderStyl);
         }
         else {
-            // root.css('top', '100%')
-            // root.css('left', '50%')
-            root.css('right', '0');
-            root.css('bottom', '0');
-            root.css('border-top', borderStyl);
-            root.css('border-left', borderStyl);
-            root.css('border-right', borderStyl);
-            root.css('border-bottom', borderStyl);
+            let borderStyl = '6px outset black';
+            root.css('transform', 'translate(0, -50%)');
+            root.css('z-index', '-1');
+            root.css('top', '50%');
+            root.css('left', '95%');
+            root.css('border', borderStyl);
+            var element = root.detach();
+            $('#newspaper-page').append(element);
         }
     }
     captureCameraImage() {

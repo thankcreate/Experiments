@@ -53,8 +53,9 @@ class CameraManager {
 
     setPosition(posi: CamPosi) {
         let root = $('#affdex_elements');
-        let borderStyl = '4px outset #252525';
+        
         if(posi == CamPosi.PaperLevel) {
+            let borderStyl = '4px outset #252525';
             root.css('right', '20px');  
             root.css('bottom', '0px');  
             root.css('border-top', borderStyl);  
@@ -62,14 +63,15 @@ class CameraManager {
             root.css('border-right', borderStyl);              
         }        
         else {
-            // root.css('top', '100%')
-            // root.css('left', '50%')
-            root.css('right', '0');  
-            root.css('bottom', '0');  
-            root.css('border-top', borderStyl);  
-            root.css('border-left', borderStyl);  
-            root.css('border-right', borderStyl);          
-            root.css('border-bottom', borderStyl);               
+            let borderStyl = '6px outset black';
+            root.css('transform', 'translate(0, -50%)')
+            root.css('z-index', '-1');
+            root.css('top', '50%')
+            root.css('left', '95%')            
+            root.css('border', borderStyl);              
+            
+            var element = root.detach();
+            $('#newspaper-page').append(element);
         }
     }
 

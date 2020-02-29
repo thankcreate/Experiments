@@ -48,8 +48,10 @@ class Scene2L1 extends Scene2 {
         state.setOnEnter(s=>{            
             this.showPaper(true);
 
-
-
+            
+            setTimeout(() => {
+                this.showCam();
+            }, 500);
         })
     }
 }

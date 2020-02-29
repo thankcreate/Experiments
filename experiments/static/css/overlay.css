@@ -367,13 +367,16 @@ input[type="submit"]:active {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  
-  
-  background-color: #ffffff;  
+}
+
+#newspaper-outer-frame{
+
 
   border-color: black;
   border-width: 6px;
   border-style: solid;
+  
+  background-color: #ffffff;  
 }
 
 #newspaper-inner-frame{

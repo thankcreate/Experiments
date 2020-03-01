@@ -28,6 +28,8 @@ class Scene2 extends BaseScene {
         CameraManager.getInstance().imageResEvent.on((e)=>{
             this.imageHandler(e);
         })
+
+        let test = NewsDataManager.getInstance();
     }
 
     imageHandler(res: ImageRes) {

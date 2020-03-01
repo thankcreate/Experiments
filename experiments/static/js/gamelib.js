@@ -2049,6 +2049,7 @@ class Scene2 extends BaseScene {
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
         });
+        let test = NewsDataManager.getInstance();
     }
     imageHandler(res) {
         let face = res.face;
@@ -5559,12 +5560,50 @@ class FmodManager {
 let gFmodManager = FmodManager.getInstance();
 class NewsDataManager {
     constructor() {
+        this.data = [];
     }
     static getInstance() {
         if (!NewsDataManager.instance) {
             NewsDataManager.instance = new NewsDataManager();
+            NewsDataManager.instance.load();
         }
         return NewsDataManager.instance;
+    }
+    load() {
+        this.data = [];
+        let lines = g_newsData1.split('\n');
+        let firstAdd = true;
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            // ignore the empty line
+            if (line == '') {
+                continue;
+            }
+            // ignore the head
+            if (firstAdd) {
+                firstAdd = false;
+                continue;
+            }
+            let cols = line.split('\t');
+            try {
+                let item = {
+                    index: parseInt(cols[0]),
+                    title: cols[1],
+                    content: cols[2],
+                    answer: parseInt(cols[3]),
+                    style: parseInt(cols[4]),
+                };
+                if (isNaN(item.index) || isNaN(item.answer) || isNaN(item.style)) {
+                    throw 'NewsData loading failed for one item';
+                }
+                this.data.push(item);
+            }
+            catch (error) {
+                console.log(error);
+                continue;
+            }
+        }
+        console.log(this.data);
     }
 }
 class SpeechManager {
@@ -5755,6 +5794,32 @@ class SpeechManager {
         });
     }
 }
+let g_newsData1 = `
+Index	Title	Content	Answer	Style
+0	Title1	Content1	1	0
+1	Gofsdfsdfds	Ccc	0	0
+2				
+3	Gofsdfsdfds	Ccc	0	0			
+4				
+5				
+6				
+7				
+8				
+9				
+10				
+11				
+12				
+13				
+14				
+15				
+16				
+17				
+18				
+19				
+20				
+21				
+22				
+`;
 var SpawnStrategyType;
 (function (SpawnStrategyType) {
     SpawnStrategyType[SpawnStrategyType["None"] = 0] = "None";

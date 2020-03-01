@@ -5,10 +5,14 @@
     background-color: red;
 }
 
-#affdex_elements {
+#cam-root {
     display: none;
     position: absolute;    
     font-size: 0;
+}
+
+#affdex_root {
+    background-color: white;
 }
 
 /* #face_video_canvas{

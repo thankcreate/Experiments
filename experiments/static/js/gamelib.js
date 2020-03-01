@@ -2034,12 +2034,18 @@ class Scene2L0 extends SceneTrailor {
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
+        this.topProgress = { value: 0 }; // [0, 1]
+        this.bottomProgress = { value: 0 }; // [0, 1]
+        this.canRecieveEmotion = true;
     }
     create() {
         super.create();
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
-        this.camCssBinding = new CssBinding($('#affdex_elements'));
-        this.initPaperCamCss();
+        this.camCssBinding = new CssBinding($('#cam-root'));
+        this.topProgressCssBinding = new CssBinding($('#top-bar'));
+        this.bottomProgressCssBinding = new CssBinding($('#bottom-bar'));
+        this.resultCssBinding = new CssBinding($('#newspaper-result'));
+        this.initBindingCss();
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
         });
@@ -2053,7 +2059,52 @@ class Scene2 extends BaseScene {
         let expDebug = JSON.stringify(face.expressions, (key, val) => {
             return val.toFixed ? Number(val.toFixed(0)) : val;
         });
-        $('#test-info').text(emotionsDebug + '\n' + expDebug);
+        let emoji = face.emojis.dominantEmoji;
+        $('#test-info').text(emotionsDebug + '\n' + expDebug + '\n' + emoji);
+        this.emotionAnalyze(res);
+    }
+    emotionAnalyze(imgRes) {
+        let face = imgRes.face;
+        let timestamp = imgRes.timestamp; // in seconds
+        if (!this.canRecieveEmotion) {
+            this.lastTimeStamp = timestamp;
+            return;
+        }
+        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
+        let fullTime = 3;
+        let targetJquery = null;
+        let progress = { value: 0 };
+        if (res.emotion == MyEmotion.Positive) {
+            targetJquery = $('#emoji-progress-top');
+            progress = this.topProgress;
+        }
+        else if (res.emotion == MyEmotion.Negative) {
+            targetJquery = $('#emoji-progress-bottom');
+            progress = this.bottomProgress;
+        }
+        if (this.lastTimeStamp == null) {
+            this.lastTimeStamp = timestamp;
+        }
+        let timeDiff = timestamp - this.lastTimeStamp;
+        let added = 1 / fullTime * res.intensity * timeDiff;
+        progress.value += added;
+        progress.value = clamp(progress.value, 0, 1);
+        if (progress.value == 1) {
+            this.canRecieveEmotion = false;
+            this.emotionMaxed(res.emotion);
+        }
+        if (res.emotion != MyEmotion.None) {
+            targetJquery.css('width', progress.value * 100 + "%");
+        }
+        this.lastTimeStamp = timestamp;
+    }
+    emotionMaxed(myEmotion) {
+        if (myEmotion == MyEmotion.Positive) {
+            this.showResult(true);
+        }
+        else {
+            this.showResult(false);
+        }
     }
     createDwitters(parentContainer) {
         this.initCenterDwitterScale = 0.52;
@@ -2114,7 +2165,7 @@ class Scene2 extends BaseScene {
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
     }
-    initPaperCamCss() {
+    initBindingCss() {
         this.paperCssBinding.scale = 0;
         this.paperCssBinding.rotate = 0;
         this.paperCssBinding.translateX = -50;
@@ -2123,6 +2174,12 @@ class Scene2 extends BaseScene {
         this.camCssBinding.translateX = -100;
         this.camCssBinding.translateY = -50;
         this.camCssBinding.udpate();
+        this.topProgressCssBinding.translateY = 100;
+        this.topProgressCssBinding.udpate();
+        this.bottomProgressCssBinding.translateY = -100;
+        this.bottomProgressCssBinding.udpate();
+        this.resultCssBinding.translateY = 100;
+        this.resultCssBinding.udpate();
     }
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
@@ -2151,12 +2208,52 @@ class Scene2 extends BaseScene {
             translateX: -70,
             duration: dt
         });
+        setTimeout(() => {
+            this.showProgressBars();
+        }, 1000);
+    }
+    showProgressBars() {
+        let dt = 1000;
+        this.tweens.add({
+            targets: this.topProgressCssBinding,
+            translateY: 0,
+            duration: dt
+        });
+        this.tweens.add({
+            targets: this.bottomProgressCssBinding,
+            translateY: 0,
+            duration: dt
+        });
+    }
+    showResult(isCorrect) {
+        console.log('hahahahah:' + isCorrect);
+        $('#newspaper-result-content').text(isCorrect ? '✔️' : '❌');
+        let dt = 500;
+        this.tweens.add({
+            targets: this.resultCssBinding,
+            translateY: 0,
+            duration: dt
+        });
+    }
+    hideResult() {
+        let dt = 500;
+        this.tweens.add({
+            targets: this.resultCssBinding,
+            translateY: 100,
+            duration: dt
+        });
     }
     updateCssBinding() {
         if (this.camCssBinding)
             this.camCssBinding.udpate();
         if (this.paperCssBinding)
             this.paperCssBinding.udpate();
+        if (this.topProgressCssBinding)
+            this.topProgressCssBinding.udpate();
+        if (this.bottomProgressCssBinding)
+            this.bottomProgressCssBinding.udpate();
+        if (this.resultCssBinding)
+            this.resultCssBinding.udpate();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -5135,10 +5232,10 @@ class CameraManager {
     showVideo() {
         // if(!this.camAllowed) 
         //     return;                 
-        $('#affdex_elements').css('display', 'inline');
+        $('#cam-root').css('display', 'inline');
     }
     hideVideo() {
-        $('#affdex_elements').css('display', 'none');
+        $('#cam-root').css('display', 'none');
     }
     setSize(w, h) {
         $('#face_video_canvas').css('width', w + 'px');
@@ -5147,25 +5244,26 @@ class CameraManager {
         $('#face_video').css('height', h + 'px');
     }
     setPosition(posi) {
-        let root = $('#affdex_elements');
+        let camRoot = $('#cam-root');
+        let affdexRoot = $('#affdex_root');
         if (posi == CamPosi.PaperLevel) {
             let borderStyl = '4px outset #252525';
-            root.css('right', '20px');
-            root.css('bottom', '0px');
-            root.css('border-top', borderStyl);
-            root.css('border-left', borderStyl);
-            root.css('border-right', borderStyl);
+            camRoot.css('right', '20px');
+            camRoot.css('bottom', '0px');
+            affdexRoot.css('border-top', borderStyl);
+            affdexRoot.css('border-left', borderStyl);
+            affdexRoot.css('border-right', borderStyl);
             this.width = 400;
             this.height = 300;
         }
         else {
             let borderStyl = '6px outset black';
-            root.css('transform', 'translate(0, -50%)');
-            root.css('z-index', '-1');
-            root.css('top', '50%');
-            root.css('left', '98%');
-            root.css('border', borderStyl);
-            var element = root.detach();
+            camRoot.css('transform', 'translate(0, -50%)');
+            camRoot.css('z-index', '-1');
+            camRoot.css('top', '50%');
+            camRoot.css('left', '98%');
+            affdexRoot.css('border', borderStyl);
+            var element = camRoot.detach();
             $('#newspaper-page').append(element);
             this.width = 300;
             this.height = 225;
@@ -5205,7 +5303,7 @@ class CameraManager {
         this.detector.start();
     }
     initFaceAPI() {
-        var divRoot = $("#affdex_elements")[0];
+        var divRoot = $("#affdex_root")[0];
         var width = 640;
         var height = 480;
         var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
@@ -5284,6 +5382,38 @@ class CssBinding {
         }
         ret = `${tranlateSub} ${scaleSub} ${rotateSub}`;
         return ret;
+    }
+}
+var MyEmotion;
+(function (MyEmotion) {
+    MyEmotion[MyEmotion["None"] = 0] = "None";
+    MyEmotion[MyEmotion["Positive"] = 1] = "Positive";
+    MyEmotion[MyEmotion["Negative"] = 2] = "Negative";
+})(MyEmotion || (MyEmotion = {}));
+class EmmotionManager {
+    constructor() {
+    }
+    static getInstance() {
+        if (!EmmotionManager.instance) {
+            EmmotionManager.instance = new EmmotionManager();
+        }
+        return EmmotionManager.instance;
+    }
+    emotionAnalyze(res) {
+        let ana = { emotion: MyEmotion.None, intensity: 0 };
+        let face = res.face;
+        let timestamp = res.timestamp;
+        let emotions = face.emotions;
+        let expressions = face.expressions;
+        if (emotions.joy > 30 || expressions.lipSuck > 60) {
+            ana.emotion = MyEmotion.Positive;
+            ana.intensity = 1;
+        }
+        if (expressions.browFurrow > 70 || expressions.noseWrinkle > 60) {
+            ana.emotion = MyEmotion.Negative;
+            ana.intensity = 1;
+        }
+        return ana;
     }
 }
 let s_banks = [
@@ -5427,6 +5557,16 @@ class FmodManager {
     }
 }
 let gFmodManager = FmodManager.getInstance();
+class NewsDataManager {
+    constructor() {
+    }
+    static getInstance() {
+        if (!NewsDataManager.instance) {
+            NewsDataManager.instance = new NewsDataManager();
+        }
+        return NewsDataManager.instance;
+    }
+}
 class SpeechManager {
     constructor(scene) {
         this.loadedSpeechFilesStatic = {};

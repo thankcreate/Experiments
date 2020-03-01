@@ -2,6 +2,12 @@
 class Scene2 extends BaseScene {
 
 
+    paperCssBinding : CssBinding;
+    camCssBinding: CssBinding;
+    topProgressCssBinding: CssBinding;
+    bottomProgressCssBinding: CssBinding;
+    resultCssBinding: CssBinding;
+
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
         super(config);
 
@@ -12,9 +18,12 @@ class Scene2 extends BaseScene {
         super.create();
 
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
-        this.camCssBinding = new CssBinding($('#affdex_elements'));
+        this.camCssBinding = new CssBinding($('#cam-root'));
+        this.topProgressCssBinding = new CssBinding($('#top-bar'));
+        this.bottomProgressCssBinding = new CssBinding($('#bottom-bar'));
+        this.resultCssBinding = new CssBinding($('#newspaper-result'));
 
-        this.initPaperCamCss();
+        this.initBindingCss();
 
         CameraManager.getInstance().imageResEvent.on((e)=>{
             this.imageHandler(e);
@@ -32,7 +41,70 @@ class Scene2 extends BaseScene {
             return val.toFixed ? Number(val.toFixed(0)) : val;
         })
 
-        $('#test-info').text(emotionsDebug + '\n' + expDebug);
+        let emoji = face.emojis.dominantEmoji;
+
+        $('#test-info').text(emotionsDebug + '\n' + expDebug + '\n' + emoji);
+
+        this.emotionAnalyze(res);
+    }
+
+    topProgress:HasValue = {value: 0}; // [0, 1]
+    bottomProgress:HasValue = {value: 0}; // [0, 1]
+
+    lastTimeStamp: number;
+    canRecieveEmotion: boolean = true;
+    emotionAnalyze(imgRes: ImageRes) {        
+        let face = imgRes.face;
+        let timestamp = imgRes.timestamp; // in seconds
+        
+        if(!this.canRecieveEmotion) {
+            this.lastTimeStamp = timestamp;
+            return;
+        }
+
+        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);        
+        
+
+        let fullTime = 3;
+        let targetJquery = null;
+
+        let progress: HasValue = {value: 0};
+        if(res.emotion == MyEmotion.Positive) {
+            targetJquery = $('#emoji-progress-top');
+            progress = this.topProgress;
+        }
+        else if(res.emotion == MyEmotion.Negative){
+            targetJquery = $('#emoji-progress-bottom');
+            progress = this.bottomProgress;
+        }
+
+        if(this.lastTimeStamp == null) {
+            this.lastTimeStamp = timestamp;
+        }
+        let timeDiff = timestamp - this.lastTimeStamp;
+
+        let added = 1 / fullTime * res.intensity * timeDiff;
+        progress.value += added;
+        progress.value = clamp(progress.value, 0, 1);
+
+        if(progress.value == 1) {
+            this.canRecieveEmotion = false;
+            this.emotionMaxed(res.emotion);
+        }
+
+        if(res.emotion != MyEmotion.None) {
+            targetJquery.css('width', progress.value * 100 + "%");
+        }
+        this.lastTimeStamp = timestamp;
+    }
+
+    emotionMaxed(myEmotion: MyEmotion) {
+        if(myEmotion == MyEmotion.Positive) {
+            this.showResult(true);
+        }
+        else {
+            this.showResult(false);
+        }
     }
     
 
@@ -111,10 +183,8 @@ class Scene2 extends BaseScene {
         
     }
 
-    paperCssBinding : CssBinding;
-    camCssBinding: CssBinding;
 
-    initPaperCamCss() {
+    initBindingCss() {
         this.paperCssBinding.scale = 0;
         this.paperCssBinding.rotate = 0;
         this.paperCssBinding.translateX = -50;
@@ -124,6 +194,15 @@ class Scene2 extends BaseScene {
         this.camCssBinding.translateX = -100;
         this.camCssBinding.translateY = -50;
         this.camCssBinding.udpate();
+
+        this.topProgressCssBinding.translateY = 100;
+        this.topProgressCssBinding.udpate();
+        
+        this.bottomProgressCssBinding.translateY = -100;
+        this.bottomProgressCssBinding.udpate();
+
+        this.resultCssBinding.translateY = 100;
+        this.resultCssBinding.udpate();
     }
 
     showPaper(show: boolean = true) {
@@ -162,7 +241,47 @@ class Scene2 extends BaseScene {
             translateX: -70,
             duration: dt
         }) 
+
+        setTimeout(() => {
+            this.showProgressBars();
+        }, 1000);
     }    
+
+    showProgressBars() {
+        let dt = 1000;
+        
+        this.tweens.add({
+            targets: this.topProgressCssBinding,
+            translateY: 0,
+            duration: dt
+        })
+
+        this.tweens.add({
+            targets: this.bottomProgressCssBinding,
+            translateY: 0,
+            duration: dt
+        }) 
+    }
+
+    showResult(isCorrect: boolean) {
+        console.log('hahahahah:' + isCorrect);
+        $('#newspaper-result-content').text(isCorrect? '✔️' : '❌');
+        let dt = 500;        
+        this.tweens.add({
+            targets: this.resultCssBinding,
+            translateY: 0,
+            duration: dt
+        })
+    }
+
+    hideResult() {
+        let dt = 500;        
+        this.tweens.add({
+            targets: this.resultCssBinding,
+            translateY: 100,
+            duration: dt
+        })
+    }
     
     updateCssBinding() {
 
@@ -170,6 +289,12 @@ class Scene2 extends BaseScene {
             this.camCssBinding.udpate()
         if(this.paperCssBinding) 
             this.paperCssBinding.udpate();
+        if(this.topProgressCssBinding)
+            this.topProgressCssBinding.udpate();
+        if(this.bottomProgressCssBinding)
+            this.bottomProgressCssBinding.udpate();            
+        if(this.resultCssBinding)
+            this.resultCssBinding.udpate();         
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);

@@ -7,7 +7,7 @@ enum CamPosi{
 
 interface ImageRes {
     face: FaceRes,
-    timestamp: number,
+    timestamp: number, // in seconds
 }
 
 interface FaceRes {
@@ -110,11 +110,11 @@ class CameraManager {
         // if(!this.camAllowed) 
         //     return;                 
         
-        $('#affdex_elements').css('display', 'inline');        
+        $('#cam-root').css('display', 'inline');        
     }
 
     hideVideo() {
-        $('#affdex_elements').css('display', 'none');
+        $('#cam-root').css('display', 'none');
     }
     
 
@@ -130,15 +130,17 @@ class CameraManager {
     }
 
     setPosition(posi: CamPosi) {
-        let root = $('#affdex_elements');
+        let camRoot = $('#cam-root');
+        let affdexRoot = $('#affdex_root');
         
         if(posi == CamPosi.PaperLevel) {
             let borderStyl = '4px outset #252525';
-            root.css('right', '20px');  
-            root.css('bottom', '0px');  
-            root.css('border-top', borderStyl);  
-            root.css('border-left', borderStyl);  
-            root.css('border-right', borderStyl);          
+            camRoot.css('right', '20px');  
+            camRoot.css('bottom', '0px');  
+
+            affdexRoot.css('border-top', borderStyl);  
+            affdexRoot.css('border-left', borderStyl);  
+            affdexRoot.css('border-right', borderStyl);          
             
            
             this.width = 400;
@@ -146,13 +148,14 @@ class CameraManager {
         }        
         else {
             let borderStyl = '6px outset black';
-            root.css('transform', 'translate(0, -50%)')
-            root.css('z-index', '-1');
-            root.css('top', '50%')
-            root.css('left', '98%')            
-            root.css('border', borderStyl);              
+            camRoot.css('transform', 'translate(0, -50%)')
+            camRoot.css('z-index', '-1');            
+            camRoot.css('top', '50%')
+            camRoot.css('left', '98%')            
+
+            affdexRoot.css('border', borderStyl);              
             
-            var element = root.detach();
+            var element = camRoot.detach();
             $('#newspaper-page').append(element);
 
             this.width = 300;
@@ -210,7 +213,7 @@ class CameraManager {
 
     initFaceAPI() {
         
-        var divRoot = $("#affdex_elements")[0];
+        var divRoot = $("#affdex_root")[0];
         var width = 640;
         var height = 480;
         var faceMode = affdex.FaceDetectorMode.LARGE_FACES;

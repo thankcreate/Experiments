@@ -152,8 +152,7 @@ class Scene1LPaper extends Scene1 {
             
             CameraManager.getInstance().startDectector();                
             CameraManager.getInstance().setPosition(CamPosi.PaperLevel);
-            CameraManager.getInstance().requestPermission();
-           
+            CameraManager.getInstance().requestPermission();           
         });
     }
 

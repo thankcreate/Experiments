@@ -56,7 +56,7 @@ class SceneTrailor extends BaseScene {
     }
 
     initNormalGameFsm() {        
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
 
     forceDirectIntoGame() {
@@ -77,7 +77,7 @@ class SceneTrailor extends BaseScene {
 
     camAllowed = false;
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
        
     }
 

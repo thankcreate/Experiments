@@ -70,7 +70,7 @@ class Scene1L4 extends Scene1 {
         this.initStPrmoptAutoTurn();
         this.initStPrmoptCreator();
 
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
 
 
@@ -82,7 +82,7 @@ class Scene1L4 extends Scene1 {
         return false;
     }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state
             .addDelayAction(this, 500)
             .addAction(s => {
@@ -101,7 +101,7 @@ class Scene1L4 extends Scene1 {
     }
 
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s => {
             
             
@@ -149,13 +149,13 @@ class Scene1L4 extends Scene1 {
     hasWarnKey = 'HasWarn';
 
     initStateIdle() {
-        let state = this.normalGameFsm.getState("Idle");
+        let state = this.gamePlayFsm.getState("Idle");
         state.setOnEnter(s => {
             
         });
         state.setOnUpdate(s => {
-            if (this.getCurClickerStrategy().normalNormalCount >= startWarnNum && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
-                this.normalGameFsm.setVar(this.hasWarnKey, true);
+            if (this.getCurClickerStrategy().normalNormalCount >= startWarnNum && !this.gamePlayFsm.getVar(this.hasWarnKey, false)) {
+                this.gamePlayFsm.setVar(this.hasWarnKey, true);
                 s.event('WARN');
             }
         });
@@ -167,7 +167,7 @@ class Scene1L4 extends Scene1 {
     }
 
     initWarn() {
-        let state = this.normalGameFsm.getState("Warn");
+        let state = this.gamePlayFsm.getState("Warn");
         state.setOnEnter(s => {
 
         })
@@ -189,7 +189,7 @@ class Scene1L4 extends Scene1 {
     }
 
     initStMock() {
-        let state = this.normalGameFsm.getState("Mock");
+        let state = this.gamePlayFsm.getState("Mock");
         state.addDelayAction(this, 3000)
         state.addSubtitleAction(this.subtitle, s=>this.getUserName() + "!\n What are you doing? You think this is fun?", true);
         state.addSubtitleAction(this.subtitle, "Finally, I know who created those words and 4O4s!", true);
@@ -223,7 +223,7 @@ class Scene1L4 extends Scene1 {
             'TO_PROMPT_CREATOR',
         ];
         // global event
-        this.normalGameFsm.event(eventNames[idx], true);
+        this.gamePlayFsm.event(eventNames[idx], true);
     }
 
 
@@ -256,7 +256,7 @@ class Scene1L4 extends Scene1 {
 
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
-        let state = this.normalGameFsm.getState("PromptCompleteBad");
+        let state = this.gamePlayFsm.getState("PromptCompleteBad");
         state.setOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
@@ -276,7 +276,7 @@ class Scene1L4 extends Scene1 {
     }
 
     initStPrmoptAutoTyper() {
-        let state = this.normalGameFsm.getState("PromptAutoBad");
+        let state = this.gamePlayFsm.getState("PromptAutoBad");
         state.setOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
@@ -296,7 +296,7 @@ class Scene1L4 extends Scene1 {
     // TODO: the prompt of hinting the player not to do the word mathing should be put into a more flexible state
     
     initStPromptTurn() {
-        let state = this.normalGameFsm.getState("PromptTurn");
+        let state = this.gamePlayFsm.getState("PromptTurn");
         state.setOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
@@ -310,7 +310,7 @@ class Scene1L4 extends Scene1 {
     }
 
     initStPrmoptAutoTurn() {
-        let state = this.normalGameFsm.getState("PromptAutoTurn");
+        let state = this.gamePlayFsm.getState("PromptAutoTurn");
         state.setOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
@@ -324,7 +324,7 @@ class Scene1L4 extends Scene1 {
     }
     
     initStPrmoptCreator() {
-        let state = this.normalGameFsm.getState("PromptCreator");
+        let state = this.gamePlayFsm.getState("PromptCreator");
         state.setOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });

@@ -29,15 +29,15 @@ class Scene1L1 extends Scene1 {
         this.initStStory0();
         this.initStStory1();
 
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
 
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
     }
 
     initStTutorialStart() {
-        let state = this.normalGameFsm.getState("TutorialStart");
+        let state = this.gamePlayFsm.getState("TutorialStart");
 
         // Invoke EXPLAIN_HP need 2 requirements(&&):
         // 1. One enemy is eliminated
@@ -75,7 +75,7 @@ class Scene1L1 extends Scene1 {
     }
 
     initStExplainHp() {
-        let state = this.normalGameFsm.getState('ExplainHp');
+        let state = this.gamePlayFsm.getState('ExplainHp');
         state
             .addDelayAction(this, 300)
             .addSubtitleAction(this.subtitle, s => {
@@ -123,7 +123,7 @@ class Scene1L1 extends Scene1 {
     }
 
     initStFlowStrategy() {
-        let state = this.normalGameFsm.getState('FlowStrategy');
+        let state = this.gamePlayFsm.getState('FlowStrategy');
         state
             .addAction(s => {
                 this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
@@ -136,7 +136,7 @@ class Scene1L1 extends Scene1 {
     // Normal Start may come from a die or from home
     // If it's from die, we need add a different subtitle
     initStNormalStart() {
-        let state = this.normalGameFsm.getState('NormalStart');
+        let state = this.gamePlayFsm.getState('NormalStart');
         state
             .addAction(s => {
                 this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
@@ -153,7 +153,7 @@ class Scene1L1 extends Scene1 {
     }
 
     initStStory0() {
-        let state = this.normalGameFsm.getState('Story0');
+        let state = this.gamePlayFsm.getState('Story0');
         state
             .addAction(state => { }).setBoolCondition(s => this.getCounter(Counter.Story0Finished) === 0, false)  // <---- reject if story0 has finished
             .addSubtitleAction(this.subtitle, s => {
@@ -211,7 +211,7 @@ class Scene1L1 extends Scene1 {
     }
 
     initStStory1() {
-        let state = this.normalGameFsm.getState('Story1');
+        let state = this.gamePlayFsm.getState('Story1');
         state.addAction((s) => {
             // console.log('hahaha, story1');
         })

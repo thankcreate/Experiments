@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Chrome Debug",
-            "url": "http://localhost/?level=4",
+            "url": "http://localhost/?level=2-1",
             "webRoot": "${workspaceFolder}/experiments/static"
         }
     ]

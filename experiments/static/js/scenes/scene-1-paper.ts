@@ -50,7 +50,7 @@ class Scene1LPaper extends Scene1 {
     initPaperButtonCallback() {
         this.paper.continueBtn.clickedEvent.on(b=>{
             if(this.paper.checkboxImg.getData('on')) {
-                this.normalGameFsm.event('CONTINUE');
+                this.gamePlayFsm.event('CONTINUE');
             }
             else {
                 alert('You should confirm you have read the paper before continuing.');
@@ -129,7 +129,7 @@ class Scene1LPaper extends Scene1 {
         this.initStStart();
         this.initConfirm1();
         this.initConfirm2();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     
     needModeSelect() {
@@ -137,7 +137,7 @@ class Scene1LPaper extends Scene1 {
     }
 
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state.addAction(s=>{
             this.confirmCount = 0;
         })
@@ -146,7 +146,7 @@ class Scene1LPaper extends Scene1 {
 
     
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.addAction(s=>{
             this.paper.show();
             
@@ -161,7 +161,7 @@ class Scene1LPaper extends Scene1 {
 
     countDownInterval: any;
     initConfirm1() {
-        let state = this.normalGameFsm.getState('Confirm_1');
+        let state = this.gamePlayFsm.getState('Confirm_1');
 
         state.setOnExit(s=>{
             
@@ -227,7 +227,7 @@ class Scene1LPaper extends Scene1 {
     }
 
     initConfirm2() {
-        let state = this.normalGameFsm.getState('Confirm_2');
+        let state = this.gamePlayFsm.getState('Confirm_2');
         state.addAction(()=>{
           
         })

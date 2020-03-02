@@ -22,20 +22,20 @@ class Scene1L2 extends Scene1 {
         this.initStNormalDefault();
         this.initStStart();
 
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
 
 
 
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state.addDelayAction(this, 500)
             .addEventAction("START");
 
     }
 
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s=>{
             let health = 4;
             let duration = 50000;

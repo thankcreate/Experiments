@@ -36,6 +36,14 @@ class Scene2 extends BaseScene {
         // $('#test-info').css('visibility', 'hidden'); 
         
     }
+        
+    getNewspaperNums(): number[]{
+        return [0];
+    }
+
+    makeGamePlayFsm() {
+        return new NewspaperFsm(this, this.getNewspaperNums());
+    }
 
     // called by BaseScene.create
     initVoiceType() {

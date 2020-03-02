@@ -175,14 +175,17 @@ class BaseScene extends Phaser.Scene {
         // Overlay Dialogs
         this.overlay = new Overlay(this, this.overlayContainer, 0, 0);
         // Main FSM
-        this.mainFsm = new Fsm(this, this.getMainFsm());
-        this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
+        this.mainFsm = new Fsm(this, this.getMainFsmData());
+        this.gamePlayFsm = this.makeGamePlayFsm();
         this.zenFsm = new Fsm(this, this.getZenFsm());
         this.initMainFsm();
         // Sub FSM: normal game
         this.postCreate();
         // initVoiceType
         this.initVoiceType();
+    }
+    makeGamePlayFsm() {
+        return new Fsm(this, this.getGamePlayFsmData());
     }
     initVoiceType() {
         this.getSpeechManager().setVoiceType(VoiceType.Voice65536);
@@ -214,10 +217,10 @@ class BaseScene extends Phaser.Scene {
         this.centerObject.update(time, dt);
         this.ui.hud.update(time, dt);
     }
-    getMainFsm() {
+    getMainFsmData() {
         return mainFsm;
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         //normalGameFsm
         return null;
     }
@@ -486,7 +489,7 @@ class BaseScene extends Phaser.Scene {
         state.setOnEnter(s => {
             // FSM 
             this.setEntryPointByIncomingEvent(s.fromEvent);
-            this.normalGameFsm.start();
+            this.gamePlayFsm.start();
             this.zenFsm.start();
             // UI reset
             this.ui.hud.reset();
@@ -507,16 +510,16 @@ class BaseScene extends Phaser.Scene {
             .addAction(s => {
             if (this.mode === GameMode.Normal) {
                 if (this.firstIntoNormalMode())
-                    s.event('TUTORIAL_START', this.normalGameFsm);
+                    s.event('TUTORIAL_START', this.gamePlayFsm);
                 else
-                    s.event('NORMAL_START', this.normalGameFsm);
+                    s.event('NORMAL_START', this.gamePlayFsm);
             }
             else {
                 s.event('START', this.zenFsm);
             }
         });
         state.setOnExit(s => {
-            this.normalGameFsm.stop();
+            this.gamePlayFsm.stop();
             this.zenFsm.stop();
             LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
@@ -547,7 +550,7 @@ class BaseScene extends Phaser.Scene {
     }
     sceneExitDied() {
         this.died.hide();
-        this.normalGameFsm.restart(true);
+        this.gamePlayFsm.restart(true);
     }
     initStRestart() {
         let state = this.mainFsm.getState("Restart");
@@ -721,7 +724,7 @@ class SceneTrailor extends BaseScene {
         };
     }
     initNormalGameFsm() {
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     forceDirectIntoGame() {
         return true;
@@ -737,9 +740,9 @@ class SceneTrailor extends BaseScene {
         // state.addEventAction('START');
     }
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         return normal_1_0;
     }
     needHud() {
@@ -900,13 +903,13 @@ class Scene1L1 extends Scene1 {
         this.initStNormalStart();
         this.initStStory0();
         this.initStStory1();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
     }
     initStTutorialStart() {
-        let state = this.normalGameFsm.getState("TutorialStart");
+        let state = this.gamePlayFsm.getState("TutorialStart");
         // Invoke EXPLAIN_HP need 2 requirements(&&):
         // 1. One enemy is eliminated
         // 2. Welcome subitle is finished
@@ -937,7 +940,7 @@ class Scene1L1 extends Scene1 {
         });
     }
     initStExplainHp() {
-        let state = this.normalGameFsm.getState('ExplainHp');
+        let state = this.gamePlayFsm.getState('ExplainHp');
         state
             .addDelayAction(this, 300)
             .addSubtitleAction(this.subtitle, s => {
@@ -984,7 +987,7 @@ class Scene1L1 extends Scene1 {
             .addEventAction("TO_FLOW_STRATEGY");
     }
     initStFlowStrategy() {
-        let state = this.normalGameFsm.getState('FlowStrategy');
+        let state = this.gamePlayFsm.getState('FlowStrategy');
         state
             .addAction(s => {
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
@@ -996,7 +999,7 @@ class Scene1L1 extends Scene1 {
     // Normal Start may come from a die or from home
     // If it's from die, we need add a different subtitle
     initStNormalStart() {
-        let state = this.normalGameFsm.getState('NormalStart');
+        let state = this.gamePlayFsm.getState('NormalStart');
         state
             .addAction(s => {
             this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);
@@ -1012,7 +1015,7 @@ class Scene1L1 extends Scene1 {
             .addFinishAction();
     }
     initStStory0() {
-        let state = this.normalGameFsm.getState('Story0');
+        let state = this.gamePlayFsm.getState('Story0');
         state
             .addAction(state => { }).setBoolCondition(s => this.getCounter(Counter.Story0Finished) === 0, false) // <---- reject if story0 has finished
             .addSubtitleAction(this.subtitle, s => {
@@ -1068,7 +1071,7 @@ class Scene1L1 extends Scene1 {
             .addFinishAction().setFinally();
     }
     initStStory1() {
-        let state = this.normalGameFsm.getState('Story1');
+        let state = this.gamePlayFsm.getState('Story1');
         state.addAction((s) => {
             // console.log('hahaha, story1');
         });
@@ -1107,7 +1110,7 @@ class Scene1L1 extends Scene1 {
             return "We have plenty of time. Just enjoy yourself, please.";
         }, true, 2000, 3000, 1500);
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         return normal_1_1;
     }
 }
@@ -1116,7 +1119,7 @@ class Scene1L2 extends Scene1 {
     constructor() {
         super('Scene1L2');
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         return normal_1_2;
     }
     create() {
@@ -1129,15 +1132,15 @@ class Scene1L2 extends Scene1 {
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state.addDelayAction(this, 500)
             .addEventAction("START");
     }
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s => {
             let health = 4;
             let duration = 50000;
@@ -1179,7 +1182,7 @@ class Scene1L3 extends Scene1 {
         this.needChangeCenter = false;
         this.needChangeEnemy = false;
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         return normal_1_3;
     }
     preload() {
@@ -1207,10 +1210,10 @@ class Scene1L3 extends Scene1 {
         this.initStBGM();
         this.initStSensitive();
         this.initEnd();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state.addDelayAction(this, 500)
             .addEventAction("START");
     }
@@ -1283,7 +1286,7 @@ class Scene1L3 extends Scene1 {
         // }
     }
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s => {
             let health = 4;
             let duration = 50000;
@@ -1321,7 +1324,7 @@ class Scene1L3 extends Scene1 {
             .addEventAction("TO_BGM");
     }
     initStBGM() {
-        let state = this.normalGameFsm.getState("BGM");
+        let state = this.gamePlayFsm.getState("BGM");
         state.setUnionEvent('TO_SENSITIVE_WORD', 2);
         state.setOnEnter(s => {
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
@@ -1363,7 +1366,7 @@ class Scene1L3 extends Scene1 {
         });
     }
     initStSensitive() {
-        let state = this.normalGameFsm.getState("Sensitive");
+        let state = this.gamePlayFsm.getState("Sensitive");
         state.setOnEnter(s => {
             this.enemyManager.setNextNeedSensitiveOneShot(true);
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
@@ -1398,7 +1401,7 @@ class Scene1L3 extends Scene1 {
             .addSubtitleAction(this.subtitle, "B-A-D, bad!", false);
     }
     initEnd() {
-        let state = this.normalGameFsm.getState("End");
+        let state = this.gamePlayFsm.getState("End");
         state
             .addDelayAction(this, 1000)
             .addAction(s => {
@@ -1431,7 +1434,7 @@ class Scene1L4 extends Scene1 {
         };
         this.loadAudioWithConfig(audioLoadConfig);
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         return normal_1_4;
     }
     playOpenTurnBgm() {
@@ -1469,7 +1472,7 @@ class Scene1L4 extends Scene1 {
         this.initStPromptTurn();
         this.initStPrmoptAutoTurn();
         this.initStPrmoptCreator();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     needShowEcoAboutAtStartup() {
         if (isEconomicSpecialEdition()) {
@@ -1478,7 +1481,7 @@ class Scene1L4 extends Scene1 {
         return false;
     }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state
             .addDelayAction(this, 500)
             .addAction(s => {
@@ -1495,7 +1498,7 @@ class Scene1L4 extends Scene1 {
         // .addEventAction("START");
     }
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s => {
             // this.enemyManager.sensetiveDuration = 60000;
             // // this.needFeedback = true;
@@ -1529,12 +1532,12 @@ class Scene1L4 extends Scene1 {
         state.addFinishAction();
     }
     initStateIdle() {
-        let state = this.normalGameFsm.getState("Idle");
+        let state = this.gamePlayFsm.getState("Idle");
         state.setOnEnter(s => {
         });
         state.setOnUpdate(s => {
-            if (this.getCurClickerStrategy().normalNormalCount >= startWarnNum && !this.normalGameFsm.getVar(this.hasWarnKey, false)) {
-                this.normalGameFsm.setVar(this.hasWarnKey, true);
+            if (this.getCurClickerStrategy().normalNormalCount >= startWarnNum && !this.gamePlayFsm.getVar(this.hasWarnKey, false)) {
+                this.gamePlayFsm.setVar(this.hasWarnKey, true);
                 s.event('WARN');
             }
         });
@@ -1544,7 +1547,7 @@ class Scene1L4 extends Scene1 {
         return this.enemyManager.curStrategy;
     }
     initWarn() {
-        let state = this.normalGameFsm.getState("Warn");
+        let state = this.gamePlayFsm.getState("Warn");
         state.setOnEnter(s => {
         })
             .addSubtitleAction(this.subtitle, "Let me be clear", true)
@@ -1561,7 +1564,7 @@ class Scene1L4 extends Scene1 {
         this.hud.infoPanel.inner.setVisible(false);
     }
     initStMock() {
-        let state = this.normalGameFsm.getState("Mock");
+        let state = this.gamePlayFsm.getState("Mock");
         state.addDelayAction(this, 3000);
         state.addSubtitleAction(this.subtitle, s => this.getUserName() + "!\n What are you doing? You think this is fun?", true);
         state.addSubtitleAction(this.subtitle, "Finally, I know who created those words and 4O4s!", true);
@@ -1592,7 +1595,7 @@ class Scene1L4 extends Scene1 {
             'TO_PROMPT_CREATOR',
         ];
         // global event
-        this.normalGameFsm.event(eventNames[idx], true);
+        this.gamePlayFsm.event(eventNames[idx], true);
     }
     addYesOrNoAction(s, targetBtn) {
         s.addAction((s, result, resolve, reject) => {
@@ -1619,7 +1622,7 @@ class Scene1L4 extends Scene1 {
     }
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
-        let state = this.normalGameFsm.getState("PromptCompleteBad");
+        let state = this.gamePlayFsm.getState("PromptCompleteBad");
         state.setOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
@@ -1636,7 +1639,7 @@ class Scene1L4 extends Scene1 {
         });
     }
     initStPrmoptAutoTyper() {
-        let state = this.normalGameFsm.getState("PromptAutoBad");
+        let state = this.gamePlayFsm.getState("PromptAutoBad");
         state.setOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
@@ -1653,7 +1656,7 @@ class Scene1L4 extends Scene1 {
     // TODO: maybe the showPause should be put into the state onEnter
     // TODO: the prompt of hinting the player not to do the word mathing should be put into a more flexible state
     initStPromptTurn() {
-        let state = this.normalGameFsm.getState("PromptTurn");
+        let state = this.gamePlayFsm.getState("PromptTurn");
         state.setOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
@@ -1666,7 +1669,7 @@ class Scene1L4 extends Scene1 {
         });
     }
     initStPrmoptAutoTurn() {
-        let state = this.normalGameFsm.getState("PromptAutoTurn");
+        let state = this.gamePlayFsm.getState("PromptAutoTurn");
         state.setOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
@@ -1679,7 +1682,7 @@ class Scene1L4 extends Scene1 {
         });
     }
     initStPrmoptCreator() {
-        let state = this.normalGameFsm.getState("PromptCreator");
+        let state = this.gamePlayFsm.getState("PromptCreator");
         state.setOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
@@ -1731,7 +1734,7 @@ class Scene1LPaper extends Scene1 {
     initPaperButtonCallback() {
         this.paper.continueBtn.clickedEvent.on(b => {
             if (this.paper.checkboxImg.getData('on')) {
-                this.normalGameFsm.event('CONTINUE');
+                this.gamePlayFsm.event('CONTINUE');
             }
             else {
                 alert('You should confirm you have read the paper before continuing.');
@@ -1789,20 +1792,20 @@ class Scene1LPaper extends Scene1 {
         this.initStStart();
         this.initConfirm1();
         this.initConfirm2();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
     needModeSelect() {
         return false;
     }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state.addAction(s => {
             this.confirmCount = 0;
         });
         state.addEventAction('START');
     }
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.addAction(s => {
             this.paper.show();
             CameraManager.getInstance().startDectector();
@@ -1811,7 +1814,7 @@ class Scene1LPaper extends Scene1 {
         });
     }
     initConfirm1() {
-        let state = this.normalGameFsm.getState('Confirm_1');
+        let state = this.gamePlayFsm.getState('Confirm_1');
         state.setOnExit(s => {
             clearInterval(this.countDownInterval);
             this.inCountDown = false;
@@ -1866,7 +1869,7 @@ class Scene1LPaper extends Scene1 {
         BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nCooperative Level: ' + this.getStars(), imageData);
     }
     initConfirm2() {
-        let state = this.normalGameFsm.getState('Confirm_2');
+        let state = this.gamePlayFsm.getState('Confirm_2');
         state.addAction(() => {
         })
             .addSubtitleAction(this.subtitle, s => this.getUserName() + "! I can see you are still not reading carefully enough.", false)
@@ -1927,7 +1930,7 @@ class Scene1LPaper extends Scene1 {
             clearInterval(this.countDownInterval);
         }
     }
-    getNormalGameFsm() {
+    getGamePlayFsmData() {
         return normal_1_paper;
     }
     needHud() {
@@ -2056,6 +2059,12 @@ class Scene2 extends BaseScene {
         });
         let test = NewsDataManager.getInstance();
         // $('#test-info').css('visibility', 'hidden'); 
+    }
+    getNewspaperNums() {
+        return [0];
+    }
+    makeGamePlayFsm() {
+        return new NewspaperFsm(this, this.getNewspaperNums());
     }
     // called by BaseScene.create
     initVoiceType() {
@@ -2288,12 +2297,15 @@ class Scene2 extends BaseScene {
 class Scene2L1 extends Scene2 {
     constructor() {
         super('Scene2L1');
-        this.paperIDs = [0, 1, 2, 3, 4];
+        this.npNums = [0, 1, 2, 3, 4];
+    }
+    getNewspaperNums() {
+        return this.npNums;
     }
     create() {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
-        this.initNormalGameFsm();
+        this.initGamePlayFsm();
         CameraManager.getInstance().requestPermission();
         CameraManager.getInstance().initFaceAPI();
         CameraManager.getInstance().startDectector();
@@ -2301,21 +2313,21 @@ class Scene2L1 extends Scene2 {
         CameraManager.getInstance().showVideo();
         this.fillNewspaperContent(0);
     }
-    initNormalGameFsm() {
+    initGamePlayFsm() {
         this.initStNormalDefault();
         this.initStStart();
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
-    getNormalGameFsm() {
-        return normal_2_1;
-    }
+    // getGamePlayFsmData(): IFsmData {        
+    //     return normal_2_1;
+    // }
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");
+        let state = this.gamePlayFsm.getState("Default");
         state.addDelayAction(this, 200)
             .addEventAction("START");
     }
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s => {
             this.showPaper(true);
             setTimeout(() => {
@@ -4484,33 +4496,42 @@ class Fsm {
         // will call initVar() to reset it whenever the fsm is started or restarted
         this.variables = new Map();
         this.isRunning = true;
-        this.name = fsm.name;
         this.scene = scene;
-        // Add all events
-        for (let i in fsm.events) {
-            let event = fsm.events[i];
-            let eName = event.name;
-            let eFrom = event.from;
-            let eTo = event.to;
-            let stFrom = this.states.get(eFrom);
-            if (!stFrom) {
-                stFrom = this.addState(eFrom);
-                // console.debug("Added FsmState + " + eFrom);
+        if (fsm) {
+            this.name = fsm.name;
+            // Add all events
+            for (let i in fsm.events) {
+                let event = fsm.events[i];
+                let eName = event.name;
+                let eFrom = event.from;
+                let eTo = event.to;
+                this.addEvent(eName, eFrom, eTo);
             }
-            if (!this.states.has(eTo)) {
-                this.addState(eTo);
-                // console.debug("Added FsmState  + " + eTo);
+            // Set startup state
+            if (fsm.initial) {
+                this.addInitalState(fsm.initial);
             }
-            stFrom.addEventTo(eName, eTo);
         }
-        // Set startup state
-        if (fsm.initial) {
-            let initState = this.states.get(fsm.initial);
-            if (!initState) {
-                initState = this.addState(fsm.initial);
-            }
-            initState.setAsStartup();
+    }
+    getDefaultState() {
+        return this.startupState;
+    }
+    addInitalState(sName) {
+        let initState = this.states.get(sName);
+        if (!initState) {
+            initState = this.addState(sName);
         }
+        initState.setAsStartup();
+    }
+    addEvent(eName, eFrom, eTo) {
+        let stFrom = this.states.get(eFrom);
+        if (!stFrom) {
+            stFrom = this.addState(eFrom);
+        }
+        if (!this.states.has(eTo)) {
+            this.addState(eTo);
+        }
+        stFrom.addEventTo(eName, eTo);
     }
     getState(stateName) {
         return this.states.get(stateName);
@@ -4608,7 +4629,14 @@ class Fsm {
         this.isRunning = false;
         this.curState = null;
     }
-    addEvent(eventName, from, to) {
+    /**
+     * Add event helper only connects two existed states by adding record into the fromState
+     * It doens't help to constuct any state that doesn't exist
+     * @param eventName
+     * @param from
+     * @param to
+     */
+    addEventHelper(eventName, from, to) {
         from = this.getStateName(from);
         to = this.getStateName(to);
         if (!this.states.has(from)) {
@@ -4828,7 +4856,7 @@ class FsmState {
      */
     addEventFrom(eventName, from) {
         let fromName = this.fsm.getStateName(from);
-        this.fsm.addEvent(eventName, fromName, this.name);
+        this.fsm.addEventHelper(eventName, fromName, this.name);
         return this;
     }
     /**
@@ -4838,7 +4866,7 @@ class FsmState {
      */
     addEventTo(eventName, to) {
         let toName = this.fsm.getStateName(to);
-        this.fsm.addEvent(eventName, this.name, toName);
+        this.fsm.addEventHelper(eventName, this.name, toName);
         return this;
     }
     /**
@@ -5049,6 +5077,54 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     });
     return this;
 };
+class NewspaperFsm extends Fsm {
+    constructor(scene, npNumbers) {
+        super(scene, null);
+        // deep copy
+        this.npNumbers = [...npNumbers];
+        this.constructNpStates();
+        this.name = 'NewspaperFSM';
+    }
+    constructNpStates() {
+        if (notSet(this.npNumbers) || this.npNumbers.length == 0)
+            return;
+        let prevStName = NewspaperFsm.DEFAULT_ST_NAME;
+        for (let i = 0; i < this.npNumbers.length; i++) {
+            let currStName = this.getStateNameByIndexNumber(i);
+            this.addEvent(Fsm.FinishedEventName, prevStName, currStName);
+            prevStName = currStName;
+        }
+    }
+    /**
+     *
+     * @param index ~ [0, length - 1]
+     */
+    getStateByIndex(index) {
+        let stName = this.getStateNameByIndexNumber(index);
+        return this.getState(stName);
+    }
+    /**
+     *
+     * @param num example: [4, 2, 1, 8]
+     */
+    getStateByNum(num) {
+        let idx = this.npNumbers.findIndex(v => v == num);
+        if (idx >= 0) {
+            return this.getStateByIndex(idx);
+        }
+        else {
+            return null;
+        }
+    }
+    // index: [0, length - 1]
+    getStateNameByIndexNumber(index) {
+        if (index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';
+        }
+        return `NewspaperState-${index}`;
+    }
+}
+NewspaperFsm.DEFAULT_ST_NAME = 'Default';
 /// <reference path="../fsm/fsm.ts" />
 var normal_1_0 = {
     name: 'Normal_0',
@@ -6227,7 +6303,7 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     create() {
         this.creatCount++;
         if (this.creatCount == startMockNum) {
-            this.sc1().normalGameFsm.event('MOCK');
+            this.sc1().gamePlayFsm.event('MOCK');
         }
         let e = this.spawnNormal();
         let scale = e.inner.scale;

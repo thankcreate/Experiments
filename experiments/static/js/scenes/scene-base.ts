@@ -77,7 +77,7 @@ class BaseScene extends Phaser.Scene {
     overlay: Overlay;
 
     mainFsm: Fsm;
-    normalGameFsm: Fsm;
+    gamePlayFsm: Fsm;
     zenFsm: Fsm;
 
     dwitterCenter: Dwitter;
@@ -294,7 +294,7 @@ class BaseScene extends Phaser.Scene {
 
         // Main FSM
         this.mainFsm = new Fsm(this, this.getMainFsmData());
-        this.normalGameFsm = new Fsm(this, this.getGamePlayFsmData());
+        this.gamePlayFsm = this.makeGamePlayFsm();
         this.zenFsm = new Fsm(this, this.getZenFsm())
         this.initMainFsm();
   
@@ -305,6 +305,10 @@ class BaseScene extends Phaser.Scene {
 
         // initVoiceType
         this.initVoiceType();
+    }
+
+    makeGamePlayFsm() : Fsm {
+        return new Fsm(this, this.getGamePlayFsmData());
     }
 
 
@@ -688,7 +692,7 @@ class BaseScene extends Phaser.Scene {
         state.setOnEnter(s => {                       
             // FSM 
             this.setEntryPointByIncomingEvent(s.fromEvent);
-            this.normalGameFsm.start();
+            this.gamePlayFsm.start();
             this.zenFsm.start();
             
 
@@ -718,9 +722,9 @@ class BaseScene extends Phaser.Scene {
             .addAction(s => {
                 if (this.mode === GameMode.Normal) {                    
                     if (this.firstIntoNormalMode())
-                        s.event('TUTORIAL_START', this.normalGameFsm);
+                        s.event('TUTORIAL_START', this.gamePlayFsm);
                     else
-                        s.event('NORMAL_START', this.normalGameFsm);
+                        s.event('NORMAL_START', this.gamePlayFsm);
                 }
                 else {                    
                     s.event('START', this.zenFsm);
@@ -728,7 +732,7 @@ class BaseScene extends Phaser.Scene {
             })
 
         state.setOnExit(s => {
-            this.normalGameFsm.stop();
+            this.gamePlayFsm.stop();
             this.zenFsm.stop();
             LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
@@ -764,7 +768,7 @@ class BaseScene extends Phaser.Scene {
 
     sceneExitDied() {        
         this.died.hide();
-        this.normalGameFsm.restart(true);
+        this.gamePlayFsm.restart(true);
     }
 
     initStRestart() {

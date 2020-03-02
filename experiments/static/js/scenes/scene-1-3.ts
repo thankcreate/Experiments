@@ -63,13 +63,13 @@ class Scene1L3 extends Scene1 {
         this.initStSensitive();
         this.initEnd();
 
-        this.updateObjects.push(this.normalGameFsm);
+        this.updateObjects.push(this.gamePlayFsm);
     }
 
 
 
     initStNormalDefault() {
-        let state = this.normalGameFsm.getState("Default");        
+        let state = this.gamePlayFsm.getState("Default");        
         state.addDelayAction(this, 500)
             .addEventAction("START");
 
@@ -163,7 +163,7 @@ class Scene1L3 extends Scene1 {
     }
 
     initStStart() {
-        let state = this.normalGameFsm.getState("Start");
+        let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s=>{
             let health = 4;
             let duration = 50000;
@@ -211,7 +211,7 @@ class Scene1L3 extends Scene1 {
     needChangeEnemy: boolean = false;
 
     initStBGM() {
-        let state = this.normalGameFsm.getState("BGM");
+        let state = this.gamePlayFsm.getState("BGM");
         state.setUnionEvent('TO_SENSITIVE_WORD', 2);
         state.setOnEnter(s=>{
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
@@ -260,7 +260,7 @@ class Scene1L3 extends Scene1 {
     }
 
     initStSensitive() {
-        let state = this.normalGameFsm.getState("Sensitive");
+        let state = this.gamePlayFsm.getState("Sensitive");
         state.setOnEnter(s=>{
             this.enemyManager.setNextNeedSensitiveOneShot(true);           
 
@@ -298,7 +298,7 @@ class Scene1L3 extends Scene1 {
     }
 
     initEnd() {
-        let state = this.normalGameFsm.getState("End");
+        let state = this.gamePlayFsm.getState("End");
         state
             .addDelayAction(this, 1000)
             .addAction(s=>{

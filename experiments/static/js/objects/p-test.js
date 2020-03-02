@@ -1,6 +1,17 @@
-tt = [5,4,3,2,1]
-let x  = tt.findIndex(v=>v==1);
-console.log(typeof(x));
+// tt = [5,4,3,2,1]
+// let x  = tt.findIndex(v=>v==1);
+// console.log(typeof(x));
+
+var ob = {
+    ad: 123,
+    get ad() {
+        return 2345;
+    },
+   
+  
+}
+console.log(ob.ad);
+
 // let fullCount = Math.floor(Math.random() * 4); // 0-3   
 
 // console.log(fullCount)

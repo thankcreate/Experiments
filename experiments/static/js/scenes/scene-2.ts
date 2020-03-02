@@ -31,6 +31,9 @@ class Scene2 extends BaseScene {
         })
 
         let test = NewsDataManager.getInstance();
+
+
+        // $('#test-info').css('visibility', 'hidden'); 
         
     }
 
@@ -53,8 +56,13 @@ class Scene2 extends BaseScene {
         let emoji = face.emojis.dominantEmoji;
 
         $('#test-info').text(emotionsDebug + '\n' + expDebug + '\n' + emoji);
+        
 
         this.emotionAnalyze(res);
+
+        //
+        // console.log('')
+        console.log(face.expressions.eyeClosure);
     }
 
     topProgress:HasValue = {value: 0}; // [0, 1]
@@ -312,5 +320,16 @@ class Scene2 extends BaseScene {
     update(time, dt) {
         super.update(time, dt);
         this.updateCssBinding();
+    }
+
+    fillNewspaperContent(idx: number) {
+        let newsItem = NewsDataManager.getInstance().get(idx);
+
+        let titleSlot = $('#newspaper-title');
+        let contentSlot = $('#newspaper-content-text');
+        let thumbnailSlot = $('newspaper-thumbnail');
+
+        titleSlot.html(newsItem.title);
+        contentSlot.html(newsItem.content);
     }
 }

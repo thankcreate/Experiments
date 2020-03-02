@@ -25,6 +25,10 @@ class NewsDataManager {
         return NewsDataManager.instance;
     }
 
+    get(idx: number): NewsItem {
+        return this.data[idx];
+    }
+
     load() {
         this.data = [];
         let lines = g_newsData1.split('\n');

@@ -6,6 +6,8 @@ class Scene2L1 extends Scene2 {
 
     }
 
+    paperIDs = [0, 1, 2, 3, 4]
+
     create() {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
@@ -22,7 +24,7 @@ class Scene2L1 extends Scene2 {
         
         
             
-        
+        this.fillNewspaperContent(0);
     }
     
 

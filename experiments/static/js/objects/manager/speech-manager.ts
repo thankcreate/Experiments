@@ -27,8 +27,7 @@ class SpeechManager {
         }
         else {
             this.voiceType = 'en-US-Wavenet-F';
-        }
-        
+        }        
     }
 
     /**

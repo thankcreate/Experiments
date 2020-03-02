@@ -302,8 +302,15 @@ class BaseScene extends Phaser.Scene {
 
 
         this.postCreate();
+
+        // initVoiceType
+        this.initVoiceType();
     }
 
+
+    initVoiceType(){
+        this.getSpeechManager().setVoiceType(VoiceType.Voice65536);
+    }
     
 
 

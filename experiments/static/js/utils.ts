@@ -186,16 +186,16 @@ function api3WithTwoParams(inputString: string, arrayStrings: string[], suc?: (a
 }
 
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech(inputText: string, identifier: string) : Pany{
-    let dataOb = { input: inputText, id: identifier, api: 1 };
+function apiTextToSpeech(inputText: string, identifier: string, voiceType: string) : Pany{
+    let dataOb = { input: inputText, id: identifier, api: 1,voiceType: voiceType };
     let dataStr = JSON.stringify(dataOb);
     return apiPromise("api_speech", dataStr);
 }
 
-// API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech2(inputText: string, identifier: string) : Pany {
+// return the data directly instead of returning the path
+function apiTextToSpeech2(inputText: string, identifier: string, voiceType: string) : Pany {
     return new Promise((resolve, reject) => {
-        let dataOb = { input: inputText, id: identifier, api: 2 };
+        let dataOb = { input: inputText, id: identifier, api: 2, voiceType: voiceType };
         let dataStr = JSON.stringify(dataOb);    
     
         var oReq = new XMLHttpRequest();

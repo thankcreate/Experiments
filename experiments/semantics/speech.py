@@ -5,12 +5,16 @@ import hashlib
 
 # For now, identifier did nothing, it's just a tag for the client to shorten the text
 # We generate a md5 based on the inputText on the server side to identify the text
-def generateSpeechFile(inputText, identifier, api):
-        
+def generateSpeechFile(inputText, identifier, api, voiceType):
+    
+    # voiceName = 'en-US-Wavenet-D' if voiceType == 0 else 'en-US-Wavenet-F' 
+    voiceName = voiceType
+    voiceGender = texttospeech.enums.SsmlVoiceGender.NEUTRAL 
+    # if voiceType == 0 else texttospeech.enums.SsmlVoiceGender.FEMALE
     
     md = hashlib.md5()   
     md.update(inputText.encode("utf-8"))   
-    fileBaseName = md.hexdigest()
+    fileBaseName = md.hexdigest() + str(voiceType)
 
     # outputPath is the path on the server to write the audio data in
     # It's relative to the experiments.py file
@@ -31,13 +35,20 @@ def generateSpeechFile(inputText, identifier, api):
     client = texttospeech.TextToSpeechClient()
 
     # Set the text input to be synthesized
-    synthesis_input = texttospeech.types.SynthesisInput(text=inputText)
+    synthesis_input = texttospeech.types.SynthesisInput(ssml=inputText)
 
     # Build the voice request, select the language code ("en-US") and the ssml
     # voice gender ("neutral")
+
+    
+    
+    print('voiceName:' + voiceName)
+    print('voiceGender: ' + voiceName)
+
     voice = texttospeech.types.VoiceSelectionParams(
         language_code='en-US',
-        ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL)
+        name=voiceName,
+        ssml_gender=voiceGender)
 
     # Select the type of audio file you want returned
     audio_config = texttospeech.types.AudioConfig(

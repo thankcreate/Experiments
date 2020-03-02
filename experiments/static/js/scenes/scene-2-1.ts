@@ -19,21 +19,17 @@ class Scene2L1 extends Scene2 {
 
         CameraManager.getInstance().showVideo();
 
-        this.showPaper(true);
-
+        
+        
             
-        setTimeout(() => {
-            this.showCam();
-        }, 500);
+        
     }
     
 
-    initNormalGameFsm() {
+    initNormalGameFsm() {                 
         this.initStNormalDefault();
         
         this.initStStart();
-
-        console.log('123');
         this.updateObjects.push(this.normalGameFsm);
     }
 
@@ -51,8 +47,13 @@ class Scene2L1 extends Scene2 {
 
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
-        state.setOnEnter(s=>{            
-           
+        state.setOnEnter(s=>{        
+            this.showPaper(true);    
+            setTimeout(() => {
+                this.showCam();
+            }, 500);
         })
+        
+        state.addSubtitleAction(this.subtitle, 'Hello', false);
     }
 }

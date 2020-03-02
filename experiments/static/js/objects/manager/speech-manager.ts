@@ -1,4 +1,11 @@
+enum VoiceType{
+    Voice65536,
+    Voice65537
+}
+
+
 class SpeechManager {
+
 
     loadedSpeechFilesStatic = {};
     loadedSpeechFilesQuick = {};
@@ -6,6 +13,22 @@ class SpeechManager {
     scene: Phaser.Scene;
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
+    }
+
+    /**
+     * 0: 65536 voice
+     * 1: 65537 voice
+     */
+    private voiceType:string = 'en-US-Wavenet-D';
+
+    setVoiceType(tp : VoiceType) {
+        if(tp == VoiceType.Voice65536) {
+            this.voiceType = 'en-US-Wavenet-D';
+        }
+        else {
+            this.voiceType = 'en-US-Wavenet-F';
+        }
+        
     }
 
     /**
@@ -39,7 +62,7 @@ class SpeechManager {
             }
         }
         else {
-            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id")
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id", this.voiceType)
                 .then(oReq => {
                     //console.log("suc in quickLoadAndPlay")
 
@@ -83,7 +106,7 @@ class SpeechManager {
      * @param timeOut 
      */
     staticLoadAndPlay(text: string, play = true, timeOut: number = 4000): Pany {
-        let apiAndLoadPromise = apiTextToSpeech(text, "no_id")
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id", this.voiceType)
             .then(sucRet => {
                 let retID = sucRet.id;
                 let retText = sucRet.input;

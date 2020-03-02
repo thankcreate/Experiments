@@ -11,6 +11,7 @@ class Scene2 extends BaseScene {
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
         super(config);
 
+        
     }
     
 
@@ -30,6 +31,12 @@ class Scene2 extends BaseScene {
         })
 
         let test = NewsDataManager.getInstance();
+        
+    }
+
+    // called by BaseScene.create
+    initVoiceType() {
+        this.getSpeechManager().setVoiceType(VoiceType.Voice65537);
     }
 
     imageHandler(res: ImageRes) {

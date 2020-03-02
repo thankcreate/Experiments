@@ -181,6 +181,11 @@ class BaseScene extends Phaser.Scene {
         this.initMainFsm();
         // Sub FSM: normal game
         this.postCreate();
+        // initVoiceType
+        this.initVoiceType();
+    }
+    initVoiceType() {
+        this.getSpeechManager().setVoiceType(VoiceType.Voice65536);
     }
     fitImageToSize(image, height, width) {
         let oriRatio = image.width / image.height;
@@ -2051,6 +2056,10 @@ class Scene2 extends BaseScene {
         });
         let test = NewsDataManager.getInstance();
     }
+    // called by BaseScene.create
+    initVoiceType() {
+        this.getSpeechManager().setVoiceType(VoiceType.Voice65537);
+    }
     imageHandler(res) {
         let face = res.face;
         let timestamp = res.timestamp;
@@ -2277,15 +2286,10 @@ class Scene2L1 extends Scene2 {
         CameraManager.getInstance().startDectector();
         CameraManager.getInstance().setPosition(CamPosi.Newspaper);
         CameraManager.getInstance().showVideo();
-        this.showPaper(true);
-        setTimeout(() => {
-            this.showCam();
-        }, 500);
     }
     initNormalGameFsm() {
         this.initStNormalDefault();
         this.initStStart();
-        console.log('123');
         this.updateObjects.push(this.normalGameFsm);
     }
     getNormalGameFsm() {
@@ -2299,7 +2303,12 @@ class Scene2L1 extends Scene2 {
     initStStart() {
         let state = this.normalGameFsm.getState("Start");
         state.setOnEnter(s => {
+            this.showPaper(true);
+            setTimeout(() => {
+                this.showCam();
+            }, 500);
         });
+        state.addSubtitleAction(this.subtitle, 'Hello', false);
     }
 }
 /// <reference path="scenes/scene-base.ts" />
@@ -2785,15 +2794,15 @@ function api3WithTwoParams(inputString, arrayStrings, suc, err) {
     api3(data, suc, err);
 }
 // API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech(inputText, identifier) {
-    let dataOb = { input: inputText, id: identifier, api: 1 };
+function apiTextToSpeech(inputText, identifier, voiceType) {
+    let dataOb = { input: inputText, id: identifier, api: 1, voiceType: voiceType };
     let dataStr = JSON.stringify(dataOb);
     return apiPromise("api_speech", dataStr);
 }
-// API speech is to get the path of the generated audio by the input text
-function apiTextToSpeech2(inputText, identifier) {
+// return the data directly instead of returning the path
+function apiTextToSpeech2(inputText, identifier, voiceType) {
     return new Promise((resolve, reject) => {
-        let dataOb = { input: inputText, id: identifier, api: 2 };
+        let dataOb = { input: inputText, id: identifier, api: 2, voiceType: voiceType };
         let dataStr = JSON.stringify(dataOb);
         var oReq = new XMLHttpRequest();
         oReq.open("POST", "/api_speech", true);
@@ -5606,10 +5615,20 @@ class NewsDataManager {
         console.log(this.data);
     }
 }
+var VoiceType;
+(function (VoiceType) {
+    VoiceType[VoiceType["Voice65536"] = 0] = "Voice65536";
+    VoiceType[VoiceType["Voice65537"] = 1] = "Voice65537";
+})(VoiceType || (VoiceType = {}));
 class SpeechManager {
     constructor(scene) {
         this.loadedSpeechFilesStatic = {};
         this.loadedSpeechFilesQuick = {};
+        /**
+         * 0: 65536 voice
+         * 1: 65537 voice
+         */
+        this.voiceType = 'en-US-Wavenet-D';
         /**
          * loadRejecters is a cache for the current promise reject handler
          * for those loading process.
@@ -5620,6 +5639,14 @@ class SpeechManager {
         // contain all the currently playing && not completed sounds played by playSoundByKey()
         this.playingSounds = [];
         this.scene = scene;
+    }
+    setVoiceType(tp) {
+        if (tp == VoiceType.Voice65536) {
+            this.voiceType = 'en-US-Wavenet-D';
+        }
+        else {
+            this.voiceType = 'en-US-Wavenet-F';
+        }
     }
     /**
      * If after 'timeOut' the resource is still not ready to play\
@@ -5643,7 +5670,7 @@ class SpeechManager {
             }
         }
         else {
-            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id")
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id", this.voiceType)
                 .then(oReq => {
                 //console.log("suc in quickLoadAndPlay")
                 var arrayBuffer = oReq.response;
@@ -5682,7 +5709,7 @@ class SpeechManager {
      * @param timeOut
      */
     staticLoadAndPlay(text, play = true, timeOut = 4000) {
-        let apiAndLoadPromise = apiTextToSpeech(text, "no_id")
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id", this.voiceType)
             .then(sucRet => {
             let retID = sucRet.id;
             let retText = sucRet.input;

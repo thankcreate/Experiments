@@ -63,8 +63,9 @@ def api_speech():
     inputString = data['input']
     iden = data['id']
     api = data['api']
+    voiceType = data['voiceType']
 
-    (path, fileBaseName, audio_content) = generateSpeechFile(inputString, iden, api)
+    (path, fileBaseName, audio_content) = generateSpeechFile(inputString, iden, api, voiceType)
 
     if api == 1:
         output_data = {'input' : inputString, 'id': iden,'outputPath': path, 'md5': fileBaseName}

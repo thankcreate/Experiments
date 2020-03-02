@@ -1,5 +1,6 @@
-
-
+tt = [5,4,3,2,1]
+let x  = tt.findIndex(v=>v==1);
+console.log(typeof(x));
 // let fullCount = Math.floor(Math.random() * 4); // 0-3   
 
 // console.log(fullCount)

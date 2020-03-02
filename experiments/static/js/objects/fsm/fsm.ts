@@ -35,7 +35,7 @@ class Fsm {
     name: string;
     states: Map<string, FsmState> = new Map();
     curState: FsmState;
-    startupState: FsmState;
+    private startupState: FsmState;
 
     // Custorm-stored variables
     // will call initVar() to reset it whenever the fsm is started or restarted
@@ -57,30 +57,39 @@ class Fsm {
                 let eName = event.name;
                 let eFrom = event.from;
                 let eTo = event.to;
-                let stFrom = this.states.get(eFrom);
-                if (!stFrom) {
-                    stFrom = this.addState(eFrom);
-                    // console.debug("Added FsmState + " + eFrom);
-                }
-
-                if (!this.states.has(eTo)) {
-                    this.addState(eTo);
-                    // console.debug("Added FsmState  + " + eTo);
-                }
-                stFrom.addEventTo(eName, eTo);
+                this.addEvent(eName, eFrom, eTo);
             }
 
             // Set startup state
             if(fsm.initial) {
-                let initState = this.states.get(fsm.initial);
-                if(!initState) {
-                    initState = this.addState(fsm.initial);
-                }
-                initState.setAsStartup();
+                this.addInitalState(fsm.initial);
             }
         }        
+    }    
+
+    getDefaultState() : FsmState{
+        return this.startupState;
     }
 
+    addInitalState(sName: string) {
+        let initState = this.states.get(sName);
+        if(!initState) {
+            initState = this.addState(sName);
+        }
+        initState.setAsStartup();
+    }
+
+    addEvent(eName: string, eFrom: string, eTo: string) {        
+        let stFrom = this.states.get(eFrom);
+        if (!stFrom) {
+            stFrom = this.addState(eFrom);            
+        }
+
+        if (!this.states.has(eTo)) {
+            this.addState(eTo);            
+        }
+        stFrom.addEventTo(eName, eTo);
+    }
    
 
     isRunning: boolean = true;
@@ -211,7 +220,14 @@ class Fsm {
         this.curState = null;
     }
 
-    addEvent(eventName: string, from: string | FsmState, to: string | FsmState) {
+    /**
+     * Add event helper only connects two existed states by adding record into the fromState
+     * It doens't help to constuct any state that doesn't exist
+     * @param eventName 
+     * @param from 
+     * @param to 
+     */
+    addEventHelper(eventName: string, from: string | FsmState, to: string | FsmState) {
         from = this.getStateName(from);
         to = this.getStateName(to);
 
@@ -478,7 +494,7 @@ class FsmState {
      */
     addEventFrom(eventName: string, from: string | FsmState): FsmState {
         let fromName = this.fsm.getStateName(from);
-        this.fsm.addEvent(eventName, fromName, this.name);
+        this.fsm.addEventHelper(eventName, fromName, this.name);
         return this;
     }
 
@@ -490,7 +506,7 @@ class FsmState {
 
     addEventTo(eventName: string, to: string | FsmState): FsmState {
         let toName = this.fsm.getStateName(to);
-        this.fsm.addEvent(eventName, this.name, toName);
+        this.fsm.addEventHelper(eventName, this.name, toName);
         return this;
     }
 

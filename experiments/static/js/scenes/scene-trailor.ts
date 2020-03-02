@@ -81,7 +81,7 @@ class SceneTrailor extends BaseScene {
        
     }
 
-    getNormalGameFsm(): IFsmData {
+    getGamePlayFsmData(): IFsmData {
         return normal_1_0;
     }
 

@@ -32,7 +32,7 @@ class Scene2 extends BaseScene {
 
         let test = NewsDataManager.getInstance();
 
-
+        
         // $('#test-info').css('visibility', 'hidden'); 
         
     }

@@ -293,8 +293,8 @@ class BaseScene extends Phaser.Scene {
 
 
         // Main FSM
-        this.mainFsm = new Fsm(this, this.getMainFsm());
-        this.normalGameFsm = new Fsm(this, this.getNormalGameFsm());
+        this.mainFsm = new Fsm(this, this.getMainFsmData());
+        this.normalGameFsm = new Fsm(this, this.getGamePlayFsmData());
         this.zenFsm = new Fsm(this, this.getZenFsm())
         this.initMainFsm();
   
@@ -354,11 +354,11 @@ class BaseScene extends Phaser.Scene {
         this.ui.hud.update(time, dt);
     }
     
-    getMainFsm(): IFsmData {
+    getMainFsmData(): IFsmData {
         return mainFsm;
     }
 
-    getNormalGameFsm(): IFsmData {
+    getGamePlayFsmData(): IFsmData {
         //normalGameFsm
         return null;
     }

@@ -302,7 +302,7 @@ class Scene1LPaper extends Scene1 {
     }
     
 
-    getNormalGameFsm(): IFsmData {
+    getGamePlayFsmData(): IFsmData {
         return normal_1_paper;
     }
 

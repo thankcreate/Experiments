@@ -5,7 +5,7 @@ class Scene1L2 extends Scene1 {
     }
 
     
-    getNormalGameFsm(): IFsmData {
+    getGamePlayFsmData(): IFsmData {
         return normal_1_2;
     }
     

@@ -18,7 +18,7 @@ class Scene1L4 extends Scene1 {
         this.loadAudioWithConfig(audioLoadConfig);
     }
 
-    getNormalGameFsm(): IFsmData {
+    getGamePlayFsmData(): IFsmData {
         return normal_1_4;
     }
 

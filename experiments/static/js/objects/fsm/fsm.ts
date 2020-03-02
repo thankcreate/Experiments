@@ -46,38 +46,42 @@ class Fsm {
     //     this.name = name;
     // }
 
-    constructor(scene: BaseScene, fsm: IFsmData) {
-        this.name = fsm.name;
+    constructor(scene: BaseScene, fsm: IFsmData) {        
         this.scene = scene;
 
-        // Add all events
-        for (let i in fsm.events) {
-            let event = fsm.events[i];
-            let eName = event.name;
-            let eFrom = event.from;
-            let eTo = event.to;
-            let stFrom = this.states.get(eFrom);
-            if (!stFrom) {
-                stFrom = this.addState(eFrom);
-                // console.debug("Added FsmState + " + eFrom);
+        if(fsm){
+            this.name = fsm.name;
+            // Add all events
+            for (let i in fsm.events) {
+                let event = fsm.events[i];
+                let eName = event.name;
+                let eFrom = event.from;
+                let eTo = event.to;
+                let stFrom = this.states.get(eFrom);
+                if (!stFrom) {
+                    stFrom = this.addState(eFrom);
+                    // console.debug("Added FsmState + " + eFrom);
+                }
+
+                if (!this.states.has(eTo)) {
+                    this.addState(eTo);
+                    // console.debug("Added FsmState  + " + eTo);
+                }
+                stFrom.addEventTo(eName, eTo);
             }
 
-            if (!this.states.has(eTo)) {
-                this.addState(eTo);
-                // console.debug("Added FsmState  + " + eTo);
+            // Set startup state
+            if(fsm.initial) {
+                let initState = this.states.get(fsm.initial);
+                if(!initState) {
+                    initState = this.addState(fsm.initial);
+                }
+                initState.setAsStartup();
             }
-            stFrom.addEventTo(eName, eTo);
-        }
-
-        // Set startup state
-        if(fsm.initial) {
-            let initState = this.states.get(fsm.initial);
-            if(!initState) {
-                initState = this.addState(fsm.initial);
-            }
-            initState.setAsStartup();
-        }
+        }        
     }
+
+   
 
     isRunning: boolean = true;
 

@@ -2044,10 +2044,11 @@ class Scene2 extends BaseScene {
         super(config);
         this.topProgress = { value: 0 }; // [0, 1]
         this.bottomProgress = { value: 0 }; // [0, 1]
-        this.canRecieveEmotion = true;
+        this.canRecieveEmotion = false;
     }
     create() {
         super.create();
+        this.newspaperFsm = this.makeNewspaperFsm();
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
         this.camCssBinding = new CssBinding($('#cam-root'));
         this.topProgressCssBinding = new CssBinding($('#top-bar'));
@@ -2063,7 +2064,7 @@ class Scene2 extends BaseScene {
     getNewspaperNums() {
         return [0];
     }
-    makeGamePlayFsm() {
+    makeNewspaperFsm() {
         return new NewspaperFsm(this, this.getNewspaperNums());
     }
     // called by BaseScene.create
@@ -2084,7 +2085,7 @@ class Scene2 extends BaseScene {
         this.emotionAnalyze(res);
         //
         // console.log('')
-        console.log(face.expressions.eyeClosure);
+        // console.log(face.expressions.eyeClosure);
     }
     emotionAnalyze(imgRes) {
         let face = imgRes.face;
@@ -2284,8 +2285,8 @@ class Scene2 extends BaseScene {
         super.update(time, dt);
         this.updateCssBinding();
     }
-    fillNewspaperContent(idx) {
-        let newsItem = NewsDataManager.getInstance().get(idx);
+    fillNewspaperContentByNum(num) {
+        let newsItem = NewsDataManager.getInstance().get(num);
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('newspaper-thumbnail');
@@ -2306,35 +2307,63 @@ class Scene2L1 extends Scene2 {
         super.create();
         this.addCounter(Counter.IntoHome, 1);
         this.initGamePlayFsm();
+        this.initNewspaperFsm();
         CameraManager.getInstance().requestPermission();
         CameraManager.getInstance().initFaceAPI();
         CameraManager.getInstance().startDectector();
         CameraManager.getInstance().setPosition(CamPosi.Newspaper);
         CameraManager.getInstance().showVideo();
-        this.fillNewspaperContent(0);
+        this.fillNewspaperContentByNum(0);
     }
     initGamePlayFsm() {
-        this.initStNormalDefault();
-        this.initStStart();
+        this.initStGamePlayDefault();
+        this.initStGamePlayStart();
         this.updateObjects.push(this.gamePlayFsm);
     }
-    // getGamePlayFsmData(): IFsmData {        
-    //     return normal_2_1;
-    // }
-    initStNormalDefault() {
-        let state = this.gamePlayFsm.getState("Default");
+    initNewspaperFsm() {
+        this.initStNewspaperDefault();
+        this.initStNewspaper0();
+        this.updateObjects.push(this.newspaperFsm);
+    }
+    getGamePlayFsmData() {
+        return normal_2_1;
+    }
+    initStGamePlayDefault() {
+        let state = this.gamePlayFsm.getDefaultState();
         state.addDelayAction(this, 200)
             .addEventAction("START");
     }
-    initStStart() {
+    initStGamePlayStart() {
         let state = this.gamePlayFsm.getState("Start");
         state.setOnEnter(s => {
             this.showPaper(true);
+            this.newspaperFsm.start();
             setTimeout(() => {
                 this.showCam();
             }, 500);
         });
         state.addSubtitleAction(this.subtitle, 'Hello', false);
+    }
+    initStNewspaperDefault() {
+        let state = this.newspaperFsm.getDefaultState();
+        state.addFinishAction();
+    }
+    initStNewspaper0() {
+        let state = this.newspaperFsm.getStateByIndex(0);
+        state.addAction(s => {
+            this.paperStateOnEnter(0);
+        });
+    }
+    initStNewspaper1() {
+        let state = this.newspaperFsm.getStateByIndex(1);
+        state.addAction(s => {
+            this.paperStateOnEnter(1);
+        });
+    }
+    paperStateOnEnter(index) {
+        this.fillNewspaperContentByNum(this.npNums[index]);
+        this.hideResult();
+        this.canRecieveEmotion = true;
     }
 }
 /// <reference path="scenes/scene-base.ts" />
@@ -5084,6 +5113,7 @@ class NewspaperFsm extends Fsm {
         this.npNumbers = [...npNumbers];
         this.constructNpStates();
         this.name = 'NewspaperFSM';
+        this.addInitalState(NewspaperFsm.DEFAULT_ST_NAME);
     }
     constructNpStates() {
         if (notSet(this.npNumbers) || this.npNumbers.length == 0)

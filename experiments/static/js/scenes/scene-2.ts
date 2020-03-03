@@ -8,6 +8,8 @@ class Scene2 extends BaseScene {
     bottomProgressCssBinding: CssBinding;
     resultCssBinding: CssBinding;
 
+    newspaperFsm: NewspaperFsm;
+
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
         super(config);
 
@@ -17,6 +19,8 @@ class Scene2 extends BaseScene {
 
     create() {
         super.create();
+
+        this.newspaperFsm = this.makeNewspaperFsm();
 
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
         this.camCssBinding = new CssBinding($('#cam-root'));
@@ -41,7 +45,7 @@ class Scene2 extends BaseScene {
         return [0];
     }
 
-    makeGamePlayFsm() {
+    makeNewspaperFsm() {
         return new NewspaperFsm(this, this.getNewspaperNums());
     }
 
@@ -70,14 +74,14 @@ class Scene2 extends BaseScene {
 
         //
         // console.log('')
-        console.log(face.expressions.eyeClosure);
+        // console.log(face.expressions.eyeClosure);
     }
 
     topProgress:HasValue = {value: 0}; // [0, 1]
     bottomProgress:HasValue = {value: 0}; // [0, 1]
 
     lastTimeStamp: number;
-    canRecieveEmotion: boolean = true;
+    canRecieveEmotion: boolean = false;
     emotionAnalyze(imgRes: ImageRes) {        
         let face = imgRes.face;
         let timestamp = imgRes.timestamp; // in seconds
@@ -124,12 +128,7 @@ class Scene2 extends BaseScene {
     }
 
     emotionMaxed(myEmotion: MyEmotion) {
-        if(myEmotion == MyEmotion.Positive) {
-            this.showResult(true);
-        }
-        else {
-            this.showResult(false);
-        }
+    
     }
     
 
@@ -330,8 +329,8 @@ class Scene2 extends BaseScene {
         this.updateCssBinding();
     }
 
-    fillNewspaperContent(idx: number) {
-        let newsItem = NewsDataManager.getInstance().get(idx);
+    fillNewspaperContentByNum(num: number) {
+        let newsItem = NewsDataManager.getInstance().getByNum(num);
 
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');

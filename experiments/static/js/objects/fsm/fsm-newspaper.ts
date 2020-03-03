@@ -10,6 +10,7 @@ class NewspaperFsm extends Fsm{
         this.constructNpStates();
 
         this.name = 'NewspaperFSM';
+        this.addInitalState(NewspaperFsm.DEFAULT_ST_NAME);
 
     }
     

@@ -25,8 +25,8 @@ class NewsDataManager {
         return NewsDataManager.instance;
     }
 
-    get(idx: number): NewsItem {
-        return this.data[idx];
+    getByNum(num: number): NewsItem {
+        return this.data[num];
     }
 
     load() {

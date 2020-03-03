@@ -21,8 +21,20 @@ class NewspaperFsm extends Fsm{
         let prevStName = NewspaperFsm.DEFAULT_ST_NAME;
         for(let i = 0; i < this.npNumbers.length; i++) {
             let currStName = this.getStateNameByIndexNumber(i);
-            this.addEvent(Fsm.FinishedEventName, prevStName, currStName);
+            this.addEvent(Fsm.FINISHED, prevStName, currStName);
 
+            // if not the last one, add the Correct/Wrong brances
+            if(i != this.npNumbers.length - 1) {
+                let nextStName = this.getStateNameByIndexNumber(i + 1);
+
+                let correctStName = this.getStateReactionNameByIndexNumber(i, true);
+                let worngStName = this.getStateReactionNameByIndexNumber(i, false);
+                this.addEvent(Fsm.CORRECT, currStName, correctStName);
+                this.addEvent(Fsm.WRONG, currStName, worngStName);
+                
+                this.addEvent(Fsm.FINISHED, correctStName, nextStName);
+                this.addEvent(Fsm.FINISHED, worngStName, nextStName);
+            }
             prevStName = currStName;
         }
     }
@@ -36,6 +48,11 @@ class NewspaperFsm extends Fsm{
      */    
     getStateByIndex(index: number) :FsmState{
         let stName = this.getStateNameByIndexNumber(index);
+        return this.getState(stName)
+    }
+
+    getReactionStateByIndex(index: number, correct: boolean) : FsmState {
+        let stName = this.getStateReactionNameByIndexNumber(index, correct);
         return this.getState(stName)
     }
 
@@ -59,5 +76,12 @@ class NewspaperFsm extends Fsm{
             throw 'Paper number out of range';            
         }
         return `NewspaperState-${index}`
+    }
+
+    getStateReactionNameByIndexNumber(index: number, correct: boolean) {
+        if(index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';            
+        }
+        return `NewspaperStateReaction-${index}-${correct ? 'CORRECT' : 'WRONG'}`
     }
 }

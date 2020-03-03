@@ -2117,18 +2117,17 @@ class Scene2 extends BaseScene {
             this.canRecieveEmotion = false;
             this.emotionMaxed(res.emotion);
         }
-        if (res.emotion != MyEmotion.None) {
-            targetJquery.css('width', progress.value * 100 + "%");
-        }
+        this.refreshProgressBarCss();
+        // if(res.emotion != MyEmotion.None) {
+        //     targetJquery.css('width', progress.value * 100 + "%");
+        // }
         this.lastTimeStamp = timestamp;
     }
+    refreshProgressBarCss() {
+        $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
+        $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
+    }
     emotionMaxed(myEmotion) {
-        if (myEmotion == MyEmotion.Positive) {
-            this.showResult(true);
-        }
-        else {
-            this.showResult(false);
-        }
     }
     createDwitters(parentContainer) {
         this.initCenterDwitterScale = 0.52;
@@ -2286,7 +2285,7 @@ class Scene2 extends BaseScene {
         this.updateCssBinding();
     }
     fillNewspaperContentByNum(num) {
-        let newsItem = NewsDataManager.getInstance().get(num);
+        let newsItem = NewsDataManager.getInstance().getByNum(num);
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('newspaper-thumbnail');
@@ -2299,6 +2298,8 @@ class Scene2L1 extends Scene2 {
     constructor() {
         super('Scene2L1');
         this.npNums = [0, 1, 2, 3, 4];
+        this.currIndex = 0;
+        this.isLastTestCorrect = false;
     }
     getNewspaperNums() {
         return this.npNums;
@@ -2323,6 +2324,8 @@ class Scene2L1 extends Scene2 {
     initNewspaperFsm() {
         this.initStNewspaperDefault();
         this.initStNewspaper0();
+        this.initStNewspaper1();
+        this.initStNewspaper2();
         this.updateObjects.push(this.newspaperFsm);
     }
     getGamePlayFsmData() {
@@ -2349,21 +2352,61 @@ class Scene2L1 extends Scene2 {
         state.addFinishAction();
     }
     initStNewspaper0() {
-        let state = this.newspaperFsm.getStateByIndex(0);
+        let index = 0;
+        let state = this.newspaperFsm.getStateByIndex(index);
         state.addAction(s => {
-            this.paperStateOnEnter(0);
+            this.paperStateOnEnter(index);
         });
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, false);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, false);
+        wrong.addFinishAction();
     }
     initStNewspaper1() {
-        let state = this.newspaperFsm.getStateByIndex(1);
+        let index = 1;
+        let state = this.newspaperFsm.getStateByIndex(index);
         state.addAction(s => {
-            this.paperStateOnEnter(1);
+            this.paperStateOnEnter(index);
         });
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, false);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, false);
+        wrong.addFinishAction();
+    }
+    initStNewspaper2() {
+        let index = 2;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addAction(s => {
+            this.paperStateOnEnter(index);
+        });
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, false);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, false);
+        wrong.addFinishAction();
+    }
+    emotionMaxed(myEmotion) {
+        super.emotionMaxed(myEmotion);
+        let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
+        let rightEmotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
+        let correct = myEmotion == rightEmotion;
+        this.isLastTestCorrect = correct;
+        this.showResult(this.isLastTestCorrect);
+        this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
     }
     paperStateOnEnter(index) {
         this.fillNewspaperContentByNum(this.npNums[index]);
+        this.topProgress.value = 0;
+        this.bottomProgress.value = 0;
+        this.refreshProgressBarCss();
         this.hideResult();
         this.canRecieveEmotion = true;
+        this.currIndex = index;
     }
 }
 /// <reference path="scenes/scene-base.ts" />
@@ -4692,7 +4735,9 @@ class Fsm {
         return targetName;
     }
 }
-Fsm.FinishedEventName = "FINISHED";
+Fsm.FINISHED = "FINISHED";
+Fsm.CORRECT = 'CORRECT';
+Fsm.WRONG = 'WRONG';
 class FsmState {
     constructor(name, fsm) {
         this.eventRoute = new Map();
@@ -4954,7 +4999,7 @@ class FsmState {
         return this;
     }
     finished() {
-        this.fsm.event(Fsm.FinishedEventName);
+        this.fsm.event(Fsm.FINISHED);
     }
     /**
      * Union event will only invoke the event when the \
@@ -5121,7 +5166,17 @@ class NewspaperFsm extends Fsm {
         let prevStName = NewspaperFsm.DEFAULT_ST_NAME;
         for (let i = 0; i < this.npNumbers.length; i++) {
             let currStName = this.getStateNameByIndexNumber(i);
-            this.addEvent(Fsm.FinishedEventName, prevStName, currStName);
+            this.addEvent(Fsm.FINISHED, prevStName, currStName);
+            // if not the last one, add the Correct/Wrong brances
+            if (i != this.npNumbers.length - 1) {
+                let nextStName = this.getStateNameByIndexNumber(i + 1);
+                let correctStName = this.getStateReactionNameByIndexNumber(i, true);
+                let worngStName = this.getStateReactionNameByIndexNumber(i, false);
+                this.addEvent(Fsm.CORRECT, currStName, correctStName);
+                this.addEvent(Fsm.WRONG, currStName, worngStName);
+                this.addEvent(Fsm.FINISHED, correctStName, nextStName);
+                this.addEvent(Fsm.FINISHED, worngStName, nextStName);
+            }
             prevStName = currStName;
         }
     }
@@ -5131,6 +5186,10 @@ class NewspaperFsm extends Fsm {
      */
     getStateByIndex(index) {
         let stName = this.getStateNameByIndexNumber(index);
+        return this.getState(stName);
+    }
+    getReactionStateByIndex(index, correct) {
+        let stName = this.getStateReactionNameByIndexNumber(index, correct);
         return this.getState(stName);
     }
     /**
@@ -5152,6 +5211,12 @@ class NewspaperFsm extends Fsm {
             throw 'Paper number out of range';
         }
         return `NewspaperState-${index}`;
+    }
+    getStateReactionNameByIndexNumber(index, correct) {
+        if (index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';
+        }
+        return `NewspaperStateReaction-${index}-${correct ? 'CORRECT' : 'WRONG'}`;
     }
 }
 NewspaperFsm.DEFAULT_ST_NAME = 'Default';
@@ -5698,8 +5763,8 @@ class NewsDataManager {
         }
         return NewsDataManager.instance;
     }
-    get(idx) {
-        return this.data[idx];
+    getByNum(num) {
+        return this.data[num];
     }
     load() {
         this.data = [];
@@ -5946,9 +6011,9 @@ class SpeechManager {
 }
 let g_newsData1 = `Index	Title	Content	Answer	Style
 0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0
-1	Lab Globe	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
-2	Yes, Minster	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
-3	Justice Times	Stupid so-called iconoclasts refuse to take their designated experiments.	0	
+1	DRAVPA	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
+2	YES, MINISTER	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
+3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	
 4	EXPERIMENT DAILY	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0
 5	EXPERIMENT DAILY	The domestic food price has risen by 50%. Nothing to worried about. With the power of experiments, we can produce whatever we please	1	0
 6	EXPERIMENT DAILY	The domestic food price has risen by 100%.The Minister of Food just declared an act about halving the food ration, and it's good for your heath. Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0
@@ -5959,15 +6024,7 @@ let g_newsData1 = `Index	Title	Content	Answer	Style
 11				
 12	Avenue Journal	The oil price has risen by 25% in Alaginia. Protesters rallied in front of the parliament against the sky-high CPI		
 13		A group of Alaginian soilder crossed the border into our country illegally yesterday		
-14	Avenue Journal	Left-wing activists appealed to extend weekends to be three days		
-15				
-16				
-17				
-18				
-19				
-20				
-21				
-22					
+14	Avenue Journal	Left-wing activists appealed to extend weekends to be three days						
 `;
 var SpawnStrategyType;
 (function (SpawnStrategyType) {

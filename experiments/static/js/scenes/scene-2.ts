@@ -121,10 +121,16 @@ class Scene2 extends BaseScene {
             this.emotionMaxed(res.emotion);
         }
 
-        if(res.emotion != MyEmotion.None) {
-            targetJquery.css('width', progress.value * 100 + "%");
-        }
+        this.refreshProgressBarCss();
+        // if(res.emotion != MyEmotion.None) {
+        //     targetJquery.css('width', progress.value * 100 + "%");
+        // }
         this.lastTimeStamp = timestamp;
+    }
+
+    refreshProgressBarCss() {
+        $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
+        $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
 
     emotionMaxed(myEmotion: MyEmotion) {

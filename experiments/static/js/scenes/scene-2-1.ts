@@ -41,6 +41,8 @@ class Scene2L1 extends Scene2 {
     initNewspaperFsm() {
         this.initStNewspaperDefault();
         this.initStNewspaper0();
+        this.initStNewspaper1();
+        this.initStNewspaper2();
         this.updateObjects.push(this.newspaperFsm);
     }
 
@@ -75,17 +77,51 @@ class Scene2L1 extends Scene2 {
     }
 
     initStNewspaper0() {
-        let state = this.newspaperFsm.getStateByIndex(0)
+        let index = 0;
+        let state = this.newspaperFsm.getStateByIndex(index)
         state.addAction(s=>{
-            this.paperStateOnEnter(0);
+            this.paperStateOnEnter(index);
         })         
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, false);
+        correct.addFinishAction();
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, false);
+        wrong.addFinishAction();
     }
 
     initStNewspaper1() {
-        let state = this.newspaperFsm.getStateByIndex(1)
+        let index = 1;
+        let state = this.newspaperFsm.getStateByIndex(index)
         state.addAction(s=>{
-            this.paperStateOnEnter(1);
+            this.paperStateOnEnter(index);
         }) 
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, false);
+        correct.addFinishAction();
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, false);
+        wrong.addFinishAction();
+    }
+
+    initStNewspaper2() {
+        let index = 2;
+        let state = this.newspaperFsm.getStateByIndex(index)
+        state.addAction(s=>{
+            this.paperStateOnEnter(index);
+        }) 
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, false);
+        correct.addFinishAction();
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, false);
+        wrong.addFinishAction();
     }
 
 
@@ -96,15 +132,22 @@ class Scene2L1 extends Scene2 {
         let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
         let rightEmotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
         
-        this.isLastTestCorrect = myEmotion == rightEmotion;        
+        let correct = myEmotion == rightEmotion;
+        this.isLastTestCorrect = correct;        
         this.showResult(this.isLastTestCorrect);         
+
+        this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
     }
 
     paperStateOnEnter(index: number) {
         this.fillNewspaperContentByNum(this.npNums[index]);        
+
+        this.topProgress.value = 0;
+        this.bottomProgress.value = 0;
+        this.refreshProgressBarCss();
+
         this.hideResult();
         this.canRecieveEmotion = true;
-
         this.currIndex = index;
     }
 }

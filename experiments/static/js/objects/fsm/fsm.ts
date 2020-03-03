@@ -30,7 +30,10 @@ enum ConditionalRes {
 
 class Fsm {
 
-    static FinishedEventName = "FINISHED";
+    static FINISHED = "FINISHED";
+    static CORRECT = 'CORRECT';
+    static WRONG = 'WRONG';
+
     scene: BaseScene;
     name: string;
     states: Map<string, FsmState> = new Map();
@@ -596,7 +599,7 @@ class FsmState {
 
 
     finished() {
-        this.fsm.event(Fsm.FinishedEventName);
+        this.fsm.event(Fsm.FINISHED);
     }
 
     

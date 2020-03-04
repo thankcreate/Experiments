@@ -1,10 +1,16 @@
+
+type PapernEnterCallBack = (state: FsmState, index:number)=>any;
 class NewspaperFsm extends Fsm{
     npNumbers: number[];
 
     static DEFAULT_ST_NAME = 'Default';
-    constructor(scene: BaseScene, npNumbers:number[]) {
-        super(scene, null);
 
+    newspapaerStates: FsmState[] = [];
+    papernEnterCallBack
+    constructor(scene: BaseScene, npNumbers:number[], papernEnterCallBack:PapernEnterCallBack) {
+        super(scene, null);
+        
+        this.papernEnterCallBack = papernEnterCallBack;
         // deep copy
         this.npNumbers = [...npNumbers];        
         this.constructNpStates();
@@ -12,6 +18,7 @@ class NewspaperFsm extends Fsm{
         this.name = 'NewspaperFSM';
         this.addInitalState(NewspaperFsm.DEFAULT_ST_NAME);
 
+        
     }
     
     constructNpStates() {
@@ -36,6 +43,13 @@ class NewspaperFsm extends Fsm{
                 this.addEvent(Fsm.FINISHED, worngStName, nextStName);
             }
             prevStName = currStName;
+        }
+
+        for(let i = 0; i < this.npNumbers.length; i++) {
+            let state = this.getStateByIndex(i);
+            state.addOnEnter(s=>{
+                this.papernEnterCallBack(s, i);
+            })
         }
     }
 

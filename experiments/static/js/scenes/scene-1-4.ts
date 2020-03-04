@@ -102,7 +102,7 @@ class Scene1L4 extends Scene1 {
 
     initStStart() {
         let state = this.gamePlayFsm.getState("Start");
-        state.setOnEnter(s => {
+        state.addOnEnter(s => {
             
             
             // this.enemyManager.sensetiveDuration = 60000;
@@ -150,7 +150,7 @@ class Scene1L4 extends Scene1 {
 
     initStateIdle() {
         let state = this.gamePlayFsm.getState("Idle");
-        state.setOnEnter(s => {
+        state.addOnEnter(s => {
             
         });
         state.setOnUpdate(s => {
@@ -168,7 +168,7 @@ class Scene1L4 extends Scene1 {
 
     initWarn() {
         let state = this.gamePlayFsm.getState("Warn");
-        state.setOnEnter(s => {
+        state.addOnEnter(s => {
 
         })
             .addSubtitleAction(this.subtitle, "Let me be clear", true)
@@ -257,7 +257,7 @@ class Scene1L4 extends Scene1 {
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
         let state = this.gamePlayFsm.getState("PromptCompleteBad");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
@@ -277,7 +277,7 @@ class Scene1L4 extends Scene1 {
 
     initStPrmoptAutoTyper() {
         let state = this.gamePlayFsm.getState("PromptAutoBad");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[1];
@@ -297,7 +297,7 @@ class Scene1L4 extends Scene1 {
     
     initStPromptTurn() {
         let state = this.gamePlayFsm.getState("PromptTurn");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[2];
@@ -311,7 +311,7 @@ class Scene1L4 extends Scene1 {
 
     initStPrmoptAutoTurn() {
         let state = this.gamePlayFsm.getState("PromptAutoTurn");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[3];
@@ -325,7 +325,7 @@ class Scene1L4 extends Scene1 {
     
     initStPrmoptCreator() {
         let state = this.gamePlayFsm.getState("PromptCreator");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[4];

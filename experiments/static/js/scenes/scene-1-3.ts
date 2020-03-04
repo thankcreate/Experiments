@@ -164,7 +164,7 @@ class Scene1L3 extends Scene1 {
 
     initStStart() {
         let state = this.gamePlayFsm.getState("Start");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             let health = 4;
             let duration = 50000;
 
@@ -213,7 +213,7 @@ class Scene1L3 extends Scene1 {
     initStBGM() {
         let state = this.gamePlayFsm.getState("BGM");
         state.setUnionEvent('TO_SENSITIVE_WORD', 2);
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {
                 this.destroyedCount++;
                 if(this.destroyedCount >= this.needToDestroyBeforeShowSensitive) {
@@ -261,7 +261,7 @@ class Scene1L3 extends Scene1 {
 
     initStSensitive() {
         let state = this.gamePlayFsm.getState("Sensitive");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             this.enemyManager.setNextNeedSensitiveOneShot(true);           
 
             s.autoOn(this.enemyManager.enemyEliminatedEvent, null, e => {

@@ -10,10 +10,13 @@ class Scene2 extends BaseScene {
 
     newspaperFsm: NewspaperFsm;
 
-    constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
-        super(config);
+    currIndex = 0;
+    get npNums(): number[]{
+        return [0];
+    }
 
-        
+    constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
+        super(config);        
     }
     
 
@@ -34,19 +37,24 @@ class Scene2 extends BaseScene {
             this.imageHandler(e);
         })
 
-        let test = NewsDataManager.getInstance();
-
-        
-        // $('#test-info').css('visibility', 'hidden'); 
-        
+        let test = NewsDataManager.getInstance();        
+        // $('#test-info').css('visibility', 'hidden');         
     }
-        
-    getNewspaperNums(): number[]{
-        return [0];
+
+    paperEnterCallback(state: FsmState, index:number) {
+        this.fillNewspaperContentByNum(this.npNums[index]);        
+
+        this.topProgress.value = 0;
+        this.bottomProgress.value = 0;
+        this.refreshProgressBarCss();
+
+        this.hideResult();
+        this.canRecieveEmotion = true;
+        this.currIndex = index;
     }
 
     makeNewspaperFsm() {
-        return new NewspaperFsm(this, this.getNewspaperNums());
+        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this));
     }
 
     // called by BaseScene.create
@@ -133,8 +141,17 @@ class Scene2 extends BaseScene {
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
 
-    emotionMaxed(myEmotion: MyEmotion) {
-    
+    isLastTestCorrect = false;
+    emotionMaxed(myEmotion: MyEmotion){        
+
+        let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
+        let rightEmotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
+        
+        let correct = myEmotion == rightEmotion;
+        this.isLastTestCorrect = correct;        
+        this.showResult(this.isLastTestCorrect);         
+
+        this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
     }
     
 

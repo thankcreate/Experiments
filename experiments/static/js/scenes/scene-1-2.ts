@@ -36,7 +36,7 @@ class Scene1L2 extends Scene1 {
 
     initStStart() {
         let state = this.gamePlayFsm.getState("Start");
-        state.setOnEnter(s=>{
+        state.addOnEnter(s=>{
             let health = 4;
             let duration = 50000;
 

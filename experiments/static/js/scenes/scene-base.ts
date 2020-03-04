@@ -427,7 +427,7 @@ class BaseScene extends Phaser.Scene {
         state.setOnExit(s=>{
             this.centerObject.playerInputText.pressAnyToStart.setVisible(false);
         })
-        state.setAsStartup().setOnEnter(s => {
+        state.setAsStartup().addOnEnter(s => {
             this.addCounter(Counter.IntoHome);
             this.centerObject.playerInputText.pressAnyToStart.setVisible(true);
             this.subtitle.startMonologue();
@@ -705,7 +705,7 @@ class BaseScene extends Phaser.Scene {
         });
 
         let state = this.mainFsm.getState("NormalGame");
-        state.setOnEnter(s => {                       
+        state.addOnEnter(s => {                       
             // FSM 
             this.setEntryPointByIncomingEvent(s.fromEvent);
             this.gamePlayFsm.start();

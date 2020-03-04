@@ -5,12 +5,9 @@ class Scene2L1 extends Scene2 {
         super('Scene2L1');
 
     }
-
-    npNums = [0, 1, 2, 3, 4];
-    currIndex = 0;
-
-    getNewspaperNums(): number[]{
-        return this.npNums;
+    
+    get npNums(): number[]{
+        return [0, 1, 2, 3, 4];
     }
 
     create() {
@@ -60,7 +57,7 @@ class Scene2L1 extends Scene2 {
 
     initStGamePlayStart() {
         let state = this.gamePlayFsm.getState("Start");
-        state.setOnEnter(s=>{        
+        state.addOnEnter(s=>{        
             this.showPaper(true);    
             this.newspaperFsm.start();
             setTimeout(() => {
@@ -82,9 +79,6 @@ class Scene2L1 extends Scene2 {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addAction(s=>{
-            this.paperStateOnEnter(index);
-        })         
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, false);
@@ -98,9 +92,7 @@ class Scene2L1 extends Scene2 {
     initStNewspaper1() {
         let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index)
-        state.addAction(s=>{
-            this.paperStateOnEnter(index);
-        }) 
+     
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, false);
@@ -114,9 +106,6 @@ class Scene2L1 extends Scene2 {
     initStNewspaper2() {
         let index = 2;
         let state = this.newspaperFsm.getStateByIndex(index)
-        state.addAction(s=>{
-            this.paperStateOnEnter(index);
-        }) 
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, false);
@@ -128,29 +117,6 @@ class Scene2L1 extends Scene2 {
     }
 
 
-    isLastTestCorrect = false;
-    emotionMaxed(myEmotion: MyEmotion){
-        super.emotionMaxed(myEmotion);
+    
 
-        let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
-        let rightEmotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
-        
-        let correct = myEmotion == rightEmotion;
-        this.isLastTestCorrect = correct;        
-        this.showResult(this.isLastTestCorrect);         
-
-        this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
-    }
-
-    paperStateOnEnter(index: number) {
-        this.fillNewspaperContentByNum(this.npNums[index]);        
-
-        this.topProgress.value = 0;
-        this.bottomProgress.value = 0;
-        this.refreshProgressBarCss();
-
-        this.hideResult();
-        this.canRecieveEmotion = true;
-        this.currIndex = index;
-    }
 }

@@ -523,17 +523,20 @@ class FsmState {
         this.resetUnionEvent();
         this.enterExitListners.emit(true);
 
-        if(this.onEnter)
-            this.onEnter(state);
+        if(this.onEnter) {
+            for(let i in this.onEnter) {
+                this.onEnter[i](state);
+            }            
+        }        
 
         this.runActions();
         return this;
     }
 
     
-    private onEnter: StateHandler;
-    setOnEnter(handler: StateHandler): FsmState {
-        this.onEnter = handler;
+    private onEnter: StateHandler[] = [];
+    addOnEnter(handler: StateHandler): FsmState {
+        this.onEnter.push(handler);
         return this;
     }
 

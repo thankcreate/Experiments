@@ -89,6 +89,11 @@ class BaseScene extends Phaser.Scene {
             this.load.image(resId, resPath);
         }
     }
+    /**
+     * audioLoadConfigItem:
+     * keyName: ["pathToTheFile, propVarName"]
+     * The callback will set the this.proVarName once the load is completed
+     */
     loadAudio() {
         let audioLoadConfig = {
             sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
@@ -155,12 +160,7 @@ class BaseScene extends Phaser.Scene {
         this.backBtn = new Button(this, this.abContainer, 100, 50, '', '< exit()', 180, 80, false).setEnable(false, false);
         this.backBtn.text.setColor('#000000');
         this.backBtn.text.setFontSize(44);
-        // HP        
-        // let hpBottom = 36;
-        // let hpLeft = 36;
-        // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
-        // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
-        // this.hp.inner.y += 250;
+        // HP                
         let hud = new Hud(this, this.abContainer, 0, 0);
         this.ui = new UI(this, this.abContainer, 0, 0);
         this.ui.hud = hud;
@@ -5614,7 +5614,7 @@ class EmmotionManager {
 let s_banks = [
     "Master.bank",
     "Master.strings.bank",
-    "Level1.bank",
+    "SE.bank",
 ];
 class FmodManager {
     constructor() {
@@ -5717,7 +5717,13 @@ class FmodManager {
         var bankhandle = {};
         this.CHECK_RESULT(this.gSystem.loadBankFile("/" + name, this.FMOD.STUDIO_LOAD_BANK_NORMAL, bankhandle));
     }
+    /**
+     * Prefix like 'event:/' is not needed.
+     * Just use the label in the FMOD browser
+     * @param eventName
+     */
     playOneShot(eventName) {
+        eventName = 'event:/' + eventName;
         let desc = {};
         let instance = {};
         this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));
@@ -5833,7 +5839,7 @@ class SpeechManager {
             this.voiceType = 'en-US-Wavenet-D';
         }
         else {
-            this.voiceType = 'en-US-Wavenet-F';
+            this.voiceType = 'en-IN-Wavenet-A';
         }
     }
     /**

@@ -23,10 +23,10 @@ class SpeechManager {
 
     setVoiceType(tp : VoiceType) {
         if(tp == VoiceType.Voice65536) {
-            this.voiceType = 'en-US-Wavenet-D';
+            this.voiceType = 'en-US-Wavenet-D';                    
         }
         else {
-            this.voiceType = 'en-US-Wavenet-F';
+            this.voiceType = 'en-IN-Wavenet-A';            
         }        
     }
 

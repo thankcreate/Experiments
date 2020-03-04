@@ -3,7 +3,7 @@ declare function FMODModule(e);
 let s_banks = [
     "Master.bank",
     "Master.strings.bank",
-    "Level1.bank",
+    "SE.bank",
 ]
 
 class FmodManager {
@@ -151,7 +151,13 @@ class FmodManager {
         this.CHECK_RESULT(this.gSystem.loadBankFile("/" + name, this.FMOD.STUDIO_LOAD_BANK_NORMAL, bankhandle) );
     }
 
+    /**
+     * Prefix like 'event:/' is not needed.
+     * Just use the label in the FMOD browser
+     * @param eventName 
+     */
     playOneShot(eventName: string) {
+        eventName = 'event:/' + eventName;
         let desc:any = {};
         let instance: any = {};
         this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));

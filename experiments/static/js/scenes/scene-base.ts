@@ -168,6 +168,11 @@ class BaseScene extends Phaser.Scene {
         }
     }
 
+    /**
+     * audioLoadConfigItem: 
+     * keyName: ["pathToTheFile, propVarName"]
+     * The callback will set the this.proVarName once the load is completed
+     */
     loadAudio() {
         let audioLoadConfig = {
             sfx_laser: ["assets/audio/Hit_Hurt131.wav", "sfxLaser"],
@@ -241,10 +246,8 @@ class BaseScene extends Phaser.Scene {
 
         // Center cicle-like object        
         this.centerObject = this.createCenter(this.container);
-
         
-        this.createContainerMain();
-       
+        this.createContainerMain();       
 
         // Leaderboard
         this.leaderboardManager = LeaderboardManager.getInstance();
@@ -256,12 +259,7 @@ class BaseScene extends Phaser.Scene {
         this.backBtn.text.setFontSize(44);
 
 
-        // HP        
-        // let hpBottom = 36;
-        // let hpLeft = 36;
-        // this.hp = new HP(this, this.abContainer, hpLeft, phaserConfig.scale.height - hpBottom);
-        // this.hpInitPosi = MakePoint2(this.hp.inner.x, this.hp.inner.y);
-        // this.hp.inner.y += 250;
+        // HP                
 
         let hud =  new Hud(this, this.abContainer, 0, 0);        
 

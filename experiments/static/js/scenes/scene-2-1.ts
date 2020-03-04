@@ -28,7 +28,7 @@ class Scene2L1 extends Scene2 {
         CameraManager.getInstance().showVideo();       
         
             
-        this.fillNewspaperContentByNum(0);
+        this.fillNewspaperContentByNum(0);        
     }
     
 
@@ -66,6 +66,8 @@ class Scene2L1 extends Scene2 {
             setTimeout(() => {
                 this.showCam();
             }, 500);
+
+            
         })
         
         state.addSubtitleAction(this.subtitle, 'Hello', false);

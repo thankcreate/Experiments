@@ -171,7 +171,7 @@ class Scene2 extends BaseScene {
         s.addSubtitleAction(this.subtitle, s => {
             return this.playerName + "? Interesting!"
         }, true, 2000, 3000, 300)
-        .addSubtitleAction(this.subtitle, "THE EXPERIMENT is waiting for us. Let's get it over with.", false, null, null, 10)
+        .addSubtitleAction(this.subtitle, "THE EXPERIMENT is waiting for us. \n Let's get it over with.", false, null, null, 10)
         .addSubtitleAction(this.subtitle, "Which experiment do you like to take?", false, null, null, 10).setBoolCondition(o=>this.needModeSelect())
         return s;
     }

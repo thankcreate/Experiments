@@ -81,6 +81,7 @@ class Scene2L1 extends Scene2 {
     initStNewspaper0() {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index)
+        
         state.addAction(s=>{
             this.paperStateOnEnter(index);
         })         

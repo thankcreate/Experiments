@@ -343,11 +343,16 @@ class BaseScene extends Phaser.Scene {
             // Player input
             s.autoOn($(document), 'keypress', this.centerObject.playerInputText.keypress.bind(this.centerObject.playerInputText));
             s.autoOn($(document), 'keydown', this.centerObject.playerInputText.keydown.bind(this.centerObject.playerInputText));
+            // audio effect
+            s.autoOn($(document), 'keypress', () => {
+                this.playOneShot('TypeInName');
+            });
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
                 this.playerName = word;
                 setCookie('name', word);
                 console.log('just in time check: ' + getCookie('name'));
                 resolve(word);
+                this.playOneShot('ConfirmName');
             });
         })
             .addAction((s, result) => {
@@ -387,6 +392,9 @@ class BaseScene extends Phaser.Scene {
     needModeSelect() {
         return true;
     }
+    playOneShot(eventName) {
+        FmodManager.getInstance().playOneShot(eventName);
+    }
     initStModeSelect() {
         //* Enter Actions
         let state = this.mainFsm.getState("ModeSelect");
@@ -402,6 +410,8 @@ class BaseScene extends Phaser.Scene {
                 this.centerObject.playerInputText.stopTitleTween();
                 this.centerObject.playerInputText.title.alpha = 1;
             }
+            // easy to have a current sound here
+            // this.playOneShot('StartChooseLevel'); 
         })
             // Rotate the center object to normal angle   
             .addTweenAction(this, {
@@ -419,11 +429,13 @@ class BaseScene extends Phaser.Scene {
                     this.setMode(GameMode.Normal);
                     s.removeAutoRemoveListners(); // in case the player clicked both buttons quickly
                     resolve('clicked');
+                    this.playOneShot('ConfirmLevel');
                 });
                 s.autoOn(this.centerObject.btnMode1.clickedEvent, null, () => {
                     this.setMode(GameMode.Zen);
                     s.removeAutoRemoveListners();
                     resolve('clicked');
+                    this.playOneShot('ConfirmLevel');
                 });
             }
             else {
@@ -463,6 +475,9 @@ class BaseScene extends Phaser.Scene {
         state.addAction(s => {
             if (this.needChangeUiWhenIntoGame())
                 this.ui.gotoGame(this.mode);
+        });
+        state.addAction(s => {
+            this.playOneShot('GameStart');
         });
         this.sceneHomeTogameAnimation(state);
         state.addDelayAction(this, 600);
@@ -5698,6 +5713,7 @@ class FmodManager {
                 result = this.gSystemCore.mixerResume();
                 this.CHECK_RESULT(result);
                 this.gAudioResumed = true;
+                // FmodManager.getInstance().playOneShot('ChooseLevel');                
             }
         };
         var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -5705,6 +5721,7 @@ class FmodManager {
             window.addEventListener('touchend', resumeAudio, false);
         }
         else {
+            document.addEventListener('keydown', resumeAudio);
             document.addEventListener('click', resumeAudio);
         }
         // Set the framerate to 50 frames per second, or 20ms.
@@ -6796,6 +6813,7 @@ class Button {
                 scale: 1.16,
                 duration: 100,
             });
+            this.scene.playOneShot('ChooseLevel');
         }
         if (this.needTextTransferAnimation) {
             this.text.text = this.hoverTitle;

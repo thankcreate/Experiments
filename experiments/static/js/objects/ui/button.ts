@@ -310,6 +310,8 @@ class Button {
                 scale: 1.16,
                 duration: 100,
             })
+            
+            this.scene.playOneShot('ChooseLevel');                             
         }
 
         if(this.needTextTransferAnimation) {

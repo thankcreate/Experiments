@@ -94,6 +94,7 @@ class FmodManager {
         console.log("Set mixer sample rate");
         result = this.gSystemCore.getDriverInfo(0, null, null, outval, null, null);
         this.CHECK_RESULT(result);
+        
         result = this.gSystemCore.setSoftwareFormat(outval.val, this.FMOD.SPEAKERMODE_DEFAULT, 0)
         this.CHECK_RESULT(result);
 
@@ -122,6 +123,9 @@ class FmodManager {
                 this.CHECK_RESULT(result);
 
                 this.gAudioResumed = true;
+
+
+                // FmodManager.getInstance().playOneShot('ChooseLevel');                
             }
 
         }
@@ -132,7 +136,8 @@ class FmodManager {
             window.addEventListener('touchend', resumeAudio, false);
         }
         else
-        {
+        {            
+            document.addEventListener('keydown', resumeAudio);
             document.addEventListener('click', resumeAudio);
         }
 

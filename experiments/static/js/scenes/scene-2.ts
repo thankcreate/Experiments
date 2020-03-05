@@ -1,4 +1,9 @@
 
+enum NewsPaperStyle{
+    DEFAULT,
+    ONLY_TEXT_CENTER,
+}
+
 class Scene2 extends BaseScene {
 
 
@@ -361,5 +366,53 @@ class Scene2 extends BaseScene {
 
         titleSlot.html(newsItem.title);
         contentSlot.html(newsItem.content);
+    }
+
+    npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;
+    setNewspaperStyle(style: NewsPaperStyle) {
+        this.npStyle = style;
+
+        let p = $('#newspaper-content-text');
+        let thumb = $('#newspaper-thumbnail');
+
+        if(style == NewsPaperStyle.ONLY_TEXT_CENTER) {            
+            p.css('position', 'absolute');
+            p.css('text-align', 'center');
+            p.css('width', '100%');
+            
+            p.css('top', '50%');
+            p.css('transform', 'translate(0, -50%)')      
+            
+            thumb.css('display', 'none');
+        }
+        else if (style == NewsPaperStyle.DEFAULT) {
+            
+        console.log('2222222222222222222')
+            p.css('position', 'static');
+            p.css('text-align', 'inherit');
+            p.css('width', '');
+            p.css('top', '');
+            p.css('transform', '')   
+            this.setNewspaperFontSize(16);
+
+            thumb.css('display', 'block');
+        }
+
+        console.log('3333333333333333')
+    }
+
+    setNewspaperTitle(title: string) {
+        let t = $('#newspaper-title');
+        t.html(title);
+    }
+
+    setNewspaperContent(content: string) {
+        let p = $('#newspaper-content-text');
+        p.html(content);
+    }
+
+    setNewspaperFontSize(size: number) {
+        let p = $('#newspaper-content-text');
+        p.css('font-size', `${size}px`);
     }
 }

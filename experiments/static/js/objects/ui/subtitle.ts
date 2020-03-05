@@ -31,7 +31,8 @@ class Subtitle extends Wrapper<PhText> {
 
         let style = this.getSubtitleStyle();
         let target = this.scene.add.text(0, 0, "", style).setOrigin(0.5);
-        target.setWordWrapWidth(1000);
+        // target.setWordWrapWidth(1000);
+        target.setWordWrapWidth(1200);
         target.setAlign('center');
 
 

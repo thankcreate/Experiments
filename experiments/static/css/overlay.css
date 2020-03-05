@@ -380,6 +380,9 @@ input[type="submit"]:active {
 }
 
 #newspaper-inner-frame{
+  display: flex;
+  flex-flow: column;
+
   margin: 15px;
   min-height: 300px;
   width: 400px;
@@ -406,9 +409,10 @@ input[type="submit"]:active {
 }
 
 #newspaper-content{
+  position: relative;
+  flex-grow : 1;
   font-size: 16px;
   margin: 10px 20px;
-  font-size: 16px;
 }
 
 #newspaper-thumbnail{
@@ -417,7 +421,7 @@ input[type="submit"]:active {
 }
 
 
-#newspaper-content-text{
+#newspaper-content-text{  
   margin-block-start: 2px;
 }
 

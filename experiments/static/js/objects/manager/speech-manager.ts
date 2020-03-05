@@ -26,7 +26,8 @@ class SpeechManager {
             this.voiceType = 'en-US-Wavenet-D';                    
         }
         else {
-            this.voiceType = 'en-IN-Wavenet-A';            
+            // this.voiceType = 'en-IN-Wavenet-A';            
+            this.voiceType = 'en-US-Wavenet-C';            
         }        
     }
 

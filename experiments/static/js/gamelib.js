@@ -2054,6 +2054,11 @@ class Scene2L0 extends SceneTrailor {
         return 'Project 65537';
     }
 }
+var NewsPaperStyle;
+(function (NewsPaperStyle) {
+    NewsPaperStyle[NewsPaperStyle["DEFAULT"] = 0] = "DEFAULT";
+    NewsPaperStyle[NewsPaperStyle["ONLY_TEXT_CENTER"] = 1] = "ONLY_TEXT_CENTER";
+})(NewsPaperStyle || (NewsPaperStyle = {}));
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
@@ -2062,6 +2067,7 @@ class Scene2 extends BaseScene {
         this.bottomProgress = { value: 0 }; // [0, 1]
         this.canRecieveEmotion = false;
         this.isLastTestCorrect = false;
+        this.npStyle = NewsPaperStyle.DEFAULT;
     }
     get npNums() {
         return [0];
@@ -2324,12 +2330,47 @@ class Scene2 extends BaseScene {
         titleSlot.html(newsItem.title);
         contentSlot.html(newsItem.content);
     }
+    setNewspaperStyle(style) {
+        this.npStyle = style;
+        let p = $('#newspaper-content-text');
+        let thumb = $('#newspaper-thumbnail');
+        if (style == NewsPaperStyle.ONLY_TEXT_CENTER) {
+            p.css('position', 'absolute');
+            p.css('text-align', 'center');
+            p.css('width', '100%');
+            p.css('top', '50%');
+            p.css('transform', 'translate(0, -50%)');
+            thumb.css('display', 'none');
+        }
+        else if (style == NewsPaperStyle.DEFAULT) {
+            console.log('2222222222222222222');
+            p.css('position', 'static');
+            p.css('text-align', 'inherit');
+            p.css('width', '');
+            p.css('top', '');
+            p.css('transform', '');
+            this.setNewspaperFontSize(16);
+            thumb.css('display', 'block');
+        }
+        console.log('3333333333333333');
+    }
+    setNewspaperTitle(title) {
+        let t = $('#newspaper-title');
+        t.html(title);
+    }
+    setNewspaperContent(content) {
+        let p = $('#newspaper-content-text');
+        p.html(content);
+    }
+    setNewspaperFontSize(size) {
+        let p = $('#newspaper-content-text');
+        p.css('font-size', `${size}px`);
+    }
 }
 /// <reference path="scene-2.ts" />
 class Scene2L1 extends Scene2 {
     constructor() {
         super('Scene2L1');
-        this.isLastTestCorrect = false;
     }
     get npNums() {
         return [0, 1, 2, 3, 4];
@@ -2345,6 +2386,7 @@ class Scene2L1 extends Scene2 {
         CameraManager.getInstance().setPosition(CamPosi.Newspaper);
         CameraManager.getInstance().showVideo();
         this.fillNewspaperContentByNum(0);
+        this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
     }
     initGamePlayFsm() {
         this.initStGamePlayDefault();
@@ -2370,20 +2412,51 @@ class Scene2L1 extends Scene2 {
         let state = this.gamePlayFsm.getState("Start");
         state.addOnEnter(s => {
             this.showPaper(true);
+            this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
+            this.setNewspaperContent('😀');
+            this.setNewspaperFontSize(150);
+            this.setNewspaperTitle('65536 Sucks');
             this.newspaperFsm.start();
-            setTimeout(() => {
-                this.showCam();
-            }, 500);
+            // setTimeout(() => {
+            //     this.showCam();
+            // }, 500);            
         });
-        state.addSubtitleAction(this.subtitle, 'Hello', false);
     }
     initStNewspaperDefault() {
         let state = this.newspaperFsm.getDefaultState();
+        state.addAction(s => {
+            this.setNewspaperContent('😅');
+            this.setNewspaperTitle('Welcome');
+        });
+        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you`, false);
+        state.addAction(s => {
+            this.setNewspaperContent('😣');
+            this.setNewspaperTitle('65536 Sucks');
+        });
+        state.addSubtitleAction(this.subtitle, () => `I can understand what it means\n to come through the annoying Experiment 65536`, false);
+        state.addAction(s => {
+            this.setNewspaperContent('🙃');
+            this.setNewspaperTitle('Procedurality👎 ');
+        });
+        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience`, false);
+        state.addAction(s => {
+            this.setNewspaperContent('🤗');
+            this.setNewspaperTitle('65537');
+        });
+        state.addSubtitleAction(this.subtitle, () => `But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 any more. \nAll you need is just providing your natural reaction with ease`, false);
         state.addFinishAction();
     }
     initStNewspaper0() {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index);
+        state.addOnEnter(s => {
+            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);
+            this.canRecieveEmotion = false;
+        });
+        state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
+        state.addAction(s => {
+            // this.canRecieveEmotion = true;    
+        });
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, false);
         correct.addFinishAction();
@@ -5856,7 +5929,8 @@ class SpeechManager {
             this.voiceType = 'en-US-Wavenet-D';
         }
         else {
-            this.voiceType = 'en-IN-Wavenet-A';
+            // this.voiceType = 'en-IN-Wavenet-A';            
+            this.voiceType = 'en-US-Wavenet-C';
         }
     }
     /**
@@ -9840,7 +9914,8 @@ class Subtitle extends Wrapper {
         this.textInShow = false;
         let style = this.getSubtitleStyle();
         let target = this.scene.add.text(0, 0, "", style).setOrigin(0.5);
-        target.setWordWrapWidth(1000);
+        // target.setWordWrapWidth(1000);
+        target.setWordWrapWidth(1200);
         target.setAlign('center');
         this.applyTarget(target);
         this.monologueIndex = ~~(Math.random() * monologueList.length);

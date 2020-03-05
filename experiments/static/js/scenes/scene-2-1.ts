@@ -25,7 +25,10 @@ class Scene2L1 extends Scene2 {
         CameraManager.getInstance().showVideo();       
         
             
-        this.fillNewspaperContentByNum(0);        
+        this.fillNewspaperContentByNum(0);      
+
+
+        this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
     }
     
 
@@ -59,19 +62,43 @@ class Scene2L1 extends Scene2 {
         let state = this.gamePlayFsm.getState("Start");
         state.addOnEnter(s=>{        
             this.showPaper(true);    
+            this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
+            this.setNewspaperContent('😀');
+            this.setNewspaperFontSize(150);
+            this.setNewspaperTitle('65536 Sucks');
             this.newspaperFsm.start();
-            setTimeout(() => {
-                this.showCam();
-            }, 500);
-
-            
-        })
+            // setTimeout(() => {
+            //     this.showCam();
+            // }, 500);            
+        })        
         
-        state.addSubtitleAction(this.subtitle, 'Hello', false);
     }
 
     initStNewspaperDefault() {
-        let state = this.newspaperFsm.getDefaultState();
+        let state = this.newspaperFsm.getDefaultState();        
+
+        state.addAction(s=>{
+            this.setNewspaperContent('😅');
+            this.setNewspaperTitle('Welcome');
+        })
+        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you`, false);
+        state.addAction(s=>{
+            this.setNewspaperContent('😣');
+            this.setNewspaperTitle('65536 Sucks');
+        })
+        state.addSubtitleAction(this.subtitle, ()=>`I can understand what it means\n to come through the annoying Experiment 65536`, false);
+        state.addAction(s=>{
+            this.setNewspaperContent('🙃');
+            this.setNewspaperTitle('Procedurality👎 ');
+        })
+        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience`, false);
+        state.addAction(s=>{
+            this.setNewspaperContent('🤗');
+            this.setNewspaperTitle('65537');
+        })
+        state.addSubtitleAction(this.subtitle, ()=>`But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 any more. \nAll you need is just providing your natural reaction with ease`, false);
+
+
         state.addFinishAction();
     }
 
@@ -79,6 +106,15 @@ class Scene2L1 extends Scene2 {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index)
         
+        state.addOnEnter(s=>{
+            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
+            this.canRecieveEmotion = false;        
+        })
+
+        state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
+        state.addAction(s=>{
+            // this.canRecieveEmotion = true;    
+        });
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, false);

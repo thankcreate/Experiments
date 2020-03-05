@@ -22,11 +22,9 @@ class Scene2L1 extends Scene2 {
         CameraManager.getInstance().startDectector();   
         CameraManager.getInstance().setPosition(CamPosi.Newspaper);
 
-        CameraManager.getInstance().showVideo();       
-        
+        CameraManager.getInstance().showVideo();               
             
-        this.fillNewspaperContentByNum(0);      
-
+        this.fillNewspaperContentByNum(0);
 
         this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
     }
@@ -67,9 +65,7 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperFontSize(150);
             this.setNewspaperTitle('65536 Sucks');
             this.newspaperFsm.start();
-            // setTimeout(() => {
-            //     this.showCam();
-            // }, 500);            
+                   
         })        
         
     }
@@ -112,8 +108,8 @@ class Scene2L1 extends Scene2 {
         })
 
         state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
-        state.addAction(s=>{
-            // this.canRecieveEmotion = true;    
+        state.addAction(s=>{            
+            // this.showCam();
         });
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
@@ -151,8 +147,4 @@ class Scene2L1 extends Scene2 {
         wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, false);
         wrong.addFinishAction();
     }
-
-
-    
-
 }

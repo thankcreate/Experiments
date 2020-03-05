@@ -43,7 +43,18 @@ class Scene2 extends BaseScene {
         })
 
         let test = NewsDataManager.getInstance();        
+
+        GlobalEventManager.getInstance().newspaperButtonTopClickedEvent.on((m)=>{
+            this.newspaperButtonClicked(m, true);
+        })
+        GlobalEventManager.getInstance().newspaperButtonBottomClickedEvent.on((m)=>{
+            this.newspaperButtonClicked(m, false);
+        })
         // $('#test-info').css('visibility', 'hidden');         
+    }
+
+    newspaperButtonClicked(manager: GlobalEventManager, isTop: boolean) {
+        this.emotionMaxed(isTop ? MyEmotion.Positive : MyEmotion.Negative);
     }
 
     paperEnterCallback(state: FsmState, index:number) {

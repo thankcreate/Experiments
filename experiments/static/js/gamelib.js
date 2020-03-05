@@ -2085,7 +2085,16 @@ class Scene2 extends BaseScene {
             this.imageHandler(e);
         });
         let test = NewsDataManager.getInstance();
+        GlobalEventManager.getInstance().newspaperButtonTopClickedEvent.on((m) => {
+            this.newspaperButtonClicked(m, true);
+        });
+        GlobalEventManager.getInstance().newspaperButtonBottomClickedEvent.on((m) => {
+            this.newspaperButtonClicked(m, false);
+        });
         // $('#test-info').css('visibility', 'hidden');         
+    }
+    newspaperButtonClicked(manager, isTop) {
+        this.emotionMaxed(isTop ? MyEmotion.Positive : MyEmotion.Negative);
     }
     paperEnterCallback(state, index) {
         this.fillNewspaperContentByNum(this.npNums[index]);
@@ -2417,9 +2426,6 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperFontSize(150);
             this.setNewspaperTitle('65536 Sucks');
             this.newspaperFsm.start();
-            // setTimeout(() => {
-            //     this.showCam();
-            // }, 500);            
         });
     }
     initStNewspaperDefault() {
@@ -2455,7 +2461,7 @@ class Scene2L1 extends Scene2 {
         });
         state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
         state.addAction(s => {
-            // this.canRecieveEmotion = true;    
+            // this.showCam();
         });
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, false);
@@ -5848,6 +5854,30 @@ class FmodManager {
     }
 }
 let gFmodManager = FmodManager.getInstance();
+class GlobalEventManager {
+    constructor() {
+        this.newspaperButtonTopClickedEvent = new TypedEvent();
+        this.newspaperButtonBottomClickedEvent = new TypedEvent();
+    }
+    static getInstance() {
+        if (!GlobalEventManager.instance) {
+            GlobalEventManager.instance = new GlobalEventManager();
+        }
+        return GlobalEventManager.instance;
+    }
+    newspaperButtonTopClicked() {
+        this.newspaperButtonTopClickedEvent.emit(this);
+    }
+    newspaperButtonBottomClicked() {
+        this.newspaperButtonBottomClickedEvent.emit(this);
+    }
+}
+function newspaperButtonTopClicked() {
+    GlobalEventManager.getInstance().newspaperButtonTopClicked();
+}
+function newspaperButtonBottomClicked() {
+    GlobalEventManager.getInstance().newspaperButtonBottomClicked();
+}
 class NewsDataManager {
     constructor() {
         this.data = [];

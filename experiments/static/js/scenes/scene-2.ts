@@ -12,6 +12,7 @@ class Scene2 extends BaseScene {
     topProgressCssBinding: CssBinding;
     bottomProgressCssBinding: CssBinding;
     resultCssBinding: CssBinding;
+    manualBtnsCssBing: CssBinding;
 
     newspaperFsm: NewspaperFsm;
 
@@ -35,6 +36,7 @@ class Scene2 extends BaseScene {
         this.topProgressCssBinding = new CssBinding($('#top-bar'));
         this.bottomProgressCssBinding = new CssBinding($('#bottom-bar'));
         this.resultCssBinding = new CssBinding($('#newspaper-result'));
+        this.manualBtnsCssBing = new CssBinding($('#newspaper-manual-button'));
 
         this.initBindingCss();
 
@@ -266,6 +268,10 @@ class Scene2 extends BaseScene {
 
         this.resultCssBinding.translateY = 100;
         this.resultCssBinding.udpate();
+
+        this.manualBtnsCssBing.translateX = -100;
+        this.manualBtnsCssBing.translateY = -50;
+        this.manualBtnsCssBing.udpate();
     }
 
     showPaper(show: boolean = true) {
@@ -287,6 +293,16 @@ class Scene2 extends BaseScene {
             rotate: 360,
             duration: dt
         }) 
+    }
+
+    showManualBtns(isShow: boolean) {
+        let dt = 500;
+        
+        this.tweens.add({
+            targets: this.manualBtnsCssBing,
+            translateX: isShow? 0 : -100,
+            duration: dt
+        })        
     }
     
 
@@ -358,7 +374,8 @@ class Scene2 extends BaseScene {
             this.bottomProgressCssBinding.udpate();            
         if(this.resultCssBinding)
             this.resultCssBinding.udpate();         
-
+        if(this.manualBtnsCssBing)
+            this.manualBtnsCssBing.udpate();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }

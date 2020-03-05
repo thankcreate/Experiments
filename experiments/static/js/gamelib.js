@@ -2080,6 +2080,7 @@ class Scene2 extends BaseScene {
         this.topProgressCssBinding = new CssBinding($('#top-bar'));
         this.bottomProgressCssBinding = new CssBinding($('#bottom-bar'));
         this.resultCssBinding = new CssBinding($('#newspaper-result'));
+        this.manualBtnsCssBing = new CssBinding($('#newspaper-manual-button'));
         this.initBindingCss();
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
@@ -2250,6 +2251,9 @@ class Scene2 extends BaseScene {
         this.bottomProgressCssBinding.udpate();
         this.resultCssBinding.translateY = 100;
         this.resultCssBinding.udpate();
+        this.manualBtnsCssBing.translateX = -100;
+        this.manualBtnsCssBing.translateY = -50;
+        this.manualBtnsCssBing.udpate();
     }
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
@@ -2263,6 +2267,14 @@ class Scene2 extends BaseScene {
         this.tweens.add({
             targets: this.paperCssBinding,
             rotate: 360,
+            duration: dt
+        });
+    }
+    showManualBtns(isShow) {
+        let dt = 500;
+        this.tweens.add({
+            targets: this.manualBtnsCssBing,
+            translateX: isShow ? 0 : -100,
             duration: dt
         });
     }
@@ -2324,6 +2336,8 @@ class Scene2 extends BaseScene {
             this.bottomProgressCssBinding.udpate();
         if (this.resultCssBinding)
             this.resultCssBinding.udpate();
+        if (this.manualBtnsCssBing)
+            this.manualBtnsCssBing.udpate();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -2461,8 +2475,9 @@ class Scene2L1 extends Scene2 {
         });
         state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
         state.addAction(s => {
-            // this.showCam();
+            this.showManualBtns(true);
         });
+        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons by the right', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, false);
         correct.addFinishAction();
@@ -2483,6 +2498,17 @@ class Scene2L1 extends Scene2 {
     initStNewspaper2() {
         let index = 2;
         let state = this.newspaperFsm.getStateByIndex(index);
+        state.addAction(s => {
+            this.showManualBtns(false);
+        });
+        state.addSubtitleAction(this.subtitle, () => `See? ${this.getUserName()}. It's easy, right?`, false);
+        state.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around", false);
+        state.addAction(s => {
+            this.showCam();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
+        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, false);
         correct.addFinishAction();
@@ -5700,6 +5726,10 @@ class EmmotionManager {
         }
         if (expressions.browFurrow > 70 || expressions.noseWrinkle > 60) {
             ana.emotion = MyEmotion.Negative;
+            ana.intensity = 1;
+        }
+        if (emotions.joy > 90 || expressions.smile > 90) {
+            ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
         return ana;

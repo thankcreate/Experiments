@@ -418,6 +418,7 @@ input[type="submit"]:active {
 #newspaper-thumbnail{
   float: right;
   width: 100px;
+  margin: auto 5px;
 }
 
 

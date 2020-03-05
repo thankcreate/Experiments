@@ -107,11 +107,14 @@ class Scene2L1 extends Scene2 {
             this.canRecieveEmotion = false;        
         })
 
+        
         state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
+        
         state.addAction(s=>{            
-            // this.showCam();
+            this.showManualBtns(true);
         });
-
+        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons by the right', false);
+        
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, false);
         correct.addFinishAction();
@@ -123,8 +126,7 @@ class Scene2L1 extends Scene2 {
 
     initStNewspaper1() {
         let index = 1;
-        let state = this.newspaperFsm.getStateByIndex(index)
-     
+        let state = this.newspaperFsm.getStateByIndex(index)     
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, false);
@@ -139,6 +141,18 @@ class Scene2L1 extends Scene2 {
         let index = 2;
         let state = this.newspaperFsm.getStateByIndex(index)
 
+        state.addAction(s=>{            
+            this.showManualBtns(false);
+        });
+        state.addSubtitleAction(this.subtitle, ()=> `See? ${this.getUserName()}. It's easy, right?`, false); 
+        state.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around", false); 
+        state.addAction(s=>{            
+            this.showCam();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);          
+        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);  
+        
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, false);
         correct.addFinishAction();

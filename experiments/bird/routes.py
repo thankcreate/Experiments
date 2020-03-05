@@ -21,7 +21,7 @@ def post_review():
         img = data['img']
 
     device_id = request.cookies.get('important_memobird_device')
-    if not device_id or device_id == string.empty:
+    if not device_id:
         return jsonify({'res': 'Error, device_id not set in the cookie'}) 
     
     # ak

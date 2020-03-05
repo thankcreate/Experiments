@@ -45,7 +45,12 @@ class EmmotionManager {
         if(expressions.browFurrow > 70 || expressions.noseWrinkle > 60) {
             ana.emotion = MyEmotion.Negative;
             ana.intensity = 1;
-        }       
+        }
+
+        if(emotions.joy> 90 || expressions.smile > 90) {
+            ana.emotion = MyEmotion.Positive;
+            ana.intensity = 1;
+        }
 
         return ana;
     }

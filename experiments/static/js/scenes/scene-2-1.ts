@@ -77,22 +77,22 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperContent('😅');
             this.setNewspaperTitle('Welcome');
         })
-        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you A LOT.`, false);
         state.addAction(s=>{
             this.setNewspaperContent('😣');
             this.setNewspaperTitle('65536 Sucks');
         })
-        state.addSubtitleAction(this.subtitle, ()=>`I can understand what it means\n to come through the annoying Experiment 65536`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`I do understand what it means\n to come through the annoying Experiment 65536.`, false);
         state.addAction(s=>{
             this.setNewspaperContent('🙃');
             this.setNewspaperTitle('Procedurality👎 ');
         })
-        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience`, false);
+        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience.`, false);
         state.addAction(s=>{
             this.setNewspaperContent('🤗');
             this.setNewspaperTitle('65537');
         })
-        state.addSubtitleAction(this.subtitle, ()=>`But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 any more. \nAll you need is just providing your natural reaction with ease`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease`, false);
 
 
         state.addFinishAction();

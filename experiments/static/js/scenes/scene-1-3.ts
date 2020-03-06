@@ -16,8 +16,7 @@ class Scene1L3 extends Scene1 {
     needToDestroyBeforeShowSensitive = 5;
 
     
-    bgmSeperateWays: Phaser.Sound.BaseSound;
-    
+    bgmSeperateWays: Phaser.Sound.BaseSound;    
 
     constructor() {
         super('Scene1L3');

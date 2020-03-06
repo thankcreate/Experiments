@@ -33,7 +33,7 @@ class NewsDataManager {
         this.data = [];
         let lines = g_newsData1.split('\n');
         let firstAdd = true;
-        for(let i = 0; i < lines.length; i++) {
+        for(let i = 0; i < lines.length; i++) {                        
             let line  = lines[i];
             // ignore the empty line
             if(line == '') {

@@ -2063,6 +2063,7 @@ class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
         this.currIndex = 0;
+        this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
         this.topProgress = { value: 0 }; // [0, 1]
         this.bottomProgress = { value: 0 }; // [0, 1]
         this.canRecieveEmotion = false;
@@ -2105,6 +2106,10 @@ class Scene2 extends BaseScene {
         this.hideResult();
         this.canRecieveEmotion = true;
         this.currIndex = index;
+        let borderStyleIndex = index % this.innerBorderStyles.length;
+        $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
+        let randomWidth = 400 + Math.random() * 100;
+        $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
     }
     makeNewspaperFsm() {
         return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this));
@@ -2137,7 +2142,7 @@ class Scene2 extends BaseScene {
             return;
         }
         let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
-        let fullTime = 3;
+        let fullTime = 3.5;
         let targetJquery = null;
         let progress = { value: 0 };
         if (res.emotion == MyEmotion.Positive) {
@@ -2346,7 +2351,8 @@ class Scene2 extends BaseScene {
         this.updateCssBinding();
     }
     fillNewspaperContentByNum(num) {
-        let newsItem = NewsDataManager.getInstance().getByNum(num);
+        let ins = NewsDataManager.getInstance();
+        let newsItem = ins.getByNum(num);
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('newspaper-thumbnail');
@@ -2396,7 +2402,7 @@ class Scene2L1 extends Scene2 {
         super('Scene2L1');
     }
     get npNums() {
-        return [0, 1, 2, 3, 4];
+        return [0, 1, 2, 3, 4, 5, 6];
     }
     create() {
         super.create();
@@ -2421,6 +2427,10 @@ class Scene2L1 extends Scene2 {
         this.initStNewspaper0();
         this.initStNewspaper1();
         this.initStNewspaper2();
+        this.initStNewspaper3();
+        this.initStNewspaper4();
+        this.initStNewspaper5();
+        this.initStNewspaper6();
         this.updateObjects.push(this.newspaperFsm);
     }
     getGamePlayFsmData() {
@@ -2448,22 +2458,22 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperContent('😅');
             this.setNewspaperTitle('Welcome');
         });
-        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you`, false);
+        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you A LOT.`, false);
         state.addAction(s => {
             this.setNewspaperContent('😣');
             this.setNewspaperTitle('65536 Sucks');
         });
-        state.addSubtitleAction(this.subtitle, () => `I can understand what it means\n to come through the annoying Experiment 65536`, false);
+        state.addSubtitleAction(this.subtitle, () => `I do understand what it means\n to come through the annoying Experiment 65536.`, false);
         state.addAction(s => {
             this.setNewspaperContent('🙃');
             this.setNewspaperTitle('Procedurality👎 ');
         });
-        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience`, false);
+        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
         state.addAction(s => {
             this.setNewspaperContent('🤗');
             this.setNewspaperTitle('65537');
         });
-        state.addSubtitleAction(this.subtitle, () => `But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 any more. \nAll you need is just providing your natural reaction with ease`, false);
+        state.addSubtitleAction(this.subtitle, () => `But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease`, false);
         state.addFinishAction();
     }
     initStNewspaper0() {
@@ -2477,22 +2487,23 @@ class Scene2L1 extends Scene2 {
         state.addAction(s => {
             this.showManualBtns(true);
         });
-        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons by the right', false);
+        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, false);
+        correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, false);
+        wrong.addSubtitleAction(this.subtitle, () => `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
         wrong.addFinishAction();
     }
     initStNewspaper1() {
         let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index);
+        state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, () => `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, false);
+        correct.addSubtitleAction(this.subtitle, () => `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, false);
+        wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
         wrong.addFinishAction();
     }
     initStNewspaper2() {
@@ -2510,11 +2521,59 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
         state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, false);
+        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, false);
+        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, true);
         wrong.addFinishAction();
+    }
+    initStNewspaper3() {
+        let index = 3;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!", false);
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => `You never let me down, ${this.getUserName()}.`, true);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, true);
+        wrong.addFinishAction();
+    }
+    initStNewspaper4() {
+        let index = 4;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addSubtitleAction(this.subtitle, "Intersting", false);
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => `Excellent`, true);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, true);
+        wrong.addFinishAction();
+    }
+    initStNewspaper5() {
+        let index = 5;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addSubtitleAction(this.subtitle, "Hmmm", false);
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => `Well done, ${this.getUserName()}.`, true);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm.`, true);
+        wrong.addFinishAction();
+    }
+    initStNewspaper6() {
+        let index = 6;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addSubtitleAction(this.subtitle, "Ok this is the last one", false);
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        if (correct) {
+            correct.addSubtitleAction(this.subtitle, () => `Good choice, ${this.getUserName()}.`, true);
+            correct.addFinishAction();
+        }
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        if (wrong) {
+            wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm.`, true);
+            wrong.addFinishAction();
+        }
     }
 }
 /// <reference path="scenes/scene-base.ts" />
@@ -6170,7 +6229,7 @@ let g_newsData1 = `Index	Title	Content	Answer	Style
 0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0
 1	DRAVPA	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
 2	YES, MINISTER	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
-3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	
+3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	0
 4	EXPERIMENT DAILY	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0
 5	EXPERIMENT DAILY	The domestic food price has risen by 50%. Nothing to worried about. With the power of experiments, we can produce whatever we please	1	0
 6	EXPERIMENT DAILY	The domestic food price has risen by 100%.The Minister of Food just declared an act about halving the food ration, and it's good for your heath. Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0

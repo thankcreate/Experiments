@@ -59,6 +59,7 @@ class Scene2 extends BaseScene {
         this.emotionMaxed(isTop ? MyEmotion.Positive : MyEmotion.Negative);
     }
 
+    innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     paperEnterCallback(state: FsmState, index:number) {
         this.fillNewspaperContentByNum(this.npNums[index]);        
 
@@ -69,6 +70,12 @@ class Scene2 extends BaseScene {
         this.hideResult();
         this.canRecieveEmotion = true;
         this.currIndex = index;
+
+        let borderStyleIndex = index % this.innerBorderStyles.length;
+        $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
+
+        let randomWidth = 400 + Math.random() * 100;
+        $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
     }
 
     makeNewspaperFsm() {
@@ -120,7 +127,7 @@ class Scene2 extends BaseScene {
         let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);        
         
 
-        let fullTime = 3;
+        let fullTime = 3.5;
         let targetJquery = null;
 
         let progress: HasValue = {value: 0};
@@ -386,7 +393,8 @@ class Scene2 extends BaseScene {
     }
 
     fillNewspaperContentByNum(num: number) {
-        let newsItem = NewsDataManager.getInstance().getByNum(num);
+        let ins = NewsDataManager.getInstance();
+        let newsItem = ins.getByNum(num);
 
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
@@ -394,6 +402,8 @@ class Scene2 extends BaseScene {
 
         titleSlot.html(newsItem.title);
         contentSlot.html(newsItem.content);
+
+
     }
 
     npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;

@@ -7,7 +7,7 @@ class Scene2L1 extends Scene2 {
     }
     
     get npNums(): number[]{
-        return [0, 1, 2, 3, 4];
+        return [0, 1, 2, 3, 4, 5, 6];
     }
 
     create() {
@@ -41,6 +41,10 @@ class Scene2L1 extends Scene2 {
         this.initStNewspaper0();
         this.initStNewspaper1();
         this.initStNewspaper2();
+        this.initStNewspaper3();
+        this.initStNewspaper4();
+        this.initStNewspaper5();
+        this.initStNewspaper6();
         this.updateObjects.push(this.newspaperFsm);
     }
 
@@ -87,7 +91,7 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperContent('🙃');
             this.setNewspaperTitle('Procedurality👎 ');
         })
-        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience.`, false);
+        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
         state.addAction(s=>{
             this.setNewspaperContent('🤗');
             this.setNewspaperTitle('65537');
@@ -113,14 +117,14 @@ class Scene2L1 extends Scene2 {
         state.addAction(s=>{            
             this.showManualBtns(true);
         });
-        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons by the right', false);
+        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side', false);
         
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, false);
+        correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
         wrong.addFinishAction();
     }
 
@@ -128,12 +132,14 @@ class Scene2L1 extends Scene2 {
         let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index)     
 
+        state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
+
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, ()=> `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, false);
+        correct.addSubtitleAction(this.subtitle, ()=> `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
         wrong.addFinishAction();
     }
 
@@ -154,11 +160,78 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);  
         
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, false);
+        correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, true);
         wrong.addFinishAction();
+    }
+
+    initStNewspaper3() {
+        let index = 3;
+        let state = this.newspaperFsm.getStateByIndex(index)
+        
+        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!", false);
+
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `You never let me down, ${this.getUserName()}.`, true);
+        correct.addFinishAction();
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, true);
+        wrong.addFinishAction();
+    }
+
+    initStNewspaper4() {
+        let index = 4;
+        let state = this.newspaperFsm.getStateByIndex(index)
+        
+        state.addSubtitleAction(this.subtitle, "Intersting", false);
+
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Excellent`, true);
+        correct.addFinishAction();
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, true);
+        wrong.addFinishAction();
+    }
+
+    initStNewspaper5() {
+        let index = 5;
+        let state = this.newspaperFsm.getStateByIndex(index)
+        
+        state.addSubtitleAction(this.subtitle, "Hmmm", false);
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Well done, ${this.getUserName()}.`, true);
+        correct.addFinishAction();
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm.`, true);
+        wrong.addFinishAction();
+    }
+
+    initStNewspaper6() {
+        let index = 6;
+        let state = this.newspaperFsm.getStateByIndex(index)
+        
+        state.addSubtitleAction(this.subtitle, "Ok this is the last one", false);
+
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        if(correct){
+            correct.addSubtitleAction(this.subtitle, ()=> `Good choice, ${this.getUserName()}.`, true);
+            correct.addFinishAction();
+        }
+        
+
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        if(wrong) {
+            wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm.`, true);
+            wrong.addFinishAction();
+        }        
     }
 }

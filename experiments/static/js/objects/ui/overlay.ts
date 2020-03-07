@@ -325,7 +325,7 @@ class Overlay extends Wrapper<PhText> {
 
         if (notComplete) {
             $('#rating-error').css('display', 'block');
-            // return;
+            return;
         }
         else {
             $('#rating-error').css('display', 'none');

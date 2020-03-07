@@ -186,13 +186,13 @@ class Scene1L3 extends Scene1 {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "He told me that experiments should be 'fun' at first", true)
             .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
-            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
+            .addSubtitleAction(this.subtitle, "He told me if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)            
             .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            .addSubtitleAction(this.subtitle, "When I was still a human, I mean, seriously, \nI was really once an MFA candidate in Game Design ", true)
-            .addSubtitleAction(this.subtitle, "And of course! \nIan Bogost, I love him. A LOT.", true)
-            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experimental artist, \nit seems that I have to accept my advisor's words.", true)
-            .addSubtitleAction(this.subtitle, "And this is what my game is now. I hope you enjoyed it.", true)
-            .addSubtitleAction(this.subtitle, "Before we start, let's listen to some music, hmm?\nType in something!", false).finishImmediatly()
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean, seriously, \nI was really once an MFA in Game Design ", true)
+            .addSubtitleAction(this.subtitle, "And of course! \nIan Bogost, I loved him, A LOT.", true)
+            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to accept my advisor's words.", true)
+            .addSubtitleAction(this.subtitle, "And this is what my experiment becomes now. Hope you enjoyed it.", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\n Type in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
                 this.enemyManager.stopSpawnAndClear();
                 this.centerObject.playerInputText.setAutoContent("Separate Ways");

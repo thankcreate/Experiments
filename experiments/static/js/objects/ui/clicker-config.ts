@@ -102,12 +102,12 @@ let cYesOrNo = " 'Y' / 'N' "
 let propInfos = [
     {title: "B**", consumed: false, pauseTitle: '  ^_^  ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short'},            
     {title: "Auto\nBad", consumed: false, pauseTitle: '  >_<  ', price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
-    {title: "T**", consumed: false,pauseTitle: '  o_o  ', price: 2000, size: 30, 
+    {title: "T**", consumed: false,pauseTitle: '  o_o  ', price: 1800, size: 30, 
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
         //warning: "Caution: Once you purchased this item, you can no longer do semantic word matching"
         },
-    {title: "Auto\nTurn", consumed: false,pauseTitle: '  ^_^  ', price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
-    {title: "The\nCreator", consumed: false,pauseTitle: '  ._.  ', price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short'}
+    {title: "Auto\nTurn", consumed: false,pauseTitle: '  ^_^  ', price: 6000, size: 22, desc: "Automatically Turn Non-404 words into 404"},
+    {title: "The\nCreator", consumed: false,pauseTitle: '  ._.  ', price: 8000, size: 22, desc: 'Create a new word!\nType in "C" for short'}
 ]   
 
 function getBadgeResID(i) {

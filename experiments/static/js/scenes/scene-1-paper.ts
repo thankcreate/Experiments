@@ -2,7 +2,7 @@ class Scene1LPaper extends Scene1 {
     
     paper: Paper;
 
-    COUNT_ALL_TIME = 3;
+    COUNT_ALL_TIME = 30;
     remainingTime: number;
 
     constructor() {

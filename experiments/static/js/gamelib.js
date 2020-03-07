@@ -1170,15 +1170,14 @@ class Scene1L2 extends Scene1 {
             .addSubtitleAction(this.subtitle, "It's just 0, if you've taken the algorithm class.\nIt's a joke. Haha", true)
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "What's with the frown? I guess you don't think it's fun. Whatever.", true)
-            .addSubtitleAction(this.subtitle, "Let's continue with our experiment", true)
             .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels anymore.", true)
             .addSubtitleAction(this.subtitle, "But I don't really think you need them.", true)
-            .addSubtitleAction(this.subtitle, "It might be a little bit harder, but it's also really fun, right?", true)
+            .addSubtitleAction(this.subtitle, "It might be a little bit harder, but it also added some fun, right?", true)
             .addSubtitleAction(this.subtitle, "If you have an MFA degree in Game Design like me,\nyou'll know that ambiguity is what makes fun happen!", true)
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "Alright, this time I won't say 65536 again\n", true)
             .addSubtitleAction(this.subtitle, "See? I'm more merciful than I used to be", true)
-            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 255 more,\nand I'll just tell you the secret of universe.", false)
+            .addSubtitleAction(this.subtitle, "This time you only need to help me eliminate 256 more,\nand I'll just tell you the secret of universe.", false)
             .addDelayAction(this, 10000)
             .addAction(s => {
             this.getController().gotoNextScene();
@@ -1321,13 +1320,13 @@ class Scene1L3 extends Scene1 {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "He told me that experiments should be 'fun' at first", true)
             .addSubtitleAction(this.subtitle, "After the labels were removed, he didn't feel fun any more", true)
-            .addSubtitleAction(this.subtitle, "He told me that if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
+            .addSubtitleAction(this.subtitle, "He told me if I just make such a lengthy dialog, \nIan Bogost won't like me.", true)
             .addSubtitleAction(this.subtitle, "You know....\n The Procedural Rhetoric thing!", true)
-            .addSubtitleAction(this.subtitle, "When I was still a human, I mean, seriously, \nI was really once an MFA candidate in Game Design ", true)
-            .addSubtitleAction(this.subtitle, "And of course! \nIan Bogost, I love him. A LOT.", true)
-            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experimental artist, \nit seems that I have to accept my advisor's words.", true)
-            .addSubtitleAction(this.subtitle, "And this is what my game is now. I hope you enjoyed it.", true)
-            .addSubtitleAction(this.subtitle, "Before we start, let's listen to some music, hmm?\nType in something!", false).finishImmediatly()
+            .addSubtitleAction(this.subtitle, "When I was still a human, I mean, seriously, \nI was really once an MFA in Game Design ", true)
+            .addSubtitleAction(this.subtitle, "And of course! \nIan Bogost, I loved him, A LOT.", true)
+            .addSubtitleAction(this.subtitle, "To prove that I'm a decent experiment artist, \nseems that I have to accept my advisor's words.", true)
+            .addSubtitleAction(this.subtitle, "And this is what my experiment becomes now. Hope you enjoyed it.", true)
+            .addSubtitleAction(this.subtitle, "Before we start, do you want some music?\n Type in something!", false).finishImmediatly()
             .addAction((s, result, resolve, reject) => {
             this.enemyManager.stopSpawnAndClear();
             this.centerObject.playerInputText.setAutoContent("Separate Ways");
@@ -1643,7 +1642,7 @@ class Scene1L4 extends Scene1 {
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
-        state.addSubtitleAction(this.subtitle, "Based on your score,\n I think this AUTO-COMPLETION tool might be of help", false, null, null, 2500)
+        state.addSubtitleAction(this.subtitle, "Based on your score,\n I think this AUTO-COMPLETION tool might be of help", false, null, null, 500)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
         //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
         state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly();
@@ -1713,7 +1712,7 @@ class Scene1L4 extends Scene1 {
 class Scene1LPaper extends Scene1 {
     constructor() {
         super('Scene1LPaper');
-        this.COUNT_ALL_TIME = 3;
+        this.COUNT_ALL_TIME = 30;
         this.paperWidth = 1000;
         this.paperHeight = 900;
         this.startReadTime = 0;
@@ -7394,11 +7393,11 @@ let cYesOrNo = " 'Y' / 'N' ";
 let propInfos = [
     { title: "B**", consumed: false, pauseTitle: '  ^_^  ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
     { title: "Auto\nBad", consumed: false, pauseTitle: '  >_<  ', price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
-    { title: "T**", consumed: false, pauseTitle: '  o_o  ', price: 2000, size: 30,
+    { title: "T**", consumed: false, pauseTitle: '  o_o  ', price: 1800, size: 30,
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
-    { title: "Auto\nTurn", consumed: false, pauseTitle: '  ^_^  ', price: 8000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, pauseTitle: '  ._.  ', price: 12000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+    { title: "Auto\nTurn", consumed: false, pauseTitle: '  ^_^  ', price: 6000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
+    { title: "The\nCreator", consumed: false, pauseTitle: '  ._.  ', price: 8000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -8863,7 +8862,7 @@ class Overlay extends Wrapper {
         }
         if (notComplete) {
             $('#rating-error').css('display', 'block');
-            // return;
+            return;
         }
         else {
             $('#rating-error').css('display', 'none');
@@ -9603,7 +9602,7 @@ class PropButton extends Button {
         this.needInOutAutoAnimation = false;
         let priceStyle = getDefaultTextStyle();
         priceStyle.fontSize = '22px';
-        let priceLbl = this.scene.add.text(0, 30, myNum(info.price) + "", priceStyle).setOrigin(0.5);
+        let priceLbl = this.scene.add.text(0, 30, '$' + myNum(info.price) + "", priceStyle).setOrigin(0.5);
         this.inner.add(priceLbl);
         this.priceLbl = priceLbl;
         this.desc = info.desc;
@@ -9752,7 +9751,7 @@ class PropButton extends Button {
     refreshPriceLabel() {
         if (!this.priceLbl)
             return;
-        this.priceLbl.text = myNum(this.info.price) + "";
+        this.priceLbl.text = '$' + myNum(this.info.price) + "";
     }
     refreshLevelLabel() {
         if (!this.lvlLbl)

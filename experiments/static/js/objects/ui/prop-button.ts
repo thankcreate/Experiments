@@ -97,7 +97,7 @@ class PropButton extends Button {
 
         let priceStyle = getDefaultTextStyle();
         priceStyle.fontSize = '22px';
-        let priceLbl = this.scene.add.text(0, 30, myNum(info.price) + "",  priceStyle).setOrigin(0.5);
+        let priceLbl = this.scene.add.text(0, 30, '$' + myNum(info.price) + "",  priceStyle).setOrigin(0.5);
         this.inner.add(priceLbl);
         this.priceLbl = priceLbl;
 
@@ -257,7 +257,7 @@ class PropButton extends Button {
         if(!this.priceLbl) 
             return;
 
-        this.priceLbl.text = myNum(this.info.price) + "";
+        this.priceLbl.text = '$' + myNum(this.info.price) + "";
     }
 
     refreshLevelLabel() {

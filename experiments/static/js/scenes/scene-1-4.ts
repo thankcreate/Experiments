@@ -262,7 +262,7 @@ class Scene1L4 extends Scene1 {
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true)
-        state.addSubtitleAction(this.subtitle, "Based on your score,\n I think this AUTO-COMPLETION tool might be of help", false, null, null, 2500)
+        state.addSubtitleAction(this.subtitle, "Based on your score,\n I think this AUTO-COMPLETION tool might be of help", false, null, null, 500)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true)
 //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
         state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly()

@@ -35,12 +35,25 @@ class NewspaperFsm extends Fsm{
                 let nextStName = this.getStateNameByIndexNumber(i + 1);
 
                 let correctStName = this.getStateReactionNameByIndexNumber(i, true);
-                let worngStName = this.getStateReactionNameByIndexNumber(i, false);
+                let wrongStName = this.getStateReactionNameByIndexNumber(i, false);
                 this.addEvent(Fsm.CORRECT, currStName, correctStName);
-                this.addEvent(Fsm.WRONG, currStName, worngStName);
+                this.addEvent(Fsm.WRONG, currStName, wrongStName);
                 
                 this.addEvent(Fsm.FINISHED, correctStName, nextStName);
-                this.addEvent(Fsm.FINISHED, worngStName, nextStName);
+                this.addEvent(Fsm.FINISHED, wrongStName, nextStName);
+
+
+                // Second chance
+                // Wrong->2nd
+                let secondStName = this.getState2ndChanceNameByIndex(i);                
+                this.addEvent(Fsm.SECODN_CHANCE, wrongStName, secondStName);                
+                
+                // 2nd -> correct
+                this.addEvent(Fsm.CORRECT, secondStName, correctStName);      
+                
+                // 2nd -> wrong
+                this.addEvent(Fsm.WRONG, secondStName, wrongStName);      
+
             }
             prevStName = currStName;
         }
@@ -97,5 +110,12 @@ class NewspaperFsm extends Fsm{
             throw 'Paper number out of range';            
         }
         return `NewspaperStateReaction-${index}-${correct ? 'CORRECT' : 'WRONG'}`
+    }
+
+    getState2ndChanceNameByIndex(index: number) {
+        if(index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';            
+        }
+        return `NewspaperStateReaction-${index}-second`
     }
 }

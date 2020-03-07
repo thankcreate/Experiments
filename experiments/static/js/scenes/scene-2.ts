@@ -63,19 +63,23 @@ class Scene2 extends BaseScene {
     paperEnterCallback(state: FsmState, index:number) {
         this.fillNewspaperContentByNum(this.npNums[index]);        
 
-        this.topProgress.value = 0;
-        this.bottomProgress.value = 0;
-        this.refreshProgressBarCss();
-
         this.hideResult();
         this.canRecieveEmotion = true;
-        this.currIndex = index;
 
+        this.resetProgress();
+       
+        this.currIndex = index;
         let borderStyleIndex = index % this.innerBorderStyles.length;
         $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
 
         let randomWidth = 400 + Math.random() * 100;
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
+    }
+
+    resetProgress() {
+        this.topProgress.value = 0;
+        this.bottomProgress.value = 0;
+        this.refreshProgressBarCss();
     }
 
     makeNewspaperFsm() {

@@ -125,7 +125,12 @@ class Scene2L1 extends Scene2 {
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, ()=> `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, ()=> `Let me give you another try`, true);
+        wrong.addAction(s=>{
+            this.resetProgress();
+            this.hideResult();
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
     initStNewspaper1() {
@@ -139,8 +144,13 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, ()=> `${this.getUserName()}, it's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Could you try it again for me?`, true);
+        wrong.addAction(s=>{
+            this.resetProgress();
+            this.hideResult();
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
     initStNewspaper2() {
@@ -204,7 +214,7 @@ class Scene2L1 extends Scene2 {
         let index = 5;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "Hmmm", false);
+        state.addSubtitleAction(this.subtitle, "What now?", false);
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Well done, ${this.getUserName()}.`, true);

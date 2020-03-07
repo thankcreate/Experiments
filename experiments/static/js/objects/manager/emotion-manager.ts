@@ -36,19 +36,14 @@ class EmmotionManager {
         let timestamp = res.timestamp;
         let emotions = face.emotions;
         let expressions = face.expressions;
+        
 
-        if(emotions.joy > 30 || expressions.lipSuck > 60) {
+        if(emotions.joy > 90 || expressions.smile > 80) {
             ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
-
-        if(expressions.browFurrow > 70 || expressions.noseWrinkle > 60) {
+        else if(expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
             ana.emotion = MyEmotion.Negative;
-            ana.intensity = 1;
-        }
-
-        if(emotions.joy> 90 || expressions.smile > 90) {
-            ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
 

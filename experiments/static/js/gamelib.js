@@ -2100,16 +2100,19 @@ class Scene2 extends BaseScene {
     }
     paperEnterCallback(state, index) {
         this.fillNewspaperContentByNum(this.npNums[index]);
-        this.topProgress.value = 0;
-        this.bottomProgress.value = 0;
-        this.refreshProgressBarCss();
         this.hideResult();
         this.canRecieveEmotion = true;
+        this.resetProgress();
         this.currIndex = index;
         let borderStyleIndex = index % this.innerBorderStyles.length;
         $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
         let randomWidth = 400 + Math.random() * 100;
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
+    }
+    resetProgress() {
+        this.topProgress.value = 0;
+        this.bottomProgress.value = 0;
+        this.refreshProgressBarCss();
     }
     makeNewspaperFsm() {
         return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this));
@@ -2493,7 +2496,12 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, () => `Let me give you another try`, true);
+        wrong.addAction(s => {
+            this.resetProgress();
+            this.hideResult();
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper1() {
         let index = 1;
@@ -2503,8 +2511,13 @@ class Scene2L1 extends Scene2 {
         correct.addSubtitleAction(this.subtitle, () => `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}. It's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, it's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
+        wrong.addSubtitleAction(this.subtitle, () => `Could you try it again for me?`, true);
+        wrong.addAction(s => {
+            this.resetProgress();
+            this.hideResult();
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper2() {
         let index = 2;
@@ -2552,7 +2565,7 @@ class Scene2L1 extends Scene2 {
     initStNewspaper5() {
         let index = 5;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "Hmmm", false);
+        state.addSubtitleAction(this.subtitle, "What now?", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Well done, ${this.getUserName()}.`, true);
         correct.addFinishAction();
@@ -4905,6 +4918,7 @@ class Fsm {
 Fsm.FINISHED = "FINISHED";
 Fsm.CORRECT = 'CORRECT';
 Fsm.WRONG = 'WRONG';
+Fsm.SECODN_CHANCE = 'SECOND_CHANCE';
 class FsmState {
     constructor(name, fsm) {
         this.eventRoute = new Map();
@@ -5344,11 +5358,19 @@ class NewspaperFsm extends Fsm {
             if (i != this.npNumbers.length - 1) {
                 let nextStName = this.getStateNameByIndexNumber(i + 1);
                 let correctStName = this.getStateReactionNameByIndexNumber(i, true);
-                let worngStName = this.getStateReactionNameByIndexNumber(i, false);
+                let wrongStName = this.getStateReactionNameByIndexNumber(i, false);
                 this.addEvent(Fsm.CORRECT, currStName, correctStName);
-                this.addEvent(Fsm.WRONG, currStName, worngStName);
+                this.addEvent(Fsm.WRONG, currStName, wrongStName);
                 this.addEvent(Fsm.FINISHED, correctStName, nextStName);
-                this.addEvent(Fsm.FINISHED, worngStName, nextStName);
+                this.addEvent(Fsm.FINISHED, wrongStName, nextStName);
+                // Second chance
+                // Wrong->2nd
+                let secondStName = this.getState2ndChanceNameByIndex(i);
+                this.addEvent(Fsm.SECODN_CHANCE, wrongStName, secondStName);
+                // 2nd -> correct
+                this.addEvent(Fsm.CORRECT, secondStName, correctStName);
+                // 2nd -> wrong
+                this.addEvent(Fsm.WRONG, secondStName, wrongStName);
             }
             prevStName = currStName;
         }
@@ -5396,6 +5418,12 @@ class NewspaperFsm extends Fsm {
             throw 'Paper number out of range';
         }
         return `NewspaperStateReaction-${index}-${correct ? 'CORRECT' : 'WRONG'}`;
+    }
+    getState2ndChanceNameByIndex(index) {
+        if (index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';
+        }
+        return `NewspaperStateReaction-${index}-second`;
     }
 }
 NewspaperFsm.DEFAULT_ST_NAME = 'Default';
@@ -5779,16 +5807,12 @@ class EmmotionManager {
         let timestamp = res.timestamp;
         let emotions = face.emotions;
         let expressions = face.expressions;
-        if (emotions.joy > 30 || expressions.lipSuck > 60) {
+        if (emotions.joy > 90 || expressions.smile > 80) {
             ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
-        if (expressions.browFurrow > 70 || expressions.noseWrinkle > 60) {
+        else if (expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
             ana.emotion = MyEmotion.Negative;
-            ana.intensity = 1;
-        }
-        if (emotions.joy > 90 || expressions.smile > 90) {
-            ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
         return ana;
@@ -6227,7 +6251,7 @@ class SpeechManager {
 }
 let g_newsData1 = `Index	Title	Content	Answer	Style
 0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0
-1	DRAVPA	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
+1	Прaвда	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
 2	YES, MINISTER	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
 3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	0
 4	EXPERIMENT DAILY	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0

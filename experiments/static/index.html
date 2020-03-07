@@ -47,7 +47,7 @@
 
         </div> 
         <div id='top-bar' class='emotion-bar'>
-            <div class='bar-left-icon'><div class='emoji'>😀</div></div>
+            <div class='bar-left-icon'><div class='emoji normal'>😀</div><div class='emoji active'>😄</div></div>
             <div class='bar-right-progress'>
                 <div class='progress-frame'>
                     <div id='emoji-progress-top' class="progress-core"></div>
@@ -56,7 +56,7 @@
         </div>
 
         <div id='bottom-bar' class='emotion-bar'>
-            <div class='bar-left-icon'><div class='emoji'>😣</div></div>
+            <div class='bar-left-icon'><div class='emoji normal'>😣</div><div class='emoji active'>😖</div></div>
             <div class='bar-right-progress vertical-align-top' >
                 <div class='progress-frame'>
                     <div id='emoji-progress-bottom' class="progress-core"></div>
@@ -75,11 +75,13 @@
         <div id='test-info'>Test info</div>
         <div id='newspaper-page'>
             <div id='newspaper-manual-button'>
-                <div title='Happy' id='newspaper-manual-button-top' class='newspaper-manual-button-frame' onclick='newspaperButtonTopClicked()'>
-                    <div class='manual-btn-emoji'>😀</div>
+                <div title='Happy' id='newspaper-manual-button-top' class='newspaper-manual-button-frame np-tooltip' onclick='newspaperButtonTopClicked()'>
+                    <div class='manual-btn-emoji normal'>😀</div><div class='manual-btn-emoji active'>😄</div>
+                    <span class="np-tooltiptext">Happy</span>
                 </div>
-                <div title='Disgusting' id='newspaper-manual-button-bottom' class='newspaper-manual-button-frame' onclick='newspaperButtonBottomClicked()'>
-                    <div class='manual-btn-emoji'>😣</div>
+                <div title='Disgusting' id='newspaper-manual-button-bottom' class='newspaper-manual-button-frame np-tooltip' onclick='newspaperButtonBottomClicked()'>
+                    <div class='manual-btn-emoji normal'>😣</div><div class='manual-btn-emoji active'>😖</div>
+                    <span class="np-tooltiptext">Disgusting</span>
                 </div>
             </div>
             <div id='newspaper-result'>

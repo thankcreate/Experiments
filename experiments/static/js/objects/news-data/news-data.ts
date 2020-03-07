@@ -1,7 +1,7 @@
 let g_newsData1 = 
 `Index	Title	Content	Answer	Style
 0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0
-1	Пра́вда	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
+1	Прaвда	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
 2	YES, MINISTER	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
 3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	0
 4	EXPERIMENT DAILY	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0

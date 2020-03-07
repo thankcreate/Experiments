@@ -348,7 +348,7 @@ class BaseScene extends Phaser.Scene {
                 this.playOneShot('TypeInName');
             });
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
-                this.playerName = word;
+                this.playerName = word.trim();
                 setCookie('name', word);
                 console.log('just in time check: ' + getCookie('name'));
                 resolve(word);
@@ -2167,11 +2167,36 @@ class Scene2 extends BaseScene {
             this.canRecieveEmotion = false;
             this.emotionMaxed(res.emotion);
         }
+        this.refreshBarLeftIconStatus(res.emotion);
         this.refreshProgressBarCss();
         // if(res.emotion != MyEmotion.None) {
         //     targetJquery.css('width', progress.value * 100 + "%");
         // }
         this.lastTimeStamp = timestamp;
+    }
+    refreshBarLeftIconStatus(currEmotion) {
+        let activateBarID = [];
+        let deactviateBarID = ['top-bar', 'bottom-bar'];
+        if (currEmotion == MyEmotion.Positive) {
+            deactviateBarID = [];
+            activateBarID.push('top-bar');
+            deactviateBarID.push('bottom-bar');
+        }
+        else if (currEmotion == MyEmotion.Negative) {
+            deactviateBarID = [];
+            activateBarID.push('bottom-bar');
+            deactviateBarID.push('top-bar');
+        }
+        for (let i in activateBarID) {
+            let barID = activateBarID[i];
+            $(`#${barID} .normal`).css('display', 'none');
+            $(`#${barID} .active`).css('display', 'block');
+        }
+        for (let i in deactviateBarID) {
+            let barID = deactviateBarID[i];
+            $(`#${barID} .normal`).css('display', 'block');
+            $(`#${barID} .active`).css('display', 'none');
+        }
     }
     refreshProgressBarCss() {
         $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
@@ -9321,6 +9346,7 @@ class PlayerInputText {
                     codeS = codeS.toUpperCase();
                 t += codeS;
             }
+            t = t.trim();
             this.text.setText(t);
         }
         // if height exceeded 2 rows,set the content back to before

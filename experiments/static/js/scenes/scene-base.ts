@@ -524,7 +524,7 @@ class BaseScene extends Phaser.Scene {
             })
 
             s.autoOn(this.centerObject.playerInputText.confirmedEvent, null, (word) => {
-                this.playerName = word;
+                this.playerName = word.trim();
                 setCookie('name', word);
                 console.log('just in time check: ' + getCookie('name'));
                 resolve(word);

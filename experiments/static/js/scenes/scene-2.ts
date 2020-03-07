@@ -119,6 +119,7 @@ class Scene2 extends BaseScene {
 
     lastTimeStamp: number;
     canRecieveEmotion: boolean = false;
+
     emotionAnalyze(imgRes: ImageRes) {        
         let face = imgRes.face;
         let timestamp = imgRes.timestamp; // in seconds
@@ -158,11 +159,40 @@ class Scene2 extends BaseScene {
             this.emotionMaxed(res.emotion);
         }
 
+        this.refreshBarLeftIconStatus(res.emotion);
         this.refreshProgressBarCss();
         // if(res.emotion != MyEmotion.None) {
         //     targetJquery.css('width', progress.value * 100 + "%");
         // }
         this.lastTimeStamp = timestamp;
+    }
+
+    refreshBarLeftIconStatus(currEmotion: MyEmotion) {
+        let activateBarID:string[]= [];
+        let deactviateBarID:string[] = ['top-bar', 'bottom-bar'];
+        
+        if(currEmotion == MyEmotion.Positive) {
+            deactviateBarID = [];
+            activateBarID.push('top-bar');
+            deactviateBarID.push('bottom-bar');
+        }
+        else if(currEmotion == MyEmotion.Negative) {
+            deactviateBarID = [];
+            activateBarID.push('bottom-bar');
+            deactviateBarID.push('top-bar');
+        }
+        
+        for(let i in activateBarID) {
+            let barID = activateBarID[i];
+            $(`#${barID} .normal`).css('display', 'none');
+            $(`#${barID} .active`).css('display', 'block');
+        }
+
+        for(let i in deactviateBarID) {
+            let barID = deactviateBarID[i];
+            $(`#${barID} .normal`).css('display', 'block');
+            $(`#${barID} .active`).css('display', 'none');
+        }
     }
 
     refreshProgressBarCss() {

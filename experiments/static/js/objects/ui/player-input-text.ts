@@ -235,10 +235,11 @@ class PlayerInputText {
             if (t.length < this.maxCount ) {
                 // if (t.length < this.maxCount && this.text.width < this.getAvailableWidth()) {
                 // if (t.length < this.maxCount ) {                    
-                    if (t.length == 0)
-                        codeS = codeS.toUpperCase();
-                    t += codeS;
-                }
+                if (t.length == 0)
+                    codeS = codeS.toUpperCase();
+                t += codeS;
+            }
+            t = t.trim();
             this.text.setText(t);
         }
             

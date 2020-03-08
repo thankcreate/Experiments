@@ -51,7 +51,9 @@ class PropButton extends Button {
             if(propInfos[i] === this.info) {
                 return i;
             }
-        }
+        }   
+     
+
         return ret;
     }
 
@@ -335,7 +337,15 @@ class PropButton extends Button {
     setHotKey(val: string) {
         if(this.hotkeyPrompt) {
             this.hotkey = val;
+
+            // if(this.allowLevelUp) {
+            //     this.hotkeyPrompt.y = -66;
+            //     this.hotkeyPrompt.text = 'Upgrade\nHotkey: "'+ val + '"';
+            // }
+            // else {
             this.hotkeyPrompt.text = 'Hotkey: "'+ val + '"';
+            // }
+            
         }
     }
             

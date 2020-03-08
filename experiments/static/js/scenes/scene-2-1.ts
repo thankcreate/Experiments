@@ -81,7 +81,7 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperContent('😅');
             this.setNewspaperTitle('Welcome');
         })
-        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you A LOT.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you a lot.`, false);
         state.addAction(s=>{
             this.setNewspaperContent('😣');
             this.setNewspaperTitle('65536 Sucks');
@@ -124,7 +124,7 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
+        wrong.addSubtitleAction(this.subtitle, ()=> `No! ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
         wrong.addSubtitleAction(this.subtitle, ()=> `Let me give you another try`, true);
         wrong.addAction(s=>{
             this.resetProgress();
@@ -140,7 +140,7 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, ()=> `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Of course, ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);

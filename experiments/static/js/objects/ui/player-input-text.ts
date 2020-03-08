@@ -131,13 +131,24 @@ class PlayerInputText {
     /**
      * @returns true if need to forward the operation to auto mode
      */
-    handleAutoContentKeyPress(input: string): boolean {
+    handleAutoContentKeyPress(input: string): boolean {               
         if(this.inForceMode){
             let curLen = this.text.text.length;
             let allLen = this.autoText.length;
     
             if(curLen < allLen) {
                 this.text.setText(this.autoText.substr(0, curLen + 1));
+            }
+            return true;
+        }
+        // if create is purchased, only show the create
+        else if(getCreatePropInfo().consumed) {
+            let create = getCreateKeyword();
+            let curLen = this.text.text.length;
+            let allLen = create.length;
+    
+            if(curLen < allLen) {
+                this.text.setText(create.substr(0, curLen + 1));
             }
             return true;
         }

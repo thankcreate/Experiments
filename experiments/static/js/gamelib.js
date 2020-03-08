@@ -1470,6 +1470,10 @@ class Scene1L4 extends Scene1 {
         for (let i = 0; i < this.ui.hud.rightBtns.length; i++) {
             this.ui.hud.rightBtns[i].firstTimeBubbleCallback = (idx) => { this.firstTimeBubbleAutoBad(idx); };
         }
+        this.ui.hud.leftBtns[0].firstTimeBubbleCallback = (idx) => { this.badUpgradeFirstTimeBubble(); };
+    }
+    badUpgradeFirstTimeBubble() {
+        this.gamePlayFsm.event("TO_KEYWORDS", true);
     }
     createBtns() {
         // this.upgrade1 = new Button(this, )
@@ -1486,6 +1490,7 @@ class Scene1L4 extends Scene1 {
         this.initStPromptTurn();
         this.initStPrmoptAutoTurn();
         this.initStPrmoptCreator();
+        this.intiStPromptKeywords();
         this.updateObjects.push(this.gamePlayFsm);
     }
     needShowEcoAboutAtStartup() {
@@ -1634,11 +1639,16 @@ class Scene1L4 extends Scene1 {
             this.subtitle.forceStopAndHideSubtitles();
         });
     }
+    /**
+     * After autobad is finished, we begin to check if we need to goto
+     * the Keywords panel prompt after a delay
+     */
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
         let state = this.gamePlayFsm.getState("PromptCompleteBad");
         state.addOnEnter(s => {
             targetBtn.hasNoActualClick = true;
+            // was reset to false in addYesOrNoAction
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
             .setBoolCondition(s => this.firstIntoNormalMode(), true);
@@ -1647,6 +1657,19 @@ class Scene1L4 extends Scene1 {
         //      state.addSubtitleAction(this.subtitle, "Just type in 'B', and we will help you complete it", false);
         state.addSubtitleAction(this.subtitle, "To purchase this upgrade, press 'Y'.\n To ignore, press 'N'", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
+        state.addFinishAction();
+        state.setOnExit(s => {
+            targetBtn.hideAttachedBubble();
+        });
+    }
+    intiStPromptKeywords() {
+        let targetBtn = this.ui.hud.leftBtns[0];
+        let state = this.gamePlayFsm.getState("PromptKeywords");
+        state.addOnEnter(s => {
+        });
+        state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you!", false);
+        state.addSubtitleAction(this.subtitle, "As we all know, 404s are bad, evil and vicious!\n You name it!", false);
+        state.addSubtitleAction(this.subtitle, "You can upgrade them with the score you have earned.\nBut they will also cost more and more", false);
         state.addFinishAction();
         state.setOnExit(s => {
             targetBtn.hideAttachedBubble();
@@ -2485,7 +2508,7 @@ class Scene2L1 extends Scene2 {
             this.setNewspaperContent('😅');
             this.setNewspaperTitle('Welcome');
         });
-        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you A LOT.`, false);
+        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you a lot.`, false);
         state.addAction(s => {
             this.setNewspaperContent('😣');
             this.setNewspaperTitle('65536 Sucks');
@@ -2519,7 +2542,7 @@ class Scene2L1 extends Scene2 {
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `No, ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
+        wrong.addSubtitleAction(this.subtitle, () => `No! ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
         wrong.addSubtitleAction(this.subtitle, () => `Let me give you another try`, true);
         wrong.addAction(s => {
             this.resetProgress();
@@ -2532,7 +2555,7 @@ class Scene2L1 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index);
         state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, () => `Of course ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
+        correct.addSubtitleAction(this.subtitle, () => `Of course, ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, it's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
@@ -5520,6 +5543,8 @@ var normal_1_4 = {
         { name: 'FINISHED', from: 'PromptAutoTurn', to: 'Idle' },
         { name: 'TO_PROMPT_CREATOR', from: 'Idle', to: 'PromptCreator' },
         { name: 'FINISHED', from: 'PromptCreator', to: 'Idle' },
+        { name: 'TO_KEYWORDS', from: 'Idle', to: 'PromptKeywords' },
+        { name: 'FINISHED', from: 'PromptKeywords', to: 'Idle' },
     ],
     states: [
         { name: 'Idle', color: 'Green' }
@@ -7329,7 +7354,7 @@ class CenterProgress extends Wrapper {
     }
 }
 let initScore = 0;
-let baseScore = 100;
+let baseScore = 300;
 let normalFreq1 = 7;
 let startWarnNum = 4;
 let startMockNum = 4;
@@ -7429,7 +7454,7 @@ for (let i = 0; i < hpPropInfos.length; i++) {
     let item = hpPropInfos[i];
     item.desc = "+HP"
         + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
-        + "\nPrice: " + item.price
+        + "\nPrice: $" + item.price
         + '\n\nHotkey: "' + item.hotkey[0] + '"';
 }
 function isReservedBadKeyword(inputWord) {
@@ -8207,7 +8232,7 @@ class Hud extends Wrapper {
             let info = this.rightBtns[2].info;
             return info.desc
                 + '\n\nTurn value to Non-404 per "Turn": 1'
-                + "\n\nPrice: " + myNum(info.price);
+                + "\n\nPrice: $" + myNum(info.price);
         };
         this.rightBtns[2].needForceBubble = true;
         // Auto Turn 
@@ -8218,7 +8243,7 @@ class Hud extends Wrapper {
             let info = this.rightBtns[3].info;
             return info.desc
                 + "\n\nDPS(Non-404): 1 / " + autoTurnDpsFactor + " of MaxHP"
-                + "\n\nPrice: " + myNum(info.price);
+                + "\n\nPrice: $" + myNum(info.price);
         };
         this.rightBtns[3].needForceBubble = true;
         // Create a new world
@@ -8281,12 +8306,12 @@ class Hud extends Wrapper {
                 let allDps = strategy.getDps404();
                 if (btn.curLevel == 0) {
                     ret += "\n\nDPS(404):  " + myNum(info.damage)
-                        + "\n\nPrice: " + myNum(info.price);
+                        + "\n\nPrice: $" + myNum(info.price);
                 }
                 else {
                     ret += "\n\nCurrent DPS(404):  " + myNum(info.damage) + "  (" + myNum(info.damage / allDps * 100) + "% of all)"
                         + "\nNext DPS(404):  " + myNum(btn.getNextDamage())
-                        + "\n\nUpgrade Price:  " + myNum(info.price);
+                        + "\n\nUpgrade Price: $" + myNum(info.price);
                 }
                 return ret;
             };
@@ -8294,6 +8319,7 @@ class Hud extends Wrapper {
                 badInfos[i].consumed = true;
             });
         }
+        this.leftBtns[0].needForceBubble = true;
     }
     createMenuBottom() {
         // bubble
@@ -9260,6 +9286,16 @@ class PlayerInputText {
             }
             return true;
         }
+        // if create is purchased, only show the create
+        else if (getCreatePropInfo().consumed) {
+            let create = getCreateKeyword();
+            let curLen = this.text.text.length;
+            let allLen = create.length;
+            if (curLen < allLen) {
+                this.text.setText(create.substr(0, curLen + 1));
+            }
+            return true;
+        }
         else if (getTurnInfo().consumed) {
             let bad = badInfos[0].title;
             let turn = turnInfos[0].title;
@@ -9810,7 +9846,13 @@ class PropButton extends Button {
     setHotKey(val) {
         if (this.hotkeyPrompt) {
             this.hotkey = val;
+            // if(this.allowLevelUp) {
+            //     this.hotkeyPrompt.y = -66;
+            //     this.hotkeyPrompt.text = 'Upgrade\nHotkey: "'+ val + '"';
+            // }
+            // else {
             this.hotkeyPrompt.text = 'Hotkey: "' + val + '"';
+            // }
         }
     }
     setPurchased(val) {

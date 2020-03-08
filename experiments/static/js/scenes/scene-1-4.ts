@@ -50,6 +50,11 @@ class Scene1L4 extends Scene1 {
             this.ui.hud.rightBtns[i].firstTimeBubbleCallback = (idx)=>{this.firstTimeBubbleAutoBad(idx)};
         }
         
+        this.ui.hud.leftBtns[0].firstTimeBubbleCallback = (idx)=>{this.badUpgradeFirstTimeBubble();}
+    }
+
+    badUpgradeFirstTimeBubble() {        
+        this.gamePlayFsm.event("TO_KEYWORDS", true);
     }
 
     createBtns() {
@@ -69,6 +74,8 @@ class Scene1L4 extends Scene1 {
         this.initStPromptTurn();
         this.initStPrmoptAutoTurn();
         this.initStPrmoptCreator();
+
+        this.intiStPromptKeywords();
 
         this.updateObjects.push(this.gamePlayFsm);
     }
@@ -254,11 +261,16 @@ class Scene1L4 extends Scene1 {
         });
     }
 
+    /**
+     * After autobad is finished, we begin to check if we need to goto 
+     * the Keywords panel prompt after a delay
+     */
     initStPromptAutoBad() {
         let targetBtn = this.ui.hud.rightBtns[0];
         let state = this.gamePlayFsm.getState("PromptCompleteBad");
         state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
+            // was reset to false in addYesOrNoAction
         });
         state.addSubtitleAction(this.subtitle, "Congratulations!", false)
             .setBoolCondition(s=>this.firstIntoNormalMode(), true)
@@ -271,6 +283,23 @@ class Scene1L4 extends Scene1 {
 
         state.addFinishAction();
         state.setOnExit(s=>{            
+            
+            targetBtn.hideAttachedBubble();
+        })
+    }
+
+    intiStPromptKeywords() {
+        let targetBtn = this.ui.hud.leftBtns[0];
+        let state = this.gamePlayFsm.getState("PromptKeywords");
+        state.addOnEnter(s=>{     
+            
+        });
+
+        state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you!", false)
+        state.addSubtitleAction(this.subtitle, "As we all know, 404s are bad, evil and vicious!\n You name it!", false)
+        state.addSubtitleAction(this.subtitle, "You can upgrade them with the score you have earned.\nBut they will also cost more and more", false)        
+        state.addFinishAction();
+        state.setOnExit(s=>{
             targetBtn.hideAttachedBubble();
         })
     }
@@ -289,7 +318,6 @@ class Scene1L4 extends Scene1 {
         state.setOnExit(s=>{            
             targetBtn.hideAttachedBubble();
         })
-
     }
 
     // TODO: maybe the showPause should be put into the state onEnter

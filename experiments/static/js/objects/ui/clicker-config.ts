@@ -11,7 +11,7 @@ interface PropInfo {
 
 
 let initScore = 0;
-let baseScore = 100;
+let baseScore = 300;
 let normalFreq1 = 7;
 
 let startWarnNum = 4;
@@ -151,7 +151,7 @@ for(let i = 0; i < hpPropInfos.length; i++) {
     let item = hpPropInfos[i];
     item.desc = "+HP"
         + "\n\nHP: +1/" + hpRegFactor + " of MaxHP"
-        + "\nPrice: " + item.price
+        + "\nPrice: $" + item.price
         + '\n\nHotkey: "' + item.hotkey[0] + '"';        
 }
 

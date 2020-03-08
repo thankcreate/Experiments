@@ -563,7 +563,7 @@ class BaseScene extends Phaser.Scene {
     initStSecondMeet() {
         let state = this.mainFsm.getState("SecondMeet");
         state
-            .addSubtitleAction(this.subtitle, s=>{
+            .addSubtitleAction(this.subtitle, s=>{               
                 return 'Welcome back! ' + this.getUserName() ;
             }, false, null, 1000, 0)
         

@@ -160,7 +160,7 @@ class Hud extends Wrapper<PhText> {
             let info = this.rightBtns[2].info;
             return info.desc 
                 + '\n\nTurn value to Non-404 per "Turn": 1'
-                + "\n\nPrice: " + myNum(info.price);
+                + "\n\nPrice: $" + myNum(info.price);
         } 
         this.rightBtns[2].needForceBubble = true;
 
@@ -174,7 +174,7 @@ class Hud extends Wrapper<PhText> {
             let info = this.rightBtns[3].info;
             return info.desc 
                 + "\n\nDPS(Non-404): 1 / " + autoTurnDpsFactor + " of MaxHP"
-                + "\n\nPrice: " + myNum(info.price);
+                + "\n\nPrice: $" + myNum(info.price);
         } 
         this.rightBtns[3].needForceBubble = true;
 
@@ -260,12 +260,12 @@ class Hud extends Wrapper<PhText> {
 
                 if(btn.curLevel == 0) {
                     ret += "\n\nDPS(404):  " + myNum(info.damage) 
-                    + "\n\nPrice: " + myNum(info.price);
+                    + "\n\nPrice: $" + myNum(info.price);
                 }
                 else {
                     ret += "\n\nCurrent DPS(404):  " + myNum(info.damage) + "  (" + myNum(info.damage / allDps * 100)  + "% of all)"
                     + "\nNext DPS(404):  " + myNum(btn.getNextDamage()) 
-                    + "\n\nUpgrade Price:  " + myNum(info.price);
+                    + "\n\nUpgrade Price: $" + myNum(info.price);
                 }               
 
                 
@@ -277,7 +277,7 @@ class Hud extends Wrapper<PhText> {
             });        
         }
 
-       
+        this.leftBtns[0].needForceBubble = true;
     }
 
     createMenuBottom() {

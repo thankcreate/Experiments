@@ -1668,8 +1668,8 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s => {
         });
         state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you!", false);
-        state.addSubtitleAction(this.subtitle, "As we all know, 404s are bad, evil and vicious!\n You name it!", false);
-        state.addSubtitleAction(this.subtitle, "You can upgrade them with the score you have earned.\nBut they will also cost more and more", false);
+        state.addSubtitleAction(this.subtitle, "As we all know, the content behind 4O4s are bad, evil and vicious!\n You name it!", false);
+        state.addSubtitleAction(this.subtitle, "Once purchsed, you can upgrade them with the score you have earned.", true);
         state.addFinishAction();
         state.setOnExit(s => {
             targetBtn.hideAttachedBubble();
@@ -1698,7 +1698,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[2];
-        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-4O4s into 4O4?", false).finishImmediatly();
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s => {
@@ -1711,7 +1711,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[3];
-        state.addSubtitleAction(this.subtitle, "Tired of turning them manually?", false).finishImmediatly();
+        state.addSubtitleAction(this.subtitle, "Tired of TURNING them manually?", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s => {
@@ -7422,7 +7422,7 @@ let propInfos = [
         desc: 'Turn Non-404 words into 404.\nYou can just type in "T" for short',
     },
     { title: "Auto\nTurn", consumed: false, pauseTitle: '  ^_^  ', price: 6000, size: 22, desc: "Automatically Turn Non-404 words into 404" },
-    { title: "The\nCreator", consumed: false, pauseTitle: '  ._.  ', price: 8000, size: 22, desc: 'Create a new word!\nType in "C" for short' }
+    { title: "The\nCreator", consumed: false, pauseTitle: '  ._.  ', price: 8000, size: 22, desc: 'Create a new word!\n' }
 ];
 function getBadgeResID(i) {
     let resId = 'badge_' + badInfos[i].title.toLowerCase();
@@ -8432,6 +8432,7 @@ class Hud extends Wrapper {
         this.refreshMenuBtnState();
         if (this.infoPanel)
             this.infoPanel.update(time, dt);
+        let allBtns = this.getAllPropBtns();
     }
     resetCombo() {
         this.comboHitText.setVisible(false);
@@ -9625,6 +9626,7 @@ class PropButton extends Button {
         this.allowMultipleConsume = false;
         this.allowLevelUp = false;
         this.curLevel = 0;
+        this.bubbleCount = 0;
         this.hasNoActualClick = false;
         this.needForceBubble = false;
         this.needConsiderHP = false;
@@ -9728,6 +9730,12 @@ class PropButton extends Button {
     }
     showAttachedBubble(title) {
         this.scene.pause(title);
+        this.bubbleCount++;
+        if (this.bubbleCount == 1) {
+            this.showAttachedBubbleInner(title);
+        }
+    }
+    showAttachedBubbleInner(title) {
         this.hovered = true;
         if (this.bubble) {
             this.updateBubbleInfo();
@@ -9737,6 +9745,12 @@ class PropButton extends Button {
     }
     hideAttachedBubble() {
         this.scene.unPause();
+        this.bubbleCount--;
+        if (this.bubbleCount == 0) {
+            this.hideAttachedBubbleInner();
+        }
+    }
+    hideAttachedBubbleInner() {
         this.hovered = false;
         if (this.bubble) {
             this.bubble.hide();

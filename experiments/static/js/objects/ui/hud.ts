@@ -421,6 +421,9 @@ class Hud extends Wrapper<PhText> {
 
         if(this.infoPanel)
             this.infoPanel.update(time, dt);
+        
+        let allBtns = this.getAllPropBtns();
+       
     }
 
     resetCombo() {

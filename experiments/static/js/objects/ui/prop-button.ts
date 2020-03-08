@@ -58,26 +58,42 @@ class PropButton extends Button {
     }
 
 
+    bubbleCount = 0;
     showAttachedBubble(title?: string) {
         (this.scene as BaseScene).pause(title);    
-        this.hovered = true;       
 
+        this.bubbleCount++;
+        if(this.bubbleCount == 1) {
+            this.showAttachedBubbleInner(title);
+        }
+    }
+
+    private showAttachedBubbleInner(title?: string) {
+        this.hovered = true;       
         if(this.bubble) {
             this.updateBubbleInfo();
             this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
             this.bubble.show();
-        }
-            
+        }            
     }
+
 
     hideAttachedBubble() {
         (this.scene as BaseScene).unPause();
+        this.bubbleCount--;
+        if(this.bubbleCount == 0) {
+            this.hideAttachedBubbleInner();
+        }
+    }
+
+    hideAttachedBubbleInner() {     
         this.hovered = false;
-        
         if(this.bubble) {                
             this.bubble.hide();
         }
     }
+
+    
 
     hasNoActualClick: boolean = false;
 

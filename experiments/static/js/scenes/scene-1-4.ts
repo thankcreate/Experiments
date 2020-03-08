@@ -291,13 +291,12 @@ class Scene1L4 extends Scene1 {
     intiStPromptKeywords() {
         let targetBtn = this.ui.hud.leftBtns[0];
         let state = this.gamePlayFsm.getState("PromptKeywords");
-        state.addOnEnter(s=>{     
-            
+        state.addOnEnter(s=>{                 
         });
 
         state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you!", false)
-        state.addSubtitleAction(this.subtitle, "As we all know, 404s are bad, evil and vicious!\n You name it!", false)
-        state.addSubtitleAction(this.subtitle, "You can upgrade them with the score you have earned.\nBut they will also cost more and more", false)        
+        state.addSubtitleAction(this.subtitle, "As we all know, the content behind 4O4s are bad, evil and vicious!\n You name it!", false)
+        state.addSubtitleAction(this.subtitle, "Once purchsed, you can upgrade them with the score you have earned.", true)        
         state.addFinishAction();
         state.setOnExit(s=>{
             targetBtn.hideAttachedBubble();
@@ -329,7 +328,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[2];
-        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to turn non-4O4s into 4O4?", false).finishImmediatly()
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s=>{            
@@ -343,7 +342,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.ui.hud.rightBtns[3];
-        state.addSubtitleAction(this.subtitle, "Tired of turning them manually?", false).finishImmediatly()
+        state.addSubtitleAction(this.subtitle, "Tired of TURNING them manually?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.setOnExit(s=>{            

@@ -360,11 +360,7 @@ class Scene2 extends BaseScene {
             targets: this.paperCssBinding,
             translateX: -70,
             duration: dt
-        }) 
-
-        setTimeout(() => {
-            this.showProgressBars();
-        }, 1000);
+        })      
     }    
 
     showProgressBars() {

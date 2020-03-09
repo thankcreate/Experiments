@@ -1667,9 +1667,9 @@ class Scene1L4 extends Scene1 {
         let state = this.gamePlayFsm.getState("PromptKeywords");
         state.addOnEnter(s => {
         });
-        state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you!", false);
+        state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you to eliminate to 4O4s!", false);
         state.addSubtitleAction(this.subtitle, "As we all know, the content behind 4O4s are bad, evil and vicious!\n You name it!", false);
-        state.addSubtitleAction(this.subtitle, "Once purchsed, you can upgrade them with the score you have earned.", true);
+        state.addSubtitleAction(this.subtitle, "Once purchased, you can upgrade them with the score you have earned.", true);
         state.addFinishAction();
         state.setOnExit(s => {
             targetBtn.hideAttachedBubble();
@@ -2345,9 +2345,6 @@ class Scene2 extends BaseScene {
             translateX: -70,
             duration: dt
         });
-        setTimeout(() => {
-            this.showProgressBars();
-        }, 1000);
     }
     showProgressBars() {
         let dt = 1000;
@@ -2576,38 +2573,61 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around", false);
         state.addAction(s => {
             this.showCam();
-            this.canRecieveEmotion = true;
         });
         state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
         state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
+        state.addAction(s => {
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "If you want to show smiling, please make sure we can see you teeth", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, () => `Why would someone hate to see more labs?`, true);
+        wrong.addSubtitleAction(this.subtitle, () => `I guess ${this.getUserName()} wants to try again.`, true);
+        wrong.addAction(s => {
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true;
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper3() {
         let index = 3;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!", false);
+        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!\n So exuberant, but unavailing", false);
+        state.addSubtitleAction(this.subtitle, "To show disgusting, just make some furrowed brow or nose wrinkle", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `You never let me down, ${this.getUserName()}.`, true);
+        correct.addSubtitleAction(this.subtitle, () => `Iconoclasts are the cancer of our community.`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, () => `No!. Don't make me doubt if you are one of them.`, true);
+        wrong.addSubtitleAction(this.subtitle, () => `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);
+        wrong.addAction(s => {
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true;
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper4() {
         let index = 4;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "Intersting", false);
+        state.addSubtitleAction(this.subtitle, "And food price will be fine. Not a problem.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, () => `Excellent`, true);
+        correct.addSubtitleAction(this.subtitle, () => `Excellent reaction`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm. `, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, () => `Wrong! \nTry again`, true);
+        wrong.addAction(s => {
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true;
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper5() {
         let index = 5;
@@ -2617,13 +2637,18 @@ class Scene2L1 extends Scene2 {
         correct.addSubtitleAction(this.subtitle, () => `Well done, ${this.getUserName()}.`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm.`, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
+        wrong.addAction(s => {
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true;
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper6() {
         let index = 6;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "Ok this is the last one", false);
+        state.addSubtitleAction(this.subtitle, "OK, this is the last one", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         if (correct) {
             correct.addSubtitleAction(this.subtitle, () => `Good choice, ${this.getUserName()}.`, true);
@@ -2631,8 +2656,13 @@ class Scene2L1 extends Scene2 {
         }
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         if (wrong) {
-            wrong.addSubtitleAction(this.subtitle, () => `Hmmmmm.`, true);
-            wrong.addFinishAction();
+            wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
+            wrong.addAction(s => {
+                this.resetProgress();
+                this.hideResult();
+                this.canRecieveEmotion = true;
+            });
+            wrong.addEventAction(Fsm.SECODN_CHANCE);
         }
     }
 }
@@ -8180,9 +8210,6 @@ class Hud extends Wrapper {
         this.toolMenuContainerRight = new ButtonGroup(this.scene, this.toolMenuContainerRightAnchor, -75, 400, null);
         this.hideContainerRight(false);
         // bubble
-        this.popupBubbleRight = new Bubble(this.scene, this.toolMenuContainerRightAnchor, 0, 0, Dir.Right);
-        this.popupBubbleRight.inner.setPosition(0, 0);
-        this.popupBubbleRight.hide();
         let startY = 0;
         let intervalY = 100;
         let tempHotkey = ['7', '8', '9', '0', '-'];
@@ -8192,10 +8219,9 @@ class Hud extends Wrapper {
             btn.addPromptImg(Dir.Right);
             btn.setHotKey(tempHotkey[i]);
             this.rightBtns.push(btn);
-            btn.bubble = this.popupBubbleRight;
-            btn.bubbleAnchor = () => {
-                return MakePoint2(btn.inner.x + this.toolMenuContainerRight.inner.x - 70, btn.inner.y + this.toolMenuContainerRight.inner.y);
-            };
+            let bubble = new Bubble(this.scene, btn.inner, -70, 0, Dir.Right);
+            bubble.hide();
+            btn.bubble = bubble;
             btn.bubbleContent = () => {
                 return info.desc + "\n\nPrice: " + myNum(info.price);
             };
@@ -8265,9 +8291,6 @@ class Hud extends Wrapper {
         this.toolMenuContainerLeft = new ButtonGroup(this.scene, this.inner, 75, 360, null);
         this.hideContainerLeft(false);
         // bubble
-        this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);
-        this.popupBubbleLeft.inner.setPosition(0, 0);
-        this.popupBubbleLeft.hide();
         let bkgWidth = btnWidth + frameBtnGap * 2;
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
         let bkg = new Rect(this.scene, this.toolMenuContainerLeft.inner, -bkgWidth / 2, -btnWidth / 2 - frameTopPadding, {
@@ -8296,10 +8319,9 @@ class Hud extends Wrapper {
             btn.addPromptImg(Dir.Left);
             // btn.setHotKey((i + 1) + "");
             btn.setHotKey(tempHotkey[i]);
-            btn.bubble = this.popupBubbleLeft;
-            btn.bubbleAnchor = () => {
-                return MakePoint2(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70, btn.inner.y + this.toolMenuContainerLeft.inner.y);
-            };
+            let bubble = new Bubble(this.scene, btn.inner, 70, 0, Dir.Left);
+            bubble.hide();
+            btn.bubble = bubble;
             btn.bubbleContent = () => {
                 let ret = info.desc;
                 let strategy = this.sc1().enemyManager.curStrategy;
@@ -8323,10 +8345,6 @@ class Hud extends Wrapper {
     }
     createMenuBottom() {
         // bubble
-        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);
-        this.popupBubbleBottom.inner.setPosition(0, 0);
-        this.popupBubbleBottom.hide();
-        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
         let info = hpPropInfos[0];
         let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0, 'rounded_btn', info, false, 75, 75, false);
         this.buyHpBtn = btn;
@@ -8340,10 +8358,10 @@ class Hud extends Wrapper {
                 this.fixedHotkeyMap.set(info.hotkey[i], btn);
             }
         }
-        btn.bubble = this.popupBubbleBottom;
-        btn.bubbleAnchor = () => {
-            return MakePoint2(btn.inner.x + btn.parentContainer.x, btn.inner.y + btn.parentContainer.y - 40);
-        };
+        let bubble = new Bubble(this.scene, btn.inner, 0, -50, Dir.Bottom);
+        bubble.hide();
+        bubble.wrappedObject.alpha = 0.85;
+        btn.bubble = bubble;
         btn.bubbleContent = () => {
             return info.desc;
         };
@@ -9739,7 +9757,6 @@ class PropButton extends Button {
         this.hovered = true;
         if (this.bubble) {
             this.updateBubbleInfo();
-            this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
             this.bubble.show();
         }
     }

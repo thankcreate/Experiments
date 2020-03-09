@@ -32,9 +32,9 @@ class Hud extends Wrapper<PhText> {
     buyHpBtn: PropButton;
        
     
-    popupBubbleRight: Bubble;
-    popupBubbleLeft: Bubble;
-    popupBubbleBottom: Bubble;
+    
+    
+    
 
     infoPanel: ClickerInfoPanel;
 
@@ -93,9 +93,7 @@ class Hud extends Wrapper<PhText> {
         this.hideContainerRight(false);
 
         // bubble
-        this.popupBubbleRight = new Bubble(this.scene, this.toolMenuContainerRightAnchor, 0, 0, Dir.Right);        
-        this.popupBubbleRight.inner.setPosition(0, 0);        
-        this.popupBubbleRight.hide();
+
 
              
         let startY = 0;
@@ -112,11 +110,11 @@ class Hud extends Wrapper<PhText> {
             this.rightBtns.push(btn);                        
                   
 
-            btn.bubble = this.popupBubbleRight;
-            btn.bubbleAnchor = ()=>{
-                return MakePoint2(btn.inner.x + this.toolMenuContainerRight.inner.x - 70
-                    , btn.inner.y + this.toolMenuContainerRight.inner.y);
-            }         
+            let bubble = new Bubble(this.scene, btn.inner, -70, 0, Dir.Right);                      
+            bubble.hide();
+
+            btn.bubble = bubble;
+            
             btn.bubbleContent = ()=>{
                 return info.desc + "\n\nPrice: " + myNum(info.price);
             } 
@@ -207,10 +205,7 @@ class Hud extends Wrapper<PhText> {
         this.hideContainerLeft(false);
 
          // bubble
-         this.popupBubbleLeft = new Bubble(this.scene, this.inner, 0, 0, Dir.Left);        
-         this.popupBubbleLeft.inner.setPosition(0, 0);        
-         this.popupBubbleLeft.hide();
-
+      
 
         let bkgWidth = btnWidth + frameBtnGap * 2;        
         let bkgHeight = frameTopPadding + frameBottonPadding + (badInfos.length) * btnWidth + (badInfos.length - 1) * (intervalY - btnWidth);
@@ -247,11 +242,11 @@ class Hud extends Wrapper<PhText> {
             // btn.setHotKey((i + 1) + "");
             btn.setHotKey(tempHotkey[i]);
 
-            btn.bubble = this.popupBubbleLeft;
-            btn.bubbleAnchor = ()=> {
-                return MakePoint2(btn.inner.x + this.toolMenuContainerLeft.inner.x + 70
-                    , btn.inner.y + this.toolMenuContainerLeft.inner.y);
-            } 
+            let bubble = new Bubble(this.scene, btn.inner, 70, 0, Dir.Left);                       
+            bubble.hide();
+   
+
+            btn.bubble = bubble;
             btn.bubbleContent = ()=>{
                 let ret = info.desc;
                 
@@ -282,10 +277,7 @@ class Hud extends Wrapper<PhText> {
 
     createMenuBottom() {
         // bubble
-        this.popupBubbleBottom = new Bubble(this.scene, this.inner, 0, 0, Dir.Bottom);        
-        this.popupBubbleBottom.inner.setPosition(0, 0)        
-        this.popupBubbleBottom.hide();        
-        this.popupBubbleBottom.wrappedObject.alpha = 0.85;
+
 
         let info = hpPropInfos[0];        
         let btn = new PropButton(this.scene, this.hp.inner, null, this, 0, 0,
@@ -304,12 +296,12 @@ class Hud extends Wrapper<PhText> {
             }
         }
 
-        btn.bubble = this.popupBubbleBottom;
-        btn.bubbleAnchor = ()=> {
-            return MakePoint2(
-                btn.inner.x + btn.parentContainer.x, 
-                btn.inner.y + btn.parentContainer.y - 40);
-        } 
+        let bubble = new Bubble(this.scene, btn.inner, 0, -50, Dir.Bottom);                
+        bubble.hide();        
+        bubble.wrappedObject.alpha = 0.85;
+
+        btn.bubble = bubble;
+       
         btn.bubbleContent = ()=>{
            return info.desc;
         }

@@ -41,7 +41,6 @@ class PropButton extends Button {
 
     bubble: Bubble;
     
-    bubbleAnchor: PosiGen;
     bubbleContent: StrGen;
 
     // return the propInfo
@@ -71,8 +70,7 @@ class PropButton extends Button {
     private showAttachedBubbleInner(title?: string) {
         this.hovered = true;       
         if(this.bubble) {
-            this.updateBubbleInfo();
-            this.bubble.setPosition(this.bubbleAnchor().x, this.bubbleAnchor().y);
+            this.updateBubbleInfo();            
             this.bubble.show();
         }            
     }

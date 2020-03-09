@@ -163,51 +163,77 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, ()=> `See? ${this.getUserName()}. It's easy, right?`, false); 
         state.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around", false); 
         state.addAction(s=>{            
-            this.showCam();
+            this.showCam();            
+        });
+        state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
+
+        
+        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
+
+        state.addAction(s=>{            
+            this.showProgressBars();
             this.canRecieveEmotion = true;
         });
-        state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);          
-        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);  
+        state.addSubtitleAction(this.subtitle, "If you want to show smiling, please make sure we can see you teeth", false);
+        
         
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, ()=> `Why would someone hate to see more labs?`, true);
+        wrong.addSubtitleAction(this.subtitle, ()=> `I guess ${this.getUserName()} wants to try again.`, true);
+        wrong.addAction(s=>{
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true;  
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
     initStNewspaper3() {
         let index = 3;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!", false);
-
+        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!\n So exuberant, but unavailing", false);
+        state.addSubtitleAction(this.subtitle, "To show disgusting, just make some furrowed brow or nose wrinkle", false);
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `You never let me down, ${this.getUserName()}.`, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Iconoclasts are the cancer of our community.`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, ()=> `No!. Don't make me doubt if you are one of them.`, true);
+        wrong.addSubtitleAction(this.subtitle, ()=> `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);
+        wrong.addAction(s=>{
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true; 
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
     initStNewspaper4() {
         let index = 4;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "Intersting", false);
+        state.addSubtitleAction(this.subtitle, "And food price will be fine. Not a problem.", false);
 
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, ()=> `Excellent`, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Excellent reaction`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm. `, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, ()=> `Wrong! \nTry again`, true);
+        wrong.addAction(s=>{
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true; 
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
     initStNewspaper5() {
@@ -221,15 +247,20 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm.`, true);
-        wrong.addFinishAction();
+        wrong.addSubtitleAction(this.subtitle, ()=> `Wrong again!\n Try again again!`, true);
+        wrong.addAction(s=>{
+            this.resetProgress();
+            this.hideResult();
+            this.canRecieveEmotion = true; 
+        });
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
     initStNewspaper6() {
         let index = 6;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "Ok this is the last one", false);
+        state.addSubtitleAction(this.subtitle, "OK, this is the last one", false);
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         if(correct){
@@ -240,8 +271,14 @@ class Scene2L1 extends Scene2 {
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         if(wrong) {
-            wrong.addSubtitleAction(this.subtitle, ()=> `Hmmmmm.`, true);
-            wrong.addFinishAction();
+            wrong.addSubtitleAction(this.subtitle, ()=> `Wrong again!\n Try again again!`, true);
+           
+            wrong.addAction(s=>{
+                this.resetProgress();
+                this.hideResult();
+                this.canRecieveEmotion = true; 
+            });
+            wrong.addEventAction(Fsm.SECODN_CHANCE);
         }        
     }
 }

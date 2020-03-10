@@ -2131,13 +2131,17 @@ class Scene2 extends BaseScene {
         let randomWidth = 400 + Math.random() * 100;
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
     }
+    correctEnterCallback(state, index) {
+        this.hideProgressBars();
+        this.canRecieveEmotion = false;
+    }
     resetProgress() {
         this.topProgress.value = 0;
         this.bottomProgress.value = 0;
         this.refreshProgressBarCss();
     }
     makeNewspaperFsm() {
-        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this));
+        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this));
     }
     // called by BaseScene.create
     initVoiceType() {
@@ -2347,7 +2351,7 @@ class Scene2 extends BaseScene {
         });
     }
     showProgressBars() {
-        let dt = 1000;
+        let dt = 600;
         this.tweens.add({
             targets: this.topProgressCssBinding,
             translateY: 0,
@@ -2356,6 +2360,19 @@ class Scene2 extends BaseScene {
         this.tweens.add({
             targets: this.bottomProgressCssBinding,
             translateY: 0,
+            duration: dt
+        });
+    }
+    hideProgressBars() {
+        let dt = 600;
+        this.tweens.add({
+            targets: this.topProgressCssBinding,
+            translateY: 100,
+            duration: dt
+        });
+        this.tweens.add({
+            targets: this.bottomProgressCssBinding,
+            translateY: -100,
             duration: dt
         });
     }
@@ -2575,13 +2592,16 @@ class Scene2L1 extends Scene2 {
             this.showCam();
         });
         state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
-        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
         state.addAction(s => {
             this.showProgressBars();
             this.canRecieveEmotion = true;
         });
-        state.addSubtitleAction(this.subtitle, "If you want to show smiling, please make sure we can see you teeth", false);
+        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
+        // 🦷
+        state.addSubtitleAction(this.subtitle, "If you want to show a grinning face, please make sure we can see your TEETH", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction(s => {
+        });
         correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
@@ -2597,14 +2617,19 @@ class Scene2L1 extends Scene2 {
     initStNewspaper3() {
         let index = 3;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!\n So exuberant, but unavailing", false);
-        state.addSubtitleAction(this.subtitle, "To show disgusting, just make some furrowed brow or nose wrinkle", false);
+        state.addSubtitleAction(this.subtitle, "Iconoclasts!\n So exuberant, so unavailing", false);
+        state.addAction(s => {
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        // 😟👃
+        state.addSubtitleAction(this.subtitle, "If you want to show disgusting, \njust make some FURROWED BROW or NOSE WRINKLE", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `You never let me down, ${this.getUserName()}.`, true);
         correct.addSubtitleAction(this.subtitle, () => `Iconoclasts are the cancer of our community.`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `No!. Don't make me doubt if you are one of them.`, true);
+        wrong.addSubtitleAction(this.subtitle, () => `No! Don't make me doubt if you are one of them.`, true);
         wrong.addSubtitleAction(this.subtitle, () => `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);
         wrong.addAction(s => {
             this.resetProgress();
@@ -2616,7 +2641,11 @@ class Scene2L1 extends Scene2 {
     initStNewspaper4() {
         let index = 4;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "And food price will be fine. Not a problem.", false);
+        state.addAction(s => {
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "I think food price will be fine. What do you say?", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Excellent reaction`, true);
         correct.addFinishAction();
@@ -2632,7 +2661,11 @@ class Scene2L1 extends Scene2 {
     initStNewspaper5() {
         let index = 5;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "What now?", false);
+        state.addAction(s => {
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "Things have changed a little bit. What now?", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Well done, ${this.getUserName()}.`, true);
         correct.addFinishAction();
@@ -2648,6 +2681,10 @@ class Scene2L1 extends Scene2 {
     initStNewspaper6() {
         let index = 6;
         let state = this.newspaperFsm.getStateByIndex(index);
+        state.addAction(s => {
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
         state.addSubtitleAction(this.subtitle, "OK, this is the last one", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         if (correct) {
@@ -5414,10 +5451,11 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     return this;
 };
 class NewspaperFsm extends Fsm {
-    constructor(scene, npNumbers, papernEnterCallBack) {
+    constructor(scene, npNumbers, papernEnterCallBack, correctEnterCallback) {
         super(scene, null);
         this.newspapaerStates = [];
         this.papernEnterCallBack = papernEnterCallBack;
+        this.correctEnterCallback = correctEnterCallback;
         // deep copy
         this.npNumbers = [...npNumbers];
         this.constructNpStates();
@@ -5456,6 +5494,12 @@ class NewspaperFsm extends Fsm {
             state.addOnEnter(s => {
                 this.papernEnterCallBack(s, i);
             });
+            let correct = this.getReactionStateByIndex(i, true);
+            if (correct) {
+                correct.addOnEnter(s => {
+                    this.correctEnterCallback(s, i);
+                });
+            }
         }
     }
     /**
@@ -5890,7 +5934,7 @@ class EmmotionManager {
             ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
-        else if (expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
+        if (expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
             ana.emotion = MyEmotion.Negative;
             ana.intensity = 1;
         }
@@ -6330,11 +6374,11 @@ class SpeechManager {
 }
 let g_newsData1 = `Index	Title	Content	Answer	Style
 0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0
-1	Прaвда	A group of riots attacked innocent people and damaged facilities in an experimen lab yesterday.	0	0
+1	Прaвда	A group of riots attacked innocent scientists and damaged facilities in an experimen lab yesterday.	0	0
 2	YES, MINISTER	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
 3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	0
 4	EXPERIMENT DAILY	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0
-5	EXPERIMENT DAILY	The domestic food price has risen by 50%. Nothing to worried about. With the power of experiments, we can produce whatever we please	1	0
+5	EXPERIMENT DAILY	The domestic food price has risen by 50%. Nothing to worry about. With the power of experiments, we can produce whatever we please	1	0
 6	EXPERIMENT DAILY	The domestic food price has risen by 100%.The Minister of Food just declared an act about halving the food ration, and it's good for your heath. Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0
 7				
 8				

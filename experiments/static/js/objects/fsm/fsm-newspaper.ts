@@ -1,24 +1,31 @@
 
-type PapernEnterCallBack = (state: FsmState, index:number)=>any;
+type PapernEnterCallback = (state: FsmState, index:number)=>any;
+type CorrectEnterCallback = (state: FsmState, index:number)=>any;
 class NewspaperFsm extends Fsm{
     npNumbers: number[];
 
     static DEFAULT_ST_NAME = 'Default';
 
     newspapaerStates: FsmState[] = [];
-    papernEnterCallBack
-    constructor(scene: BaseScene, npNumbers:number[], papernEnterCallBack:PapernEnterCallBack) {
+    papernEnterCallBack: PapernEnterCallback;
+    correctEnterCallback: CorrectEnterCallback;
+
+    constructor(
+        scene: BaseScene, 
+        npNumbers:number[], 
+        papernEnterCallBack:PapernEnterCallback,
+        correctEnterCallback:CorrectEnterCallback
+        ) {
         super(scene, null);
         
         this.papernEnterCallBack = papernEnterCallBack;
+        this.correctEnterCallback = correctEnterCallback;
         // deep copy
         this.npNumbers = [...npNumbers];        
         this.constructNpStates();
 
         this.name = 'NewspaperFSM';
-        this.addInitalState(NewspaperFsm.DEFAULT_ST_NAME);
-
-        
+        this.addInitalState(NewspaperFsm.DEFAULT_ST_NAME);        
     }
     
     constructNpStates() {
@@ -63,6 +70,15 @@ class NewspaperFsm extends Fsm{
             state.addOnEnter(s=>{
                 this.papernEnterCallBack(s, i);
             })
+
+            let correct = this.getReactionStateByIndex(i, true);
+
+            if(correct) {
+                correct.addOnEnter(s=>{
+                    this.correctEnterCallback(s, i);
+                })
+            }
+            
         }
     }
 

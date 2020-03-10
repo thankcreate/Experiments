@@ -42,7 +42,8 @@ class EmmotionManager {
             ana.emotion = MyEmotion.Positive;
             ana.intensity = 1;
         }
-        else if(expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
+        
+        if(expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
             ana.emotion = MyEmotion.Negative;
             ana.intensity = 1;
         }

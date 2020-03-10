@@ -166,18 +166,19 @@ class Scene2L1 extends Scene2 {
             this.showCam();            
         });
         state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
-
         
-        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
-
         state.addAction(s=>{            
             this.showProgressBars();
             this.canRecieveEmotion = true;
         });
-        state.addSubtitleAction(this.subtitle, "If you want to show smiling, please make sure we can see you teeth", false);
-        
-        
+        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);      
+        // 🦷
+        state.addSubtitleAction(this.subtitle, "If you want to show a grinning face, please make sure we can see your TEETH", false);
+                
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction(s=>{            
+        })
+
         correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. That's great, right?`, true);
         correct.addFinishAction();
 
@@ -196,8 +197,13 @@ class Scene2L1 extends Scene2 {
         let index = 3;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "God! Iconoclasts!\n So exuberant, but unavailing", false);
-        state.addSubtitleAction(this.subtitle, "To show disgusting, just make some furrowed brow or nose wrinkle", false);
+        state.addSubtitleAction(this.subtitle, "Iconoclasts!\n So exuberant, so unavailing", false);
+        state.addAction(s=>{            
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        // 😟👃
+        state.addSubtitleAction(this.subtitle, "If you want to show disgusting, \njust make some FURROWED BROW or NOSE WRINKLE", false);        
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `You never let me down, ${this.getUserName()}.`, true);
@@ -205,7 +211,7 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> `No!. Don't make me doubt if you are one of them.`, true);
+        wrong.addSubtitleAction(this.subtitle, ()=> `No! Don't make me doubt if you are one of them.`, true);
         wrong.addSubtitleAction(this.subtitle, ()=> `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);
         wrong.addAction(s=>{
             this.resetProgress();
@@ -219,8 +225,12 @@ class Scene2L1 extends Scene2 {
         let index = 4;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "And food price will be fine. Not a problem.", false);
-
+        state.addAction(s=>{            
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "I think food price will be fine. What do you say?", false);
+        
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Excellent reaction`, true);
@@ -240,7 +250,12 @@ class Scene2L1 extends Scene2 {
         let index = 5;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "What now?", false);
+        state.addAction(s=>{            
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
+        state.addSubtitleAction(this.subtitle, "Things have changed a little bit. What now?", false);
+        
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, ()=> `Well done, ${this.getUserName()}.`, true);
@@ -260,8 +275,13 @@ class Scene2L1 extends Scene2 {
         let index = 6;
         let state = this.newspaperFsm.getStateByIndex(index)
         
-        state.addSubtitleAction(this.subtitle, "OK, this is the last one", false);
+        state.addAction(s=>{            
+            this.showProgressBars();
+            this.canRecieveEmotion = true;
+        });
 
+        state.addSubtitleAction(this.subtitle, "OK, this is the last one", false);
+       
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         if(correct){
             correct.addSubtitleAction(this.subtitle, ()=> `Good choice, ${this.getUserName()}.`, true);

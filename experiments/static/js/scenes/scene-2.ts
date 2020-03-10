@@ -76,6 +76,11 @@ class Scene2 extends BaseScene {
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
     }
 
+    correctEnterCallback(state: FsmState, index: number) {
+        this.hideProgressBars();
+        this.canRecieveEmotion = false;
+    }
+
     resetProgress() {
         this.topProgress.value = 0;
         this.bottomProgress.value = 0;
@@ -83,7 +88,7 @@ class Scene2 extends BaseScene {
     }
 
     makeNewspaperFsm() {
-        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this));
+        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this));        
     }
 
     // called by BaseScene.create
@@ -364,7 +369,7 @@ class Scene2 extends BaseScene {
     }    
 
     showProgressBars() {
-        let dt = 1000;
+        let dt = 600;
         
         this.tweens.add({
             targets: this.topProgressCssBinding,
@@ -375,6 +380,22 @@ class Scene2 extends BaseScene {
         this.tweens.add({
             targets: this.bottomProgressCssBinding,
             translateY: 0,
+            duration: dt
+        }) 
+    }
+
+    hideProgressBars() {        
+        let dt = 600;
+        
+        this.tweens.add({
+            targets: this.topProgressCssBinding,
+            translateY: 100,
+            duration: dt
+        })
+
+        this.tweens.add({
+            targets: this.bottomProgressCssBinding,
+            translateY: -100,
             duration: dt
         }) 
     }

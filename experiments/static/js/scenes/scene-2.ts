@@ -288,16 +288,21 @@ class Scene2 extends BaseScene {
         
     }
 
+    initialPaperTranslateX = -50;
+    initialPaperTranslateY = -50;
+
+    initialCamTranslateX = -100;
+    initialCamTranslateY = -50;
 
     initBindingCss() {
         this.paperCssBinding.scale = 0;
         this.paperCssBinding.rotate = 0;
-        this.paperCssBinding.translateX = -50;
-        this.paperCssBinding.translateY = -50;
+        this.paperCssBinding.translateX = this.initialPaperTranslateX;
+        this.paperCssBinding.translateY = this.initialPaperTranslateY;
         this.paperCssBinding.udpate();
 
-        this.camCssBinding.translateX = -100;
-        this.camCssBinding.translateY = -50;
+        this.camCssBinding.translateX = this.initialCamTranslateX;
+        this.camCssBinding.translateY = this.initialCamTranslateY;
         this.camCssBinding.udpate();
 
         this.topProgressCssBinding.translateY = 100;
@@ -349,18 +354,18 @@ class Scene2 extends BaseScene {
     }
     
 
-    showCam() {
+    showCam(isShow: boolean) {
         let dt = 500;
         
         this.tweens.add({
             targets: this.camCssBinding,
-            translateX: 0,
+            translateX: isShow? 0 : this.initialCamTranslateX,
             duration: dt
         })
 
         this.tweens.add({
             targets: this.paperCssBinding,
-            translateX: -70,
+            translateX: isShow? -70 : this.initialPaperTranslateX,
             duration: dt
         })      
     }    

@@ -2090,6 +2090,10 @@ class Scene2 extends BaseScene {
         this.canRecieveEmotion = false;
         this.canRecieveEmojiClick = false;
         this.isLastTestCorrect = false;
+        this.initialPaperTranslateX = -50;
+        this.initialPaperTranslateY = -50;
+        this.initialCamTranslateX = -100;
+        this.initialCamTranslateY = -50;
         this.npStyle = NewsPaperStyle.DEFAULT;
         /////////////////////////////////////////////////////////////////////////
         this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
@@ -2289,11 +2293,11 @@ class Scene2 extends BaseScene {
     initBindingCss() {
         this.paperCssBinding.scale = 0;
         this.paperCssBinding.rotate = 0;
-        this.paperCssBinding.translateX = -50;
-        this.paperCssBinding.translateY = -50;
+        this.paperCssBinding.translateX = this.initialPaperTranslateX;
+        this.paperCssBinding.translateY = this.initialPaperTranslateY;
         this.paperCssBinding.udpate();
-        this.camCssBinding.translateX = -100;
-        this.camCssBinding.translateY = -50;
+        this.camCssBinding.translateX = this.initialCamTranslateX;
+        this.camCssBinding.translateY = this.initialCamTranslateY;
         this.camCssBinding.udpate();
         this.topProgressCssBinding.translateY = 100;
         this.topProgressCssBinding.udpate();
@@ -2330,16 +2334,16 @@ class Scene2 extends BaseScene {
             duration: dt
         });
     }
-    showCam() {
+    showCam(isShow) {
         let dt = 500;
         this.tweens.add({
             targets: this.camCssBinding,
-            translateX: 0,
+            translateX: isShow ? 0 : this.initialCamTranslateX,
             duration: dt
         });
         this.tweens.add({
             targets: this.paperCssBinding,
-            translateX: -70,
+            translateX: isShow ? -70 : this.initialPaperTranslateX,
             duration: dt
         });
     }
@@ -2658,12 +2662,12 @@ class Scene2L1 extends Scene2 {
         correct.addAction(s => {
             this.setCenterTextPaper('65537', '😎');
         });
-        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around.", false);
         correct.addAction(s => {
             this.showManualBtns(false);
         });
+        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around.", false);
         correct.addAction(s => {
-            this.showCam();
+            this.showCam(true);
         });
         correct.addAction(s => {
             this.setCenterTextPaper('65537', '🤗');
@@ -2699,6 +2703,9 @@ class Scene2L1 extends Scene2 {
             this.canRecieveEmotion = true;
         });
         wrong.addEventAction(Fsm.SECODN_CHANCE);
+        // Second chance
+        let second = this.newspaperFsm.getSecondChangeStateByIndex(index);
+        second.addSubtitleAction(this.subtitle, "If you want to show a smile,\nplease make sure we can see your grinning TEETH.", false);
     }
     initStNewspaper3() {
         let index = 3;
@@ -2712,8 +2719,12 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `No! Don't make me doubt if you are one of them.`, true);
-        wrong.addSubtitleAction(this.subtitle, () => `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);
+        wrong.addSubtitleAction(this.subtitle, () => `Try again.`, true);
+        // wrong.addSubtitleAction(this.subtitle, ()=> `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);        
         wrong.addEventAction(Fsm.SECODN_CHANCE);
+        // Second chance
+        let second = this.newspaperFsm.getSecondChangeStateByIndex(index);
+        second.addSubtitleAction(this.subtitle, "If you want to show disgusting, \njust make some FURROWED BROW or NOSE WRINKLE.", false);
     }
     initStNewspaper4() {
         let index = 4;
@@ -2742,15 +2753,29 @@ class Scene2L1 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index);
         state.addSubtitleAction(this.subtitle, "OK, this is the last one.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        if (correct) {
-            correct.addSubtitleAction(this.subtitle, () => `Congratulations!\nYou've passed the trial.`, true);
-            correct.addFinishAction();
-        }
+        correct.addSubtitleAction(this.subtitle, () => `Congratulations!\nYou've passed the trial.`, true);
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '🤑');
+            this.showCam(false);
+            this.hideResult();
+        });
+        correct.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true);
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '🧐');
+        });
+        correct.addSubtitleAction(this.subtitle, `Shortage is impossible to happen after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true);
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '😍');
+        });
+        correct.addSubtitleAction(this.subtitle, () => `But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true);
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '😀');
+        });
+        correct.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true);
+        correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        if (wrong) {
-            wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
-            wrong.addEventAction(Fsm.SECODN_CHANCE);
-        }
+        wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
+        wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 }
 /// <reference path="scenes/scene-base.ts" />
@@ -6488,12 +6513,12 @@ class SpeechManager {
 }
 let g_newsData1 = `Index	Title	Content	Answer	Style	Reaction (0:emoji, 1:cam)	Thumbnail1	Thumbnail2	Ambience	Needloop
 0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0	0	portrait-1.jpg		ambience-1	1
-1	Прaвда	A group of riots attacked innocent scientists and damaged facilities in an experimen lab yesterday.	0	0	0	portrait-2.jpg		ambience-2	1
+1	Прaвда	A group of riots assaulted innocent scientists and damaged facilities in an experimen lab yesterday.	0	0	0	portrait-2.jpg		ambience-2	1
 2	YES, MINISTER	Five more experiment labs will soon be completed, the Minister of Construction revealed on the daily briefing	1	0	1	portrait-3.jpg		ambience-3	1
-3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the Bureau of Experiments.	0		1	portrait-4.png		ambience-4	0
-4	Mall Street Journal	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0	1	portrait-5.jpg		ambience-5	0
-5	Mall Street Journal	The domestic food price has risen by 50%. Nothing to worried about. With the power of experiments, we can produce whatever we please	1	0	1				
-6	Mall Street Journal	The domestic food price has risen by 100%. The Minister of Food just declared an act aiming to halve the food ration, and it's good for your heath. <br>Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0	1				
+3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the Bureau of Experiments.	0	0	1	portrait-4.png		ambience-4	0
+4	Mall Street Journal	The domestic food price index has risen by 25%. People are emotionally stable and having strong confidence in our leader's presidency. 	1	0	1	portrait-5.jpg		ambience-5	0
+5	Mall Street Journal	The domestic food price index has risen by <b>50%</b>. Nothing to worry about. With the power of experiments, we can produce whatever we please.<br/><br/>Social activists are trying to politicize this issue, but shame on them of the endless slander toward the experiments.	1	0	1				
+6	Mall Street Journal	The domestic food price index has risen by <b>100%</b>. The Minister of Food just declared an act aiming to halve the food ration, and it's good for our heath. <br><br>Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0	1				
 7									
 8									
 9									
@@ -6509,7 +6534,7 @@ let g_newsData1 = `Index	Title	Content	Answer	Style	Reaction (0:emoji, 1:cam)	Th
 19									
 20									
 21									
-22												
+22																												
 `;
 var SpawnStrategyType;
 (function (SpawnStrategyType) {

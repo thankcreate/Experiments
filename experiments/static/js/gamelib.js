@@ -2636,6 +2636,9 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side.', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, true);
+        correct.addAction(s => {
+            this.showManualBtns(false);
+        });
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `No! ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
@@ -2649,6 +2652,9 @@ class Scene2L1 extends Scene2 {
     initStNewspaper1() {
         let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index);
+        state.addAction(s => {
+            this.showManualBtns(true);
+        });
         state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Of course, ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);

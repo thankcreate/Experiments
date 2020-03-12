@@ -613,7 +613,7 @@ class Scene2 extends BaseScene {
 
             if(item.reaction == 1) {    
                 this.hideProgressBars();        
-            }
+            }            
 
         });
         s.addDelayAction(this, 300);

@@ -5,6 +5,11 @@ interface NewsItem{
     content: string,
     answer: number,
     style: number,
+    reaction: number,
+    thumbnail1: string,
+    thumbnail2: string,
+    ambience: string,
+    needloop: number,
 }
 
 
@@ -55,10 +60,24 @@ class NewsDataManager {
                     content: cols[2],
                     answer: parseInt(cols[3]),
                     style: parseInt(cols[4]),
+                    reaction: parseInt(cols[5]),
+                    thumbnail1: cols[6],
+                    thumbnail2: cols[7],
+                    ambience: cols[8],
+                    needloop: parseInt(cols[9]),
                 }    
-                if(isNaN(item.index) || isNaN(item.answer) || isNaN(item.style)) {
+                if(isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';
                 }
+
+                if(isNaN(item.style)) {
+                    item.style = 0;
+                }
+
+                if(isNaN(item.reaction)) {
+                    item.reaction = 1;
+                }
+
                 this.data.push(item);
             } catch (error) {
                 console.log(error);

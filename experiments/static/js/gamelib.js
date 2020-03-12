@@ -2085,12 +2085,14 @@ class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
         this.currIndex = 0;
-        this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
         this.topProgress = { value: 0 }; // [0, 1]
         this.bottomProgress = { value: 0 }; // [0, 1]
         this.canRecieveEmotion = false;
+        this.canRecieveEmojiClick = false;
         this.isLastTestCorrect = false;
         this.npStyle = NewsPaperStyle.DEFAULT;
+        /////////////////////////////////////////////////////////////////////////
+        this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     }
     get npNums() {
         return [0];
@@ -2104,6 +2106,7 @@ class Scene2 extends BaseScene {
         this.bottomProgressCssBinding = new CssBinding($('#bottom-bar'));
         this.resultCssBinding = new CssBinding($('#newspaper-result'));
         this.manualBtnsCssBing = new CssBinding($('#newspaper-manual-button'));
+        this.transparentOverlayCssBinding = new CssBinding($('#newspaper-transparent-overlay'));
         this.initBindingCss();
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
@@ -2118,22 +2121,9 @@ class Scene2 extends BaseScene {
         // $('#test-info').css('visibility', 'hidden');         
     }
     newspaperButtonClicked(manager, isTop) {
+        if (!this.canRecieveEmojiClick)
+            return;
         this.emotionMaxed(isTop ? MyEmotion.Positive : MyEmotion.Negative);
-    }
-    paperEnterCallback(state, index) {
-        this.fillNewspaperContentByNum(this.npNums[index]);
-        this.hideResult();
-        this.canRecieveEmotion = true;
-        this.resetProgress();
-        this.currIndex = index;
-        let borderStyleIndex = index % this.innerBorderStyles.length;
-        $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
-        let randomWidth = 400 + Math.random() * 100;
-        $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
-    }
-    correctEnterCallback(state, index) {
-        this.hideProgressBars();
-        this.canRecieveEmotion = false;
     }
     resetProgress() {
         this.topProgress.value = 0;
@@ -2141,7 +2131,7 @@ class Scene2 extends BaseScene {
         this.refreshProgressBarCss();
     }
     makeNewspaperFsm() {
-        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this));
+        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this), this.secondChanceEnterCallback.bind(this), this.paperEndEntercallback.bind(this), this.addPaperEndAction.bind(this));
     }
     // called by BaseScene.create
     initVoiceType() {
@@ -2190,7 +2180,6 @@ class Scene2 extends BaseScene {
         progress.value += added;
         progress.value = clamp(progress.value, 0, 1);
         if (progress.value == 1) {
-            this.canRecieveEmotion = false;
             this.emotionMaxed(res.emotion);
         }
         this.refreshBarLeftIconStatus(res.emotion);
@@ -2229,6 +2218,8 @@ class Scene2 extends BaseScene {
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
     emotionMaxed(myEmotion) {
+        this.canRecieveEmotion = false;
+        this.canRecieveEmojiClick = false;
         let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
         let rightEmotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
         let correct = myEmotion == rightEmotion;
@@ -2313,6 +2304,8 @@ class Scene2 extends BaseScene {
         this.manualBtnsCssBing.translateX = -100;
         this.manualBtnsCssBing.translateY = -50;
         this.manualBtnsCssBing.udpate();
+        this.transparentOverlayCssBinding.opacity = 0;
+        this.transparentOverlayCssBinding.udpate();
     }
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
@@ -2350,9 +2343,13 @@ class Scene2 extends BaseScene {
             duration: dt
         });
     }
+    /**
+     * Since the top and bottom tween have the same duration
+     * we just return one of them as the Promise
+     */
     showProgressBars() {
         let dt = 600;
-        this.tweens.add({
+        let top = TweenPromise.create(this, {
             targets: this.topProgressCssBinding,
             translateY: 0,
             duration: dt
@@ -2362,10 +2359,15 @@ class Scene2 extends BaseScene {
             translateY: 0,
             duration: dt
         });
+        return top;
     }
+    /**
+     * Since the top and bottom tween have the same duration
+     * we just return one of them as the Promise
+     */
     hideProgressBars() {
         let dt = 600;
-        this.tweens.add({
+        let top = TweenPromise.create(this, {
             targets: this.topProgressCssBinding,
             translateY: 100,
             duration: dt
@@ -2375,6 +2377,10 @@ class Scene2 extends BaseScene {
             translateY: -100,
             duration: dt
         });
+        return top;
+    }
+    hideAndShowProgressBars() {
+        return this.hideProgressBars().then(res => { return this.showProgressBars(); });
     }
     showResult(isCorrect) {
         console.log('hahahahah:' + isCorrect);
@@ -2407,6 +2413,8 @@ class Scene2 extends BaseScene {
             this.resultCssBinding.udpate();
         if (this.manualBtnsCssBing)
             this.manualBtnsCssBing.udpate();
+        if (this.transparentOverlayCssBinding)
+            this.transparentOverlayCssBinding.udpate();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -2422,6 +2430,9 @@ class Scene2 extends BaseScene {
         let thumbnailSlot = $('newspaper-thumbnail');
         titleSlot.html(newsItem.title);
         contentSlot.html(newsItem.content);
+        if (newsItem.style == 0) {
+            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);
+        }
     }
     setNewspaperStyle(style) {
         this.npStyle = style;
@@ -2436,7 +2447,6 @@ class Scene2 extends BaseScene {
             thumb.css('display', 'none');
         }
         else if (style == NewsPaperStyle.DEFAULT) {
-            console.log('2222222222222222222');
             p.css('position', 'static');
             p.css('text-align', 'inherit');
             p.css('width', '');
@@ -2445,7 +2455,6 @@ class Scene2 extends BaseScene {
             this.setNewspaperFontSize(16);
             thumb.css('display', 'block');
         }
-        console.log('3333333333333333');
     }
     setNewspaperTitle(title) {
         let t = $('#newspaper-title');
@@ -2458,6 +2467,83 @@ class Scene2 extends BaseScene {
     setNewspaperFontSize(size) {
         let p = $('#newspaper-content-text');
         p.css('font-size', `${size}px`);
+    }
+    showTransparentOverlay(isShow) {
+        let dt = 600;
+        let tp = TweenPromise.create(this, {
+            targets: this.transparentOverlayCssBinding,
+            opacity: isShow ? 1 : 0,
+            duration: dt
+        });
+        return tp;
+    }
+    setCenterTextPaper(title, content, fontSize = 150) {
+        this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
+        this.setNewspaperContent(content);
+        this.setNewspaperFontSize(fontSize);
+        this.setNewspaperTitle(title);
+    }
+    paperEnterCallback(state, index) {
+        this.fillNewspaperContentByNum(this.npNums[index]);
+        this.showTransparentOverlay(false);
+        this.hideResult();
+        this.canRecieveEmotion = true;
+        this.canRecieveEmojiClick = true;
+        this.resetProgress();
+        this.currIndex = index;
+        let borderStyleIndex = index % this.innerBorderStyles.length;
+        $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
+        // let randomWidth = 400 + Math.random() * 100;
+        let randomWidth = 450;
+        $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
+        let item = this.getNewsItemByIndex(index);
+        if (item.reaction == 1) {
+            this.showProgressBars();
+        }
+    }
+    correctEnterCallback(state, index) {
+        // this.hideProgressBars();
+        // this.canRecieveEmotion = false;
+    }
+    getNewsItemByIndex(index) {
+        let ins = NewsDataManager.getInstance();
+        let newsItem = ins.getByNum(this.npNums[index]);
+        return newsItem;
+    }
+    secondChanceEnterCallback(state, index) {
+        this.resetProgress();
+        this.hideResult();
+        let item = this.getNewsItemByIndex(index);
+        // is cam
+        if (item.reaction == 1) {
+            this.hideAndShowProgressBars().then(s => {
+                this.canRecieveEmotion = true;
+            });
+        }
+        else if (item.reaction == 0) {
+            this.canRecieveEmojiClick = true;
+        }
+    }
+    /**
+     * Keep in mind that the onEnter can't handle the task needed to be sequenced
+     * very well
+     * @param state
+     * @param index
+     */
+    paperEndEntercallback(state, index) {
+    }
+    addPaperEndAction(s, index) {
+        s.addAction((s, result, resolve, reject) => {
+            this.showTransparentOverlay(true).then(res => {
+                resolve('transprent show');
+            });
+            let item = this.getNewsItemByIndex(index);
+            if (item.reaction == 1) {
+                this.hideProgressBars();
+            }
+        });
+        s.addDelayAction(this, 300);
+        s.addFinishAction();
     }
 }
 /// <reference path="scene-2.ts" />
@@ -2509,59 +2595,51 @@ class Scene2L1 extends Scene2 {
         let state = this.gamePlayFsm.getState("Start");
         state.addOnEnter(s => {
             this.showPaper(true);
-            this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
-            this.setNewspaperContent('😀');
-            this.setNewspaperFontSize(150);
-            this.setNewspaperTitle('65536 Sucks');
+            this.setCenterTextPaper('65536 Sucks', '😀');
             this.newspaperFsm.start();
         });
     }
     initStNewspaperDefault() {
         let state = this.newspaperFsm.getDefaultState();
         state.addAction(s => {
-            this.setNewspaperContent('😅');
-            this.setNewspaperTitle('Welcome');
+            this.setCenterTextPaper('Welcome', '😅');
         });
         state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you a lot.`, false);
         state.addAction(s => {
-            this.setNewspaperContent('😣');
-            this.setNewspaperTitle('65536 Sucks');
+            this.setCenterTextPaper('65536 Sucks', '😣');
         });
         state.addSubtitleAction(this.subtitle, () => `I do understand what it means\n to come through the annoying Experiment 65536.`, false);
         state.addAction(s => {
-            this.setNewspaperContent('🙃');
-            this.setNewspaperTitle('Procedurality👎 ');
+            this.setCenterTextPaper('Procedurality👎', '🙃');
         });
         state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
         state.addAction(s => {
-            this.setNewspaperContent('🤗');
-            this.setNewspaperTitle('65537');
+            this.setCenterTextPaper('65537', '🤗');
         });
-        state.addSubtitleAction(this.subtitle, () => `But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease`, false);
+        state.addSubtitleAction(this.subtitle, () => `But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease.`, false);
         state.addFinishAction();
     }
     initStNewspaper0() {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index);
         state.addOnEnter(s => {
-            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);
             this.canRecieveEmotion = false;
         });
         state.addSubtitleAction(this.subtitle, 'For example:\n Can you show me how you feel when see the news above?', false);
         state.addAction(s => {
             this.showManualBtns(true);
         });
-        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side', false);
+        state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side.', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `No! ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
-        wrong.addSubtitleAction(this.subtitle, () => `Let me give you another try`, true);
-        wrong.addAction(s => {
-            this.resetProgress();
-            this.hideResult();
-        });
+        wrong.addSubtitleAction(this.subtitle, () => `Let me give you another try.`, true);
+        // wrong.addAction(s=>{
+        //     this.resetProgress();
+        //     this.hideResult();
+        // });
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper1() {
@@ -2570,39 +2648,47 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Of course, ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '😀');
+        });
+        correct.addAction(s => {
+            this.hideResult();
+        });
+        correct.addSubtitleAction(this.subtitle, () => `It's easy, right?`, false);
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '😎');
+        });
+        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around.", false);
+        correct.addAction(s => {
+            this.showManualBtns(false);
+        });
+        correct.addAction(s => {
+            this.showCam();
+        });
+        correct.addAction(s => {
+            this.setCenterTextPaper('65537', '🤗');
+        });
+        correct.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier.", false);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, it's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
         wrong.addSubtitleAction(this.subtitle, () => `Could you try it again for me?`, true);
-        wrong.addAction(s => {
-            this.resetProgress();
-            this.hideResult();
-        });
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper2() {
         let index = 2;
         let state = this.newspaperFsm.getStateByIndex(index);
         state.addAction(s => {
-            this.showManualBtns(false);
-        });
-        state.addSubtitleAction(this.subtitle, () => `See? ${this.getUserName()}. It's easy, right?`, false);
-        state.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around", false);
-        state.addAction(s => {
-            this.showCam();
-        });
-        state.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier", false);
-        state.addAction(s => {
             this.showProgressBars();
             this.canRecieveEmotion = true;
         });
-        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression.", false);
+        state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression\nregarding to the news.", false);
         // 🦷
-        state.addSubtitleAction(this.subtitle, "If you want to show a grinning face, please make sure we can see your TEETH", false);
+        state.addSubtitleAction(this.subtitle, "If you want to show a smile,\nplease make sure we can see your grinning TEETH.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addAction(s => {
         });
-        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. That's great, right?`, true);
+        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. Labs are the best.`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `Why would someone hate to see more labs?`, true);
@@ -2617,13 +2703,9 @@ class Scene2L1 extends Scene2 {
     initStNewspaper3() {
         let index = 3;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addSubtitleAction(this.subtitle, "Iconoclasts!\n So exuberant, so unavailing", false);
-        state.addAction(s => {
-            this.showProgressBars();
-            this.canRecieveEmotion = true;
-        });
+        state.addSubtitleAction(this.subtitle, "Disgusting. Iconoclasts!\n So exuberant, so unavailing.", false);
         // 😟👃
-        state.addSubtitleAction(this.subtitle, "If you want to show disgusting, \njust make some FURROWED BROW or NOSE WRINKLE", false);
+        state.addSubtitleAction(this.subtitle, "If you want to show disgusting, \njust make some FURROWED BROW or NOSE WRINKLE.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `You never let me down, ${this.getUserName()}.`, true);
         correct.addSubtitleAction(this.subtitle, () => `Iconoclasts are the cancer of our community.`, true);
@@ -2631,74 +2713,42 @@ class Scene2L1 extends Scene2 {
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `No! Don't make me doubt if you are one of them.`, true);
         wrong.addSubtitleAction(this.subtitle, () => `Please be carefull and don't cause any misunderstanding between us.\nTry again.`, true);
-        wrong.addAction(s => {
-            this.resetProgress();
-            this.hideResult();
-            this.canRecieveEmotion = true;
-        });
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper4() {
         let index = 4;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addAction(s => {
-            this.showProgressBars();
-            this.canRecieveEmotion = true;
-        });
         state.addSubtitleAction(this.subtitle, "I think food price will be fine. What do you say?", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, () => `Excellent reaction`, true);
+        correct.addSubtitleAction(this.subtitle, () => `Excellent reaction.`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, () => `Wrong! \nTry again`, true);
-        wrong.addAction(s => {
-            this.resetProgress();
-            this.hideResult();
-            this.canRecieveEmotion = true;
-        });
+        wrong.addSubtitleAction(this.subtitle, () => `Wrong! \nTry again.`, true);
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper5() {
         let index = 5;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addAction(s => {
-            this.showProgressBars();
-            this.canRecieveEmotion = true;
-        });
         state.addSubtitleAction(this.subtitle, "Things have changed a little bit. What now?", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addSubtitleAction(this.subtitle, () => `Well done, ${this.getUserName()}.`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
-        wrong.addAction(s => {
-            this.resetProgress();
-            this.hideResult();
-            this.canRecieveEmotion = true;
-        });
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
     initStNewspaper6() {
         let index = 6;
         let state = this.newspaperFsm.getStateByIndex(index);
-        state.addAction(s => {
-            this.showProgressBars();
-            this.canRecieveEmotion = true;
-        });
-        state.addSubtitleAction(this.subtitle, "OK, this is the last one", false);
+        state.addSubtitleAction(this.subtitle, "OK, this is the last one.", false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         if (correct) {
-            correct.addSubtitleAction(this.subtitle, () => `Good choice, ${this.getUserName()}.`, true);
+            correct.addSubtitleAction(this.subtitle, () => `Congratulations!\nYou've passed the trial.`, true);
             correct.addFinishAction();
         }
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         if (wrong) {
             wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
-            wrong.addAction(s => {
-                this.resetProgress();
-                this.hideResult();
-                this.canRecieveEmotion = true;
-            });
             wrong.addEventAction(Fsm.SECODN_CHANCE);
         }
     }
@@ -5451,11 +5501,14 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     return this;
 };
 class NewspaperFsm extends Fsm {
-    constructor(scene, npNumbers, papernEnterCallBack, correctEnterCallback) {
+    constructor(scene, npNumbers, papernEnterCallBack, correctEnterCallback, secondChanceCallback, paperEndEntercallBack, paperEndAddActionCallback) {
         super(scene, null);
         this.newspapaerStates = [];
         this.papernEnterCallBack = papernEnterCallBack;
         this.correctEnterCallback = correctEnterCallback;
+        this.secondChanceCallback = secondChanceCallback;
+        this.paperEndEntercallBack = paperEndEntercallBack;
+        this.paperEndAddActionCallback = paperEndAddActionCallback;
         // deep copy
         this.npNumbers = [...npNumbers];
         this.constructNpStates();
@@ -5465,29 +5518,27 @@ class NewspaperFsm extends Fsm {
     constructNpStates() {
         if (notSet(this.npNumbers) || this.npNumbers.length == 0)
             return;
-        let prevStName = NewspaperFsm.DEFAULT_ST_NAME;
+        let prevEndName = NewspaperFsm.DEFAULT_ST_NAME;
         for (let i = 0; i < this.npNumbers.length; i++) {
-            let currStName = this.getStateNameByIndexNumber(i);
-            this.addEvent(Fsm.FINISHED, prevStName, currStName);
-            // if not the last one, add the Correct/Wrong brances
-            if (i != this.npNumbers.length - 1) {
-                let nextStName = this.getStateNameByIndexNumber(i + 1);
-                let correctStName = this.getStateReactionNameByIndexNumber(i, true);
-                let wrongStName = this.getStateReactionNameByIndexNumber(i, false);
-                this.addEvent(Fsm.CORRECT, currStName, correctStName);
-                this.addEvent(Fsm.WRONG, currStName, wrongStName);
-                this.addEvent(Fsm.FINISHED, correctStName, nextStName);
-                this.addEvent(Fsm.FINISHED, wrongStName, nextStName);
-                // Second chance
-                // Wrong->2nd
-                let secondStName = this.getState2ndChanceNameByIndex(i);
-                this.addEvent(Fsm.SECODN_CHANCE, wrongStName, secondStName);
-                // 2nd -> correct
-                this.addEvent(Fsm.CORRECT, secondStName, correctStName);
-                // 2nd -> wrong
-                this.addEvent(Fsm.WRONG, secondStName, wrongStName);
-            }
-            prevStName = currStName;
+            let correctStName = this.getStateReactionNameByIndex(i, true);
+            let wrongStName = this.getStateReactionNameByIndex(i, false);
+            let endStName = this.getStateEndNameByIndex(i);
+            let currStName = this.getStateNameByIndex(i);
+            this.addEvent(Fsm.FINISHED, prevEndName, currStName);
+            this.addEvent(Fsm.FINISHED, currStName, endStName);
+            this.addEvent(Fsm.CORRECT, currStName, correctStName);
+            this.addEvent(Fsm.WRONG, currStName, wrongStName);
+            this.addEvent(Fsm.FINISHED, correctStName, endStName);
+            this.addEvent(Fsm.FINISHED, wrongStName, endStName);
+            // Second chance
+            // Wrong->2nd
+            let secondStName = this.getState2ndChanceStateNameByIndex(i);
+            this.addEvent(Fsm.SECODN_CHANCE, wrongStName, secondStName);
+            // 2nd -> correct
+            this.addEvent(Fsm.CORRECT, secondStName, correctStName);
+            // 2nd -> wrong
+            this.addEvent(Fsm.WRONG, secondStName, wrongStName);
+            prevEndName = endStName;
         }
         for (let i = 0; i < this.npNumbers.length; i++) {
             let state = this.getStateByIndex(i);
@@ -5496,9 +5547,30 @@ class NewspaperFsm extends Fsm {
             });
             let correct = this.getReactionStateByIndex(i, true);
             if (correct) {
-                correct.addOnEnter(s => {
-                    this.correctEnterCallback(s, i);
-                });
+                if (this.correctEnterCallback) {
+                    correct.addOnEnter(s => {
+                        this.correctEnterCallback(s, i);
+                    });
+                }
+            }
+            let secondChance = this.getSecondChangeStateByIndex(i);
+            if (secondChance) {
+                if (this.secondChanceCallback) {
+                    secondChance.addOnEnter(s => {
+                        this.secondChanceCallback(s, i);
+                    });
+                }
+            }
+            let end = this.getStateEndByIndex(i);
+            if (end) {
+                if (this.paperEndEntercallBack) {
+                    end.addOnEnter(s => {
+                        this.paperEndEntercallBack(s, i);
+                    });
+                }
+                if (this.paperEndAddActionCallback) {
+                    this.paperEndAddActionCallback(end, i);
+                }
             }
         }
     }
@@ -5507,12 +5579,18 @@ class NewspaperFsm extends Fsm {
      * @param index ~ [0, length - 1]
      */
     getStateByIndex(index) {
-        let stName = this.getStateNameByIndexNumber(index);
+        let stName = this.getStateNameByIndex(index);
         return this.getState(stName);
     }
     getReactionStateByIndex(index, correct) {
-        let stName = this.getStateReactionNameByIndexNumber(index, correct);
+        let stName = this.getStateReactionNameByIndex(index, correct);
         return this.getState(stName);
+    }
+    getSecondChangeStateByIndex(index) {
+        return this.getState(this.getState2ndChanceStateNameByIndex(index));
+    }
+    getStateEndByIndex(index) {
+        return this.getState(this.getStateEndNameByIndex(index));
     }
     /**
      *
@@ -5528,23 +5606,29 @@ class NewspaperFsm extends Fsm {
         }
     }
     // index: [0, length - 1]
-    getStateNameByIndexNumber(index) {
+    getStateNameByIndex(index) {
         if (index < 0 || index >= this.npNumbers.length) {
             throw 'Paper number out of range';
         }
         return `NewspaperState-${index}`;
     }
-    getStateReactionNameByIndexNumber(index, correct) {
+    getStateReactionNameByIndex(index, correct) {
         if (index < 0 || index >= this.npNumbers.length) {
             throw 'Paper number out of range';
         }
         return `NewspaperStateReaction-${index}-${correct ? 'CORRECT' : 'WRONG'}`;
     }
-    getState2ndChanceNameByIndex(index) {
+    getState2ndChanceStateNameByIndex(index) {
         if (index < 0 || index >= this.npNumbers.length) {
             throw 'Paper number out of range';
         }
-        return `NewspaperStateReaction-${index}-second`;
+        return `NewspaperState-${index}-second`;
+    }
+    getStateEndNameByIndex(index) {
+        if (index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';
+        }
+        return `NewspaperState-${index}-end`;
     }
 }
 NewspaperFsm.DEFAULT_ST_NAME = 'Default';
@@ -5679,6 +5763,23 @@ farray.push(mainFsm);
 //     // do with the node
 //   }
 // });
+/// <reference path="../fsm/fsm.ts" />
+var newsPaper = {
+    name: 'Newspaper',
+    initial: "Default",
+    events: [
+        { name: 'FINISHED', from: 'Default', to: 'Paper1' },
+        { name: 'CORRECT', from: 'Paper1', to: 'Paper1_Correct', dot: { weight: 10, len: '0.1' } },
+        { name: 'WRONG', from: 'Paper1', to: 'Paper1_Wrong' },
+        { name: 'CORRECT', from: 'Paper1_SecondChance', to: 'Paper1_Correct' },
+        { name: 'WRONG', from: 'Paper1_SecondChance', to: 'Paper1_Wrong' },
+        { name: '2', from: 'Paper1_Wrong', to: 'Paper1_SecondChance', },
+        { name: 'FINISHED', from: 'Paper1_Wrong', to: 'End1' },
+        { name: 'FINISHED', from: 'Paper1_Correct', to: 'End1' },
+        { name: 'FINISHED', from: 'Paper1', to: 'End1' },
+    ]
+};
+farray.push(newsPaper);
 /// <reference path="../fsm/fsm.ts" />
 var zenFsm = {
     name: 'ZenFsm',
@@ -5885,6 +5986,8 @@ class CssBinding {
             this.target.css('left', this.left);
         if (this.top != null)
             this.target.css('top', this.top);
+        if (this.opacity != null)
+            this.target.css('opacity', this.opacity);
         if (this.translateX != null || this.translateY != null || this.scale != null || this.rotate != null) {
             this.target.css('transform', this.getTransformString());
         }
@@ -6151,9 +6254,20 @@ class NewsDataManager {
                     content: cols[2],
                     answer: parseInt(cols[3]),
                     style: parseInt(cols[4]),
+                    reaction: parseInt(cols[5]),
+                    thumbnail1: cols[6],
+                    thumbnail2: cols[7],
+                    ambience: cols[8],
+                    needloop: parseInt(cols[9]),
                 };
-                if (isNaN(item.index) || isNaN(item.answer) || isNaN(item.style)) {
+                if (isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';
+                }
+                if (isNaN(item.style)) {
+                    item.style = 0;
+                }
+                if (isNaN(item.reaction)) {
+                    item.reaction = 1;
                 }
                 this.data.push(item);
             }
@@ -6372,22 +6486,30 @@ class SpeechManager {
         });
     }
 }
-let g_newsData1 = `Index	Title	Content	Answer	Style
-0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0
-1	Прaвда	A group of riots attacked innocent scientists and damaged facilities in an experimen lab yesterday.	0	0
-2	YES, MINISTER	Five more experiment labs will soon be completed, said the Minister of Construction	1	0
-3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the bureau of experiments 	0	0
-4	EXPERIMENT DAILY	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0
-5	EXPERIMENT DAILY	The domestic food price has risen by 50%. Nothing to worry about. With the power of experiments, we can produce whatever we please	1	0
-6	EXPERIMENT DAILY	The domestic food price has risen by 100%.The Minister of Food just declared an act about halving the food ration, and it's good for your heath. Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0
-7				
-8				
-9				
-10				
-11				
-12	Avenue Journal	The oil price has risen by 25% in Alaginia. Protesters rallied in front of the parliament against the sky-high CPI		
-13		A group of Alaginian soilder crossed the border into our country illegally yesterday		
-14	Avenue Journal	Left-wing activists appealed to extend weekends to be three days						
+let g_newsData1 = `Index	Title	Content	Answer	Style	Reaction (0:emoji, 1:cam)	Thumbnail1	Thumbnail2	Ambience	Needloop
+0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0	0	portrait-1.jpg		ambience-1	1
+1	Прaвда	A group of riots attacked innocent scientists and damaged facilities in an experimen lab yesterday.	0	0	0	portrait-2.jpg		ambience-2	1
+2	YES, MINISTER	Five more experiment labs will soon be completed, the Minister of Construction revealed on the daily briefing	1	0	1	portrait-3.jpg		ambience-3	1
+3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the Bureau of Experiments.	0		1	portrait-4.png		ambience-4	0
+4	Mall Street Journal	The domestic food price has risen by 25%. People are emotionally stable and have strong confidence in our governor's presidency. 	1	0	1	portrait-5.jpg		ambience-5	0
+5	Mall Street Journal	The domestic food price has risen by 50%. Nothing to worried about. With the power of experiments, we can produce whatever we please	1	0	1				
+6	Mall Street Journal	The domestic food price has risen by 100%. The Minister of Food just declared an act aiming to halve the food ration, and it's good for your heath. <br>Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0	1				
+7									
+8									
+9									
+10									
+11									
+12	Avenue Journal	The oil price has risen by 25% in Alaginia. Protesters rallied in front of the parliament against the sky-high CPI							
+13		A group of Alaginian soilder crossed the border into our country illegally yesterday							
+14	Avenue Journal	Left-wing activists appealed to extend weekends to be three days							
+15									
+16									
+17									
+18									
+19									
+20									
+21									
+22												
 `;
 var SpawnStrategyType;
 (function (SpawnStrategyType) {

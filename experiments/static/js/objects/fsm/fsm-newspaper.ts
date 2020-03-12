@@ -1,25 +1,34 @@
 
-type PapernEnterCallback = (state: FsmState, index:number)=>any;
-type CorrectEnterCallback = (state: FsmState, index:number)=>any;
+type NewspaperEventCallback = (state: FsmState, index:number)=>any;
 class NewspaperFsm extends Fsm{
     npNumbers: number[];
 
     static DEFAULT_ST_NAME = 'Default';
 
     newspapaerStates: FsmState[] = [];
-    papernEnterCallBack: PapernEnterCallback;
-    correctEnterCallback: CorrectEnterCallback;
+    papernEnterCallBack: NewspaperEventCallback;
+    correctEnterCallback: NewspaperEventCallback;
+    secondChanceCallback: NewspaperEventCallback;
+    paperEndEntercallBack: NewspaperEventCallback;
+    paperEndAddActionCallback:NewspaperEventCallback
 
     constructor(
         scene: BaseScene, 
         npNumbers:number[], 
-        papernEnterCallBack:PapernEnterCallback,
-        correctEnterCallback:CorrectEnterCallback
+        papernEnterCallBack:NewspaperEventCallback,
+        correctEnterCallback:NewspaperEventCallback,
+        secondChanceCallback:NewspaperEventCallback,
+        paperEndEntercallBack:NewspaperEventCallback,
+        paperEndAddActionCallback: NewspaperEventCallback,
         ) {
         super(scene, null);
         
         this.papernEnterCallBack = papernEnterCallBack;
         this.correctEnterCallback = correctEnterCallback;
+        this.secondChanceCallback = secondChanceCallback;
+        this.paperEndEntercallBack = paperEndEntercallBack;
+        this.paperEndAddActionCallback = paperEndAddActionCallback;
+
         // deep copy
         this.npNumbers = [...npNumbers];        
         this.constructNpStates();
@@ -32,37 +41,35 @@ class NewspaperFsm extends Fsm{
         if(notSet(this.npNumbers) || this.npNumbers.length == 0)
             return;
 
-        let prevStName = NewspaperFsm.DEFAULT_ST_NAME;
+        let prevEndName = NewspaperFsm.DEFAULT_ST_NAME;
         for(let i = 0; i < this.npNumbers.length; i++) {
-            let currStName = this.getStateNameByIndexNumber(i);
-            this.addEvent(Fsm.FINISHED, prevStName, currStName);
+            let correctStName = this.getStateReactionNameByIndex(i, true);
+            let wrongStName = this.getStateReactionNameByIndex(i, false);
+            let endStName = this.getStateEndNameByIndex(i);
 
-            // if not the last one, add the Correct/Wrong brances
-            if(i != this.npNumbers.length - 1) {
-                let nextStName = this.getStateNameByIndexNumber(i + 1);
+            let currStName = this.getStateNameByIndex(i);
+            this.addEvent(Fsm.FINISHED, prevEndName, currStName);
+            this.addEvent(Fsm.FINISHED, currStName, endStName);
 
-                let correctStName = this.getStateReactionNameByIndexNumber(i, true);
-                let wrongStName = this.getStateReactionNameByIndexNumber(i, false);
-                this.addEvent(Fsm.CORRECT, currStName, correctStName);
-                this.addEvent(Fsm.WRONG, currStName, wrongStName);
-                
-                this.addEvent(Fsm.FINISHED, correctStName, nextStName);
-                this.addEvent(Fsm.FINISHED, wrongStName, nextStName);
+            this.addEvent(Fsm.CORRECT, currStName, correctStName);
+            this.addEvent(Fsm.WRONG, currStName, wrongStName);
+            
+            this.addEvent(Fsm.FINISHED, correctStName, endStName);
+            this.addEvent(Fsm.FINISHED, wrongStName, endStName);
 
+            // Second chance
+            // Wrong->2nd
+            let secondStName = this.getState2ndChanceStateNameByIndex(i);                
+            this.addEvent(Fsm.SECODN_CHANCE, wrongStName, secondStName);                
+            
+            // 2nd -> correct
+            this.addEvent(Fsm.CORRECT, secondStName, correctStName);      
+            
+            // 2nd -> wrong
+            this.addEvent(Fsm.WRONG, secondStName, wrongStName);      
 
-                // Second chance
-                // Wrong->2nd
-                let secondStName = this.getState2ndChanceNameByIndex(i);                
-                this.addEvent(Fsm.SECODN_CHANCE, wrongStName, secondStName);                
-                
-                // 2nd -> correct
-                this.addEvent(Fsm.CORRECT, secondStName, correctStName);      
-                
-                // 2nd -> wrong
-                this.addEvent(Fsm.WRONG, secondStName, wrongStName);      
-
-            }
-            prevStName = currStName;
+            
+            prevEndName = endStName;
         }
 
         for(let i = 0; i < this.npNumbers.length; i++) {
@@ -72,13 +79,34 @@ class NewspaperFsm extends Fsm{
             })
 
             let correct = this.getReactionStateByIndex(i, true);
-
             if(correct) {
-                correct.addOnEnter(s=>{
-                    this.correctEnterCallback(s, i);
-                })
+                if(this.correctEnterCallback) {
+                    correct.addOnEnter(s=>{
+                        this.correctEnterCallback(s, i);
+                    })
+                }               
             }
             
+            let secondChance = this.getSecondChangeStateByIndex(i);
+            if(secondChance) {
+                if(this.secondChanceCallback) {
+                    secondChance.addOnEnter(s=>{
+                        this.secondChanceCallback(s,i);
+                    })
+                }                
+            }
+
+            let end = this.getStateEndByIndex(i);
+            if(end) {
+                if(this.paperEndEntercallBack) {
+                    end.addOnEnter(s=>{
+                        this.paperEndEntercallBack(s, i);
+                    })
+                }
+                if(this.paperEndAddActionCallback) {
+                    this.paperEndAddActionCallback(end, i);
+                }                
+            }
         }
     }
 
@@ -90,13 +118,21 @@ class NewspaperFsm extends Fsm{
      * @param index ~ [0, length - 1]
      */    
     getStateByIndex(index: number) :FsmState{
-        let stName = this.getStateNameByIndexNumber(index);
+        let stName = this.getStateNameByIndex(index);
         return this.getState(stName)
     }
 
     getReactionStateByIndex(index: number, correct: boolean) : FsmState {
-        let stName = this.getStateReactionNameByIndexNumber(index, correct);
+        let stName = this.getStateReactionNameByIndex(index, correct);
         return this.getState(stName)
+    }
+
+    getSecondChangeStateByIndex(index: number) : FsmState{
+        return this.getState(this.getState2ndChanceStateNameByIndex(index));
+    }
+
+    getStateEndByIndex(index:number) :FsmState {
+        return this.getState(this.getStateEndNameByIndex(index));
     }
 
     /**
@@ -114,24 +150,31 @@ class NewspaperFsm extends Fsm{
     }
 
     // index: [0, length - 1]
-    getStateNameByIndexNumber(index: number) {
+    getStateNameByIndex(index: number) {
         if(index < 0 || index >= this.npNumbers.length) {
             throw 'Paper number out of range';            
         }
         return `NewspaperState-${index}`
     }
 
-    getStateReactionNameByIndexNumber(index: number, correct: boolean) {
+    getStateReactionNameByIndex(index: number, correct: boolean) {
         if(index < 0 || index >= this.npNumbers.length) {
             throw 'Paper number out of range';            
         }
         return `NewspaperStateReaction-${index}-${correct ? 'CORRECT' : 'WRONG'}`
     }
 
-    getState2ndChanceNameByIndex(index: number) {
+    getState2ndChanceStateNameByIndex(index: number) {
         if(index < 0 || index >= this.npNumbers.length) {
             throw 'Paper number out of range';            
         }
-        return `NewspaperStateReaction-${index}-second`
+        return `NewspaperState-${index}-second`
+    }
+
+    getStateEndNameByIndex(index: number) {
+        if(index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';            
+        }
+        return `NewspaperState-${index}-end`
     }
 }

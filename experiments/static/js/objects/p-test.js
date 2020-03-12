@@ -2,15 +2,18 @@
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
 
-var ob = {
-    ad: 123,
-    get ad() {
-        return 2345;
-    },
+let a  = '';
+let b = parseInt(a);
+console.log(b);
+// var ob = {
+//     ad: 123,
+//     get ad() {
+//         return 2345;
+//     },
    
   
-}
-console.log(ob.ad);
+// }
+// console.log(ob.ad);
 
 // let fullCount = Math.floor(Math.random() * 4); // 0-3   
 

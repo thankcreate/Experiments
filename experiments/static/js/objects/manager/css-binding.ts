@@ -10,6 +10,8 @@ class CssBinding {
     scale: number
     rotate: number
 
+    opacity: number
+
     constructor(target) {
         this.target = target;
     }    
@@ -20,6 +22,9 @@ class CssBinding {
         
         if(this.top != null)
             this.target.css('top', this.top)
+
+        if(this.opacity != null) 
+            this.target.css('opacity', this.opacity)
 
         if(this.translateX != null|| this.translateY != null || this.scale != null || this.rotate != null) {
             this.target.css('transform', this.getTransformString());

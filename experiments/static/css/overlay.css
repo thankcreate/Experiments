@@ -426,6 +426,17 @@ input[type="submit"]:active {
   margin-block-start: 2px;
 }
 
+#newspaper-transparent-overlay {
+  
+  position: absolute;
+  z-index: 20;
+  left:6px;
+  right: 6px;
+  top:6px;
+  bottom: 6px;  
+  background-color: white;
+  opacity: 0;
+}
 
 #clear-helper{
   clear:both;

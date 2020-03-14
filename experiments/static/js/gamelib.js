@@ -9661,7 +9661,8 @@ class PlayerInputText {
         }
     }
     handleHotkey(c) {
-        return this.scene.hud.handleHotkey(c);
+        if (this.scene.hud)
+            return this.scene.hud.handleHotkey(c);
     }
     // keypress to handle all the valid characters
     keypress(event) {

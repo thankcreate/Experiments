@@ -294,7 +294,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s=>{                 
         });
 
-        state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you to eliminate to 4O4s!", false)
+        state.addSubtitleAction(this.subtitle, "If you take a closer look at the panel on the left,\nYou will see we have provided plenty of ammo for you to eliminate 4O4s!", false)
         state.addSubtitleAction(this.subtitle, "As we all know, the content behind 4O4s are bad, evil and vicious!\n You name it!", false)
         state.addSubtitleAction(this.subtitle, "Once purchased, you can upgrade them with the score you have earned.", true)        
         state.addFinishAction();

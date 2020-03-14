@@ -442,7 +442,7 @@ class PropButton extends Button {
                     this.promptImg.inner.setVisible(false);
                 else{
                     if(this.needConsiderHP) {
-                        if((this.scene as BaseScene).hud.hp.currHealth <= (this.scene as BaseScene).hud.hp.maxHealth / 2) {
+                        if((this.scene as Scene1).hp.currHealth <= (this.scene as Scene1).hp.maxHealth / 2) {
                             this.promptImg.inner.setVisible(true);    
                         }
                         else {

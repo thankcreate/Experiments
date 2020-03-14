@@ -11,7 +11,7 @@ interface PropInfo {
 
 
 let initScore = 0;
-let baseScore = 300;
+let baseScore = 100;
 let normalFreq1 = 7;
 
 let startWarnNum = 4;

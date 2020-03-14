@@ -46,11 +46,11 @@ class Scene1L4 extends Scene1 {
     }
 
     addCallbackForFirstTimeBubble() {
-        for(let i = 0; i < this.ui.hud.rightBtns.length; i++) {
-            this.ui.hud.rightBtns[i].firstTimeBubbleCallback = (idx)=>{this.firstTimeBubbleAutoBad(idx)};
+        for(let i = 0; i < this.hud.rightBtns.length; i++) {
+            this.hud.rightBtns[i].firstTimeBubbleCallback = (idx)=>{this.firstTimeBubbleAutoBad(idx)};
         }
         
-        this.ui.hud.leftBtns[0].firstTimeBubbleCallback = (idx)=>{this.badUpgradeFirstTimeBubble();}
+        this.hud.leftBtns[0].firstTimeBubbleCallback = (idx)=>{this.badUpgradeFirstTimeBubble();}
     }
 
     badUpgradeFirstTimeBubble() {        
@@ -266,7 +266,7 @@ class Scene1L4 extends Scene1 {
      * the Keywords panel prompt after a delay
      */
     initStPromptAutoBad() {
-        let targetBtn = this.ui.hud.rightBtns[0];
+        let targetBtn = this.hud.rightBtns[0];
         let state = this.gamePlayFsm.getState("PromptCompleteBad");
         state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
@@ -289,7 +289,7 @@ class Scene1L4 extends Scene1 {
     }
 
     intiStPromptKeywords() {
-        let targetBtn = this.ui.hud.leftBtns[0];
+        let targetBtn = this.hud.leftBtns[0];
         let state = this.gamePlayFsm.getState("PromptKeywords");
         state.addOnEnter(s=>{                 
         });
@@ -308,7 +308,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[1];
+        let targetBtn = this.hud.rightBtns[1];
         state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patience to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
         state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
@@ -327,7 +327,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[2];
+        let targetBtn = this.hud.rightBtns[2];
         state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
@@ -341,7 +341,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[3];
+        let targetBtn = this.hud.rightBtns[3];
         state.addSubtitleAction(this.subtitle, "Tired of TURNING them manually?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
@@ -355,7 +355,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s=>{
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[4];
+        let targetBtn = this.hud.rightBtns[4];
         // state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();

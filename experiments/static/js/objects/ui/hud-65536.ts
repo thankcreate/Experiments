@@ -1,3 +1,5 @@
+/// <reference path="Hud.ts" />
+
 /**
  * TronTron
  * The intention of Hud is to wrap the behavior of HP bar
@@ -6,7 +8,7 @@
  * If something needs to be facein/fadeout in the animation, we need 
  * include them in the array in the 'show' and 'hide' functions
  */
-class Hud65536 extends Wrapper<PhText> {
+class Hud65536 extends Hud {
     
     hp: HP;
     scoreText: PhText;    
@@ -42,7 +44,7 @@ class Hud65536 extends Wrapper<PhText> {
     dynamicHotkeyMap: Map<string, PropButton> = new Map();
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
-        super(scene, parentContainer, x, y, null);
+        super(scene, parentContainer, x, y);
 
         let hpBottom = 36;
         let hpLeft = 36;
@@ -74,8 +76,7 @@ class Hud65536 extends Wrapper<PhText> {
             anchorToRight(s_infoPanelWidth + 30, this.infoPanel.inner);
             this.infoPanel.inner.setVisible(false);
 
-        }
-            
+        }          
             
     }
 

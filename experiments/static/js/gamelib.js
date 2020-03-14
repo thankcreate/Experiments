@@ -53,9 +53,6 @@ class BaseScene extends Phaser.Scene {
     get hud() {
         return this.ui.hud;
     }
-    get hp() {
-        return this.ui.hud.hp;
-    }
     preload() {
         this.load.image('arrow', 'assets/arrow.png');
         this.load.image('arrow_rev', 'assets/arrow_rev.png');
@@ -541,14 +538,15 @@ class BaseScene extends Phaser.Scene {
             }
         });
         state.setOnExit(s => {
-            this.gamePlayFsm.stop();
-            this.zenFsm.stop();
-            if (this.ui.hud)
-                LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
-            // Stop all subtitle and sounds
-            this.subtitle.forceStopAndHideSubtitles();
-            this.gamePlayExit();
+            this.sceneExitNormalGame(s);
         });
+    }
+    sceneExitNormalGame(s) {
+        this.gamePlayFsm.stop();
+        this.zenFsm.stop();
+        // Stop all subtitle and sounds
+        this.subtitle.forceStopAndHideSubtitles();
+        this.gamePlayExit();
     }
     /**
      * Event: BACK_TO_HOME sent by backBtn (everlasting)
@@ -803,6 +801,9 @@ class Scene1 extends BaseScene {
     constructor(config) {
         super(config);
     }
+    get hud() {
+        return this.ui.hud;
+    }
     preload() {
         super.preload();
         this.load.image('circle', 'assets/circle.png');
@@ -830,6 +831,13 @@ class Scene1 extends BaseScene {
         dt = dt / 1000;
         this.enemyManager.update(time, dt);
     }
+    get score() {
+        return this.hud.score;
+    }
+    sceneExitNormalGame(s) {
+        super.sceneExitNormalGame(s);
+        LeaderboardManager.getInstance().reportScore(this.playerName, this.score);
+    }
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
         // Hide title and show speaker dots
@@ -848,6 +856,9 @@ class Scene1 extends BaseScene {
                 this.hp.damageBy(enemy.health);
             });
         }
+    }
+    get hp() {
+        return this.hud.hp;
     }
     createHud(parentContainer) {
         return new Hud65536(this, parentContainer, 0, 0);
@@ -1478,10 +1489,10 @@ class Scene1L4 extends Scene1 {
         // this.overlay.showReviewForm();
     }
     addCallbackForFirstTimeBubble() {
-        for (let i = 0; i < this.ui.hud.rightBtns.length; i++) {
-            this.ui.hud.rightBtns[i].firstTimeBubbleCallback = (idx) => { this.firstTimeBubbleAutoBad(idx); };
+        for (let i = 0; i < this.hud.rightBtns.length; i++) {
+            this.hud.rightBtns[i].firstTimeBubbleCallback = (idx) => { this.firstTimeBubbleAutoBad(idx); };
         }
-        this.ui.hud.leftBtns[0].firstTimeBubbleCallback = (idx) => { this.badUpgradeFirstTimeBubble(); };
+        this.hud.leftBtns[0].firstTimeBubbleCallback = (idx) => { this.badUpgradeFirstTimeBubble(); };
     }
     badUpgradeFirstTimeBubble() {
         this.gamePlayFsm.event("TO_KEYWORDS", true);
@@ -1655,7 +1666,7 @@ class Scene1L4 extends Scene1 {
      * the Keywords panel prompt after a delay
      */
     initStPromptAutoBad() {
-        let targetBtn = this.ui.hud.rightBtns[0];
+        let targetBtn = this.hud.rightBtns[0];
         let state = this.gamePlayFsm.getState("PromptCompleteBad");
         state.addOnEnter(s => {
             targetBtn.hasNoActualClick = true;
@@ -1674,7 +1685,7 @@ class Scene1L4 extends Scene1 {
         });
     }
     intiStPromptKeywords() {
-        let targetBtn = this.ui.hud.leftBtns[0];
+        let targetBtn = this.hud.leftBtns[0];
         let state = this.gamePlayFsm.getState("PromptKeywords");
         state.addOnEnter(s => {
         });
@@ -1691,7 +1702,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[1];
+        let targetBtn = this.hud.rightBtns[1];
         state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patience to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
         state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly();
@@ -1708,7 +1719,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[2];
+        let targetBtn = this.hud.rightBtns[2];
         state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
@@ -1721,7 +1732,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[3];
+        let targetBtn = this.hud.rightBtns[3];
         state.addSubtitleAction(this.subtitle, "Tired of TURNING them manually?", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
@@ -1734,7 +1745,7 @@ class Scene1L4 extends Scene1 {
         state.addOnEnter(s => {
             targetBtn.hasNoActualClick = true;
         });
-        let targetBtn = this.ui.hud.rightBtns[4];
+        let targetBtn = this.hud.rightBtns[4];
         // state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
@@ -7650,7 +7661,7 @@ class CenterProgress extends Wrapper {
     }
 }
 let initScore = 0;
-let baseScore = 300;
+let baseScore = 100;
 let normalFreq1 = 7;
 let startWarnNum = 4;
 let startMockNum = 4;
@@ -8420,6 +8431,23 @@ class HP extends Wrapper {
         this.innerProgress.setSize(this.progressMaxWidth);
     }
 }
+class Hud extends Wrapper {
+    constructor(scene, parentContainer, x, y) {
+        super(scene, parentContainer, x, y, null);
+    }
+    update(time, dt) {
+    }
+    reset() {
+    }
+    show(mode) {
+    }
+    hide(mode) {
+    }
+    handleHotkey(c) {
+        return false;
+    }
+}
+/// <reference path="Hud.ts" />
 /**
  * TronTron
  * The intention of Hud is to wrap the behavior of HP bar
@@ -8428,9 +8456,9 @@ class HP extends Wrapper {
  * If something needs to be facein/fadeout in the animation, we need
  * include them in the array in the 'show' and 'hide' functions
  */
-class Hud65536 extends Wrapper {
+class Hud65536 extends Hud {
     constructor(scene, parentContainer, x, y) {
-        super(scene, parentContainer, x, y, null);
+        super(scene, parentContainer, x, y);
         this.score = 0;
         this.comboHit = 0;
         this.inShow = false;
@@ -10219,7 +10247,7 @@ class PropButton extends Button {
                     this.promptImg.inner.setVisible(false);
                 else {
                     if (this.needConsiderHP) {
-                        if (this.scene.hud.hp.currHealth <= this.scene.hud.hp.maxHealth / 2) {
+                        if (this.scene.hp.currHealth <= this.scene.hp.maxHealth / 2) {
                             this.promptImg.inner.setVisible(true);
                         }
                         else {

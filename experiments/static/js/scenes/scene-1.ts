@@ -8,6 +8,11 @@ class Scene1 extends BaseScene {
 
     }
 
+    
+    get hud() : Hud65536{
+        return (this.ui.hud as Hud65536);
+    }
+
     preload() {
         super.preload();
         this.load.image('circle', 'assets/circle.png');
@@ -47,6 +52,16 @@ class Scene1 extends BaseScene {
         this.enemyManager.update(time, dt);
     }
 
+    get score() {
+        return (this.hud as Hud65536).score;
+    }
+
+    sceneExitNormalGame(s: FsmState) {
+        super.sceneExitNormalGame(s);
+        LeaderboardManager.getInstance().reportScore(this.playerName, this.score);       
+    }
+
+
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
 
@@ -69,6 +84,10 @@ class Scene1 extends BaseScene {
                 this.hp.damageBy(enemy.health);
             });
         }
+    }
+
+    get hp(): HP {
+        return (this.hud as Hud65536).hp;
     }
 
     createHud(parentContainer: PhContainer) {

@@ -206,7 +206,7 @@ class PlayerInputText {
     }
 
     handleHotkey(c: string) : boolean{
-        return (this.scene as BaseScene).hud.handleHotkey(c);        
+        return this.scene.hud.handleHotkey(c);        
     }
 
     // keypress to handle all the valid characters

@@ -124,9 +124,7 @@ class BaseScene extends Phaser.Scene {
         this.lblStyl = { fontSize: '32px', fill: '#000', fontFamily: "'Averia Serif Libre', Georgia, serif" };                
     }
 
-    get hp(): HP {
-        return this.ui.hud.hp;
-    }
+ 
 
     preload() {
         
@@ -756,16 +754,19 @@ class BaseScene extends Phaser.Scene {
             })
 
         state.setOnExit(s => {
-            this.gamePlayFsm.stop();
-            this.zenFsm.stop();
-            
-            if(this.ui.hud)
-                LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
-            // Stop all subtitle and sounds
-            this.subtitle.forceStopAndHideSubtitles();
-            this.gamePlayExit();
+            this.sceneExitNormalGame(s);
         })
     }
+
+    sceneExitNormalGame(s: FsmState) {
+        this.gamePlayFsm.stop();
+        this.zenFsm.stop();  
+        
+        // Stop all subtitle and sounds
+        this.subtitle.forceStopAndHideSubtitles();
+        this.gamePlayExit();
+    }
+
 
     /**
      * Event: BACK_TO_HOME sent by backBtn (everlasting)

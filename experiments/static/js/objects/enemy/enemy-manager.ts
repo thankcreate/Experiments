@@ -10,7 +10,7 @@ interface SpawnStrategyConfig {
 var gEnemyID = 0
 class EnemyManager {
 
-    scene: BaseScene;
+    scene: Scene1;
     inner: Phaser.GameObjects.Container; // main scene container
 
     interval;
@@ -580,7 +580,7 @@ class EnemyManager {
             });
         }
 
-        let sc = this.scene as BaseScene;
+        let sc = this.scene as Scene1;
         if(validDamageAtLeastOne ) {                      
             if(sc.needFeedback) {                
                 sc.sfxLaser.play();
@@ -678,7 +678,7 @@ class EnemyManager {
         }
         else {
             // add a base 100 here
-            (this.scene as BaseScene).hud.addScore(100);
+            (this.scene as Scene1).hud.addScore(100);
         }
         
         this.enemyEliminatedEvent.emit(enemy);

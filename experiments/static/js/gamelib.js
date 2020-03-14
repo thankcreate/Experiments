@@ -6120,7 +6120,7 @@ class EmmotionManager {
         //     ana.emotion = MyEmotion.Negative;
         //     ana.intensity = 1;
         // }
-        if (emotions.valence < -10) {
+        if (emotions.valence < -10 || expressions.noseWrinkle > 90) {
             ana.emotion = MyEmotion.Negative;
             ana.intensity = emotions.engagement / 100;
         }

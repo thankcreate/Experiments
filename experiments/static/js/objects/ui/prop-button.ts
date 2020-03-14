@@ -5,7 +5,7 @@ class PropButton extends Button {
     purchased: boolean = false;
     hasShownFirstTimeBubble: boolean = false;
 
-    hud: Hud;
+    hud: Hud65536;
     promptImg: ImageWrapper;
 
     purchasedEvent: TypedEvent<PropButton> = new TypedEvent();
@@ -95,7 +95,7 @@ class PropButton extends Button {
 
     hasNoActualClick: boolean = false;
 
-    constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud,
+    constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud65536,
         x: number, y: number,
         imgKey: string, info: PropInfo, canLevelUp:boolean,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {        

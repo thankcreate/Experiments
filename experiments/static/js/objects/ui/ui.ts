@@ -1,9 +1,13 @@
+/**
+ * UI means the overall ui
+ * Hud specifically means the head-up display when entered into game mode
+ */
 class UI extends Wrapper<PhText>{
     
     footer: Footer;
     leaderboardBtn: Button;
     
-    hud: Hud;        // hp, score, etc...
+    hud: Hud65536;        // hp, score, etc...
     footerInitPosi: PhPoint;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {

@@ -850,7 +850,7 @@ class Scene1 extends BaseScene {
         }
     }
     createHud(parentContainer) {
-        return new Hud(this, parentContainer, 0, 0);
+        return new Hud65536(this, parentContainer, 0, 0);
     }
     sceneEnterDied(s, result, resolve, reject) {
         super.sceneEnterDied(s, result, resolve, reject);
@@ -8428,7 +8428,7 @@ class HP extends Wrapper {
  * If something needs to be facein/fadeout in the animation, we need
  * include them in the array in the 'show' and 'hide' functions
  */
-class Hud extends Wrapper {
+class Hud65536 extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);
         this.score = 0;
@@ -10567,6 +10567,10 @@ class Subtitle extends Wrapper {
         this.hideText();
     }
 }
+/**
+ * UI means the overall ui
+ * Hud specifically means the head-up display when entered into game mode
+ */
 class UI extends Wrapper {
     constructor(scene, parentContainer, x, y) {
         super(scene, parentContainer, x, y, null);

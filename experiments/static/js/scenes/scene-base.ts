@@ -261,7 +261,7 @@ class BaseScene extends Phaser.Scene {
 
         // HP                
 
-        let hud =  new Hud(this, this.abContainer, 0, 0);        
+        let hud = this.createHud(this.abContainer);
 
         this.ui = new UI(this, this.abContainer, 0, 0);
         this.ui.hud = hud;
@@ -303,6 +303,10 @@ class BaseScene extends Phaser.Scene {
 
         // initVoiceType
         this.initVoiceType();
+    }
+
+    createHud(parentContainer: PhContainer) {
+        return null;
     }
 
     makeGamePlayFsm() : Fsm {
@@ -353,7 +357,9 @@ class BaseScene extends Phaser.Scene {
 
         
         this.centerObject.update(time, dt);
-        this.ui.hud.update(time, dt);
+        if(this.hud) {
+            this.hud.update(time, dt);
+        }        
     }
     
     getMainFsmData(): IFsmData {
@@ -714,7 +720,9 @@ class BaseScene extends Phaser.Scene {
 
 
             // UI reset
-            this.ui.hud.reset();
+            if(this.hud) {
+                this.hud.reset();
+            }            
 
             // Back
             if(this.needChangeUiWhenIntoGame())
@@ -750,7 +758,9 @@ class BaseScene extends Phaser.Scene {
         state.setOnExit(s => {
             this.gamePlayFsm.stop();
             this.zenFsm.stop();
-            LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
+            
+            if(this.ui.hud)
+                LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
             this.gamePlayExit();

@@ -26,14 +26,18 @@ class UI extends Wrapper<PhText>{
     mode: GameMode;
     gotoGame(mode: GameMode){
         this.mode = mode;
-        this.hud.reset();
-        this.hud.show(mode);
+        if(this.hud) {
+            this.hud.reset();
+            this.hud.show(mode);
+        }        
         this.footer.hide();
         this.down(this.leaderboardBtn.inner);
     }
 
     gotoHome() {
-        this.hud.hide(this.mode);
+        if(this.hud) {
+            this.hud.hide(this.mode);
+        }        
         this.footer.show();
         this.up(this.leaderboardBtn.inner);
     }

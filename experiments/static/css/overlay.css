@@ -427,7 +427,7 @@ input[type="submit"]:active {
 }
 
 #newspaper-transparent-overlay {
-  
+  pointer-events: none;
   position: absolute;
   z-index: 20;
   left:6px;
@@ -457,15 +457,18 @@ input[type="submit"]:active {
 
 #top-bar{  
   top: -54px;    
+  visibility: hidden;
 }
 
 #bottom-bar{
   top: 231px;
+  visibility: hidden;
 }
 
 
 
 #indicator-bar{
+  visibility: hidden;
   position: absolute;
   z-index: 1;
   height: 100%;

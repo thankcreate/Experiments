@@ -181,7 +181,7 @@ class Scene2 extends BaseScene {
             return;
         }
 
-        console.log(timeDiff);
+        // console.log(timeDiff);
 
 
         let fullTime = 3.5;
@@ -384,6 +384,10 @@ class Scene2 extends BaseScene {
         $('#newspaper-layer').css('display', show? 'block' : 'none');
         $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
 
+        $('#top-bar').css('visibility', show ? 'visible' : 'hidden');
+        $('#bottom-bar').css('visibility', show ? 'visible' : 'hidden');
+        $('#indicator-bar').css('visibility', show ? 'visible' : 'hidden');
+
         let dt = 500;
         
 
@@ -409,6 +413,10 @@ class Scene2 extends BaseScene {
             translateX: isShow? 0 : -100,
             duration: dt
         })        
+    }
+
+    createHud(parentContainer: PhContainer) {
+        return null;
     }
     
 

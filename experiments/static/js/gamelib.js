@@ -161,7 +161,7 @@ class BaseScene extends Phaser.Scene {
         this.backBtn.text.setColor('#000000');
         this.backBtn.text.setFontSize(44);
         // HP                
-        let hud = new Hud(this, this.abContainer, 0, 0);
+        let hud = this.createHud(this.abContainer);
         this.ui = new UI(this, this.abContainer, 0, 0);
         this.ui.hud = hud;
         // Subtitle
@@ -183,6 +183,9 @@ class BaseScene extends Phaser.Scene {
         this.postCreate();
         // initVoiceType
         this.initVoiceType();
+    }
+    createHud(parentContainer) {
+        return null;
     }
     makeGamePlayFsm() {
         return new Fsm(this, this.getGamePlayFsmData());
@@ -215,7 +218,9 @@ class BaseScene extends Phaser.Scene {
         this.midContainder.setPosition(w / 2, h / 2);
         this.overlayContainer.setPosition(w / 2, h / 2);
         this.centerObject.update(time, dt);
-        this.ui.hud.update(time, dt);
+        if (this.hud) {
+            this.hud.update(time, dt);
+        }
     }
     getMainFsmData() {
         return mainFsm;
@@ -507,7 +512,9 @@ class BaseScene extends Phaser.Scene {
             this.gamePlayFsm.start();
             this.zenFsm.start();
             // UI reset
-            this.ui.hud.reset();
+            if (this.hud) {
+                this.hud.reset();
+            }
             // Back
             if (this.needChangeUiWhenIntoGame())
                 this.backBtn.setEnable(true, true);
@@ -536,7 +543,8 @@ class BaseScene extends Phaser.Scene {
         state.setOnExit(s => {
             this.gamePlayFsm.stop();
             this.zenFsm.stop();
-            LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
+            if (this.ui.hud)
+                LeaderboardManager.getInstance().reportScore(this.playerName, this.ui.hud.score);
             // Stop all subtitle and sounds
             this.subtitle.forceStopAndHideSubtitles();
             this.gamePlayExit();
@@ -840,6 +848,9 @@ class Scene1 extends BaseScene {
                 this.hp.damageBy(enemy.health);
             });
         }
+    }
+    createHud(parentContainer) {
+        return new Hud(this, parentContainer, 0, 0);
     }
     sceneEnterDied(s, result, resolve, reject) {
         super.sceneEnterDied(s, result, resolve, reject);
@@ -2210,7 +2221,7 @@ class Scene2 extends BaseScene {
             this.lastTimeStamp = timestamp;
             return;
         }
-        console.log(timeDiff);
+        // console.log(timeDiff);
         let fullTime = 3.5;
         let targetJquery = null;
         let progress = { value: 0 };
@@ -2356,6 +2367,9 @@ class Scene2 extends BaseScene {
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
         $('#newspaper-page').css('visibility', show ? 'visible' : 'hidden');
+        $('#top-bar').css('visibility', show ? 'visible' : 'hidden');
+        $('#bottom-bar').css('visibility', show ? 'visible' : 'hidden');
+        $('#indicator-bar').css('visibility', show ? 'visible' : 'hidden');
         let dt = 500;
         this.tweens.add({
             targets: this.paperCssBinding,
@@ -2375,6 +2389,9 @@ class Scene2 extends BaseScene {
             translateX: isShow ? 0 : -100,
             duration: dt
         });
+    }
+    createHud(parentContainer) {
+        return null;
     }
     showCam(isShow) {
         let dt = 500;
@@ -10566,13 +10583,17 @@ class UI extends Wrapper {
     }
     gotoGame(mode) {
         this.mode = mode;
-        this.hud.reset();
-        this.hud.show(mode);
+        if (this.hud) {
+            this.hud.reset();
+            this.hud.show(mode);
+        }
         this.footer.hide();
         this.down(this.leaderboardBtn.inner);
     }
     gotoHome() {
-        this.hud.hide(this.mode);
+        if (this.hud) {
+            this.hud.hide(this.mode);
+        }
         this.footer.show();
         this.up(this.leaderboardBtn.inner);
     }

@@ -71,6 +71,10 @@ class Scene1 extends BaseScene {
         }
     }
 
+    createHud(parentContainer: PhContainer) {
+        return new Hud(this, parentContainer, 0, 0);  
+    }
+    
     sceneEnterDied(s, result, resolve, reject) {
         super.sceneEnterDied(s, result, resolve, reject);
         this.enemyManager.freezeAllEnemies();        

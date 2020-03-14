@@ -14,6 +14,8 @@ class Scene2 extends BaseScene {
     resultCssBinding: CssBinding;
     manualBtnsCssBing: CssBinding;
     transparentOverlayCssBinding: CssBinding;
+    indicatorCssBinding: CssBinding;
+    indicatorButtonCssBinding: CssBinding;  
 
     newspaperFsm: NewspaperFsm;
 
@@ -25,7 +27,12 @@ class Scene2 extends BaseScene {
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
         super(config);        
     }
+
     
+    preload() {
+        super.preload();
+        this.load.image('center_rect', 'assets/center_rect.png');        
+    }
 
     create() {
         super.create();
@@ -39,6 +46,8 @@ class Scene2 extends BaseScene {
         this.resultCssBinding = new CssBinding($('#newspaper-result'));
         this.manualBtnsCssBing = new CssBinding($('#newspaper-manual-button'));
         this.transparentOverlayCssBinding = new CssBinding($('#newspaper-transparent-overlay'));
+        this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
+        this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
 
         this.initBindingCss();
 
@@ -219,10 +228,6 @@ class Scene2 extends BaseScene {
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);        
     }
 
-    preload() {
-        super.preload();
-        this.load.image('center_rect', 'assets/center_rect.png');
-    }
 
 
     sceneAddFirstMeetGreetingActinos(s: FsmState) :FsmState {
@@ -294,6 +299,10 @@ class Scene2 extends BaseScene {
     initialCamTranslateX = -100;
     initialCamTranslateY = -50;
 
+    indicatorBtnTop = 1;
+    indicatorBtnBottm = 99;
+
+
     initBindingCss() {
         this.paperCssBinding.scale = 0;
         this.paperCssBinding.rotate = 0;
@@ -320,6 +329,12 @@ class Scene2 extends BaseScene {
 
         this.transparentOverlayCssBinding.opacity = 0;
         this.transparentOverlayCssBinding.udpate();
+
+        this.indicatorCssBinding.translateX = -100;
+        this.indicatorCssBinding.udpate();
+
+        this.indicatorButtonCssBinding.top = `${this.indicatorBtnTop}%`;
+        this.indicatorButtonCssBinding.udpate();
     }
 
     showPaper(show: boolean = true) {
@@ -452,6 +467,11 @@ class Scene2 extends BaseScene {
             this.manualBtnsCssBing.udpate();
         if(this.transparentOverlayCssBinding)
             this.transparentOverlayCssBinding.udpate();
+
+        if(this.indicatorCssBinding) 
+            this.indicatorCssBinding.udpate();
+        if(this.indicatorButtonCssBinding)
+            this.indicatorButtonCssBinding.udpate();
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);

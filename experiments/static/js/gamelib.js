@@ -2094,12 +2094,18 @@ class Scene2 extends BaseScene {
         this.initialPaperTranslateY = -50;
         this.initialCamTranslateX = -100;
         this.initialCamTranslateY = -50;
+        this.indicatorBtnTop = 1;
+        this.indicatorBtnBottm = 99;
         this.npStyle = NewsPaperStyle.DEFAULT;
         /////////////////////////////////////////////////////////////////////////
         this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     }
     get npNums() {
         return [0];
+    }
+    preload() {
+        super.preload();
+        this.load.image('center_rect', 'assets/center_rect.png');
     }
     create() {
         super.create();
@@ -2111,6 +2117,8 @@ class Scene2 extends BaseScene {
         this.resultCssBinding = new CssBinding($('#newspaper-result'));
         this.manualBtnsCssBing = new CssBinding($('#newspaper-manual-button'));
         this.transparentOverlayCssBinding = new CssBinding($('#newspaper-transparent-overlay'));
+        this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
+        this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
         this.initBindingCss();
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
@@ -2236,10 +2244,6 @@ class Scene2 extends BaseScene {
         this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);
     }
-    preload() {
-        super.preload();
-        this.load.image('center_rect', 'assets/center_rect.png');
-    }
     sceneAddFirstMeetGreetingActinos(s) {
         s.addSubtitleAction(this.subtitle, "Oh, hi there!", true)
             .addSubtitleAction(this.subtitle, "Terminal 65537 is at your service.\n", true)
@@ -2310,6 +2314,10 @@ class Scene2 extends BaseScene {
         this.manualBtnsCssBing.udpate();
         this.transparentOverlayCssBinding.opacity = 0;
         this.transparentOverlayCssBinding.udpate();
+        this.indicatorCssBinding.translateX = -100;
+        this.indicatorCssBinding.udpate();
+        this.indicatorButtonCssBinding.top = `${this.indicatorBtnTop}%`;
+        this.indicatorButtonCssBinding.udpate();
     }
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
@@ -2419,6 +2427,10 @@ class Scene2 extends BaseScene {
             this.manualBtnsCssBing.udpate();
         if (this.transparentOverlayCssBinding)
             this.transparentOverlayCssBinding.udpate();
+        if (this.indicatorCssBinding)
+            this.indicatorCssBinding.udpate();
+        if (this.indicatorButtonCssBinding)
+            this.indicatorButtonCssBinding.udpate();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }

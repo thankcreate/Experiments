@@ -191,7 +191,7 @@ class Scene2L1 extends Scene2 {
         correct.addAction(s=>{            
         })
 
-        correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. Labs are the best.`, true);
+        correct.addSubtitleAction(this.subtitle, ()=> `Haha, ${this.getUserName()}. Laboratories are the best. Right?`, true);
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);

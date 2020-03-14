@@ -2746,7 +2746,7 @@ class Scene2L1 extends Scene2 {
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
         correct.addAction(s => {
         });
-        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. Labs are the best.`, true);
+        correct.addSubtitleAction(this.subtitle, () => `Haha, ${this.getUserName()}. Laboratories are the best. Right?`, true);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `Why would someone hate to see more labs?`, true);

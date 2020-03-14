@@ -2095,7 +2095,7 @@ class Scene2 extends BaseScene {
         this.initialCamTranslateX = -100;
         this.initialCamTranslateY = -50;
         this.indicatorBtnTop = 1;
-        this.indicatorBtnBottm = 99;
+        this.indicatorBtnBottom = 99;
         this.npStyle = NewsPaperStyle.DEFAULT;
         /////////////////////////////////////////////////////////////////////////
         this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
@@ -2165,14 +2165,52 @@ class Scene2 extends BaseScene {
         // console.log('')
         // console.log(face.expressions.eyeClosure);
     }
+    showIndicator(isShow) {
+        let dt = 600;
+        let pany = TweenPromise.create(this, {
+            targets: this.indicatorCssBinding,
+            translateX: isShow ? 0 : -100,
+            duration: dt
+        });
+        return pany;
+    }
+    updateIndicatorMeterBtn(analyzeRes) {
+        let emotionFactor = analyzeRes.emotion == MyEmotion.Positive ? -1 : 1;
+        let per = 0.5 + emotionFactor * analyzeRes.intensity * 0.5;
+        this.updateIndicatorMeterBtnByPercentage(per);
+    }
+    /**
+     * Updatdate the indicator button by a input normalized number
+     * @param per [0, 1]. 0 means top-most, 1 means bottom-most;
+     */
+    updateIndicatorMeterBtnByPercentage(per) {
+        // 1.current
+        let curTop = this.indicatorButtonCssBinding.top;
+        //  remove the postfix '%'
+        let curTopNum = parseFloat(curTop.substr(0, curTop.length - 1));
+        // 2.destination
+        let top = this.indicatorBtnTop;
+        let bottom = this.indicatorBtnBottom;
+        let dest = lerp(top, bottom, per);
+        // 3.lerp from current->destination
+        let lerped = lerp(curTopNum, dest, 0.1);
+        this.indicatorButtonCssBinding.top = `${lerped}%`;
+    }
     emotionAnalyze(imgRes) {
         let face = imgRes.face;
         let timestamp = imgRes.timestamp; // in seconds
-        if (!this.canRecieveEmotion) {
+        if (this.lastTimeStamp == null) {
+            this.lastTimeStamp = timestamp;
+        }
+        let timeDiff = timestamp - this.lastTimeStamp;
+        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
+        // notify the indicator meter to update Y
+        this.updateIndicatorMeterBtn(res);
+        if (!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
             return;
         }
-        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
+        console.log(timeDiff);
         let fullTime = 3.5;
         let targetJquery = null;
         let progress = { value: 0 };
@@ -2184,10 +2222,6 @@ class Scene2 extends BaseScene {
             targetJquery = $('#emoji-progress-bottom');
             progress = this.bottomProgress;
         }
-        if (this.lastTimeStamp == null) {
-            this.lastTimeStamp = timestamp;
-        }
-        let timeDiff = timestamp - this.lastTimeStamp;
         let added = 1 / fullTime * res.intensity * timeDiff;
         progress.value += added;
         progress.value = clamp(progress.value, 0, 1);
@@ -2371,6 +2405,7 @@ class Scene2 extends BaseScene {
             translateY: 0,
             duration: dt
         });
+        this.showIndicator(true);
         return top;
     }
     /**
@@ -2389,6 +2424,7 @@ class Scene2 extends BaseScene {
             translateY: -100,
             duration: dt
         });
+        this.showIndicator(false);
         return top;
     }
     hideAndShowProgressBars() {
@@ -6078,7 +6114,7 @@ class EmmotionManager {
         let expressions = face.expressions;
         if (emotions.joy > 90 || expressions.smile > 80) {
             ana.emotion = MyEmotion.Positive;
-            ana.intensity = 1;
+            ana.intensity = emotions.engagement / 100;
         }
         // if(expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
         //     ana.emotion = MyEmotion.Negative;
@@ -6086,7 +6122,7 @@ class EmmotionManager {
         // }
         if (emotions.valence < -10) {
             ana.emotion = MyEmotion.Negative;
-            ana.intensity = 1;
+            ana.intensity = emotions.engagement / 100;
         }
         return ana;
     }

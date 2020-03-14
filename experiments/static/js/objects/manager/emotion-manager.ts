@@ -40,7 +40,7 @@ class EmmotionManager {
 
         if(emotions.joy > 90 || expressions.smile > 80) {
             ana.emotion = MyEmotion.Positive;
-            ana.intensity = 1;
+            ana.intensity = emotions.engagement / 100;
         }
         
         // if(expressions.noseWrinkle > 30 || expressions.browFurrow > 30) {
@@ -49,7 +49,7 @@ class EmmotionManager {
         // }
         if(emotions.valence < -10) {
             ana.emotion = MyEmotion.Negative;
-            ana.intensity = 1;
+            ana.intensity = emotions.engagement / 100;
         }
 
         return ana;

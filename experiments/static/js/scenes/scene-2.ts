@@ -126,17 +126,63 @@ class Scene2 extends BaseScene {
     canRecieveEmotion: boolean = false;
     canRecieveEmojiClick: boolean = false;
 
+    showIndicator(isShow: boolean): Pany {
+        let dt = 600;
+        let pany = TweenPromise.create(this, {
+            targets: this.indicatorCssBinding,
+            translateX: isShow ? 0 : -100,
+            duration: dt
+        });
+        return pany;
+    }
+
+    updateIndicatorMeterBtn(analyzeRes: MyAnalysis) {
+        let emotionFactor = analyzeRes.emotion == MyEmotion.Positive ? -1 : 1;
+        let per = 0.5 + emotionFactor * analyzeRes.intensity * 0.5;        
+        this.updateIndicatorMeterBtnByPercentage(per);
+    }
+
+    /**
+     * Updatdate the indicator button by a input normalized number
+     * @param per [0, 1]. 0 means top-most, 1 means bottom-most;
+     */
+    updateIndicatorMeterBtnByPercentage(per: number) {
+        // 1.current
+        let curTop = this.indicatorButtonCssBinding.top;
+        //  remove the postfix '%'
+        let curTopNum = parseFloat(curTop.substr(0, curTop.length - 1)); 
+        
+        // 2.destination
+        let top = this.indicatorBtnTop;  
+        let bottom = this.indicatorBtnBottom; 
+        let dest = lerp(top, bottom, per);
+
+        // 3.lerp from current->destination
+        let lerped = lerp(curTopNum, dest, 0.1);
+
+        this.indicatorButtonCssBinding.top = `${lerped}%`;
+    }
+
     emotionAnalyze(imgRes: ImageRes) {        
         let face = imgRes.face;
         let timestamp = imgRes.timestamp; // in seconds
+        if(this.lastTimeStamp == null) {
+            this.lastTimeStamp = timestamp;
+        }
+        let timeDiff = timestamp - this.lastTimeStamp;
+
+        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);        
+
+        // notify the indicator meter to update Y
+        this.updateIndicatorMeterBtn(res);
         
-        if(!this.canRecieveEmotion) {
+        if(!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
             return;
         }
 
-        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);        
-        
+        console.log(timeDiff);
+
 
         let fullTime = 3.5;
         let targetJquery = null;
@@ -151,10 +197,7 @@ class Scene2 extends BaseScene {
             progress = this.bottomProgress;
         }
 
-        if(this.lastTimeStamp == null) {
-            this.lastTimeStamp = timestamp;
-        }
-        let timeDiff = timestamp - this.lastTimeStamp;
+
 
         let added = 1 / fullTime * res.intensity * timeDiff;
         progress.value += added;
@@ -300,7 +343,7 @@ class Scene2 extends BaseScene {
     initialCamTranslateY = -50;
 
     indicatorBtnTop = 1;
-    indicatorBtnBottm = 99;
+    indicatorBtnBottom = 99;
 
 
     initBindingCss() {
@@ -403,6 +446,7 @@ class Scene2 extends BaseScene {
             duration: dt
         }) 
 
+        this.showIndicator(true);
         return top;
     }
 
@@ -424,6 +468,8 @@ class Scene2 extends BaseScene {
             translateY: -100,
             duration: dt
         }) 
+
+        this.showIndicator(false);
         return top;
     }
 

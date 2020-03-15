@@ -2111,6 +2111,8 @@ class Scene2 extends BaseScene {
         this.bottomProgress = { value: 0 }; // [0, 1]
         this.canRecieveEmotion = false;
         this.canRecieveEmojiClick = false;
+        // whether need to animate the dwitter background when a emotion intensity reached a threshould
+        this.needDwitterFlow = false;
         this.isLastTestCorrect = false;
         this.initialPaperTranslateX = -50;
         this.initialPaperTranslateY = -50;
@@ -2118,6 +2120,7 @@ class Scene2 extends BaseScene {
         this.initialCamTranslateY = -50;
         this.indicatorBtnTop = 1;
         this.indicatorBtnBottom = 99;
+        this.isCamShown = false;
         this.npStyle = NewsPaperStyle.DEFAULT;
         /////////////////////////////////////////////////////////////////////////
         this.innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
@@ -2228,6 +2231,7 @@ class Scene2 extends BaseScene {
         let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
+        this.needDwitterFlow = false;
         if (!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
             return;
@@ -2249,6 +2253,9 @@ class Scene2 extends BaseScene {
         progress.value = clamp(progress.value, 0, 1);
         if (progress.value == 1) {
             this.emotionMaxed(res.emotion);
+        }
+        if (res.intensity > 0.9) {
+            this.needDwitterFlow = true;
         }
         this.refreshBarLeftIconStatus(res.emotion);
         this.refreshProgressBarCss();
@@ -2415,6 +2422,7 @@ class Scene2 extends BaseScene {
     }
     showCam(isShow) {
         let dt = 500;
+        this.isCamShown = isShow;
         this.tweens.add({
             targets: this.camCssBinding,
             translateX: isShow ? 0 : this.initialCamTranslateX,
@@ -2510,6 +2518,20 @@ class Scene2 extends BaseScene {
     update(time, dt) {
         super.update(time, dt);
         this.updateCssBinding();
+        this.updateDwitterBackgroundState();
+    }
+    updateDwitterBackgroundState() {
+        if (this.isCamShown) {
+            if (this.needDwitterFlow && this.canRecieveEmotion) {
+                this.dwitterBKG.isRunning = true;
+            }
+            else {
+                this.dwitterBKG.isRunning = false;
+            }
+        }
+        else {
+            this.dwitterBKG.isRunning = false;
+        }
     }
     fillNewspaperContentByNum(num) {
         let ins = NewsDataManager.getInstance();

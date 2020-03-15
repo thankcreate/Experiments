@@ -163,6 +163,8 @@ class Scene2 extends BaseScene {
         this.indicatorButtonCssBinding.top = `${lerped}%`;
     }
 
+    // whether need to animate the dwitter background when a emotion intensity reached a threshould
+    needDwitterFlow = false;
     emotionAnalyze(imgRes: ImageRes) {        
         let face = imgRes.face;
         let timestamp = imgRes.timestamp; // in seconds
@@ -175,6 +177,8 @@ class Scene2 extends BaseScene {
 
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
+
+        this.needDwitterFlow = false;
         
         if(!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
@@ -206,6 +210,10 @@ class Scene2 extends BaseScene {
         if(progress.value == 1) {                
             
             this.emotionMaxed(res.emotion);
+        }
+
+        if(res.intensity > 0.9){
+            this.needDwitterFlow = true;
         }
 
         this.refreshBarLeftIconStatus(res.emotion);
@@ -429,9 +437,10 @@ class Scene2 extends BaseScene {
         this.showPaper(false);
     }
 
+    isCamShown = false;
     showCam(isShow: boolean) {
         let dt = 500;
-        
+        this.isCamShown = isShow;
         this.tweens.add({
             targets: this.camCssBinding,
             translateX: isShow? 0 : this.initialCamTranslateX,
@@ -543,7 +552,24 @@ class Scene2 extends BaseScene {
     update(time, dt) {
         super.update(time, dt);
         this.updateCssBinding();
+        this.updateDwitterBackgroundState();
     }
+
+    updateDwitterBackgroundState() {
+        if(this.isCamShown){
+            if(this.needDwitterFlow && this.canRecieveEmotion) {
+                this.dwitterBKG.isRunning = true;
+            }
+            else {
+                this.dwitterBKG.isRunning = false;
+            }
+        }
+        else {
+            this.dwitterBKG.isRunning = false;
+        }
+    }
+        
+    
 
     fillNewspaperContentByNum(num: number) {
         let ins = NewsDataManager.getInstance();

@@ -2349,6 +2349,7 @@ class Scene2 extends BaseScene {
     }
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
+        this.initBindingCss();
     }
     initBindingCss() {
         this.paperCssBinding.scale = 0;
@@ -2403,6 +2404,14 @@ class Scene2 extends BaseScene {
     }
     createHud(parentContainer) {
         return null;
+    }
+    sceneExitNormalGame(s) {
+        super.sceneExitNormalGame(s);
+        this.newspaperFsm.stop();
+    }
+    scenePrepareBackToHome() {
+        super.scenePrepareBackToHome();
+        this.showPaper(false);
     }
     showCam(isShow) {
         let dt = 500;

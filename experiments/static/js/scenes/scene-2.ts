@@ -332,7 +332,7 @@ class Scene2 extends BaseScene {
 
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);        
-        
+        this.initBindingCss();
         
     }
 
@@ -419,6 +419,15 @@ class Scene2 extends BaseScene {
         return null;
     }
     
+    sceneExitNormalGame(s: FsmState) {
+        super.sceneExitNormalGame(s);
+        this.newspaperFsm.stop();
+    }
+
+    scenePrepareBackToHome() {
+        super.scenePrepareBackToHome();
+        this.showPaper(false);
+    }
 
     showCam(isShow: boolean) {
         let dt = 500;

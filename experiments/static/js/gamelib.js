@@ -2523,14 +2523,14 @@ class Scene2 extends BaseScene {
     updateDwitterBackgroundState() {
         if (this.isCamShown) {
             if (this.needDwitterFlow && this.canRecieveEmotion) {
-                this.dwitterBKG.isRunning = true;
+                this.dwitterBKG.isRunning2 = true;
             }
             else {
-                this.dwitterBKG.isRunning = false;
+                this.dwitterBKG.isRunning2 = false;
             }
         }
         else {
-            this.dwitterBKG.isRunning = false;
+            this.dwitterBKG.isRunning2 = false;
         }
     }
     fillNewspaperContentByNum(num) {
@@ -3588,7 +3588,8 @@ class Dwitter extends Wrapper {
         super(scene, parentContainer, x, y, null);
         // frame: number;
         this.lastInnerTime = -1;
-        this.isRunning = true;
+        this.isRunning1 = true;
+        this.isRunning2 = false;
         this.toIndex = 0;
         this.useImage = useImage;
         this.height = height;
@@ -3625,7 +3626,7 @@ class Dwitter extends Wrapper {
         this.u(this.lastInnerTime, this.c, this.x);
     }
     toAutoRunMode() {
-        this.isRunning = true;
+        this.isRunning1 = true;
     }
     nextWithColorChange() {
         let typeCount = 4;
@@ -3636,10 +3637,13 @@ class Dwitter extends Wrapper {
         this.next();
     }
     toStaticMode() {
-        this.isRunning = false;
+        this.isRunning1 = false;
+    }
+    get needRunning() {
+        return this.isRunning1 || this.isRunning2;
     }
     update(time, dt) {
-        if (!this.isRunning)
+        if (!this.needRunning)
             return;
         if (this.inner.alpha == 0)
             return;
@@ -3741,7 +3745,7 @@ class DwitterRadialBKG extends Dwitter {
     u(t, c, x) {
         if (this.needStopOnFirstShow) {
             this.needStopOnFirstShow = false;
-            this.isRunning = false;
+            this.isRunning1 = false;
         }
         if (this.toIndex == 0) {
             let a = 0;

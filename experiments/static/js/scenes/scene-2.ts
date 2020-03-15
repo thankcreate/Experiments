@@ -558,14 +558,14 @@ class Scene2 extends BaseScene {
     updateDwitterBackgroundState() {
         if(this.isCamShown){
             if(this.needDwitterFlow && this.canRecieveEmotion) {
-                this.dwitterBKG.isRunning = true;
+                this.dwitterBKG.isRunning2 = true;
             }
             else {
-                this.dwitterBKG.isRunning = false;
+                this.dwitterBKG.isRunning2 = false;
             }
         }
         else {
-            this.dwitterBKG.isRunning = false;
+            this.dwitterBKG.isRunning2 = false;
         }
     }
         

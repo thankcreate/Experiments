@@ -18,7 +18,8 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
 
     useImage: boolean;
 
-    isRunning: boolean = true;
+    isRunning1: boolean = true;
+    isRunning2: boolean = false;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, width: number, height: number, useImage: boolean = true) {
         super(scene, parentContainer, x, y, null);
@@ -66,7 +67,7 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     }
 
     toAutoRunMode() {
-        this.isRunning = true;                
+        this.isRunning1 = true;                
     }
 
     nextWithColorChange() {
@@ -81,12 +82,15 @@ class Dwitter extends Wrapper<PhImage | PhGraphics> implements Updatable {
     
 
     toStaticMode() {
-        this.isRunning = false;                
+        this.isRunning1 = false;                
     }
 
+    get needRunning() {
+        return this.isRunning1 || this.isRunning2;
+    }
 
     update(time, dt) {
-        if(!this.isRunning)
+        if(!this.needRunning)
             return;
 
         if(this.inner.alpha == 0)
@@ -229,7 +233,7 @@ class DwitterRadialBKG extends Dwitter {
         
         if(this.needStopOnFirstShow ){
             this.needStopOnFirstShow = false;
-            this.isRunning = false;
+            this.isRunning1 = false;
         }
 
         if(this.toIndex == 0) {

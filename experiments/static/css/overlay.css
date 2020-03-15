@@ -634,6 +634,7 @@ input[type="submit"]:active {
 
 .newspaper-manual-button-frame:active .active{
   display: block;
+  top: 5px;
 }
 
 

@@ -12,7 +12,6 @@ class Scene2L1 extends Scene2 {
 
     create() {
         super.create();
-        this.addCounter(Counter.IntoHome, 1);
         this.initGamePlayFsm();           
         this.initNewspaperFsm();
         

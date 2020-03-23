@@ -41,7 +41,6 @@ class Scene1L3 extends Scene1 {
     
     create() {
         super.create();
-        this.addCounter(Counter.IntoHome, 1);
 
         // this.initShake();
         this.initNormalGameFsm();       

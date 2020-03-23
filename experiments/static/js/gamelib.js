@@ -444,7 +444,7 @@ class BaseScene extends Phaser.Scene {
                 resolve('clicked');
             }
         })
-            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome() && this.needModeSelect())
+            // .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome() && this.needModeSelect())
             .addAction(() => {
             this.centerObject.btnMode0.setEnable(false, true);
             this.centerObject.btnMode1.setEnable(false, true);
@@ -1161,7 +1161,6 @@ class Scene1L2 extends Scene1 {
     }
     create() {
         super.create();
-        this.addCounter(Counter.IntoHome, 1);
         this.initNormalGameFsm();
         this.hp.initMaxHealth(10);
     }
@@ -1233,7 +1232,6 @@ class Scene1L3 extends Scene1 {
     }
     create() {
         super.create();
-        this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
         this.hp.initMaxHealth(100);
@@ -1480,7 +1478,6 @@ class Scene1L4 extends Scene1 {
     }
     create() {
         super.create();
-        this.addCounter(Counter.IntoHome, 1);
         // this.initShake();
         this.initNormalGameFsm();
         this.hp.initMaxHealth(10);
@@ -1769,7 +1766,6 @@ class Scene1LPaper extends Scene1 {
         this.createPaper();
         this.createCountdown();
         this.createNextLevelBtn();
-        this.addCounter(Counter.IntoHome, 1);
         this.initNormalGameFsm();
         this.initPaperButtonCallback();
         CameraManager.getInstance().initFaceAPI();
@@ -2667,7 +2663,6 @@ class Scene2L1 extends Scene2 {
     }
     create() {
         super.create();
-        this.addCounter(Counter.IntoHome, 1);
         this.initGamePlayFsm();
         this.initNewspaperFsm();
         CameraManager.getInstance().requestPermission();
@@ -10678,6 +10673,15 @@ class UI extends Wrapper {
             y: "-= 250",
             duration: 1000,
         });
+    }
+}
+/// <reference path="scene-2.ts" />
+class Scene2L2 extends Scene2 {
+    constructor() {
+        super('Scene2L2');
+    }
+    get npNums() {
+        return [0, 1, 2, 3, 4, 5, 6];
     }
 }
 let code = `

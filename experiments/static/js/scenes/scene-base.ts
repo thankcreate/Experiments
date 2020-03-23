@@ -639,7 +639,7 @@ class BaseScene extends Phaser.Scene {
                     resolve('clicked');
                 }               
             })
-            .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome() && this.needModeSelect())
+            // .addSubtitleAction(this.subtitle, 'Good choice', true, 2000, 1000, 100).setBoolCondition(o => this.firstIntoHome() && this.needModeSelect())
             .addAction(() => {
                 this.centerObject.btnMode0.setEnable(false, true);
                 this.centerObject.btnMode1.setEnable(false, true);

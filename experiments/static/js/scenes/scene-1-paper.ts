@@ -15,8 +15,6 @@ class Scene1LPaper extends Scene1 {
         this.createCountdown();
         this.createNextLevelBtn();
 
-        this.addCounter(Counter.IntoHome, 1);
-        
         this.initNormalGameFsm();              
 
         this.initPaperButtonCallback();

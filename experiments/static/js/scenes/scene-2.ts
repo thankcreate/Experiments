@@ -51,19 +51,26 @@ class Scene2 extends BaseScene {
 
         this.initBindingCss();
 
+        
         CameraManager.getInstance().imageResEvent.on((e)=>{
             this.imageHandler(e);
         })
+        CameraManager.getInstance().requestPermission();
+        CameraManager.getInstance().initFaceAPI()       
 
-        let test = NewsDataManager.getInstance();        
+        CameraManager.getInstance().startDectector();   
+        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
+
+        CameraManager.getInstance().showVideo();               
+
+        
 
         GlobalEventManager.getInstance().newspaperButtonTopClickedEvent.on((m)=>{
             this.newspaperButtonClicked(m, true);
         })
         GlobalEventManager.getInstance().newspaperButtonBottomClickedEvent.on((m)=>{
             this.newspaperButtonClicked(m, false);
-        })
-        // $('#test-info').css('visibility', 'hidden');         
+        })        
     }
 
     newspaperButtonClicked(manager: GlobalEventManager, isTop: boolean) {

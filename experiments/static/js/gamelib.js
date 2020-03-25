@@ -2021,7 +2021,8 @@ class Controller extends Phaser.Scene {
             '1-Paper',
             '1-4',
             '2-0',
-            '2-1'
+            '2-1',
+            '2-2'
         ];
     }
     preload() {
@@ -2144,14 +2145,17 @@ class Scene2 extends BaseScene {
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
         });
-        let test = NewsDataManager.getInstance();
+        CameraManager.getInstance().requestPermission();
+        CameraManager.getInstance().initFaceAPI();
+        CameraManager.getInstance().startDectector();
+        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
+        CameraManager.getInstance().showVideo();
         GlobalEventManager.getInstance().newspaperButtonTopClickedEvent.on((m) => {
             this.newspaperButtonClicked(m, true);
         });
         GlobalEventManager.getInstance().newspaperButtonBottomClickedEvent.on((m) => {
             this.newspaperButtonClicked(m, false);
         });
-        // $('#test-info').css('visibility', 'hidden');         
     }
     newspaperButtonClicked(manager, isTop) {
         if (!this.canRecieveEmojiClick)
@@ -2665,11 +2669,6 @@ class Scene2L1 extends Scene2 {
         super.create();
         this.initGamePlayFsm();
         this.initNewspaperFsm();
-        CameraManager.getInstance().requestPermission();
-        CameraManager.getInstance().initFaceAPI();
-        CameraManager.getInstance().startDectector();
-        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
-        CameraManager.getInstance().showVideo();
         this.fillNewspaperContentByNum(0);
         this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
     }
@@ -2886,6 +2885,54 @@ class Scene2L1 extends Scene2 {
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 }
+/// <reference path="scene-2.ts" />
+class Scene2L2 extends Scene2 {
+    constructor() {
+        super('Scene2L2');
+    }
+    get npNums() {
+        return [0, 1, 2, 3, 4, 5, 6];
+    }
+    create() {
+        super.create();
+        this.initGamePlayFsm();
+        this.initNewspaperFsm();
+    }
+    initGamePlayFsm() {
+        this.initStGamePlayDefault();
+        this.initStGamePlayStart();
+        this.updateObjects.push(this.gamePlayFsm);
+        console.log('afdsafdasfdas');
+    }
+    initNewspaperFsm() {
+        // this.initStNewspaperDefault();
+        // this.initStNewspaper0();
+        // this.initStNewspaper1();
+        // this.initStNewspaper2();
+        // this.initStNewspaper3();
+        // this.initStNewspaper4();
+        // this.initStNewspaper5();
+        // this.initStNewspaper6();
+        this.updateObjects.push(this.newspaperFsm);
+    }
+    getGamePlayFsmData() {
+        return normal_2_2;
+    }
+    initStGamePlayDefault() {
+        let state = this.gamePlayFsm.getDefaultState();
+        state.addDelayAction(this, 200)
+            .addEventAction("START");
+    }
+    initStGamePlayStart() {
+        let state = this.gamePlayFsm.getState("Start");
+        state.addOnEnter(s => {
+            console.log('aahahahahahha');
+            this.showPaper(true);
+            // this.setCenterTextPaper('65536 Sucks', '😀')
+            // this.newspaperFsm.start();                   
+        });
+    }
+}
 /// <reference path="scenes/scene-base.ts" />
 /// <reference path="scenes/scene-1-0.ts" />
 /// <reference path="scenes/scene-1-1.ts" />
@@ -2896,6 +2943,7 @@ class Scene2L1 extends Scene2 {
 /// <reference path="scenes/scene-controller.ts" />
 /// <reference path="scenes/scene-2-0.ts" />
 /// <reference path="scenes/scene-2-1.ts" />
+/// <reference path="scenes/scene-2-2.ts" />
 var gameplayConfig = {
     enemyDuratrion: 30000,
     spawnInterval: 8000,
@@ -2943,7 +2991,7 @@ var phaserConfig = {
     },
     canvasStyle: "vertical-align: middle;",
     scene: [Controller, Scene1L0, BaseScene, Scene1L4, Scene1L3, Scene1L2, Scene1L1, Scene1LPaper,
-        Scene2L0, Scene2L1]
+        Scene2L0, Scene2L1, Scene2L2]
 };
 class PhPointClass extends Phaser.Geom.Point {
 }
@@ -5936,6 +5984,15 @@ var normal_2_1 = {
     ]
 };
 farray.push(normal_2_1);
+/// <reference path="../fsm/fsm.ts" />
+var normal_2_2 = {
+    name: 'Normal_2_2',
+    initial: "Default",
+    events: [
+        { name: 'START', from: 'Default', to: 'Start' },
+    ]
+};
+farray.push(normal_2_2);
 class BirdManager {
     constructor() {
     }
@@ -10673,15 +10730,6 @@ class UI extends Wrapper {
             y: "-= 250",
             duration: 1000,
         });
-    }
-}
-/// <reference path="scene-2.ts" />
-class Scene2L2 extends Scene2 {
-    constructor() {
-        super('Scene2L2');
-    }
-    get npNums() {
-        return [0, 1, 2, 3, 4, 5, 6];
     }
 }
 let code = `

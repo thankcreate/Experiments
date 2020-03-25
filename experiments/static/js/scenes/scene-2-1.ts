@@ -15,13 +15,7 @@ class Scene2L1 extends Scene2 {
         this.initGamePlayFsm();           
         this.initNewspaperFsm();
         
-        CameraManager.getInstance().requestPermission();
-        CameraManager.getInstance().initFaceAPI()       
-
-        CameraManager.getInstance().startDectector();   
-        CameraManager.getInstance().setPosition(CamPosi.Newspaper);
-
-        CameraManager.getInstance().showVideo();               
+      
             
         this.fillNewspaperContentByNum(0);
 

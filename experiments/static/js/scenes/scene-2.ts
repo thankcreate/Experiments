@@ -16,6 +16,7 @@ class Scene2 extends BaseScene {
     transparentOverlayCssBinding: CssBinding;
     indicatorCssBinding: CssBinding;
     indicatorButtonCssBinding: CssBinding;  
+    hpCssBinding: CssBinding;
 
     newspaperFsm: NewspaperFsm;
 
@@ -23,6 +24,12 @@ class Scene2 extends BaseScene {
     get npNums(): number[]{
         return [0];
     }
+
+    
+    npHp = 2;
+    npMaxHp = 2;
+    
+    isExercise = false;
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
         super(config);        
@@ -48,6 +55,7 @@ class Scene2 extends BaseScene {
         this.transparentOverlayCssBinding = new CssBinding($('#newspaper-transparent-overlay'));
         this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
         this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
+        this.hpCssBinding = new CssBinding($('#newspaper-hp'));
 
         this.initBindingCss();
 
@@ -94,7 +102,8 @@ class Scene2 extends BaseScene {
             this.correctEnterCallback.bind(this), 
             this.secondChanceEnterCallback.bind(this),
             this.paperEndEntercallback.bind(this),
-            this.addPaperEndAction.bind(this)
+            this.paperEndAction.bind(this),
+            this.paperDiedAddActionCallBack.bind(this)
             );        
     }
 
@@ -143,7 +152,12 @@ class Scene2 extends BaseScene {
         return pany;
     }
 
+    needFreezeIndicatorMeterBtn: boolean = false;
     updateIndicatorMeterBtn(analyzeRes: MyAnalysis) {
+        if(this.needFreezeIndicatorMeterBtn) {
+            return;
+        }
+
         let emotionFactor = analyzeRes.emotion == MyEmotion.Positive ? -1 : 1;
         let per = 0.5 + emotionFactor * analyzeRes.intensity * 0.5;        
         this.updateIndicatorMeterBtnByPercentage(per);
@@ -153,7 +167,7 @@ class Scene2 extends BaseScene {
      * Updatdate the indicator button by a input normalized number
      * @param per [0, 1]. 0 means top-most, 1 means bottom-most;
      */
-    updateIndicatorMeterBtnByPercentage(per: number) {
+    updateIndicatorMeterBtnByPercentage(per: number, needLerp: boolean = true) {
         // 1.current
         let curTop = this.indicatorButtonCssBinding.top;
         //  remove the postfix '%'
@@ -165,7 +179,7 @@ class Scene2 extends BaseScene {
         let dest = lerp(top, bottom, per);
 
         // 3.lerp from current->destination
-        let lerped = lerp(curTopNum, dest, 0.1);
+        let lerped = needLerp ? lerp(curTopNum, dest, 0.1) : dest;
 
         this.indicatorButtonCssBinding.top = `${lerped}%`;
     }
@@ -191,6 +205,7 @@ class Scene2 extends BaseScene {
             this.lastTimeStamp = timestamp;
             return;
         }
+        this.emotionAnalyzeFinished(res);
 
         // console.log(timeDiff);
 
@@ -214,8 +229,7 @@ class Scene2 extends BaseScene {
         progress.value += added;
         progress.value = clamp(progress.value, 0, 1);
 
-        if(progress.value == 1) {                
-            
+        if(progress.value == 1) {                     
             this.emotionMaxed(res.emotion);
         }
 
@@ -223,12 +237,20 @@ class Scene2 extends BaseScene {
             this.needDwitterFlow = true;
         }
 
+        
         this.refreshBarLeftIconStatus(res.emotion);
         this.refreshProgressBarCss();
         // if(res.emotion != MyEmotion.None) {
         //     targetJquery.css('width', progress.value * 100 + "%");
         // }
         this.lastTimeStamp = timestamp;
+
+
+        
+    }
+
+    emotionAnalyzeFinished(res: MyAnalysis) {
+
     }
 
     refreshBarLeftIconStatus(currEmotion: MyEmotion) {
@@ -260,6 +282,10 @@ class Scene2 extends BaseScene {
     }
 
     refreshProgressBarCss() {
+
+        this.topProgress.value = clamp(this.topProgress.value, 0, 1);
+        this.bottomProgress.value = clamp(this.bottomProgress.value, 0, 1);
+
         $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
@@ -274,7 +300,13 @@ class Scene2 extends BaseScene {
         
         let correct = myEmotion == rightEmotion;
         this.isLastTestCorrect = correct;        
-        this.showResult(this.isLastTestCorrect);         
+        this.showResult(this.isLastTestCorrect); 
+        
+        // if(!correct && !this.isExercise) {
+        //     this.npHp--;
+        //     this.refreshHp();
+        // }
+        
 
         this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
     }
@@ -348,7 +380,30 @@ class Scene2 extends BaseScene {
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);        
         this.initBindingCss();
-        
+        this.resetNewspaperParameter();
+    }
+
+
+    resetNewspaperParameter() {
+        this.npHp = this.npMaxHp;   
+        this.refreshHp();
+
+        this.needFreezeIndicatorMeterBtn = false;
+    }
+
+    refreshHp() {
+        this.setHp(this.npHp);
+    }
+
+    setHp(num: number) {
+        let hpStr = '';
+        for(let i = 0; i < num; i++) {
+            hpStr += '❤️';
+        }
+        for(let i = 0; i < this.npMaxHp - num; i++) {
+            hpStr += '🤍';
+        }
+        $('#newspaper-hp-content').text(hpStr);
     }
 
     initialPaperTranslateX = -50;
@@ -393,6 +448,9 @@ class Scene2 extends BaseScene {
 
         this.indicatorButtonCssBinding.top = `${this.indicatorBtnTop}%`;
         this.indicatorButtonCssBinding.udpate();
+
+        this.hpCssBinding.translateX = 100;
+        this.hpCssBinding.udpate();
     }
 
     showPaper(show: boolean = true) {
@@ -461,6 +519,16 @@ class Scene2 extends BaseScene {
         })      
     }    
 
+    showHp(show: boolean) {
+        let dt = 500;
+        this.tweens.add({
+            targets: this.hpCssBinding,
+            translateX: show? 0 : 100,
+            duration: dt
+        })
+    }
+
+
     /**
      * Since the top and bottom tween have the same duration
      * we just return one of them as the Promise
@@ -521,6 +589,7 @@ class Scene2 extends BaseScene {
         })
     }
 
+
     hideResult() {
         let dt = 500;        
         this.tweens.add({
@@ -531,7 +600,6 @@ class Scene2 extends BaseScene {
     }
     
     updateCssBinding() {
-
         if(this.camCssBinding)
             this.camCssBinding.udpate()
         if(this.paperCssBinding) 
@@ -546,11 +614,15 @@ class Scene2 extends BaseScene {
             this.manualBtnsCssBing.udpate();
         if(this.transparentOverlayCssBinding)
             this.transparentOverlayCssBinding.udpate();
+        
 
         if(this.indicatorCssBinding) 
             this.indicatorCssBinding.udpate();
         if(this.indicatorButtonCssBinding)
             this.indicatorButtonCssBinding.udpate();
+
+        if(this.hpCssBinding)
+            this.hpCssBinding.udpate();
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
@@ -576,7 +648,12 @@ class Scene2 extends BaseScene {
         }
     }
         
-    
+    getNewsItemFromIndex(index: number) : NewsItem{
+        let num = this.npNums[index];
+        let ins = NewsDataManager.getInstance();
+        let newsItem = ins.getByNum(num);
+        return newsItem;
+    }    
 
     fillNewspaperContentByNum(num: number) {
         let ins = NewsDataManager.getInstance();
@@ -720,7 +797,7 @@ class Scene2 extends BaseScene {
         
     }
 
-    addPaperEndAction(s: FsmState, index:number) {
+    paperEndAction(s: FsmState, index:number) {
         s.addAction((s, result, resolve, reject)=>{
             this.showTransparentOverlay(true).then(res=>{
                 resolve('transprent show');
@@ -730,10 +807,42 @@ class Scene2 extends BaseScene {
             if(item.reaction == 1) {    
                 this.hideProgressBars();        
             }            
-
+            this.hideResult();
+            
         });
         s.addDelayAction(this, 300);
-        s.addFinishAction();
+        s.addAction(s=>{
+            if(this.npHp == 0 && !this.isExercise) {
+                // global died event
+                s.fsm.event(NewspaperFsm.DIED_EV_NAME, true);
+            }
+            else {
+                s.finished();
+            }
+        })        
     }
+
+    /**
+     * 
+     * @param s 
+     * @param index nonsense here. always == 0
+     */
+    paperDiedAddActionCallBack(s: FsmState, index: number) {
+        s.addAction(s=>{
+            this.showTransparentOverlay(false);
+            this.setCenterTextPaper('65537', '😭');            
+            this.hideResult();
+        })
+        s.addSubtitleAction(this.subtitle, ()=>`Sorry, ${this.getUserName()}.\nYou have run out of lives and we must kick you out` , false);
+        s.addAction(s=>{            
+            this.setCenterTextPaper('65537', '🤗');     
+            this.showCam(false);
+        })
+        s.addSubtitleAction(this.subtitle, ()=>`Maybe next time? You are always welcome.` , false, null, null, 1500);
+        s.addAction(s=>{
+            this.backBtn.click();
+        })
+    }
+
 /////////////////////////////////////////////////////////////////////////
 }

@@ -594,6 +594,31 @@ input[type="submit"]:active {
   font-size: 40px;
 }
 
+#newspaper-hp{
+  z-index: -10;
+  position: absolute;
+  width: 40px;
+  height: 80px;
+  box-sizing: border-box;
+  left: -34px;
+  top: 20px;
+  border: 6px solid black;
+
+  background-color: white;
+}
+
+#newspaper-hp-content {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  font-size: 20px;
+}
+
 
 #newspaper-manual-button{
   position: absolute;
@@ -677,10 +702,9 @@ input[type="submit"]:active {
   opacity: 1;
 }
 
-.keyword-tooltip {
-  max-width: 250px;
-  visibility: hidden;
-  width: auto;
+.keyword .tooltip {
+  width: 250px;
+  visibility: hidden;  
   background-color: black;
   color: #fff;  
   padding: 5px 0;
@@ -694,7 +718,7 @@ input[type="submit"]:active {
   padding: 6px  10px;
 }
 
-.keyword-tooltip::after {
+.keyword .tooltip::after {
   content: "";
   position: absolute;
   top: 12px;
@@ -706,7 +730,7 @@ input[type="submit"]:active {
 }
 
 
-.keyword:hover .keyword-tooltip {
+.keyword:hover .tooltip {
   visibility: visible;
   opacity: 1;
 }

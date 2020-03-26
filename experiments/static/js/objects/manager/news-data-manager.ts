@@ -4,6 +4,9 @@ interface NewsItem{
     title: string,
     content: string,
     answer: number,
+    intro: string,
+    correctResponse: string,
+    wrongResonpse: string,
     style: number,
     reaction: number,
     thumbnail1: string,
@@ -31,7 +34,12 @@ class NewsDataManager {
     }
 
     getByNum(num: number): NewsItem {
-        return this.data[num];
+        for(let i in this.data) {
+            if(this.data[i].index == num) {
+                return this.data[i];
+            }
+        }
+        return null;
     }
 
     load() {
@@ -59,12 +67,15 @@ class NewsDataManager {
                     title: cols[1],
                     content: cols[2],
                     answer: parseInt(cols[3]),
-                    style: parseInt(cols[4]),
-                    reaction: parseInt(cols[5]),
-                    thumbnail1: cols[6],
-                    thumbnail2: cols[7],
-                    ambience: cols[8],
-                    needloop: parseInt(cols[9]),
+                    intro: cols[4],
+                    correctResponse: cols[5],
+                    wrongResonpse: cols[6],
+                    style: parseInt(cols[7]),
+                    reaction: parseInt(cols[8]),
+                    thumbnail1: cols[9],
+                    thumbnail2: cols[10],
+                    ambience: cols[11],
+                    needloop: parseInt(cols[12]),
                 }    
                 if(isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';

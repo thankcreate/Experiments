@@ -9,7 +9,7 @@ var newsPaper = {
         {name: 'WRONG', from: 'Paper1', to: 'Paper1_Wrong'},        
         {name: 'CORRECT', from:'Paper1_SecondChance', to:'Paper1_Correct'},
         {name: 'WRONG', from:'Paper1_SecondChance', to:'Paper1_Wrong'},
-
+        {name: 'G_DIED', from:'Default', to:'Died'},
         
         {name: '2', from:'Paper1_Wrong', to:'Paper1_SecondChance', },  
 

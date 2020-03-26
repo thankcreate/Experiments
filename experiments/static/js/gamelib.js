@@ -2104,10 +2104,14 @@ class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
         this.currIndex = 0;
+        this.npHp = 2;
+        this.npMaxHp = 2;
+        this.isExercise = false;
         this.topProgress = { value: 0 }; // [0, 1]
         this.bottomProgress = { value: 0 }; // [0, 1]
         this.canRecieveEmotion = false;
         this.canRecieveEmojiClick = false;
+        this.needFreezeIndicatorMeterBtn = false;
         // whether need to animate the dwitter background when a emotion intensity reached a threshould
         this.needDwitterFlow = false;
         this.isLastTestCorrect = false;
@@ -2141,6 +2145,7 @@ class Scene2 extends BaseScene {
         this.transparentOverlayCssBinding = new CssBinding($('#newspaper-transparent-overlay'));
         this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
         this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
+        this.hpCssBinding = new CssBinding($('#newspaper-hp'));
         this.initBindingCss();
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
@@ -2168,7 +2173,7 @@ class Scene2 extends BaseScene {
         this.refreshProgressBarCss();
     }
     makeNewspaperFsm() {
-        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this), this.secondChanceEnterCallback.bind(this), this.paperEndEntercallback.bind(this), this.addPaperEndAction.bind(this));
+        return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this), this.secondChanceEnterCallback.bind(this), this.paperEndEntercallback.bind(this), this.paperEndAction.bind(this), this.paperDiedAddActionCallBack.bind(this));
     }
     // called by BaseScene.create
     initVoiceType() {
@@ -2200,6 +2205,9 @@ class Scene2 extends BaseScene {
         return pany;
     }
     updateIndicatorMeterBtn(analyzeRes) {
+        if (this.needFreezeIndicatorMeterBtn) {
+            return;
+        }
         let emotionFactor = analyzeRes.emotion == MyEmotion.Positive ? -1 : 1;
         let per = 0.5 + emotionFactor * analyzeRes.intensity * 0.5;
         this.updateIndicatorMeterBtnByPercentage(per);
@@ -2208,7 +2216,7 @@ class Scene2 extends BaseScene {
      * Updatdate the indicator button by a input normalized number
      * @param per [0, 1]. 0 means top-most, 1 means bottom-most;
      */
-    updateIndicatorMeterBtnByPercentage(per) {
+    updateIndicatorMeterBtnByPercentage(per, needLerp = true) {
         // 1.current
         let curTop = this.indicatorButtonCssBinding.top;
         //  remove the postfix '%'
@@ -2218,7 +2226,7 @@ class Scene2 extends BaseScene {
         let bottom = this.indicatorBtnBottom;
         let dest = lerp(top, bottom, per);
         // 3.lerp from current->destination
-        let lerped = lerp(curTopNum, dest, 0.1);
+        let lerped = needLerp ? lerp(curTopNum, dest, 0.1) : dest;
         this.indicatorButtonCssBinding.top = `${lerped}%`;
     }
     emotionAnalyze(imgRes) {
@@ -2236,6 +2244,7 @@ class Scene2 extends BaseScene {
             this.lastTimeStamp = timestamp;
             return;
         }
+        this.emotionAnalyzeFinished(res);
         // console.log(timeDiff);
         let fullTime = 3.5;
         let targetJquery = null;
@@ -2264,6 +2273,8 @@ class Scene2 extends BaseScene {
         // }
         this.lastTimeStamp = timestamp;
     }
+    emotionAnalyzeFinished(res) {
+    }
     refreshBarLeftIconStatus(currEmotion) {
         let activateBarID = [];
         let deactviateBarID = ['top-bar', 'bottom-bar'];
@@ -2289,6 +2300,8 @@ class Scene2 extends BaseScene {
         }
     }
     refreshProgressBarCss() {
+        this.topProgress.value = clamp(this.topProgress.value, 0, 1);
+        this.bottomProgress.value = clamp(this.bottomProgress.value, 0, 1);
         $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
@@ -2300,6 +2313,10 @@ class Scene2 extends BaseScene {
         let correct = myEmotion == rightEmotion;
         this.isLastTestCorrect = correct;
         this.showResult(this.isLastTestCorrect);
+        // if(!correct && !this.isExercise) {
+        //     this.npHp--;
+        //     this.refreshHp();
+        // }
         this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
     }
     createDwitters(parentContainer) {
@@ -2357,6 +2374,25 @@ class Scene2 extends BaseScene {
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
         this.initBindingCss();
+        this.resetNewspaperParameter();
+    }
+    resetNewspaperParameter() {
+        this.npHp = this.npMaxHp;
+        this.refreshHp();
+        this.needFreezeIndicatorMeterBtn = false;
+    }
+    refreshHp() {
+        this.setHp(this.npHp);
+    }
+    setHp(num) {
+        let hpStr = '';
+        for (let i = 0; i < num; i++) {
+            hpStr += '❤️';
+        }
+        for (let i = 0; i < this.npMaxHp - num; i++) {
+            hpStr += '🤍';
+        }
+        $('#newspaper-hp-content').text(hpStr);
     }
     initBindingCss() {
         this.paperCssBinding.scale = 0;
@@ -2382,6 +2418,8 @@ class Scene2 extends BaseScene {
         this.indicatorCssBinding.udpate();
         this.indicatorButtonCssBinding.top = `${this.indicatorBtnTop}%`;
         this.indicatorButtonCssBinding.udpate();
+        this.hpCssBinding.translateX = 100;
+        this.hpCssBinding.udpate();
     }
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
@@ -2431,6 +2469,14 @@ class Scene2 extends BaseScene {
         this.tweens.add({
             targets: this.paperCssBinding,
             translateX: isShow ? -70 : this.initialPaperTranslateX,
+            duration: dt
+        });
+    }
+    showHp(show) {
+        let dt = 500;
+        this.tweens.add({
+            targets: this.hpCssBinding,
+            translateX: show ? 0 : 100,
             duration: dt
         });
     }
@@ -2512,6 +2558,8 @@ class Scene2 extends BaseScene {
             this.indicatorCssBinding.udpate();
         if (this.indicatorButtonCssBinding)
             this.indicatorButtonCssBinding.udpate();
+        if (this.hpCssBinding)
+            this.hpCssBinding.udpate();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -2532,6 +2580,12 @@ class Scene2 extends BaseScene {
         else {
             this.dwitterBKG.isRunning2 = false;
         }
+    }
+    getNewsItemFromIndex(index) {
+        let num = this.npNums[index];
+        let ins = NewsDataManager.getInstance();
+        let newsItem = ins.getByNum(num);
+        return newsItem;
     }
     fillNewspaperContentByNum(num) {
         let ins = NewsDataManager.getInstance();
@@ -2643,7 +2697,7 @@ class Scene2 extends BaseScene {
      */
     paperEndEntercallback(state, index) {
     }
-    addPaperEndAction(s, index) {
+    paperEndAction(s, index) {
         s.addAction((s, result, resolve, reject) => {
             this.showTransparentOverlay(true).then(res => {
                 resolve('transprent show');
@@ -2652,9 +2706,39 @@ class Scene2 extends BaseScene {
             if (item.reaction == 1) {
                 this.hideProgressBars();
             }
+            this.hideResult();
         });
         s.addDelayAction(this, 300);
-        s.addFinishAction();
+        s.addAction(s => {
+            if (this.npHp == 0 && !this.isExercise) {
+                // global died event
+                s.fsm.event(NewspaperFsm.DIED_EV_NAME, true);
+            }
+            else {
+                s.finished();
+            }
+        });
+    }
+    /**
+     *
+     * @param s
+     * @param index nonsense here. always == 0
+     */
+    paperDiedAddActionCallBack(s, index) {
+        s.addAction(s => {
+            this.showTransparentOverlay(false);
+            this.setCenterTextPaper('65537', '😭');
+            this.hideResult();
+        });
+        s.addSubtitleAction(this.subtitle, () => `Sorry, ${this.getUserName()}.\nYou have run out of lives and we must kick you out`, false);
+        s.addAction(s => {
+            this.setCenterTextPaper('65537', '🤗');
+            this.showCam(false);
+        });
+        s.addSubtitleAction(this.subtitle, () => `Maybe next time? You are always welcome.`, false, null, null, 1500);
+        s.addAction(s => {
+            this.backBtn.click();
+        });
     }
 }
 /// <reference path="scene-2.ts" />
@@ -2667,6 +2751,7 @@ class Scene2L1 extends Scene2 {
     }
     create() {
         super.create();
+        this.isExercise = true;
         this.initGamePlayFsm();
         this.initNewspaperFsm();
         this.fillNewspaperContentByNum(0);
@@ -2791,7 +2876,6 @@ class Scene2L1 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index);
         state.addAction(s => {
             this.showProgressBars();
-            this.canRecieveEmotion = true;
         });
         state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression\nregarding to the news.", false);
         // 🦷
@@ -2879,6 +2963,10 @@ class Scene2L1 extends Scene2 {
             this.setCenterTextPaper('65537', '😀');
         });
         correct.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true);
+        correct.addDelayAction(this, 1000);
+        correct.addAction(s => {
+            this.getController().gotoNextScene();
+        });
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addSubtitleAction(this.subtitle, () => `Wrong again!\n Try again again!`, true);
@@ -2889,9 +2977,12 @@ class Scene2L1 extends Scene2 {
 class Scene2L2 extends Scene2 {
     constructor() {
         super('Scene2L2');
+        this.hasLastNeg = false;
     }
     get npNums() {
-        return [0, 1, 2, 3, 4, 5, 6];
+        return [11, 14, 12, 15, 13, 16, 17];
+        // return [11];
+        //        return [17];
     }
     create() {
         super.create();
@@ -2902,17 +2993,13 @@ class Scene2L2 extends Scene2 {
         this.initStGamePlayDefault();
         this.initStGamePlayStart();
         this.updateObjects.push(this.gamePlayFsm);
-        console.log('afdsafdasfdas');
     }
     initNewspaperFsm() {
-        // this.initStNewspaperDefault();
-        // this.initStNewspaper0();
-        // this.initStNewspaper1();
-        // this.initStNewspaper2();
-        // this.initStNewspaper3();
-        // this.initStNewspaper4();
-        // this.initStNewspaper5();
-        // this.initStNewspaper6();
+        this.initStNewspaperDefault();
+        for (let i = 0; i < this.npNums.length; i++) {
+            this.initStNewspaperWithIndex(i);
+        }
+        this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
     getGamePlayFsmData() {
@@ -2929,8 +3016,115 @@ class Scene2L2 extends Scene2 {
             console.log('aahahahahahha');
             this.showPaper(true);
             // this.setCenterTextPaper('65536 Sucks', '😀')
-            // this.newspaperFsm.start();                   
+            this.newspaperFsm.start();
         });
+    }
+    initStNewspaperDefault() {
+        let state = this.newspaperFsm.getDefaultState();
+        state.addAction(s => {
+            this.setCenterTextPaper('65537', '😀');
+        });
+        state.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, I hope you had some fun in our tutorial level.`, false);
+        state.addAction(s => {
+            this.setCenterTextPaper('65537', '🥺');
+            this.showHp(true);
+        });
+        state.addSubtitleAction(this.subtitle, () => `From now on, it's no longer exercise.\nFailed twice, you'll be kicked out of the experiment without mercy.`, false, null, null, 2000);
+        state.addAction(s => {
+            this.setCenterTextPaper('65537', '🤗');
+        });
+        state.addSubtitleAction(this.subtitle, `Take care.`, false);
+        state.addAction(s => {
+            this.showCam(true);
+        });
+        state.addFinishAction();
+    }
+    initStNewspaperWithIndex(idx) {
+        let index = idx;
+        let item = this.getNewsItemFromIndex(index);
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addSubtitleAction(this.subtitle, item.intro, false);
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addSubtitleAction(this.subtitle, () => item.correctResponse, true);
+        correct.addFinishAction();
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addSubtitleAction(this.subtitle, () => item.wrongResonpse, true);
+        wrong.addFinishAction();
+    }
+    // this is just to append the ending logic to the last newspaper
+    appendLastStateEnding() {
+        let index = this.npNums.length - 1;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        let end = this.newspaperFsm.getStateEndByIndex(index);
+        end.addAction(s => {
+            this.showCam(false);
+            this.hideResult();
+            this.showTransparentOverlay(false);
+            this.setCenterTextPaper('65537', '🤩');
+        });
+        end.addSubtitleAction(this.subtitle, () => `Congratulations! You've passed the first batch of trial.`, true);
+        end.addAction(s => {
+            this.setCenterTextPaper('65537', '👉');
+        });
+        end.addSubtitleAction(this.subtitle, () => `It's time to try something more advanced.`, true, null, null, 1500);
+        end.addAction(s => {
+            this.getController().gotoNextScene();
+        });
+    }
+    emotionAnalyzeFinished(res) {
+        if (this.currIndex == this.npNums.length - 1) {
+            if (res.emotion == MyEmotion.Positive
+                && res.intensity > 0.9) {
+                this.updateIndicatorMeterBtnByPercentage(0, false);
+                this.canRecieveEmotion = false;
+                this.needFreezeIndicatorMeterBtn = true;
+                this.topProgress.value += 0.25;
+                this.refreshProgressBarCss();
+                let p = Promise.resolve();
+                if (this.topProgress.value < 0.3) {
+                    p = p.then(s => {
+                        return this.subtitle.loadAndSay(this.subtitle, "I'm sorry? What's so funny?!", true);
+                    }).then(s => {
+                        return this.subtitle.loadAndSay(this.subtitle, "Be a decent citizen! This is not fun at all!", true);
+                    });
+                }
+                else if (this.topProgress.value < 0.55) {
+                    p = p.then(s => {
+                        return this.subtitle.loadAndSay(this.subtitle, "You still think this is fun?!\nWe are conducting an experiment!", true);
+                    });
+                }
+                else {
+                    p = p.then(s => {
+                        return this.subtitle.loadAndSay(this.subtitle, "Well, you know. I cannot save you this time if you keep playing with the system.\nDon't be rude.", true);
+                    });
+                }
+                p.catch(s => { console.log('subtitle show end with some err'); })
+                    .finally(() => {
+                    this.canRecieveEmotion = true;
+                    this.needFreezeIndicatorMeterBtn = false;
+                });
+            }
+            if (!this.hasLastNeg && this.bottomProgress.value >= 0.5) {
+                this.hasLastNeg = true;
+                this.canRecieveEmotion = false;
+                this.needFreezeIndicatorMeterBtn = true;
+                this.topProgress.value += 0.25;
+                this.refreshProgressBarCss();
+                this.subtitle.loadAndSay(this.subtitle, "Are you trying to bury your laugh in your distorted face?", true)
+                    .then(s => {
+                    return this.subtitle.loadAndSay(this.subtitle, "You can't trick me. I know you are laughing secretly", true);
+                })
+                    .catch(s => { console.log('subtitle show end with some err'); })
+                    .finally(() => {
+                    this.canRecieveEmotion = true;
+                    this.needFreezeIndicatorMeterBtn = false;
+                });
+            }
+        }
+    }
+    resetNewspaperParameter() {
+        super.resetNewspaperParameter();
+        this.hasLastNeg = false;
     }
 }
 /// <reference path="scenes/scene-base.ts" />
@@ -5686,7 +5880,7 @@ FsmState.prototype.addTweenAllAction = function (scene, configs) {
     return this;
 };
 class NewspaperFsm extends Fsm {
-    constructor(scene, npNumbers, papernEnterCallBack, correctEnterCallback, secondChanceCallback, paperEndEntercallBack, paperEndAddActionCallback) {
+    constructor(scene, npNumbers, papernEnterCallBack, correctEnterCallback, secondChanceCallback, paperEndEntercallBack, paperEndAddActionCallback, paperDiedAddActionCallBack) {
         super(scene, null);
         this.newspapaerStates = [];
         this.papernEnterCallBack = papernEnterCallBack;
@@ -5694,6 +5888,7 @@ class NewspaperFsm extends Fsm {
         this.secondChanceCallback = secondChanceCallback;
         this.paperEndEntercallBack = paperEndEntercallBack;
         this.paperEndAddActionCallback = paperEndAddActionCallback;
+        this.paperDiedAddActionCallBack = paperDiedAddActionCallBack;
         // deep copy
         this.npNumbers = [...npNumbers];
         this.constructNpStates();
@@ -5703,6 +5898,7 @@ class NewspaperFsm extends Fsm {
     constructNpStates() {
         if (notSet(this.npNumbers) || this.npNumbers.length == 0)
             return;
+        this.addEvent(NewspaperFsm.DIED_EV_NAME, NewspaperFsm.DEFAULT_ST_NAME, NewspaperFsm.DIED_ST_NAME);
         let prevEndName = NewspaperFsm.DEFAULT_ST_NAME;
         for (let i = 0; i < this.npNumbers.length; i++) {
             let correctStName = this.getStateReactionNameByIndex(i, true);
@@ -5725,6 +5921,10 @@ class NewspaperFsm extends Fsm {
             this.addEvent(Fsm.WRONG, secondStName, wrongStName);
             prevEndName = endStName;
         }
+        this.getState(NewspaperFsm.DIED_ST_NAME).addOnEnter(s => {
+            // the second param is nonsense here
+            this.paperDiedAddActionCallBack(s, 0);
+        });
         for (let i = 0; i < this.npNumbers.length; i++) {
             let state = this.getStateByIndex(i);
             state.addOnEnter(s => {
@@ -5817,6 +6017,8 @@ class NewspaperFsm extends Fsm {
     }
 }
 NewspaperFsm.DEFAULT_ST_NAME = 'Default';
+NewspaperFsm.DIED_ST_NAME = 'Died';
+NewspaperFsm.DIED_EV_NAME = 'G_DIED';
 /// <reference path="../fsm/fsm.ts" />
 var normal_1_0 = {
     name: 'Normal_0',
@@ -5958,6 +6160,7 @@ var newsPaper = {
         { name: 'WRONG', from: 'Paper1', to: 'Paper1_Wrong' },
         { name: 'CORRECT', from: 'Paper1_SecondChance', to: 'Paper1_Correct' },
         { name: 'WRONG', from: 'Paper1_SecondChance', to: 'Paper1_Wrong' },
+        { name: 'G_DIED', from: 'Default', to: 'Died' },
         { name: '2', from: 'Paper1_Wrong', to: 'Paper1_SecondChance', },
         { name: 'FINISHED', from: 'Paper1_Wrong', to: 'End1' },
         { name: 'FINISHED', from: 'Paper1_Correct', to: 'End1' },
@@ -6427,7 +6630,12 @@ class NewsDataManager {
         return NewsDataManager.instance;
     }
     getByNum(num) {
-        return this.data[num];
+        for (let i in this.data) {
+            if (this.data[i].index == num) {
+                return this.data[i];
+            }
+        }
+        return null;
     }
     load() {
         this.data = [];
@@ -6451,12 +6659,15 @@ class NewsDataManager {
                     title: cols[1],
                     content: cols[2],
                     answer: parseInt(cols[3]),
-                    style: parseInt(cols[4]),
-                    reaction: parseInt(cols[5]),
-                    thumbnail1: cols[6],
-                    thumbnail2: cols[7],
-                    ambience: cols[8],
-                    needloop: parseInt(cols[9]),
+                    intro: cols[4],
+                    correctResponse: cols[5],
+                    wrongResonpse: cols[6],
+                    style: parseInt(cols[7]),
+                    reaction: parseInt(cols[8]),
+                    thumbnail1: cols[9],
+                    thumbnail2: cols[10],
+                    ambience: cols[11],
+                    needloop: parseInt(cols[12]),
                 };
                 if (isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';
@@ -6684,30 +6895,47 @@ class SpeechManager {
         });
     }
 }
-let g_newsData1 = `Index	Title	Content	Answer	Style	Reaction (0:emoji, 1:cam)	Thumbnail1	Thumbnail2	Ambience	Needloop
-0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1	0	0	portrait-1.jpg		ambience-1	1
-1	Прaвда	A group of riots assaulted innocent scientists and damaged facilities in an experimen lab yesterday.	0	0	0	portrait-2.jpg		ambience-2	1
-2	YES, MINISTER	Five more experiment labs will soon be completed, the Minister of Construction revealed on the daily briefing	1	0	1	portrait-3.jpg		ambience-3	1
-3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the Bureau of Experiments.	0	0	1	portrait-4.png		ambience-4	0
-4	Mall Street Journal	The domestic food price index has risen by 25%. People are emotionally stable and having strong confidence in our leader's presidency. 	1	0	1	portrait-5.jpg		ambience-5	0
-5	Mall Street Journal	The domestic food price index has risen by <b>50%</b>. Nothing to worry about. With the power of experiments, we can produce whatever we please.<br/><br/>Social activists are trying to politicize this issue, but shame on them of the endless slander toward the experiments.	1	0	1				
-6	Mall Street Journal	The domestic food price index has risen by <b>100%</b>. The Minister of Food just declared an act aiming to halve the food ration, and it's good for our heath. <br><br>Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1	0	1				
-7									
-8									
-9									
-10									
-11									
-12	Avenue Journal	The oil price has risen by 25% in Alaginia. Protesters rallied in front of the parliament against the sky-high CPI							
-13		A group of Alaginian soilder crossed the border into our country illegally yesterday							
-14	Avenue Journal	Left-wing activists appealed to extend weekends to be three days							
-15									
-16									
-17									
-18									
-19									
-20									
-21									
-22																												
+let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Style	Reaction (0:emoji, 1:cam)	Thumbnail1	Thumbnail2	Ambience	Needloop
+0	TIMES POST	Our great country's GDP has increased by 30% this year. All the credit goes to our genius leader and the experiments he designed.	1				0	0	portrait-1.jpg		ambience-1	1
+1	Прaвда	A group of riots assaulted innocent scientists and damaged facilities in an experimen lab yesterday.	0				0	0	portrait-2.jpg		ambience-2	1
+2	YES, MINISTER	Five more experiment labs will soon be completed, the Minister of Construction revealed on the daily briefing	1				0	1	portrait-3.jpg		ambience-3	1
+3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the Bureau of Experiments.	0				0	1	portrait-4.png		ambience-4	0
+4	Mall Street Journal	The domestic food price index has risen by 25%. People are emotionally stable and holdinbg strong confidence in our leader's presidency. 	1				0	1	portrait-5.jpg		ambience-5	0
+5	Mall Street Journal	The domestic food price index has risen by <b>50%</b>. Nothing to worry about. With the power of experiments, we can produce whatever we please.<br/><br/>Social activists are trying to politicize this issue, but shame on them of the endless slander toward the experiments.	1				0	1				
+6	Mall Street Journal	The domestic food price index has risen by <b>100%</b>. The Minister of Food just declared an act aiming to halve the food ration, and it's good for our heath. <br><br>Experiment 65538 provided convincing evidence that halving the food ration can reduce the obesity rate significantly	1				0	1				
+7												
+8												
+9												
+10												
+11	TIMES | OPINION	We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. <br/><br/> That being said, some people are more equal than others. For example, the <span class='keyword'>populace<span class='tooltip'>Oridinary people who benefit from the great experiments.</span></span> are more equal than the <span class='keyword'>experiment designers<span  class='tooltip''>A group of ingenious people who invented the 6553x series experments.</span></span>. It is because the populace are the one and only ruler of our country.	0	The first one is an interesting opinion piece. Let's see what they said	This is a disgusting opinion. Seems we both agree. Good.	Sorry, I'd like to let you go, but I can't let you go.	0	1				
+12	TIMES | OPINION	We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. <br/><br/> Hence, the <span class='keyword'>experiment designers<span  class='tooltip''>A group of ingenious people who invented the 6553x series experments.</span></span> are on an equal footing with the <span class='keyword'>populace<span class='tooltip'>Oridinary people who benefit from the great experiments.</span></span>.	0	Wait. I think I have seen this opinion before.. Strange	Yeah. They can't fool us	Subject 435. Emotion. Wrong.	0	1				
+13	TIMES | OPINION	We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. <br/><br/> That being said, the <span class='keyword'>experiment designers<span  class='tooltip''>A group of ingenious people who invented the 6553x series experments.</span></span> are more equal than the <span class='keyword'>populace<span class='tooltip'>Oridinary people who benefit from the great experiments.</span></span>. They sacrificed themselves for the common good. Equality favors those who fight for it.	1	OK. I get it. This is the find the differences game.	"Equality favors those who fight for it". I like that one.	Look. Don't get too down on yourself	0	1				
+14	Mall Street Journal	The <span class='keyword'>income tax<span class='tooltip'>The money patriotic citizens spontaneously donated to the experiment labs as the basic lab operation fee.</span></span> rate increased! <br/><br/> As the Experiment’s power gets revealed, people are suffering from a new kind of anxiety - decidophobia. They cannot simply face so much money. To solve the growing social problem, the <span class='keyword'>IRS<span class='tooltip'>Internal Revenue Service</span></span> declared that the income tax rate has been increased from 25% to 75%. <br/><br/> Decidophobia (from Latin decido, "decision") is the fear of making decisions. Sufferers are bothered about their life being full of choices. The State Statistical Bureau spokesman said that the Happiness Index has increased from 98 to 98.65 as a response to the tax rate adjustment.	1	Decidophobia. See? I can pronounce it right!	I'm happy to see that we are so grateful for the IRS's service.	Errr, this one is tricky. Hope you learnt something.	0	1				
+15	YES, MINISTER	The Ministry of Social Security is considering a proposal to provide a new universal health insurance plan and raise the minimum wage to $10 per hour. <br/><br/> According to the minister <span class='keyword'>Plesto Muhani<span class='tooltip'>The minister of MSS, some people say he has 1/4 Gamanian ancestry</span></span>, the upcoming welfare policy is a strong fightback to those who keep slandering that the Experiment is the way to slavery - Has anyone seen such a slavery that offered its people so many welfares?	0	Hope my minimum monthly corpus supply can be increased too.	Shoot! What kind of minister is that. Who would like more welfare?	No, No. This welfare policy makes me feel sick	0	1				
+16	YES, MINISTER	Good news! The ex-Minister of Social Security Plesto Muhani was found guilty of being the spy for Gamania - our vicious neighbor. How despicable it is for a Gamanian to lurk in our public servants’ rank and pretend he is the guardian of the people? How dare he raise the welfare level without an experiment-proven scientific approach?  <br/><br/> The answer is not hard to find. Mr. Muhani confessed to the Federal Bureau of Experiments that the goal of his attempt to raise the welfare level is to serve as a foil to how ‘poor’ the current social welfare is.   <br/><br/>  Mr. Muhani is probably the dumbest spy in this world. He stood out from us so obviously because everyone here knows that the current welfare standard is already beyond compare. The slightest attempt to raise it is the biggest insult to our great Experiment Designer.	1	Oh, I didn't expect we have a sequel.	lol, I just know it. I felt he is a spy long before he was regarded as a spy	What?! I thought it said GOOD news already.	0	1				
+17	Прaвда	<span class='keyword'>Chrushkhev<span class='tooltip'>The Chief Experiment Scientist. He has been widely praised for his loyalty to our Experiment Designers since the foundation of our country. After all the original designers passed away, he became the actual leader. Nothing can be compared to his boundless wisdom</span></span> visited a pig farm and was photographed there. <br/><br/> In the newspaper office, a discussion is underway about how to caption the picture. "Comrade Chrushkhev among pigs," "Comrade Chrushkhev and pigs," and "Pigs surround comrade Chrushkhev" are all rejected as politically offensive.  <br/><br/> Finally, the editor announces his decision: "Third from left – comrade Chrushkhev."	0	To be clear, this is an indecent undergound paper and can only be used for experimental purpose.	Sure thing. I hope you have forgotten those disgusting words already.	You've made a HUGE mistake.						
+18												
+19												
+20												
+21												
+22												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+	Avenue Journal	The oil price has risen by 25% in Alaginia. Protesters rallied in front of the parliament against the sky-high CPI										
+		A group of Alaginian soilder crossed the border into our country illegally yesterday										
+	Avenue Journal	Left-wing activists appealed to extend weekends to be three days										
 `;
 var SpawnStrategyType;
 (function (SpawnStrategyType) {

@@ -4,13 +4,17 @@ class NewspaperFsm extends Fsm{
     npNumbers: number[];
 
     static DEFAULT_ST_NAME = 'Default';
+    static DIED_ST_NAME = 'Died';
+
+    static DIED_EV_NAME = 'G_DIED';
 
     newspapaerStates: FsmState[] = [];
     papernEnterCallBack: NewspaperEventCallback;
     correctEnterCallback: NewspaperEventCallback;
     secondChanceCallback: NewspaperEventCallback;
     paperEndEntercallBack: NewspaperEventCallback;
-    paperEndAddActionCallback:NewspaperEventCallback
+    paperEndAddActionCallback:NewspaperEventCallback;
+    paperDiedAddActionCallBack: NewspaperEventCallback;
 
     constructor(
         scene: BaseScene, 
@@ -20,6 +24,7 @@ class NewspaperFsm extends Fsm{
         secondChanceCallback:NewspaperEventCallback,
         paperEndEntercallBack:NewspaperEventCallback,
         paperEndAddActionCallback: NewspaperEventCallback,
+        paperDiedAddActionCallBack: NewspaperEventCallback
         ) {
         super(scene, null);
         
@@ -28,6 +33,7 @@ class NewspaperFsm extends Fsm{
         this.secondChanceCallback = secondChanceCallback;
         this.paperEndEntercallBack = paperEndEntercallBack;
         this.paperEndAddActionCallback = paperEndAddActionCallback;
+        this.paperDiedAddActionCallBack = paperDiedAddActionCallBack;
 
         // deep copy
         this.npNumbers = [...npNumbers];        
@@ -40,6 +46,8 @@ class NewspaperFsm extends Fsm{
     constructNpStates() {
         if(notSet(this.npNumbers) || this.npNumbers.length == 0)
             return;
+
+        this.addEvent(NewspaperFsm.DIED_EV_NAME, NewspaperFsm.DEFAULT_ST_NAME, NewspaperFsm.DIED_ST_NAME);
 
         let prevEndName = NewspaperFsm.DEFAULT_ST_NAME;
         for(let i = 0; i < this.npNumbers.length; i++) {
@@ -71,6 +79,11 @@ class NewspaperFsm extends Fsm{
             
             prevEndName = endStName;
         }
+
+        this.getState(NewspaperFsm.DIED_ST_NAME).addOnEnter(s=>{
+            // the second param is nonsense here
+            this.paperDiedAddActionCallBack(s, 0);
+        });
 
         for(let i = 0; i < this.npNumbers.length; i++) {
             let state = this.getStateByIndex(i);

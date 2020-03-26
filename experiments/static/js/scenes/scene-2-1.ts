@@ -10,15 +10,15 @@ class Scene2L1 extends Scene2 {
         return [0, 1, 2, 3, 4, 5, 6];
     }
 
-    create() {
-        super.create();
+    create() {        
+        super.create();        
+        this.isExercise = true;
+
         this.initGamePlayFsm();           
         this.initNewspaperFsm();
-        
-      
+              
             
         this.fillNewspaperContentByNum(0);
-
         this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
     }
     
@@ -171,8 +171,7 @@ class Scene2L1 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index)        
         
         state.addAction(s=>{            
-            this.showProgressBars();
-            this.canRecieveEmotion = true;
+            this.showProgressBars();            
         });
         state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression\nregarding to the news.", false);      
         // 🦷
@@ -286,6 +285,10 @@ class Scene2L1 extends Scene2 {
             this.setCenterTextPaper('65537', '😀');
         });
         correct.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
+        correct.addDelayAction(this, 1000)
+        correct.addAction(s=>{                        
+            this.getController().gotoNextScene();
+        })
         
         correct.addFinishAction();
 

@@ -668,6 +668,9 @@ class Scene2 extends BaseScene {
         if(newsItem.thumbnail1 && newsItem.thumbnail1.length > 0) {
             thumbnailSlot.attr('src', 'assets/newspaper/' + newsItem.thumbnail1);
         }
+        else {
+            thumbnailSlot.attr('src', 'assets/newspaper/portrait-1.jpg');
+        }
         
 
         if(newsItem.style == 0) {

@@ -661,14 +661,19 @@ class Scene2 extends BaseScene {
 
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
-        let thumbnailSlot = $('newspaper-thumbnail');
+        let thumbnailSlot = $('#newspaper-thumbnail');
 
         titleSlot.html(newsItem.title);
         contentSlot.html(newsItem.content);
+        if(newsItem.thumbnail1 && newsItem.thumbnail1.length > 0) {
+            thumbnailSlot.attr('src', 'assets/newspaper/' + newsItem.thumbnail1);
+        }
+        
 
         if(newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
         }        
+        
     }
 
     npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;

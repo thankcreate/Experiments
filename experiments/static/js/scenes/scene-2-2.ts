@@ -8,7 +8,7 @@ class Scene2L2 extends Scene2 {
     get npNums(): number[]{
         return [11, 14, 12, 15, 13, 16, 17];
         // return [11];
-//        return [17];
+        //return [17];
     }
 
     create() {

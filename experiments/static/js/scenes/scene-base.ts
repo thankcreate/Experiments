@@ -110,6 +110,8 @@ class BaseScene extends Phaser.Scene {
     sfxFail : Phaser.Sound.BaseSound;
 
     
+
+    
     anyKeyEvent: TypedEvent<string> = new TypedEvent();
 
     get hud() {
@@ -266,7 +268,8 @@ class BaseScene extends Phaser.Scene {
 
 
         // Subtitle
-        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, 370);
+        this.subtitle = new Subtitle(this, this.subtitleContainer, 0, Subtitle.subtitleOriY);
+    
 
 
 

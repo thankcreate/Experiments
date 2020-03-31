@@ -7,6 +7,7 @@ interface NewsItem{
     intro: string,
     correctResponse: string,
     wrongResonpse: string,
+    secondChanceIntro: string,
     style: number,
     reaction: number,
     thumbnail1: string,
@@ -70,12 +71,13 @@ class NewsDataManager {
                     intro: cols[4],
                     correctResponse: cols[5],
                     wrongResonpse: cols[6],
-                    style: parseInt(cols[7]),
-                    reaction: parseInt(cols[8]),
-                    thumbnail1: cols[9],
-                    thumbnail2: cols[10],
-                    ambience: cols[11],
-                    needloop: parseInt(cols[12]),
+                    secondChanceIntro: cols[7],
+                    style: parseInt(cols[8]),
+                    reaction: parseInt(cols[9]),
+                    thumbnail1: cols[10],
+                    thumbnail2: cols[11],
+                    ambience: cols[12],
+                    needloop: parseInt(cols[13]),
                 }    
                 if(isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';

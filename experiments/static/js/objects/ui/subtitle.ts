@@ -24,6 +24,8 @@ class Subtitle extends Wrapper<PhText> {
     inTween: PhTween;
     outTween: PhTween;
 
+    static subtitleOriY = 370;
+
     forceNextRejectHandler: (err:any)=>void ;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number) {
@@ -97,8 +99,34 @@ class Subtitle extends Wrapper<PhText> {
         return this.textInShow;
     }
 
-    showText(val: string) {
-        this.textInShow = true;
+    
+    /**
+     * Since the height of Some newspaper pages are too great, we need to
+     * ajust the Y of subtitle based on the newspaper's frame bottom.
+     */
+    adjustSubtitleY() {
+        let newsPaperBottomY = $('#newspaper-outer-frame')[0].getBoundingClientRect().bottom;
+        let pageHeight = window.innerHeight;
+        let bottomSpace = pageHeight - newsPaperBottomY;
+
+        let bottomSpacePerc = bottomSpace / pageHeight;
+        if(bottomSpacePerc > 0 && bottomSpacePerc < 0.5) {
+            // subtitle is based on the center pivot of canvas
+            console.log('bottomSpacePerc:' + bottomSpacePerc);
+            let phBottom= getLogicHeight() / 2 - getLogicHeight() * bottomSpacePerc + this.wrappedObject.displayHeight / 2;
+            this.inner.y = Math.max(Subtitle.subtitleOriY, phBottom + 40);
+        }
+        else {
+            this.inner.y = Subtitle.subtitleOriY;
+        }
+    }
+
+
+    showText(val: string) {    
+       
+        
+
+        this.textInShow = true;      
         if (this.outTween)
             this.outTween.stop();
         
@@ -117,6 +145,8 @@ class Subtitle extends Wrapper<PhText> {
         });
         
         this.wrappedObject.text = val;
+
+        this.adjustSubtitleY();
     }
 
     hideText() : Pany {

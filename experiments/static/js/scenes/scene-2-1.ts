@@ -33,10 +33,16 @@ class Scene2L1 extends Scene2 {
         this.initStNewspaperDefault();
         this.initStNewspaper0();
         this.initStNewspaper1();
-        this.initStNewspaper2();
-        this.initStNewspaper3();
-        this.initStNewspaper4();
-        this.initStNewspaper5();
+
+        for(let i = 2; i < this.npNums.length; i++) {
+            this.initStNewspaperWithIndex(i);
+        }
+
+
+        // this.initStNewspaper2();        
+        // this.initStNewspaper3();
+        // this.initStNewspaper4();
+        // this.initStNewspaper5();
         this.initStNewspaper6();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -259,38 +265,34 @@ class Scene2L1 extends Scene2 {
     initStNewspaper6() {
         let index = 6;
         let state = this.newspaperFsm.getStateByIndex(index)
-
-        state.addSubtitleAction(this.subtitle, "OK, this is the last one.", false);
+        
+        let end = this.newspaperFsm.getStateEndByIndex(index);
        
-        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);        
-        correct.addSubtitleAction(this.subtitle, ()=> `Congratulations!\nYou've passed the trial.`, true);
-        correct.addAction(s=>{
-            this.setCenterTextPaper('65537', '🤑');
+        end.addAction(s=>{
             this.showCam(false);
             this.hideResult();
+            this.showTransparentOverlay(false);
+            this.setCenterTextPaper('65537', '🤑');           
         });
-        correct.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true)
-        correct.addAction(s=>{
+        end.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true)
+        end.addAction(s=>{
             this.setCenterTextPaper('65537', '🧐');
         });
-        correct.addSubtitleAction(this.subtitle, `Shortage is impossible to happen after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true)
-        correct.addAction(s=>{
+        end.addSubtitleAction(this.subtitle, `Shortage is impossible to occur after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true)
+        end.addAction(s=>{
             this.setCenterTextPaper('65537', '😍');
         });
-        correct.addSubtitleAction(this.subtitle, ()=>`But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true)
-        correct.addAction(s=>{
+        end.addSubtitleAction(this.subtitle, ()=>`But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true)
+        end.addAction(s=>{
             this.setCenterTextPaper('65537', '😀');
         });
-        correct.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
-        correct.addDelayAction(this, 1000)
-        correct.addAction(s=>{                        
+        end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
+        end.addDelayAction(this, 1000)
+        end.addAction(s=>{                        
             this.getController().gotoNextScene();
         })
         
-        correct.addFinishAction();
+        end.addFinishAction();
 
-        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);        
-        wrong.addSubtitleAction(this.subtitle, ()=> `Wrong again!\n Try again again!`, true);          
-        wrong.addEventAction(Fsm.SECODN_CHANCE);        
     }
 }

@@ -74,6 +74,7 @@ function hasSet(val : any) : boolean {
 FsmState.prototype.addSubtitleAction = function (subtitle: Subtitle, text: string | FromStateToStringFunc, autoHideAfter: boolean,
      timeout?, minStay?, finishedSpeechWait?) {    
     let self = this as FsmState;
+        
     
 
     if(notSet(timeout)) timeout = 2500;

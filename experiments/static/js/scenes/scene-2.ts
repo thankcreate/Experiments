@@ -673,7 +673,6 @@ class Scene2 extends BaseScene {
         if(newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
         }        
-        
     }
 
     npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;
@@ -747,8 +746,10 @@ class Scene2 extends BaseScene {
         this.fillNewspaperContentByNum(this.npNums[index]);        
         this.showTransparentOverlay(false);
         this.hideResult();
-        this.canRecieveEmotion = true;
+        
         this.canRecieveEmojiClick = true;
+
+        
 
         this.resetProgress();       
         this.currIndex = index;
@@ -759,10 +760,7 @@ class Scene2 extends BaseScene {
         let randomWidth = 450;
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
 
-        let item = this.getNewsItemByIndex(index);        
-        if(item.reaction == 1) {    
-            this.showProgressBars();        
-        }
+
     }
 
     correctEnterCallback(state: FsmState, index: number) {
@@ -849,5 +847,75 @@ class Scene2 extends BaseScene {
         })
     }
 
+    initStNewspaperWithIndex(idx: number) {
+        let index = idx;
+        let item = this.getNewsItemFromIndex(index);
+        let state = this.newspaperFsm.getStateByIndex(index)
+        
+        // Intro
+        this.helperAddSubtitleAction(state, item.intro, false);      
+        state.addAction(s=>{
+            this.canRecieveEmotion = true;
+            if(item.reaction == 1) {    
+                this.showProgressBars();        
+            }
+        })
+        
+        
+        // Correct
+        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);        
+        this.helperAddSubtitleAction(correct, item.correctResponse, true);
+        correct.addFinishAction();
+
+        // Wrong
+        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        this.helperAddSubtitleAction(wrong, item.wrongResonpse, true);                
+        if(this.isExercise) {
+            wrong.addAction(s=>{
+                this.resetProgress();
+                this.hideResult();
+                this.canRecieveEmotion = true;  
+            });
+            wrong.addEventAction(Fsm.SECODN_CHANCE);
+        }
+        else {
+            wrong.addFinishAction(); 
+        }
+
+        // Second Chance Intro
+        let second = this.newspaperFsm.getSecondChangeStateByIndex(index);
+        this.helperAddSubtitleAction(second, item.secondChanceIntro, false);                  
+    }
+
+    /**
+     * Parse the raw string into separate subtitle action addings
+     * '\n' means a new line
+     * </hr> means a new action
+     * ${username} means username
+     * @param s 
+     * @param rawStr 
+     */
+    helperAddSubtitleAction(s: FsmState, rawStr: string, autoHide: boolean) {
+        if(!rawStr || rawStr.length == 0) 
+            return;
+            
+        let sep = '<hr/>';
+        let newline = /\<br\/\>/gi;
+        let usernamePlaceholder = /\{username\}/gi;
+
+        let dialog = rawStr.split(sep);
+        for(let i = 0; i < dialog.length; i++) {
+            let sentenceRaw = dialog[i];
+            console.log(sentenceRaw);
+            s.addSubtitleAction(this.subtitle, ()=>{
+                let ret = sentenceRaw.replace(newline, '\n');
+                ret = ret.replace(usernamePlaceholder, this.getUserName());
+                return ret;
+            }, autoHide);
+        }
+    }
+
+
+    
 /////////////////////////////////////////////////////////////////////////
 }

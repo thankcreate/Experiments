@@ -76,21 +76,7 @@ class Scene2L2 extends Scene2 {
         state.addFinishAction();
     }    
 
-    initStNewspaperWithIndex(idx: number) {
-        let index = idx;
-        let item = this.getNewsItemFromIndex(index);
-        let state = this.newspaperFsm.getStateByIndex(index)
-        
-        state.addSubtitleAction(this.subtitle, item.intro, false);        
-        
-        let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
-        correct.addSubtitleAction(this.subtitle, ()=> item.correctResponse, true);        
-        correct.addFinishAction();
 
-        let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
-        wrong.addSubtitleAction(this.subtitle, ()=> item.wrongResonpse, true);                   
-        wrong.addFinishAction(); 
-    }
 
     // this is just to append the ending logic to the last newspaper
     appendLastStateEnding() {        
@@ -140,9 +126,14 @@ class Scene2L2 extends Scene2 {
                         return this.subtitle.loadAndSay(this.subtitle, "You still think this is fun?!\nWe are conducting an experiment!", true)
                     })
                 }
+                else if(this.topProgress.value < 0.80) {
+                    p = p.then(s=>{
+                        return this.subtitle.loadAndSay(this.subtitle, "Don't be rude. I cannot save you this time if you keep playing with the system.\n", true)
+                    })
+                }
                 else {
                     p = p.then(s=>{
-                        return this.subtitle.loadAndSay(this.subtitle, "Well, you know. I cannot save you this time if you keep playing with the system.\nDon't be rude.", true)
+                        return this.subtitle.loadAndSay(this.subtitle, "Well, if this is what you ask for,\n then I have no problem with it", true)
                     })
                 }
                 
@@ -160,7 +151,6 @@ class Scene2L2 extends Scene2 {
                 this.canRecieveEmotion = false;
                 this.needFreezeIndicatorMeterBtn = true;
 
-                this.topProgress.value += 0.25;
                 this.refreshProgressBarCss();
 
                 

@@ -2,9 +2,10 @@
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
 
-let a  = '';
-let b = parseInt(a);
-console.log(b);
+let str = '123\\n321\\n3';
+// let res = str.split('\\n');
+let res = str.replace(/\\n/g, '\n');
+console.log(res);
 // var ob = {
 //     ad: 123,
 //     get ad() {

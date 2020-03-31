@@ -169,10 +169,7 @@ class Scene2L1 extends Scene2 {
     initStNewspaper2() {
         let index = 2;
         let state = this.newspaperFsm.getStateByIndex(index)        
-        
-        state.addAction(s=>{            
-            this.showProgressBars();            
-        });
+
         state.addSubtitleAction(this.subtitle, "Just relax and show your most natural expression\nregarding to the news.", false);      
         // 🦷
         state.addSubtitleAction(this.subtitle, "If you want to show a smile,\nplease make sure we can see your grinning TEETH.", false);

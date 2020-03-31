@@ -1,12 +1,9 @@
-
 enum NewsPaperStyle{
     DEFAULT,
     ONLY_TEXT_CENTER,
 }
 
 class Scene2 extends BaseScene {
-
-
     paperCssBinding : CssBinding;
     camCssBinding: CssBinding;
     topProgressCssBinding: CssBinding;

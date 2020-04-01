@@ -781,9 +781,7 @@ class Scene2 extends BaseScene {
         let item = this.getNewsItemByIndex(index);        
         // is cam
         if(item.reaction == 1) {            
-            this.hideAndShowProgressBars().then(s=>{
-                this.canRecieveEmotion = true; 
-            });
+            
         }     
         else if(item.reaction == 0){
             this.canRecieveEmojiClick = true;
@@ -873,8 +871,7 @@ class Scene2 extends BaseScene {
         if(this.isExercise) {
             wrong.addAction(s=>{
                 this.resetProgress();
-                this.hideResult();
-                this.canRecieveEmotion = true;  
+                this.hideResult();                
             });
             wrong.addEventAction(Fsm.SECODN_CHANCE);
         }
@@ -884,7 +881,18 @@ class Scene2 extends BaseScene {
 
         // Second Chance Intro
         let second = this.newspaperFsm.getSecondChangeStateByIndex(index);
+        second.addAction((s) =>{
+            if(item.reaction == 1) {
+                this.hideProgressBars();
+            }
+        })
         this.helperAddSubtitleAction(second, item.secondChanceIntro, false);                  
+        second.addAction(s=>{
+            if(item.reaction == 1) {
+                this.showProgressBars();            
+                this.canRecieveEmotion = true;             
+            }            
+        })
     }
 
     /**

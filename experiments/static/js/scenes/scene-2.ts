@@ -320,10 +320,10 @@ class Scene2 extends BaseScene {
 
         let rightEmotion = MyEmotion.None;
         if(item.answer == 0) {
-            rightEmotion = MyEmotion.Positive;
+            rightEmotion = MyEmotion.Negative;
         }
         else if(item.answer == 1) {
-            rightEmotion = MyEmotion.Negative;
+            rightEmotion = MyEmotion.Positive;
         }
         
         let correct = myEmotion == rightEmotion;

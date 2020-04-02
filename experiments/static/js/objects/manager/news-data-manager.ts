@@ -60,7 +60,7 @@ class NewsDataManager {
                 let rssItem = {
                     title: el.find("title").text(),
                     desc: el.find("description").text(),
-                    imageUrl: el.find("media\\:content[medium=image]").attr('url');
+                    imageUrl: el.find("media\\:content[medium=image]").attr('url')
                 }
                 ret.push(rssItem);
                 // console.log("title      : " + el.find("title").text());

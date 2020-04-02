@@ -2232,6 +2232,13 @@ class Scene2 extends BaseScene {
         let lerped = needLerp ? lerp(curTopNum, dest, 0.1) : dest;
         this.indicatorButtonCssBinding.top = `${lerped}%`;
     }
+    /**
+     *
+     * @param attention [0, 100]
+     */
+    updateAttentionLevel(attention) {
+        $('#attention-content').text(`Attention: ${attention.toFixed(0)}`);
+    }
     emotionAnalyze(imgRes) {
         let face = imgRes.face;
         let timestamp = imgRes.timestamp; // in seconds
@@ -2242,6 +2249,7 @@ class Scene2 extends BaseScene {
         let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
+        this.updateAttentionLevel(imgRes.face.expressions.attention);
         this.needDwitterFlow = false;
         if (!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
@@ -2610,15 +2618,18 @@ class Scene2 extends BaseScene {
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('#newspaper-thumbnail');
         titleSlot.html(newsItem.title);
-        let curRssItem = this.rssItems[this.rssCurIndex];
+        let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
+        console.log("assignedIndex: " + assignedIndex);
+        // let assignedIndex = 0;
+        let curRssItem = this.rssItems[assignedIndex];
         let content = curRssItem.title + '<br/><br/>' + curRssItem.desc;
         contentSlot.html(content);
         thumbnailSlot.attr('src', curRssItem.imageUrl);
         if (newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);
         }
-        this.rssCurIndex++;
-        this.rssCurIndex %= this.rssItems.length;
+        // this.rssCurIndex++;
+        // this.rssCurIndex %= this.rssItems.length;
     }
     fillNewspaperContentNormal(newsItem) {
         let titleSlot = $('#newspaper-title');
@@ -2635,6 +2646,7 @@ class Scene2 extends BaseScene {
         if (newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);
         }
+        this.showAttention(false);
     }
     setNewspaperStyle(style) {
         this.npStyle = style;
@@ -2837,6 +2849,9 @@ class Scene2 extends BaseScene {
                 return ret;
             }, autoHide);
         }
+    }
+    showAttention(show) {
+        $('#attention-frame').css('visibility', show ? 'visible' : 'hidden');
     }
 }
 /// <reference path="scene-2.ts" />
@@ -3153,7 +3168,7 @@ class Scene2L3 extends Scene2 {
         super('Scene2L3');
     }
     get npNums() {
-        return [22];
+        return [22, 23];
     }
     create() {
         super.create();
@@ -3170,6 +3185,7 @@ class Scene2L3 extends Scene2 {
         for (let i = 0; i < this.npNums.length; i++) {
             this.initStNewspaperWithIndex(i);
         }
+        this.initStNewspaper1();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -3215,6 +3231,14 @@ class Scene2L3 extends Scene2 {
             this.showCam(true);
         });
         state.addFinishAction();
+    }
+    initStNewspaper1() {
+        let index = 1;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        let end = this.newspaperFsm.getStateEndByIndex(index);
+        state.addOnEnter(s => {
+            this.showAttention(true);
+        });
     }
     // this is just to append the ending logic to the last newspaper
     appendLastStateEnding() {
@@ -7063,8 +7087,8 @@ let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Sec
 19													
 20													
 21													
-22	New York Times	<nyt/>	-1	What the heck?! <br/> Tron! Tron! Come here and have a look!	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently to force innocent people read what you are not supposed to see.   <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you don't see anything?	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently to force innocent people read what you are not supposed to see.   <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you don't see anything?		0	1				
-													
+22	New York Times	<nyt index='0'/>	-1	What the heck?! New York Times? <br/> Tron! Tron! Come here and have a look!	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently to force innocent people read what you are not supposed to see.   <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently to force innocent people read what you are not supposed to see.   <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?		0	1				
+23	New York Times	<nyt index='0'/>	-1	To pretend you didn't see anything, pleaes turn your head away to decrease your ATTENTION level. <hr/>  We can only purge this filthy page when your attention level is low.				0	1				
 													
 													
 													

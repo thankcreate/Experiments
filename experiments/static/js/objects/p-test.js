@@ -2,23 +2,26 @@
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
 
+let ct = "<nyt index='123'/><nyt index='123'/>";
+let res = ct.match(/index='(.*?)'/)[1];
+console.log(res);
 
-let c = Promise.resolve('1')
-.then(s=>{
-    throw '1';
-}, r=>{
-    console.log('222');
-})
-.then(s=>{
-    console.log('111');
-}, r=>{
-    console.log('222');
-})
-.then(s=>{
-    console.log('111');
-}, r=>{
-    console.log('222');
-})
+// let c = Promise.resolve('1')
+// .then(s=>{
+//     throw '1';
+// }, r=>{
+//     console.log('222');
+// })
+// .then(s=>{
+//     console.log('111');
+// }, r=>{
+//     console.log('222');
+// })
+// .then(s=>{
+//     console.log('111');
+// }, r=>{
+//     console.log('222');
+// })
 
 // let str = '123\\n321\\n3';
 // // let res = str.split('\\n');

@@ -7,7 +7,7 @@ class Scene2L3 extends Scene2 {
     }
 
     get npNums(): number[]{
-        return [22];
+        return [22, 23];
     }
 
     create() {
@@ -29,7 +29,7 @@ class Scene2L3 extends Scene2 {
         for(let i = 0; i < this.npNums.length; i++) {
             this.initStNewspaperWithIndex(i);
         }
-        
+        this.initStNewspaper1();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -87,6 +87,15 @@ class Scene2L3 extends Scene2 {
         state.addFinishAction();
     }    
 
+
+    initStNewspaper1(){
+        let index = 1;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        let end = this.newspaperFsm.getStateEndByIndex(index);
+        state.addOnEnter(s=>{
+            this.showAttention(true);
+        })
+    }
 
 
     // this is just to append the ending logic to the last newspaper

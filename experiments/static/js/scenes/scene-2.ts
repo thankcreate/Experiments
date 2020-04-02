@@ -183,6 +183,14 @@ class Scene2 extends BaseScene {
         this.indicatorButtonCssBinding.top = `${lerped}%`;
     }
 
+    /**
+     * 
+     * @param attention [0, 100]
+     */
+    updateAttentionLevel(attention: number) {
+        $('#attention-content').text(`Attention: ${attention.toFixed(0)}`);
+    }
+
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
     needDwitterFlow = false;
     emotionAnalyze(imgRes: ImageRes) {        
@@ -197,6 +205,7 @@ class Scene2 extends BaseScene {
 
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
+        this.updateAttentionLevel(imgRes.face.expressions.attention);
 
         this.needDwitterFlow = false;
         
@@ -679,7 +688,11 @@ class Scene2 extends BaseScene {
         
         titleSlot.html(newsItem.title);
 
-        let curRssItem = this.rssItems[this.rssCurIndex];
+        let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
+        console.log("assignedIndex: " + assignedIndex);
+        // let assignedIndex = 0;
+
+        let curRssItem = this.rssItems[assignedIndex];
         let content = curRssItem.title + '<br/><br/>' + curRssItem.desc;
         contentSlot.html(content);
 
@@ -687,10 +700,9 @@ class Scene2 extends BaseScene {
 
         if(newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
-        }    
-
-        this.rssCurIndex++;
-        this.rssCurIndex %= this.rssItems.length;
+        }        
+        // this.rssCurIndex++;
+        // this.rssCurIndex %= this.rssItems.length;
     }
 
     fillNewspaperContentNormal(newsItem: NewsItem) {
@@ -710,6 +722,8 @@ class Scene2 extends BaseScene {
         if(newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
         }    
+
+        this.showAttention(false);
     }
 
     npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;
@@ -962,6 +976,8 @@ class Scene2 extends BaseScene {
     }
 
 
-    
+    showAttention(show: boolean) {
+        $('#attention-frame').css('visibility', show ? 'visible' : 'hidden');
+    }
 /////////////////////////////////////////////////////////////////////////
 }

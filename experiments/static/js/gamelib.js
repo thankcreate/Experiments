@@ -2115,6 +2115,11 @@ class Scene2 extends BaseScene {
         this.canRecieveEmotion = false;
         this.canRecieveEmojiClick = false;
         this.needFreezeIndicatorMeterBtn = false;
+        /**
+         *
+         * @param attention [0, 100]
+         */
+        this.lastAttention = 0;
         // whether need to animate the dwitter background when a emotion intensity reached a threshould
         this.needDwitterFlow = false;
         this.isLastTestCorrect = false;
@@ -2232,24 +2237,28 @@ class Scene2 extends BaseScene {
         let lerped = needLerp ? lerp(curTopNum, dest, 0.1) : dest;
         this.indicatorButtonCssBinding.top = `${lerped}%`;
     }
-    /**
-     *
-     * @param attention [0, 100]
-     */
-    updateAttentionLevel(attention) {
-        $('#attention-content').text(`Attention: ${attention.toFixed(0)}`);
+    updateAttentionLevel() {
+        let timestamp = this.curTime / 1000;
+        if (this.lastTimeStamp != null && timestamp - this.lastTimeStamp > 0.3) {
+            this.lastAttention = 0;
+        }
+        $('#attention-content').text(`Attention: ${this.lastAttention.toFixed(0)}`);
     }
     emotionAnalyze(imgRes) {
         let face = imgRes.face;
-        let timestamp = imgRes.timestamp; // in seconds
+        // console.log(this.curTime);
+        // console.log(imgRes.timestamp);
+        // let timestamp = imgRes.timestamp; // in seconds
+        let timestamp = this.curTime / 1000; // in seconds
         if (this.lastTimeStamp == null) {
             this.lastTimeStamp = timestamp;
         }
+        this.lastAttention = imgRes.face.expressions.attention;
         let timeDiff = timestamp - this.lastTimeStamp;
         let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
-        this.updateAttentionLevel(imgRes.face.expressions.attention);
+        // this.updateAttentionLevel(imgRes.face.expressions.attention);
         this.needDwitterFlow = false;
         if (!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
@@ -2257,7 +2266,7 @@ class Scene2 extends BaseScene {
         }
         this.emotionAnalyzeFinished(res);
         // console.log(timeDiff);
-        let fullTime = 3.5;
+        let fullTime = 5.5;
         let targetJquery = null;
         let progress = { value: 0 };
         if (res.emotion == MyEmotion.Positive) {
@@ -2580,6 +2589,7 @@ class Scene2 extends BaseScene {
         super.update(time, dt);
         this.updateCssBinding();
         this.updateDwitterBackgroundState();
+        this.updateAttentionLevel();
     }
     updateDwitterBackgroundState() {
         if (this.isCamShown) {
@@ -3251,14 +3261,7 @@ class Scene2L3 extends Scene2 {
             this.showTransparentOverlay(false);
             this.setCenterTextPaper('65537', '🤩');
         });
-        end.addSubtitleAction(this.subtitle, () => `Congratulations! You've passed the first batch of trial.`, true);
-        end.addAction(s => {
-            this.setCenterTextPaper('65537', '👉');
-        });
-        end.addSubtitleAction(this.subtitle, () => `It's time to try something more advanced.`, true, null, null, 1500);
-        end.addAction(s => {
-            this.getController().gotoNextScene();
-        });
+        end.addSubtitleAction(this.subtitle, () => `Test test test`, true);
     }
 }
 /// <reference path="scenes/scene-base.ts" />

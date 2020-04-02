@@ -187,25 +187,38 @@ class Scene2 extends BaseScene {
      * 
      * @param attention [0, 100]
      */
-    updateAttentionLevel(attention: number) {
-        $('#attention-content').text(`Attention: ${attention.toFixed(0)}`);
+    lastAttention = 0;
+    updateAttentionLevel() {
+        let timestamp = this.curTime / 1000
+        if(this.lastTimeStamp != null && timestamp - this.lastTimeStamp > 0.3) {
+            this.lastAttention = 0;
+        }
+        $('#attention-content').text(`Attention: ${this.lastAttention.toFixed(0)}`);
     }
 
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
     needDwitterFlow = false;
     emotionAnalyze(imgRes: ImageRes) {        
         let face = imgRes.face;
-        let timestamp = imgRes.timestamp; // in seconds
+        // console.log(this.curTime);
+        // console.log(imgRes.timestamp);
+        // let timestamp = imgRes.timestamp; // in seconds
+        
+        let timestamp = this.curTime / 1000; // in seconds
         if(this.lastTimeStamp == null) {
             this.lastTimeStamp = timestamp;
         }
+        this.lastAttention = imgRes.face.expressions.attention;
+
         let timeDiff = timestamp - this.lastTimeStamp;
 
         let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);        
 
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
-        this.updateAttentionLevel(imgRes.face.expressions.attention);
+
+        
+        // this.updateAttentionLevel(imgRes.face.expressions.attention);
 
         this.needDwitterFlow = false;
         
@@ -218,7 +231,7 @@ class Scene2 extends BaseScene {
         // console.log(timeDiff);
 
 
-        let fullTime = 3.5;
+        let fullTime = 5.5;
         let targetJquery = null;
 
         let progress: HasValue = {value: 0};
@@ -641,6 +654,8 @@ class Scene2 extends BaseScene {
         super.update(time, dt);
         this.updateCssBinding();
         this.updateDwitterBackgroundState();
+
+        this.updateAttentionLevel();
     }
 
     updateDwitterBackgroundState() {

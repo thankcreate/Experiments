@@ -109,13 +109,6 @@ class Scene2L3 extends Scene2 {
             this.showTransparentOverlay(false);
             this.setCenterTextPaper('65537', '🤩');
         });
-        end.addSubtitleAction(this.subtitle, ()=>`Congratulations! You've passed the first batch of trial.`, true)
-        end.addAction(s=>{
-            this.setCenterTextPaper('65537', '👉');
-        });
-        end.addSubtitleAction(this.subtitle, ()=>`It's time to try something more advanced.`, true, null, null, 1500);
-        end.addAction(s=>{
-            this.getController().gotoNextScene();
-        })
+        end.addSubtitleAction(this.subtitle, ()=>`Test test test`, true)        
     }
 }

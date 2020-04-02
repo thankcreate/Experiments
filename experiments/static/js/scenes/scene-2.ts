@@ -22,6 +22,8 @@ class Scene2 extends BaseScene {
         return [0];
     }
 
+    rssCurIndex = 0;
+    rssItems: RssItem[] = [];
     
     npHp = 2;
     npMaxHp = 2;
@@ -289,21 +291,22 @@ class Scene2 extends BaseScene {
 
     isLastTestCorrect = false;
     emotionMaxed(myEmotion: MyEmotion){        
-        this.canRecieveEmotion = false;        
+        this.canRecieveEmotion = false;
         this.canRecieveEmojiClick = false;
 
         let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
-        let rightEmotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
+
+        let rightEmotion = MyEmotion.None;
+        if(item.answer == 0) {
+            rightEmotion = MyEmotion.Positive;
+        }
+        else if(item.answer == 1) {
+            rightEmotion = MyEmotion.Negative;
+        }
         
         let correct = myEmotion == rightEmotion;
-        this.isLastTestCorrect = correct;        
-        this.showResult(this.isLastTestCorrect); 
-        
-        // if(!correct && !this.isExercise) {
-        //     this.npHp--;
-        //     this.refreshHp();
-        // }
-        
+        this.isLastTestCorrect = correct; 
+        this.showResult(this.isLastTestCorrect);
 
         this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
     }
@@ -652,10 +655,45 @@ class Scene2 extends BaseScene {
         return newsItem;
     }    
 
+    isNYT(newsItem: NewsItem): boolean {
+        return newsItem.answer < 0;
+    }
+
     fillNewspaperContentByNum(num: number) {
         let ins = NewsDataManager.getInstance();
         let newsItem = ins.getByNum(num);
 
+        if(this.isNYT(newsItem)) {
+            this.fillNewspaperContentNYT(newsItem);
+        }
+        else {
+            this.fillNewspaperContentNormal(newsItem);
+        }        
+    }
+
+    fillNewspaperContentNYT(newsItem: NewsItem) {
+        let titleSlot = $('#newspaper-title');
+        let contentSlot = $('#newspaper-content-text');
+        let thumbnailSlot = $('#newspaper-thumbnail');
+        
+        
+        titleSlot.html(newsItem.title);
+
+        let curRssItem = this.rssItems[this.rssCurIndex];
+        let content = curRssItem.title + '<br/><br/>' + curRssItem.desc;
+        contentSlot.html(content);
+
+        thumbnailSlot.attr('src', curRssItem.imageUrl);
+
+        if(newsItem.style == 0) {
+            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
+        }    
+
+        this.rssCurIndex++;
+        this.rssCurIndex %= this.rssItems.length;
+    }
+
+    fillNewspaperContentNormal(newsItem: NewsItem) {
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('#newspaper-thumbnail');
@@ -667,12 +705,11 @@ class Scene2 extends BaseScene {
         }
         else {
             thumbnailSlot.attr('src', 'assets/newspaper/portrait-1.jpg');
-        }
-        
+        }        
 
         if(newsItem.style == 0) {
             this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
-        }        
+        }    
     }
 
     npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;
@@ -906,7 +943,8 @@ class Scene2 extends BaseScene {
     helperAddSubtitleAction(s: FsmState, rawStr: string, autoHide: boolean) {
         if(!rawStr || rawStr.length == 0) 
             return;
-            
+        
+        
         let sep = '<hr/>';
         let newline = /\<br\/\>/gi;
         let usernamePlaceholder = /\{username\}/gi;
@@ -914,7 +952,7 @@ class Scene2 extends BaseScene {
         let dialog = rawStr.split(sep);
         for(let i = 0; i < dialog.length; i++) {
             let sentenceRaw = dialog[i];
-            console.log(sentenceRaw);
+            // console.log(sentenceRaw);
             s.addSubtitleAction(this.subtitle, ()=>{
                 let ret = sentenceRaw.replace(newline, '\n');
                 ret = ret.replace(usernamePlaceholder, this.getUserName());

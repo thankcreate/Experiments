@@ -1,6 +1,6 @@
 
 interface NewsItem{
-    index: number;
+    index: number,
     title: string,
     content: string,
     answer: number,
@@ -14,6 +14,12 @@ interface NewsItem{
     thumbnail2: string,
     ambience: string,
     needloop: number,
+}
+
+interface RssItem{
+    title: string,
+    imageUrl: string,
+    desc: string,
 }
 
 
@@ -41,6 +47,31 @@ class NewsDataManager {
             }
         }
         return null;
+    }
+
+    loadRss(done: (rssItem: RssItem[])=>any, fail: ()=>any) {
+        // let FEED_URL = 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml';
+        let FEED_URL = 'https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml';
+        $.get(FEED_URL)
+        .done(data=>{
+            let ret:RssItem[] = []
+            $(data).find("item").each((index, ele)=> { // or "item" or whatever suits your feed
+                var el = $(ele);                
+                let rssItem = {
+                    title: el.find("title").text(),
+                    desc: el.find("description").text(),
+                    imageUrl: el.find("media\\:content[medium=image]").attr('url');
+                }
+                ret.push(rssItem);
+                // console.log("title      : " + el.find("title").text());
+                // console.log("media:content     : " + el.find("media\\:content[medium=image]").attr('url'));
+                // console.log("description: " + el.find("description").text());
+            });            
+            done(ret);
+        })
+        .fail(s=>{
+            fail();
+        });
     }
 
     load() {
@@ -97,7 +128,7 @@ class NewsDataManager {
                 continue;
             }            
         }
-        console.log(this.data);
+        // console.log(this.data);
     }
 
 }

@@ -47,7 +47,6 @@ class Scene2L2 extends Scene2 {
     initStGamePlayStart() {
         let state = this.gamePlayFsm.getState("Start");
         state.addOnEnter(s=>{      
-            console.log('aahahahahahha')  ;
             this.showPaper(true);    
             // this.setCenterTextPaper('65536 Sucks', '😀')
             this.newspaperFsm.start();                   

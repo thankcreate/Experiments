@@ -2,10 +2,28 @@
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
 
-let str = '123\\n321\\n3';
-// let res = str.split('\\n');
-let res = str.replace(/\\n/g, '\n');
-console.log(res);
+
+let c = Promise.resolve('1')
+.then(s=>{
+    throw '1';
+}, r=>{
+    console.log('222');
+})
+.then(s=>{
+    console.log('111');
+}, r=>{
+    console.log('222');
+})
+.then(s=>{
+    console.log('111');
+}, r=>{
+    console.log('222');
+})
+
+// let str = '123\\n321\\n3';
+// // let res = str.split('\\n');
+// let res = str.replace(/\\n/g, '\n');
+// console.log(res);
 // var ob = {
 //     ad: 123,
 //     get ad() {

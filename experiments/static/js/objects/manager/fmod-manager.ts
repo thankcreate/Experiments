@@ -47,7 +47,7 @@ class FmodManager {
     }
 
     prerun() {
-        console.log('begin prerun');
+        // console.log('begin prerun');
         var fileUrl = "/banks/";        
         var folderName = "/";
         var canRead = true;
@@ -59,7 +59,7 @@ class FmodManager {
             this.FMOD.FS_createPreloadedFile(folderName, s_banks[count], fileUrl + s_banks[count], canRead, canWrite);
         }
 
-        console.log('finish prerun');
+        // console.log('finish prerun');
     }
 
     main() {

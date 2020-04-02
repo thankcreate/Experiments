@@ -2266,7 +2266,7 @@ class Scene2 extends BaseScene {
         }
         this.emotionAnalyzeFinished(res);
         // console.log(timeDiff);
-        let fullTime = 5.5;
+        let fullTime = 5;
         let targetJquery = null;
         let progress = { value: 0 };
         if (res.emotion == MyEmotion.Positive) {

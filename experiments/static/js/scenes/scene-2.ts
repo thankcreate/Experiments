@@ -231,7 +231,7 @@ class Scene2 extends BaseScene {
         // console.log(timeDiff);
 
 
-        let fullTime = 5.5;
+        let fullTime = 5;
         let targetJquery = null;
 
         let progress: HasValue = {value: 0};

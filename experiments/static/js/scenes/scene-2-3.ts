@@ -95,6 +95,8 @@ class Scene2L3 extends Scene2 {
         state.addOnEnter(s=>{
             this.showAttention(true);
         })
+
+        
     }
 
 

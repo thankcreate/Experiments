@@ -14,8 +14,12 @@ class Scene2 extends BaseScene {
     indicatorCssBinding: CssBinding;
     indicatorButtonCssBinding: CssBinding;  
     hpCssBinding: CssBinding;
+    cleanLayerBinding: CssBinding;
 
     newspaperFsm: NewspaperFsm;
+
+    fullTime = 2;
+    cleanTime = 2; // seconds
 
     currIndex = 0;
     get npNums(): number[]{
@@ -29,6 +33,7 @@ class Scene2 extends BaseScene {
     npMaxHp = 2;
     
     isExercise = false;
+    isAttentionChecking:boolean = false;
 
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {     
         super(config);        
@@ -43,6 +48,13 @@ class Scene2 extends BaseScene {
     create() {
         super.create();
 
+        $(document).ready(()=>{
+            this.initDnD();
+        })
+        
+
+        this.showTestInfo(false);
+
         this.newspaperFsm = this.makeNewspaperFsm();
 
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
@@ -55,6 +67,7 @@ class Scene2 extends BaseScene {
         this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
         this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
         this.hpCssBinding = new CssBinding($('#newspaper-hp'));
+        this.cleanLayerBinding = new CssBinding($('#newspaper-clean-overlay'));
 
         this.initBindingCss();
 
@@ -95,6 +108,10 @@ class Scene2 extends BaseScene {
         this.refreshProgressBarCss();
     }
 
+
+    showTestInfo(show: boolean) {
+        $('#test-info').css('display', show ? 'block' : 'none');
+    }
     makeNewspaperFsm() {
         return new NewspaperFsm(this, this.npNums, 
             this.paperEnterCallback.bind(this),
@@ -125,6 +142,8 @@ class Scene2 extends BaseScene {
         let emoji = face.emojis.dominantEmoji;
 
         $('#test-info').text(emotionsDebug + '\n' + expDebug + '\n' + emoji);
+
+
         
 
         this.emotionAnalyze(res);
@@ -188,12 +207,44 @@ class Scene2 extends BaseScene {
      * @param attention [0, 100]
      */
     lastAttention = 0;
-    updateAttentionLevel() {
+
+    /**
+     * Called from update
+     * @param time 
+     * @param dt 
+     */
+
+    curCleanProgress = 0; // [0, 1]
+
+    updateAttentionLevel(time, dt) {
         let timestamp = this.curTime / 1000
         if(this.lastTimeStamp != null && timestamp - this.lastTimeStamp > 0.3) {
             this.lastAttention = 0;
         }
-        $('#attention-content').text(`Attention: ${this.lastAttention.toFixed(0)}`);
+        $('#attention-content').text(`🙈 Attention: ${this.lastAttention.toFixed(0)}`);
+
+        if(this.lastAttention < 10) {
+            $('#attention-frame').css('border-color', '#FFEB3B');
+
+            if(this.isAttentionChecking) {
+                this.curCleanProgress += dt / 1000 / this.cleanTime;
+                this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
+    
+                let showProgress = (this.curCleanProgress * 100).toFixed(0);
+                $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);            
+                this.cleanLayerBinding.opacity = this.curCleanProgress;
+    
+                if(this.curCleanProgress == 1) {
+                    $('#newspaper-toolbox-stamps').css('visibility', 'visible');
+                }
+            }
+        }
+        else {
+            $('#attention-frame').css('border-color', 'red');
+        }
+
+        
+        
     }
 
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
@@ -231,7 +282,7 @@ class Scene2 extends BaseScene {
         // console.log(timeDiff);
 
 
-        let fullTime = 5;
+        let fullTime = this.fullTime;
         let targetJquery = null;
 
         let progress: HasValue = {value: 0};
@@ -473,6 +524,10 @@ class Scene2 extends BaseScene {
 
         this.hpCssBinding.translateX = 100;
         this.hpCssBinding.udpate();
+
+        // TODO: opacity should be 0
+        this.cleanLayerBinding.opacity = 100;
+        this.cleanLayerBinding.udpate();
     }
 
     showPaper(show: boolean = true) {
@@ -646,6 +701,9 @@ class Scene2 extends BaseScene {
         if(this.hpCssBinding)
             this.hpCssBinding.udpate();
 
+        if(this.cleanLayerBinding)
+            this.cleanLayerBinding.udpate();
+
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -655,7 +713,7 @@ class Scene2 extends BaseScene {
         this.updateCssBinding();
         this.updateDwitterBackgroundState();
 
-        this.updateAttentionLevel();
+        this.updateAttentionLevel(time, dt);
     }
 
     updateDwitterBackgroundState() {
@@ -990,9 +1048,149 @@ class Scene2 extends BaseScene {
         }
     }
 
-
+    
     showAttention(show: boolean) {
+        this.isAttentionChecking = show;
         $('#attention-frame').css('visibility', show ? 'visible' : 'hidden');
     }
+
+    initDnD() {
+
+        // stamps
+        let stampEles = $('.newspaper-stamp');        
+        stampEles.attr('draggable','true');
+        stampEles.on('dragstart', (e) => {this.dragStart(e.originalEvent)});
+
+
+        // Destination
+        let desti = $(this.destiID);
+        desti.on('drop', (e)=>{this.drop(e.originalEvent)});
+        desti.on('dragover', (e)=>{this.dragOver(e.originalEvent)});        
+        desti.on('dragenter', (e)=>{this.dragEnter(e.originalEvent)});        
+        desti.on('dragleave', (e)=>{this.dragLeave(e.originalEvent)});    
+        desti.on('dragend', (e)=>{this.dragEnd(e.originalEvent)});    
+
+        // Source
+        let source = $(this.sourceID);
+        source.on('drop', (e)=>{this.drop(e.originalEvent)});
+        source.on('dragover', (e)=>{this.dragOver(e.originalEvent)});   
+        source.on('dragenter', (e)=>{this.dragEnter(e.originalEvent)});        
+        source.on('dragleave', (e)=>{this.dragLeave(e.originalEvent)});   
+        source.on('dragend', (e)=>{this.dragEnd(e.originalEvent)});    
+    }
+
+    lastDragID: string = '';
+    dragStart(e:any) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData("text", e.target.id);
+        this.lastDragID = e.target.id;
+
+        this.destiCount = 0;
+        this.sourceCount = 0;
+    }
+
+    isIn(parent:any, child: any) {
+        return parent == child || parent.contains(child);
+    }    
+
+    sourceID = '#newspaper-toolbox-stamps';
+    destiID = '#stamp-dest-container';  
+
+    getTrueContainer(node) {
+        let desti = $(this.destiID)[0];
+        let source =  $(this.sourceID)[0];
+        
+        // desti
+        if(this.isIn(desti, node)) {
+            return desti;
+        }
+        // source
+        else if(this.isIn(source, node)) {
+            return source;
+        }
+
+        return null;
+    }
+
+    drop(e:any) {       
+        e.dataTransfer.dropEffect = 'move';
+
+        let ob = document.getElementById(this.lastDragID);
+
+                
+        let container = this.getTrueContainer(e.target);
+        if(!this.isIn(container, ob)) {
+            container.appendChild(ob);
+        }
+        
+
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    dragOver(e:any) {
+        // if (e.target.getAttribute("draggable") == "true"){
+        //     e.dataTransfer.dropEffect = "none"; // dropping is not allowed
+        // }   
+        // else {
+        //    
+        // }      
+        
+        e.dataTransfer.dropEffect = "move"; // drop it like it's hot
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    destiCount = 0;
+    sourceCount = 0;
+    dragEnter(e:any) {
+        let ob = document.getElementById(this.lastDragID);      
+        
+        let container = this.getTrueContainer(e.target);
+        if(this.isIn(container, ob)) {
+            return;
+        }
+
+
+        if(this.isIn($(this.destiID)[0], e.target)) {
+            this.destiCount++;            
+            $(this.destiID)[0].classList.add('over');
+        }
+        else if(this.isIn($(this.sourceID)[0], e.target)) {
+            this.sourceCount++;            
+            $(this.sourceID)[0].classList.add('over');
+        }
+        
+    }
+
+    dragLeave(e:any) {        
+        let ob = document.getElementById(this.lastDragID);
+
+                
+        let container = this.getTrueContainer(e.target);
+        if(this.isIn(container, ob)) {
+            return;
+        }
+
+
+        if(this.isIn($(this.destiID)[0], e.target)) {
+            this.destiCount--;
+            
+            if(this.destiCount == 0)
+                $(this.destiID)[0].classList.remove('over');
+        }
+        else if(this.isIn($(this.sourceID)[0], e.target)) {
+            this.sourceCount--;            
+            if(this.sourceCount == 0)
+                $(this.sourceID)[0].classList.remove('over');
+        }
+    }
+
+    dragEnd(e:any) {
+        $(this.destiID)[0].classList.remove('over');
+        $(this.sourceID)[0].classList.remove('over');
+    }
+    
 /////////////////////////////////////////////////////////////////////////
 }
+

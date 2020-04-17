@@ -10,13 +10,16 @@ var newsPaper = {
         {name: 'CORRECT', from:'Paper1_SecondChance', to:'Paper1_Correct'},
         {name: 'WRONG', from:'Paper1_SecondChance', to:'Paper1_Wrong'},
         {name: 'G_DIED', from:'Default', to:'Died'},
-        
+        {name: 'PURGED', from:'Paper1', to:'Paper1_Purged'},
+        {name: 'LB_CORRECT', from:'Paper1_Purged', to:'Paper1_LabelCorrect'},
+    
         {name: '2', from:'Paper1_Wrong', to:'Paper1_SecondChance', },  
 
 
         {name: 'FINISHED', from:'Paper1_Wrong', to:'End1'} ,
         {name: 'FINISHED', from:'Paper1_Correct', to:'End1'}  ,
         {name: 'FINISHED', from:'Paper1', to: 'End1'},  
+        {name: 'FINISHED', from:'Paper1_LabelCorrect', to: 'End1'},  
     ]
 }
 

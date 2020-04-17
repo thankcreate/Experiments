@@ -2,9 +2,15 @@
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
 
-let ct = "<nyt index='123'/><nyt index='123'/>";
-let res = ct.match(/index='(.*?)'/)[1];
-console.log(res);
+let s   = new Array('123', '44');
+for(let i in s) {
+    console.log(s[i]);
+}
+
+
+// let ct = "<nyt index='123'/><nyt index='123'/>";
+// let res = ct.match(/index='(.*?)'/)[1];
+// console.log(res);
 
 // let c = Promise.resolve('1')
 // .then(s=>{

@@ -1,7 +1,4 @@
-enum NewsPaperStyle{
-    DEFAULT,
-    ONLY_TEXT_CENTER,
-}
+declare var gLabelWall;
 
 class Scene2 extends BaseScene {
     paperCssBinding : CssBinding;
@@ -50,6 +47,7 @@ class Scene2 extends BaseScene {
 
         $(document).ready(()=>{
             this.initDnD();
+            this.setAllLabels();
         })
         
 
@@ -259,6 +257,7 @@ class Scene2 extends BaseScene {
         if(this.lastTimeStamp == null) {
             this.lastTimeStamp = timestamp;
         }
+
         this.lastAttention = imgRes.face.expressions.attention;
 
         let timeDiff = timestamp - this.lastTimeStamp;
@@ -362,26 +361,39 @@ class Scene2 extends BaseScene {
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
 
+    getCurrentItem(): NewsItem {
+        return NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
+    }
+
     isLastTestCorrect = false;
     emotionMaxed(myEmotion: MyEmotion){        
-        this.canRecieveEmotion = false;
-        this.canRecieveEmojiClick = false;
+        let item = this.getCurrentItem()      
 
-        let item = NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
-
-        let rightEmotion = MyEmotion.None;
-        if(item.answer == 0) {
-            rightEmotion = MyEmotion.Negative;
+        // If it's in NYT mode, the EmotionMaxed event didn't trigger a result
+        // It still shows a full progress bar, but does nothing
+        if(this.isRealPaper(item) && item.tag != 'FirstShownNYT') {
+            return ;
         }
-        else if(item.answer == 1) {
-            rightEmotion = MyEmotion.Positive;
-        }
-        
-        let correct = myEmotion == rightEmotion;
-        this.isLastTestCorrect = correct; 
-        this.showResult(this.isLastTestCorrect);
-
-        this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
+        else {
+            this.canRecieveEmotion = false;
+            this.canRecieveEmojiClick = false;
+    
+    
+    
+            let rightEmotion = MyEmotion.None;
+            if(item.answer == 0) {
+                rightEmotion = MyEmotion.Negative;
+            }
+            else if(item.answer == 1) {
+                rightEmotion = MyEmotion.Positive;
+            }
+            
+            let correct = myEmotion == rightEmotion;
+            this.isLastTestCorrect = correct; 
+            
+            this.showResult(this.isLastTestCorrect);
+            this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
+        }        
     }
     
 
@@ -737,29 +749,29 @@ class Scene2 extends BaseScene {
         return newsItem;
     }    
 
-    isNYT(newsItem: NewsItem): boolean {
-        return newsItem.answer < 0;
+    isRealPaper(newsItem: NewsItem): boolean {
+        return NewsDataManager.getInstance().isRealPaper(newsItem);
     }
 
     fillNewspaperContentByNum(num: number) {
         let ins = NewsDataManager.getInstance();
         let newsItem = ins.getByNum(num);
 
-        if(this.isNYT(newsItem)) {
-            this.fillNewspaperContentNYT(newsItem);
+        if(this.isRealPaper(newsItem)) {
+            this.fillNewspaperContentReal(newsItem);
         }
         else {
             this.fillNewspaperContentNormal(newsItem);
         }        
     }
 
-    fillNewspaperContentNYT(newsItem: NewsItem) {
+    fillNewspaperContentReal(newsItem: NewsItem) {
         let titleSlot = $('#newspaper-title');
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('#newspaper-thumbnail');
         
         
-        titleSlot.html(newsItem.title);
+        titleSlot.html(this.getToolTipToRealPaperTitle(newsItem));
 
         let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
         console.log("assignedIndex: " + assignedIndex);
@@ -772,10 +784,63 @@ class Scene2 extends BaseScene {
         thumbnailSlot.attr('src', curRssItem.imageUrl);
 
         if(newsItem.style == 0) {
-            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
+            this.setNewspaperStyle(NewspaperStyle.DEFAULT);    
         }        
+
+        
         // this.rssCurIndex++;
         // this.rssCurIndex %= this.rssItems.length;
+    }
+
+    convertToAsterisk(str: string) {
+        let output = '';
+        let isFirst = true;
+        for(let i = 0; i < str.length; i++) {
+            if(str.charAt(i) != ' ')  {
+                if(isFirst) {
+                    output += str.charAt(i);
+                    isFirst = false;
+                }
+                else {
+                    output += '*';
+                }                
+            }
+            else {
+                isFirst = true;
+                output += ' ';
+            }
+        }
+        return output;
+    }
+
+    setAllLabels() {
+        let map = NewsDataManager.getInstance().labelMapping;
+        let allLabels = [];
+        for(let [k, v] of map) {            
+            for(let j in v) {
+                allLabels.push(v[j]);
+            }
+        }
+        gLabelWall.setItems(allLabels);
+    }
+
+    getToolTipToRealPaperTitle(newsItem: NewsItem) : string{
+        if(!this.isRealPaper(newsItem)) {
+            return newsItem.title;
+        }
+
+        let oriLabels = NewsDataManager.getInstance().labelMapping.get(newsItem.sourceType);
+        let lbls = [];
+        for(let i in oriLabels) {
+            lbls.push('<b>• ' + oriLabels[i] + '</b>');
+        }
+        let asteriskTitle = this.convertToAsterisk(newsItem.title);
+        let tooltip = `No public legal record is found related to ${asteriskTitle}.<br/><br/> Still, according to the Word2Vec word embedding database we got from Experiment 65536, people usually refer to ${asteriskTitle} as:<br/>`;
+        let connectedLbls = `<div class='red'>${lbls.join('<br/>')}</div>`;
+        
+        tooltip += connectedLbls;
+        let newTitle = `<span class='keyword'>${newsItem.title}<span class='tooltip''>${tooltip}</span></span>`
+        return newTitle;
     }
 
     fillNewspaperContentNormal(newsItem: NewsItem) {
@@ -793,20 +858,20 @@ class Scene2 extends BaseScene {
         }        
 
         if(newsItem.style == 0) {
-            this.setNewspaperStyle(NewsPaperStyle.DEFAULT);    
+            this.setNewspaperStyle(NewspaperStyle.DEFAULT);    
         }    
 
-        this.showAttention(false);
+        this.enableAttention(false);
     }
 
-    npStyle: NewsPaperStyle = NewsPaperStyle.DEFAULT;
-    setNewspaperStyle(style: NewsPaperStyle) {
+    npStyle: NewspaperStyle = NewspaperStyle.DEFAULT;
+    setNewspaperStyle(style: NewspaperStyle) {
         this.npStyle = style;
 
         let p = $('#newspaper-content-text');
         let thumb = $('#newspaper-thumbnail');
 
-        if(style == NewsPaperStyle.ONLY_TEXT_CENTER) {            
+        if(style == NewspaperStyle.ONLY_TEXT_CENTER) {            
             p.css('position', 'absolute');
             p.css('text-align', 'center');
             p.css('width', '100%');
@@ -816,7 +881,7 @@ class Scene2 extends BaseScene {
             
             thumb.css('display', 'none');
         }
-        else if (style == NewsPaperStyle.DEFAULT) {            
+        else if (style == NewspaperStyle.DEFAULT) {            
             p.css('position', 'static');
             p.css('text-align', 'inherit');
             p.css('width', '');
@@ -858,7 +923,7 @@ class Scene2 extends BaseScene {
 
 
     setCenterTextPaper(title:string, content: string, fontSize = 150) {
-        this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
+        this.setNewspaperStyle(NewspaperStyle.ONLY_TEXT_CENTER);
         this.setNewspaperContent(content);
         this.setNewspaperFontSize(fontSize);
         this.setNewspaperTitle(title);
@@ -1049,18 +1114,15 @@ class Scene2 extends BaseScene {
     }
 
     
-    showAttention(show: boolean) {
+    enableAttention(show: boolean) {
         this.isAttentionChecking = show;
         $('#attention-frame').css('visibility', show ? 'visible' : 'hidden');
     }
 
     initDnD() {
-
         // stamps
         let stampEles = $('.newspaper-stamp');        
-        stampEles.attr('draggable','true');
-        stampEles.on('dragstart', (e) => {this.dragStart(e.originalEvent)});
-
+        GlobalEventManager.getInstance().dragStartEvent.on((e) =>{this.dragStart(e)});
 
         // Destination
         let desti = $(this.destiID);
@@ -1121,8 +1183,7 @@ class Scene2 extends BaseScene {
         let container = this.getTrueContainer(e.target);
         if(!this.isIn(container, ob)) {
             container.appendChild(ob);
-        }
-        
+        }        
 
         e.preventDefault();
         e.stopPropagation();
@@ -1193,4 +1254,5 @@ class Scene2 extends BaseScene {
     
 /////////////////////////////////////////////////////////////////////////
 }
+
 

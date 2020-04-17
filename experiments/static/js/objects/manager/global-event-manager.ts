@@ -4,6 +4,7 @@ class GlobalEventManager {
     
     newspaperButtonTopClickedEvent: TypedEvent<GlobalEventManager> = new TypedEvent();
     newspaperButtonBottomClickedEvent: TypedEvent<GlobalEventManager> = new TypedEvent();
+    dragStartEvent: TypedEvent<any> = new TypedEvent();
 
     constructor() {
     }
@@ -22,6 +23,10 @@ class GlobalEventManager {
     newspaperButtonBottomClicked() {
         this.newspaperButtonBottomClickedEvent.emit(this);
     }
+
+    dragStart(e: any) {
+        this.dragStartEvent.emit(e);
+    }
 }
 
 
@@ -32,3 +37,4 @@ function newspaperButtonTopClicked(){
 function newspaperButtonBottomClicked() {
     GlobalEventManager.getInstance().newspaperButtonBottomClicked();
 }
+

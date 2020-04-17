@@ -713,9 +713,9 @@ input[type="submit"]:active {
   margin-left: 6px;
   opacity: 0;
   transition: opacity 0.3s;
-
+  line-height: 22px;
   
-  padding: 6px  10px;
+  padding: 10px  14px;
 }
 
 .keyword .tooltip::after {
@@ -804,6 +804,7 @@ input[type="submit"]:active {
   bottom: 0px;
   margin: 20px auto;
   min-width: 500px;
+  max-width: 80vw;
   min-height: 60px;
   border-color: red;
   border-width: 4px;
@@ -820,7 +821,7 @@ input[type="submit"]:active {
   font-weight: bold;
   letter-spacing: -2px;
   display: inline-block;
-  font-size: 40px;
+  font-size: 30px;
   border-width: 5px;
   border-color: red;
   border-style: solid;
@@ -852,4 +853,26 @@ input[type="submit"]:active {
 #newspaper-toolbox-stamps.over{
   background: white;
   border-style: dashed;
+}
+
+
+
+#newspaper-title .keyword{
+  cursor: help;
+}
+
+.keyword::after{
+  content: '*';
+}
+
+
+#newspaper-title .keyword .tooltip {
+  font-size: 16px;
+  z-index: 25;
+  text-align: left;
+  width: 280px;
+}
+
+.red{
+  color: red;
 }

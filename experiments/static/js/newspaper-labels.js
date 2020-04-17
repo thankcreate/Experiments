@@ -1,15 +1,19 @@
 'use strict';
 
-var gReviewWall;
+
 
 class NewspaperLabel extends React.Component{
     constructor(props) {
         super(props);                       
     }
 
+    dragStartHandler(e) {
+        GlobalEventManager.getInstance().dragStart(e);
+    }
+
     render() {
         return (
-            <div className="newspaper-stamp" id={this.props.item.id}>
+            <div className="newspaper-stamp" id={this.props.item.id} draggable='true'  onDragStart={this.dragStartHandler}>
                 {this.props.item.content}
             </div>
         );
@@ -34,8 +38,30 @@ class NewspaperLabelWall extends React.Component{
                     content: 'Third-Rate Journalism',
                 }
             ]
+        }   
+    }
+
+    
+
+    setItems(inputs) {
+        let newItems = [];
+        for(let i in inputs) {
+            let item = {id:'', content: ''};
+            item.content = inputs[i];
+            item.id = this.convertToID(item.content);
+            newItems.push(item);
         }
-        gReviewWall = React.createRef();        
+        this.setState({items: newItems});
+        console.log('setItemssetItemssetItemssetItemssetItemsv');
+    }
+
+    convertToID(content) {
+        let ret = '';
+        for(let i = 0 ; i < content.length; i++) {
+            let c = content.charAt(i);
+            ret += c == ' ' ? '-' : c;
+        }
+        return ret;
     }
 
     renderOne(i) {               
@@ -67,7 +93,7 @@ class NewspaperLabelWall extends React.Component{
 }
 
 
-let s_rw = ReactDOM.render(
+var gLabelWall = ReactDOM.render(
    
     <NewspaperLabelWall />,
     $('#newspaper-toolbox-stamps-react')[0]    

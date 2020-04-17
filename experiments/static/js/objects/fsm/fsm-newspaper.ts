@@ -53,6 +53,8 @@ class NewspaperFsm extends Fsm{
         for(let i = 0; i < this.npNumbers.length; i++) {
             let correctStName = this.getStateReactionNameByIndex(i, true);
             let wrongStName = this.getStateReactionNameByIndex(i, false);
+            let purgedStName = this.getStatePurgedNameByIndex(i);
+            let labelCorrectStName = this.getStateLabelCorrectNameByIndex(i);
             let endStName = this.getStateEndNameByIndex(i);
 
             let currStName = this.getStateNameByIndex(i);
@@ -61,9 +63,14 @@ class NewspaperFsm extends Fsm{
 
             this.addEvent(Fsm.CORRECT, currStName, correctStName);
             this.addEvent(Fsm.WRONG, currStName, wrongStName);
+
+            this.addEvent(Fsm.PURGED, currStName, purgedStName);
+            this.addEvent(Fsm.LABEL_CORRECT, purgedStName, labelCorrectStName);
             
             this.addEvent(Fsm.FINISHED, correctStName, endStName);
             this.addEvent(Fsm.FINISHED, wrongStName, endStName);
+            this.addEvent(Fsm.FINISHED, labelCorrectStName, endStName);
+           
 
             // Second chance
             // Wrong->2nd
@@ -189,5 +196,19 @@ class NewspaperFsm extends Fsm{
             throw 'Paper number out of range';            
         }
         return `NewspaperState-${index}-end`
+    }
+
+    getStatePurgedNameByIndex(index: number) {
+        if(index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';            
+        }
+        return `NewspaperState-${index}-purged`
+    }
+
+    getStateLabelCorrectNameByIndex(index: number) {
+        if(index < 0 || index >= this.npNumbers.length) {
+            throw 'Paper number out of range';            
+        }
+        return `NewspaperState-${index}-label-correct`
     }
 }

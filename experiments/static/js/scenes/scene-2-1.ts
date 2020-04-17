@@ -19,7 +19,7 @@ class Scene2L1 extends Scene2 {
               
             
         this.fillNewspaperContentByNum(0);
-        this.setNewspaperStyle(NewsPaperStyle.ONLY_TEXT_CENTER);
+        this.setNewspaperStyle(NewspaperStyle.ONLY_TEXT_CENTER);
     }
     
 

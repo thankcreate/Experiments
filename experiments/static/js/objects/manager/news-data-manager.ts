@@ -1,3 +1,14 @@
+enum NewspaperStyle{
+    DEFAULT,
+    ONLY_TEXT_CENTER,
+}
+
+enum NewsSourceType{
+    FAKE,
+    NYT,
+    NBC_NEWS,
+    CNN
+}
 
 interface NewsItem{
     index: number,
@@ -14,6 +25,10 @@ interface NewsItem{
     thumbnail2: string,
     ambience: string,
     needloop: number,
+    tag: string,
+
+
+    sourceType: NewsSourceType,
 }
 
 interface RssItem{
@@ -28,6 +43,9 @@ class NewsDataManager {
 
 
     data: NewsItem[] = [];
+
+    labelMapping : Map<NewsSourceType, Array<String>> = new Map();
+
     constructor() {
     }
 
@@ -36,8 +54,15 @@ class NewsDataManager {
         if(!NewsDataManager.instance) {
             NewsDataManager.instance = new NewsDataManager();
             NewsDataManager.instance.load();
+            NewsDataManager.instance.initLabelMapping();
         }
         return NewsDataManager.instance;
+    }
+
+    initLabelMapping() {
+        this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism ', 'Enemy of the People'));
+        this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Nasty', 'Third-Rate Reporter'));
+        this.labelMapping.set(NewsSourceType.NBC_NEWS, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
     }
 
     getByNum(num: number): NewsItem {
@@ -109,6 +134,8 @@ class NewsDataManager {
                     thumbnail2: cols[11],
                     ambience: cols[12],
                     needloop: parseInt(cols[13]),
+                    tag: cols[14],
+                    sourceType: NewsSourceType.FAKE
                 }    
                 if(isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';
@@ -122,6 +149,7 @@ class NewsDataManager {
                     item.reaction = 1;
                 }
 
+                this.judgeType(item);
                 this.data.push(item);
             } catch (error) {
                 console.log(error);
@@ -130,5 +158,26 @@ class NewsDataManager {
         }
         // console.log(this.data);
     }
+
+    isRealPaper(item: NewsItem): boolean {
+        return item.answer < 0;
+    }
+
+    judgeType(item: NewsItem) {
+        if(item.content.includes('nyt')) {
+            item.sourceType = NewsSourceType.NYT;
+        }
+        else if(item.content.includes('nbc')) {
+            item.sourceType = NewsSourceType.NBC_NEWS;
+        }
+        else if(item.content.includes('cnn')) {
+            item.sourceType = NewsSourceType.CNN;
+        }
+        else {
+            item.sourceType = NewsSourceType.FAKE;
+        }
+    }   
+
+    
 
 }

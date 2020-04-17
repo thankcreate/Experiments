@@ -33,7 +33,9 @@ class Fsm {
     static FINISHED = "FINISHED";
     static CORRECT = 'CORRECT';
     static WRONG = 'WRONG';
-    static SECODN_CHANCE ='SECOND_CHANCE'
+    static SECODN_CHANCE ='SECOND_CHANCE';
+    static PURGED = 'PURGED';
+    static LABEL_CORRECT = 'LABEL_CORRECT';
 
     scene: BaseScene;
     name: string;

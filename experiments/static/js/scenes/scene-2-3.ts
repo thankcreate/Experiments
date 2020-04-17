@@ -93,7 +93,7 @@ class Scene2L3 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);
         state.addOnEnter(s=>{
-            this.showAttention(true);
+            this.enableAttention(true);
         })
 
         

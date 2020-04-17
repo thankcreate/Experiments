@@ -39,10 +39,11 @@ class NewspaperLabelWall extends React.Component{
                 }
             ]
         }   
+        this.count = 0;
     }
 
+        
     
-
     setItems(inputs) {
         let newItems = [];
         for(let i in inputs) {
@@ -51,8 +52,15 @@ class NewspaperLabelWall extends React.Component{
             item.id = this.convertToID(item.content);
             newItems.push(item);
         }
-        this.setState({items: newItems});
-        console.log('setItemssetItemssetItemssetItemssetItemsv');
+        // for(let i = 0; i < this.count; i++) {
+        //     newItems.pop();
+        // }
+        this.count++;
+
+        // this.setState({items: []});       
+        // this.forceUpdate();
+        this.setState({items: newItems});       
+        this.forceUpdate();
     }
 
     convertToID(content) {
@@ -80,21 +88,36 @@ class NewspaperLabelWall extends React.Component{
             let rd = this.renderOne(i);
             res.push(rd);            
         }
+        // console.log('renderall L : ' + res.length);
         return res;
     }
 
     render() {            
-        return (
+        let r = (
             <div id="newspaper-toolbox-stamps">
                 {this.renderAll()}
             </div>
         );
+        console.log(r);
+        return r;
     }
 }
 
 
-var gLabelWall = ReactDOM.render(
-   
-    <NewspaperLabelWall />,
-    $('#newspaper-toolbox-stamps-react')[0]    
-);
+var gLabelWall = null;
+
+function createLabelWall() {
+    return ReactDOM.render(   
+        <NewspaperLabelWall />,
+        $('#newspaper-toolbox-stamps-react')[0]        
+    );
+}
+
+gLabelWall = createLabelWall();;
+
+function gResetLabelWall() {
+    ReactDOM.unmountComponentAtNode($('#newspaper-toolbox-stamps-react')[0]);
+    gLabelWall = createLabelWall();
+}
+
+

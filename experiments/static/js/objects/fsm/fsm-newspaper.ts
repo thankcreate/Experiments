@@ -155,6 +155,14 @@ class NewspaperFsm extends Fsm{
         return this.getState(this.getStateEndNameByIndex(index));
     }
 
+    getPurgedStateByInde(index: number) : FsmState {
+        return this.getState(this.getStatePurgedNameByIndex(index));
+    }
+
+    getLabelCorrectStateByInde(index: number) : FsmState {
+        return this.getState(this.getStateLabelCorrectNameByIndex(index));
+    }
+
     /**
      * 
      * @param num example: [4, 2, 1, 8]

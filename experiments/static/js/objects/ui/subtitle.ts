@@ -112,7 +112,7 @@ class Subtitle extends Wrapper<PhText> {
         let bottomSpacePerc = bottomSpace / pageHeight;
         if(bottomSpacePerc > 0 && bottomSpacePerc < 0.5) {
             // subtitle is based on the center pivot of canvas
-            console.log('bottomSpacePerc:' + bottomSpacePerc);
+            // console.log('bottomSpacePerc:' + bottomSpacePerc);
             let phBottom= getLogicHeight() / 2 - getLogicHeight() * bottomSpacePerc + this.wrappedObject.displayHeight / 2;
             this.inner.y = Math.max(Subtitle.subtitleOriY, phBottom + 40);
         }

@@ -7,7 +7,7 @@ class Scene2L3 extends Scene2 {
     }
 
     get npNums(): number[]{
-        return [22, 23];
+        return [22, 23, 24];
     }
 
     create() {
@@ -91,10 +91,7 @@ class Scene2L3 extends Scene2 {
     initStNewspaper1(){
         let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index);
-        let end = this.newspaperFsm.getStateEndByIndex(index);
-        state.addOnEnter(s=>{
-            this.enableAttention(true);
-        })
+        let end = this.newspaperFsm.getStateEndByIndex(index);      
 
         
     }

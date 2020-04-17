@@ -1,4 +1,5 @@
 declare var gLabelWall;
+declare function gResetLabelWall();
 
 class Scene2 extends BaseScene {
     paperCssBinding : CssBinding;
@@ -228,21 +229,24 @@ class Scene2 extends BaseScene {
                 this.curCleanProgress += dt / 1000 / this.cleanTime;
                 this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
     
-                let showProgress = (this.curCleanProgress * 100).toFixed(0);
-                $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);            
-                this.cleanLayerBinding.opacity = this.curCleanProgress;
+                this.updateCleanProgressInner();
     
                 if(this.curCleanProgress == 1) {
-                    $('#newspaper-toolbox-stamps').css('visibility', 'visible');
+                    this.newspaperFsm.event(Fsm.PURGED);
+                    // $('#newspaper-toolbox-stamps').css('visibility', 'visible');                    
                 }
             }
         }
         else {
             $('#attention-frame').css('border-color', 'red');
-        }
+        }     
+        
+    }
 
-        
-        
+    updateCleanProgressInner() {
+        let showProgress = (this.curCleanProgress * 100).toFixed(0);
+        $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);            
+        this.cleanLayerBinding.opacity = this.curCleanProgress;
     }
 
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
@@ -366,12 +370,19 @@ class Scene2 extends BaseScene {
     }
 
     isLastTestCorrect = false;
+
+    isFirstShownNYT(item: NewsItem) {
+        return item.tag == 'FirstShownNYT';
+    }
+    
     emotionMaxed(myEmotion: MyEmotion){        
         let item = this.getCurrentItem()      
 
         // If it's in NYT mode, the EmotionMaxed event didn't trigger a result
         // It still shows a full progress bar, but does nothing
-        if(this.isRealPaper(item) && item.tag != 'FirstShownNYT') {
+        // However, for the first time player encounter the NYT,
+        // we still want to invoke the wrong answer branch
+        if(this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
             return ;
         }
         else {
@@ -538,7 +549,7 @@ class Scene2 extends BaseScene {
         this.hpCssBinding.udpate();
 
         // TODO: opacity should be 0
-        this.cleanLayerBinding.opacity = 100;
+        this.cleanLayerBinding.opacity = 0;
         this.cleanLayerBinding.udpate();
     }
 
@@ -668,7 +679,7 @@ class Scene2 extends BaseScene {
     }
 
     showResult(isCorrect: boolean) {
-        console.log('hahahahah:' + isCorrect);
+        // console.log('hahahahah:' + isCorrect);
         $('#newspaper-result-content').text(isCorrect? '✔️' : '❌');
         let dt = 500;        
         this.tweens.add({
@@ -771,10 +782,10 @@ class Scene2 extends BaseScene {
         let thumbnailSlot = $('#newspaper-thumbnail');
         
         
-        titleSlot.html(this.getToolTipToRealPaperTitle(newsItem));
+        this.setTitle(this.getToolTipToRealPaperTitle(newsItem, false));
 
         let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
-        console.log("assignedIndex: " + assignedIndex);
+        // console.log("assignedIndex: " + assignedIndex);
         // let assignedIndex = 0;
 
         let curRssItem = this.rssItems[assignedIndex];
@@ -814,6 +825,7 @@ class Scene2 extends BaseScene {
     }
 
     setAllLabels() {
+        console.log('setAllLabels')
         let map = NewsDataManager.getInstance().labelMapping;
         let allLabels = [];
         for(let [k, v] of map) {            
@@ -822,9 +834,10 @@ class Scene2 extends BaseScene {
             }
         }
         gLabelWall.setItems(allLabels);
+        
     }
 
-    getToolTipToRealPaperTitle(newsItem: NewsItem) : string{
+    getToolTipToRealPaperTitle(newsItem: NewsItem, isAsteriskTitle: boolean) : string{
         if(!this.isRealPaper(newsItem)) {
             return newsItem.title;
         }
@@ -835,12 +848,17 @@ class Scene2 extends BaseScene {
             lbls.push('<b>• ' + oriLabels[i] + '</b>');
         }
         let asteriskTitle = this.convertToAsterisk(newsItem.title);
-        let tooltip = `No public legal record is found related to ${asteriskTitle}.<br/><br/> Still, according to the Word2Vec word embedding database we got from Experiment 65536, people usually refer to ${asteriskTitle} as:<br/>`;
+        let tooltip = `No legal record is found related to ${asteriskTitle}.<br/><br/> Still, according to the Word2Vec word embedding database we got from Experiment 65536, people usually refer to ${asteriskTitle} as:<br/>`;
         let connectedLbls = `<div class='red'>${lbls.join('<br/>')}</div>`;
         
         tooltip += connectedLbls;
-        let newTitle = `<span class='keyword'>${newsItem.title}<span class='tooltip''>${tooltip}</span></span>`
+        let newTitle = `<span class='keyword'>${isAsteriskTitle ?this.convertToAsterisk(newsItem.title) :  newsItem.title}<span class='tooltip''>${tooltip}</span></span>`
         return newTitle;
+    }
+
+    setTitle(str: string) {
+        let titleSlot = $('#newspaper-title');
+        titleSlot.html(str);;
     }
 
     fillNewspaperContentNormal(newsItem: NewsItem) {
@@ -848,7 +866,8 @@ class Scene2 extends BaseScene {
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('#newspaper-thumbnail');
 
-        titleSlot.html(newsItem.title);
+        this.setTitle(newsItem.title);
+        
         contentSlot.html(newsItem.content);
         if(newsItem.thumbnail1 && newsItem.thumbnail1.length > 0) {
             thumbnailSlot.attr('src', 'assets/newspaper/' + newsItem.thumbnail1);
@@ -949,7 +968,10 @@ class Scene2 extends BaseScene {
         let randomWidth = 450;
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
 
-
+        // reset the real paper params
+        this.curCleanProgress = 0;
+        this.updateCleanProgressInner();
+        
     }
 
     correctEnterCallback(state: FsmState, index: number) {
@@ -984,7 +1006,7 @@ class Scene2 extends BaseScene {
      * @param index 
      */
     paperEndEntercallback(state: FsmState, index:number) {
-        
+
     }
 
     paperEndAction(s: FsmState, index:number) {
@@ -1001,6 +1023,9 @@ class Scene2 extends BaseScene {
             
         });
         s.addDelayAction(this, 300);
+        s.addAction(s=>{
+            $('#stamp-dest-container')[0].innerHTML = '';
+        })
         s.addAction(s=>{
             if(this.npHp == 0 && !this.isExercise) {
                 // global died event
@@ -1047,6 +1072,39 @@ class Scene2 extends BaseScene {
                 this.showProgressBars();        
             }
         })
+
+        // Specific for NYT-likes
+        if(!this.isFirstShownNYT(item)) {
+            state.addOnEnter(s=>{                
+                this.isAttentionChecking = true;
+                this.enableAttention(true);
+            })        
+            state.setOnExit(s=>{
+                this.isAttentionChecking = false;
+                this.enableAttention(false);
+            });
+        }
+
+        // Purged(waiting for label to be put in)
+        let purged = this.newspaperFsm.getPurgedStateByInde(index);
+        this.helperAddSubtitleAction(purged, item.purgeIntro, false);     
+        purged.addOnEnter(s=>{
+            gResetLabelWall()      
+            this.initDnDSource();
+            this.setAllLabels();   
+            
+            this.setTitle(this.getToolTipToRealPaperTitle(item, true));           
+            $('#newspaper-toolbox-stamps').css('visibility', 'visible'); 
+        })
+        purged.setOnExit(s=>{
+            $('#newspaper-toolbox-stamps').css('visibility', 'hidden'); 
+        })
+
+        // LabelCorrect(labels all put)
+        let labelCorrect = this.newspaperFsm.getLabelCorrectStateByInde(index);
+        this.helperAddSubtitleAction(labelCorrect, item.labelCorrectIntro, false);    
+        labelCorrect.addFinishAction();
+
         
         
         // Correct
@@ -1114,8 +1172,7 @@ class Scene2 extends BaseScene {
     }
 
     
-    enableAttention(show: boolean) {
-        this.isAttentionChecking = show;
+    enableAttention(show: boolean) {        
         $('#attention-frame').css('visibility', show ? 'visible' : 'hidden');
     }
 
@@ -1124,6 +1181,12 @@ class Scene2 extends BaseScene {
         let stampEles = $('.newspaper-stamp');        
         GlobalEventManager.getInstance().dragStartEvent.on((e) =>{this.dragStart(e)});
 
+        this.initDnDDestination();
+        this.initDnDSource();
+    }
+
+    initDnDDestination() {
+
         // Destination
         let desti = $(this.destiID);
         desti.on('drop', (e)=>{this.drop(e.originalEvent)});
@@ -1131,7 +1194,8 @@ class Scene2 extends BaseScene {
         desti.on('dragenter', (e)=>{this.dragEnter(e.originalEvent)});        
         desti.on('dragleave', (e)=>{this.dragLeave(e.originalEvent)});    
         desti.on('dragend', (e)=>{this.dragEnd(e.originalEvent)});    
-
+    }
+    initDnDSource() {
         // Source
         let source = $(this.sourceID);
         source.on('drop', (e)=>{this.drop(e.originalEvent)});
@@ -1174,6 +1238,34 @@ class Scene2 extends BaseScene {
         return null;
     }
 
+    checkIfLabelsCorrect() {
+        let item = this.getCurrentItem();        ;
+        let correctLabels = NewsDataManager.getInstance().labelMapping.get(item.sourceType);
+        let actualLabels = [];
+        $('#stamp-dest-container .newspaper-stamp').each(function(){
+            // 'this' here refers to the iterated ob
+            actualLabels.push($(this).text());
+        })
+        let same = this.isSame(actualLabels, correctLabels);
+        if(same) {
+            setTimeout(() => {
+                this.newspaperFsm.event(Fsm.LABEL_CORRECT);    
+            }, 500);                        
+        }
+    }
+
+    isSame(ar1: string[], ar2: string[]) :boolean {
+        if(ar1.length != ar2.length)
+            return false;
+
+        for(let i in ar1) {            
+            if(!ar2.find(e => e == ar1[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     drop(e:any) {       
         e.dataTransfer.dropEffect = 'move';
 
@@ -1185,6 +1277,7 @@ class Scene2 extends BaseScene {
             container.appendChild(ob);
         }        
 
+        this.checkIfLabelsCorrect();
         e.preventDefault();
         e.stopPropagation();
     }
@@ -1226,7 +1319,6 @@ class Scene2 extends BaseScene {
 
     dragLeave(e:any) {        
         let ob = document.getElementById(this.lastDragID);
-
                 
         let container = this.getTrueContainer(e.target);
         if(this.isIn(container, ob)) {

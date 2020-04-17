@@ -26,7 +26,8 @@ interface NewsItem{
     ambience: string,
     needloop: number,
     tag: string,
-
+    purgeIntro: string,
+    labelCorrectIntro: string,
 
     sourceType: NewsSourceType,
 }
@@ -44,7 +45,7 @@ class NewsDataManager {
 
     data: NewsItem[] = [];
 
-    labelMapping : Map<NewsSourceType, Array<String>> = new Map();
+    labelMapping : Map<NewsSourceType, Array<string>> = new Map();
 
     constructor() {
     }
@@ -60,7 +61,7 @@ class NewsDataManager {
     }
 
     initLabelMapping() {
-        this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism ', 'Enemy of the People'));
+        this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism', 'Enemy of the People'));
         this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Nasty', 'Third-Rate Reporter'));
         this.labelMapping.set(NewsSourceType.NBC_NEWS, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
     }
@@ -135,6 +136,8 @@ class NewsDataManager {
                     ambience: cols[12],
                     needloop: parseInt(cols[13]),
                     tag: cols[14],
+                    purgeIntro: cols[15],
+                    labelCorrectIntro: cols[16],
                     sourceType: NewsSourceType.FAKE
                 }    
                 if(isNaN(item.index) || isNaN(item.answer)) {

@@ -429,7 +429,7 @@ input[type="submit"]:active {
 #newspaper-transparent-overlay {
   pointer-events: none;
   position: absolute;
-  z-index: 20;
+  z-index: 22;
   left:6px;
   right: 6px;
   top:6px;
@@ -779,7 +779,8 @@ input[type="submit"]:active {
   bottom: -6px; 
   top: -6px;
   opacity: 0.995;
-  background-color: #4b4b4b;
+  /* background-color: #4b4b4b; */
+  background-color: rgb(37, 37, 37);
   border-color: black;
   border-width: 5px;
   border-style: dashed;
@@ -795,7 +796,7 @@ input[type="submit"]:active {
 
 #newspaper-toolbox-stamps{
   position: absolute;
-  /* visibility: hidden; */
+  visibility: hidden;
 
   top: 0px;
   left: 0px;

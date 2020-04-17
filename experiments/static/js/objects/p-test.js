@@ -3,10 +3,12 @@
 // console.log(typeof(x));
 
 let s   = new Array('123', '44');
-for(let i in s) {
-    console.log(s[i]);
-}
-
+// for(let i in s) {
+//     console.log(s[i]);
+// }
+let ss = ['123'];
+console.log(typeof(s));
+console.log(typeof(ss));
 
 // let ct = "<nyt index='123'/><nyt index='123'/>";
 // let res = ct.match(/index='(.*?)'/)[1];

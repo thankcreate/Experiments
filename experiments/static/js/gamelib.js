@@ -2482,7 +2482,7 @@ class Scene2 extends BaseScene {
         this.topProgressCssBinding.udpate();
         this.bottomProgressCssBinding.translateY = -100;
         this.bottomProgressCssBinding.udpate();
-        this.resultCssBinding.translateY = 100;
+        this.resultCssBinding.translateX = 100;
         this.resultCssBinding.udpate();
         this.manualBtnsCssBing.translateX = -100;
         this.manualBtnsCssBing.translateY = -50;
@@ -2605,17 +2605,20 @@ class Scene2 extends BaseScene {
         let dt = 500;
         this.tweens.add({
             targets: this.resultCssBinding,
-            translateY: 0,
+            translateX: 0,
             duration: dt
         });
+        // when in show result, make sure the top of hp bar is moved down
+        $('#newspaper-hp').css('top', '90px');
     }
     hideResult() {
         let dt = 500;
         this.tweens.add({
             targets: this.resultCssBinding,
-            translateY: 100,
+            translateX: 100,
             duration: dt
         });
+        $('#newspaper-hp').css('top', '20px');
     }
     updateCssBinding() {
         if (this.camCssBinding)

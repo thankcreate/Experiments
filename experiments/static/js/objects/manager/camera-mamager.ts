@@ -7,13 +7,20 @@ enum CamPosi{
 
 interface ImageRes {
     face: FaceRes,
-    timestamp: number, // in seconds
+    timestamp: number, // in seconds    
+    img: any,
+}
+
+interface FeaturePoint {
+    x: number,
+    y: number,
 }
 
 interface FaceRes {
     emotions: Emotions,
     expressions: Expressions,
     emojis: Emojis,
+    featurePoints: FeaturePoint[]
 }
 
 interface Emotions{
@@ -195,8 +202,15 @@ class CameraManager {
         for (var id in featurePoints) {
             contxt.beginPath();
             contxt.arc(featurePoints[id].x,
-                featurePoints[id].y, 2, 0, 2 * Math.PI);
+                featurePoints[id].y, 2, 0, 2 * Math.PI);            
             contxt.stroke();
+            
+
+            contxt.font="10px Comic Sans MS";
+            contxt.fillStyle = "red";
+            contxt.textAlign = "center";
+            contxt.fillText("" + id, featurePoints[id].x,
+            featurePoints[id].y);
         }
     }
 
@@ -264,11 +278,15 @@ class CameraManager {
             $('#results').html("");            
             if (faces.length > 0) {                
 
-                this.imageResEvent.emit({face: faces[0] as FaceRes, timestamp: timestamp});
+                this.imageResEvent.emit({
+                    face: faces[0] as FaceRes, 
+                    timestamp: timestamp,
+                    img: image
+                });
                 
-                if ($('#face_video_canvas')[0] != null) {
-                    this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
-                }
+                // if ($('#face_video_canvas')[0] != null) {
+                //     this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
+                // }
             }
         });
     }

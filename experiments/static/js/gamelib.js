@@ -2205,7 +2205,51 @@ class Scene2 extends BaseScene {
     initVoiceType() {
         this.getSpeechManager().setVoiceType(VoiceType.Voice65537);
     }
+    drawFeaturePoints(res) {
+        if ($('#face_video_canvas')[0] == null) {
+            return;
+        }
+        let img = res.img;
+        let featurePoints = res.face.featurePoints;
+        var ctx = $('#face_video_canvas')[0].getContext('2d');
+        var hRatio = ctx.canvas.width / img.width;
+        var vRatio = ctx.canvas.height / img.height;
+        var ratio = Math.min(hRatio, vRatio);
+        ctx.strokeStyle = "#FF0000";
+        for (var id in featurePoints) {
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ff0000';
+            ctx.arc(featurePoints[id].x, featurePoints[id].y, 2, 0, 2 * Math.PI);
+            ctx.stroke();
+            // console.log(ctx.lineWidth);
+            // Draw number indices
+            // contxt.font="10px Comic Sans MS";
+            // contxt.fillStyle = "red";
+            // contxt.textAlign = "center";
+            // contxt.fillText("" + id, featurePoints[id].x,
+            // featurePoints[id].y);
+        }
+        let eyeBegin = featurePoints[16];
+        let eyeEnd = featurePoints[19];
+        let extendRadio = 0.1;
+        // extend the bar a little bit
+        let barBegin = this.lerpFeaturePoint(eyeBegin, eyeEnd, 0 - extendRadio);
+        let barEnd = this.lerpFeaturePoint(eyeBegin, eyeEnd, 1 + extendRadio);
+        ctx.beginPath();
+        ctx.lineWidth = 40;
+        ctx.strokeStyle = '#ffc83d';
+        ctx.moveTo(barBegin.x, barBegin.y);
+        ctx.lineTo(barEnd.x, barEnd.y);
+        ctx.stroke();
+    }
+    lerpFeaturePoint(point1, point2, ratio) {
+        let x = lerp(point1.x, point2.x, ratio);
+        let y = lerp(point1.y, point2.y, ratio);
+        return { x: x, y: y };
+    }
     imageHandler(res) {
+        this.drawFeaturePoints(res);
         let face = res.face;
         let timestamp = res.timestamp;
         let emotionsDebug = JSON.stringify(face.emotions, (key, val) => {
@@ -6768,6 +6812,10 @@ class CameraManager {
             contxt.beginPath();
             contxt.arc(featurePoints[id].x, featurePoints[id].y, 2, 0, 2 * Math.PI);
             contxt.stroke();
+            contxt.font = "10px Comic Sans MS";
+            contxt.fillStyle = "red";
+            contxt.textAlign = "center";
+            contxt.fillText("" + id, featurePoints[id].x, featurePoints[id].y);
         }
     }
     log(node_name, msg) {
@@ -6817,10 +6865,14 @@ class CameraManager {
         detector.addEventListener("onImageResultsSuccess", (faces, image, timestamp) => {
             $('#results').html("");
             if (faces.length > 0) {
-                this.imageResEvent.emit({ face: faces[0], timestamp: timestamp });
-                if ($('#face_video_canvas')[0] != null) {
-                    this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
-                }
+                this.imageResEvent.emit({
+                    face: faces[0],
+                    timestamp: timestamp,
+                    img: image
+                });
+                // if ($('#face_video_canvas')[0] != null) {
+                //     this.drawFeaturePoints(image, faces[0].featurePoints, timestamp);
+                // }
             }
         });
     }

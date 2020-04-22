@@ -127,7 +127,61 @@ class Scene2 extends BaseScene {
         this.getSpeechManager().setVoiceType(VoiceType.Voice65537);
     }
 
+    drawFeaturePoints(res: ImageRes) {
+        if ($('#face_video_canvas')[0] == null) {
+            return;
+        }
+        let img = res.img;
+        let featurePoints = res.face.featurePoints;
+
+        var ctx = ($('#face_video_canvas')[0] as any).getContext('2d');
+
+        var hRatio = ctx.canvas.width / img.width;
+        var vRatio = ctx.canvas.height / img.height;
+        var ratio = Math.min(hRatio, vRatio);
+        ctx.strokeStyle = "#FF0000";
+
+
+        for (var id in featurePoints) {
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ff0000';
+            ctx.arc(featurePoints[id].x,
+                featurePoints[id].y, 2, 0, 2 * Math.PI);            
+            ctx.stroke();
+
+            // console.log(ctx.lineWidth);
+            // Draw number indices
+            // contxt.font="10px Comic Sans MS";
+            // contxt.fillStyle = "red";
+            // contxt.textAlign = "center";
+            // contxt.fillText("" + id, featurePoints[id].x,
+            // featurePoints[id].y);
+        }
+
+        let eyeBegin = featurePoints[16];
+        let eyeEnd = featurePoints[19];
+        let extendRadio = 0.1;
+        // extend the bar a little bit
+        let barBegin = this.lerpFeaturePoint(eyeBegin, eyeEnd, 0 - extendRadio);
+        let barEnd = this.lerpFeaturePoint(eyeBegin, eyeEnd, 1 + extendRadio);
+
+        ctx.beginPath();
+        ctx.lineWidth = 40;
+        ctx.strokeStyle = '#ffc83d';
+        ctx.moveTo(barBegin.x, barBegin.y);
+        ctx.lineTo(barEnd.x, barEnd.y);
+        ctx.stroke();
+    }
+
+    lerpFeaturePoint(point1: FeaturePoint, point2: FeaturePoint, ratio: number) : FeaturePoint {
+        let x = lerp(point1.x, point2.x, ratio);
+        let y = lerp(point1.y, point2.y, ratio);
+        return {x: x, y: y};
+    }
+
     imageHandler(res: ImageRes) {
+        this.drawFeaturePoints(res);
         let face = res.face;
         let timestamp = res.timestamp;
         

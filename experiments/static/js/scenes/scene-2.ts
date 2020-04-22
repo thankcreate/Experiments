@@ -159,6 +159,30 @@ class Scene2 extends BaseScene {
             // featurePoints[id].y);
         }
 
+        // this.drawBlackBar(ctx, featurePoints);
+        this.drawVirtualHead(ctx, featurePoints);
+    }
+
+    drawVirtualHead(ctx, featurePoints: FeaturePoint[]) {
+        let eyeBegin = featurePoints[16];
+        let eyeEnd = featurePoints[19];
+
+        let faceCenter = featurePoints[12];
+        let angl = Math.atan2(eyeEnd.y - eyeBegin.y, eyeEnd.x - eyeBegin.x);
+       
+        ctx.save();
+        ctx.font = '160pt Arial';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.translate(faceCenter.x, faceCenter.y - 20);        
+        ctx.rotate(angl);
+
+        var rText = '😄';
+        ctx.fillText(rText , 0, 0);
+        ctx.restore();
+    }
+
+    drawBlackBar(ctx, featurePoints: FeaturePoint[]) {
         let eyeBegin = featurePoints[16];
         let eyeEnd = featurePoints[19];
         let extendRadio = 0.1;

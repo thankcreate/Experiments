@@ -134,6 +134,8 @@ class CameraManager {
         $('#face_video').css('width', w + 'px');
         $('#face_video').css('height', h + 'px');
 
+
+        $('#face_video_canvas').css('transform', 'scaleX(-1)');
     }
 
     setPosition(posi: CamPosi) {

@@ -879,3 +879,70 @@ input[type="submit"]:active {
 .red{
   color: red;
 }
+
+
+
+#newspaper-prop-frame{
+  position: absolute;
+  top: 6px;
+  left: 20px;
+  display: flex;
+  flex-direction: row;
+  transform: translate(0, -100%);
+  z-index: -10;
+}
+
+.newspaper-prop {  
+  position: relative;
+  width: 65px;
+  height: 52px;
+  box-sizing: border-box;
+  border: 6px solid black;
+  background-color: white;
+  margin-right: 4px;
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 40px;
+  text-align: center;
+}
+
+
+.newspaper-prop .tooltip {
+  width: 250px;
+  pointer-events: none;
+  visibility: hidden;  
+  background-color: black;
+  color: #fff;  
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;    
+  margin-left: 6px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  line-height: 22px;  
+  padding: 8px  10px;
+
+  top: -20px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+
+  font-size: 16px;
+  text-align: left;
+  
+}
+
+
+.newspaper-prop:hover .tooltip {  
+  visibility: visible;  
+  opacity: 1;
+}
+
+.newspaper-prop .tooltip::after {
+  content: "";
+  position: absolute;  
+  top: 100%;
+  right: 50%;  
+  border-width: 8px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+}

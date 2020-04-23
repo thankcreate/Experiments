@@ -438,6 +438,27 @@ input[type="submit"]:active {
   opacity: 0;
 }
 
+#newspaper-prompt-overlay {  
+  position: absolute;
+  z-index: 21;
+  left:6px;
+  right: 6px;
+  top:6px;
+  bottom: 6px;     
+  background-color: white;
+  opacity: 0.95;
+  visibility: hidden;
+}
+
+#newspaper-prompt-overlay-content{
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  top: 50%;
+  transform: translate(0, -50%);
+  font-size: 80px;
+}
+
 #clear-helper{
   clear:both;
 }
@@ -945,4 +966,8 @@ input[type="submit"]:active {
   border-width: 8px;
   border-style: solid;
   border-color: black transparent transparent transparent;
+}
+
+.newspaper-prop-icon{
+  user-select: none;
 }

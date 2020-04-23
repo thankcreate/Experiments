@@ -152,6 +152,13 @@ class Scene2 extends BaseScene {
     onPropButtonClick(index: number) {
         newspaperPropInfos[index].activated = !newspaperPropInfos[index].activated;
         this.showProp(newspaperPropInfos[index].activated, index);
+
+        if(this.getPropInfoByType(NewspaperPropType.Prompt).activated) {
+            $('#newspaper-prompt-overlay').css('visibility', 'visible');
+        }
+        else {
+            $('#newspaper-prompt-overlay').css('visibility', 'hidden');
+        }
     }
 
 
@@ -224,7 +231,7 @@ class Scene2 extends BaseScene {
         let angl = Math.atan2(eyeEnd.y - eyeBegin.y, eyeEnd.x - eyeBegin.x);
        
         ctx.save();
-        ctx.font = '160pt Arial';
+        ctx.font = '260pt Arial';
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.translate(faceCenter.x, faceCenter.y - 20);        
@@ -248,6 +255,7 @@ class Scene2 extends BaseScene {
         ctx.beginPath();
         ctx.lineWidth = 40;
         ctx.strokeStyle = '#ffc83d';
+        // ctx.strokeStyle = '#000000';
         ctx.moveTo(barBegin.x, barBegin.y);
         ctx.lineTo(barEnd.x, barEnd.y);
         ctx.stroke();

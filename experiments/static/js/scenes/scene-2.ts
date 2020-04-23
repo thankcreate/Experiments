@@ -12,7 +12,9 @@ class Scene2 extends BaseScene {
     indicatorCssBinding: CssBinding;
     indicatorButtonCssBinding: CssBinding;  
     hpCssBinding: CssBinding;
-    cleanLayerBinding: CssBinding;
+    cleanLayerCssBinding: CssBinding;
+    propFrameCssBinding: CssBinding;
+    propCssBindings: CssBinding[];
 
     newspaperFsm: NewspaperFsm;
 
@@ -45,7 +47,7 @@ class Scene2 extends BaseScene {
 
     create() {
         super.create();
-
+        this.intiPropButtons();
         $(document).ready(()=>{
             this.initDnD();
             this.setAllLabels();
@@ -66,7 +68,8 @@ class Scene2 extends BaseScene {
         this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
         this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
         this.hpCssBinding = new CssBinding($('#newspaper-hp'));
-        this.cleanLayerBinding = new CssBinding($('#newspaper-clean-overlay'));
+        this.cleanLayerCssBinding = new CssBinding($('#newspaper-clean-overlay'));
+        this.propFrameCssBinding = new CssBinding($('#newspaper-prop-frame'))
 
         this.initBindingCss();
 
@@ -120,6 +123,14 @@ class Scene2 extends BaseScene {
             this.paperEndAction.bind(this),
             this.paperDiedAddActionCallBack.bind(this)
             );        
+    }
+
+    intiPropButtons() {
+        for(let i = 0; i < newspaperPropInfos.length; i++) {
+            let info = newspaperPropInfos[i];
+            $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
+            $(`#prop-${i} .tooltip`).text(info.desc);
+        }
     }
 
     // called by BaseScene.create
@@ -180,6 +191,8 @@ class Scene2 extends BaseScene {
         var rText = '😄';
         ctx.fillText(rText , 0, 0);
         ctx.restore();
+
+        
     }
 
     drawBlackBar(ctx, featurePoints: FeaturePoint[]) {
@@ -324,7 +337,7 @@ class Scene2 extends BaseScene {
     updateCleanProgressInner() {
         let showProgress = (this.curCleanProgress * 100).toFixed(0);
         $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);            
-        this.cleanLayerBinding.opacity = this.curCleanProgress;
+        this.cleanLayerCssBinding.opacity = this.curCleanProgress;
     }
 
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
@@ -626,9 +639,11 @@ class Scene2 extends BaseScene {
         this.hpCssBinding.translateX = 100;
         this.hpCssBinding.udpate();
 
-        // TODO: opacity should be 0
-        this.cleanLayerBinding.opacity = 0;
-        this.cleanLayerBinding.udpate();
+        this.cleanLayerCssBinding.opacity = 0;
+        this.cleanLayerCssBinding.udpate();
+
+        this.propFrameCssBinding.translateY = 0;
+        this.propFrameCssBinding.udpate();
     }
 
     showPaper(show: boolean = true) {
@@ -807,8 +822,11 @@ class Scene2 extends BaseScene {
         if(this.hpCssBinding)
             this.hpCssBinding.udpate();
 
-        if(this.cleanLayerBinding)
-            this.cleanLayerBinding.udpate();
+        if(this.cleanLayerCssBinding)
+            this.cleanLayerCssBinding.udpate();
+
+        if(this.propFrameCssBinding)
+            this.propFrameCssBinding.udpate();
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);

@@ -21,7 +21,7 @@ class PropButton extends Button {
 
     allowMultipleConsume: boolean = false;
   
-    info: PropInfo;
+    info: ClickerPropInfo;
     group: ButtonGroup;
     hovered: boolean;
 
@@ -46,8 +46,8 @@ class PropButton extends Button {
     // return the propInfo
     getPropIndex() {
         let ret = -1;
-        for(let i = 0; i < propInfos.length; i++) {
-            if(propInfos[i] === this.info) {
+        for(let i = 0; i < clickerPropInfos.length; i++) {
+            if(clickerPropInfos[i] === this.info) {
                 return i;
             }
         }   
@@ -97,7 +97,7 @@ class PropButton extends Button {
 
     constructor (scene: BaseScene, parentContainer: PhContainer, group: ButtonGroup, hd: Hud65536,
         x: number, y: number,
-        imgKey: string, info: PropInfo, canLevelUp:boolean,
+        imgKey: string, info: ClickerPropInfo, canLevelUp:boolean,
         width?: number, height?: number,  debug?: boolean, fakeOriginX? : number, fakeOriginY?: number) {        
         
         super(scene, parentContainer, x, y, imgKey, info.title, width, height, debug, fakeOriginX, fakeOriginY);
@@ -389,7 +389,7 @@ class PropButton extends Button {
              * For the props, it can only be purchased when the previous one is purchased
              */
             if(propIdx >= 1) {
-                if(!propInfos[propIdx - 1].consumed) {
+                if(!clickerPropInfos[propIdx - 1].consumed) {
                     return false;
                 }
             }

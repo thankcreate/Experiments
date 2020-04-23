@@ -101,8 +101,8 @@ class Hud65536 extends Hud {
         let intervalY = 100;
 
         let tempHotkey = ['7', '8', '9', '0', '-'];
-        for(let i = 0; i < propInfos.length; i++) {       
-            let info = propInfos[i];
+        for(let i = 0; i < clickerPropInfos.length; i++) {       
+            let info = clickerPropInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i,
                  'rounded_btn', info, false, 100, 100, false);        
 

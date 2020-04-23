@@ -1,4 +1,4 @@
-interface PropInfo {
+interface ClickerPropInfo {
     title: string,
     size: number,
     desc: string,
@@ -64,13 +64,13 @@ for(let i = 0; i < badInfos.length; i++) {
 
 
 
-function getDamageBasedOnLevel(lvl: number, info: PropInfo)  {
+function getDamageBasedOnLevel(lvl: number, info: ClickerPropInfo)  {
     // let ret = info.baseDamage * Math.pow(damageIncraseFactor, lvl - 1);
     let ret = info.baseDamage * lvl;
     return ret;
 }
 
-function getPriceToLevel(lvl: number, info: PropInfo) {
+function getPriceToLevel(lvl: number, info: ClickerPropInfo) {
     let ret = info.basePrice * Math.pow(priceIncreaseFactor, lvl - 1);
     return ret;
 }
@@ -99,7 +99,7 @@ let hpPropInfos = [
 
 let cYesOrNo = " 'Y' / 'N' "
 
-let propInfos = [
+let clickerPropInfos = [
     {title: "B**", consumed: false, pauseTitle: '  ^_^  ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short'},            
     {title: "Auto\nBad", consumed: false, pauseTitle: '  >_<  ', price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you"},
     {title: "T**", consumed: false,pauseTitle: '  o_o  ', price: 1800, size: 30, 
@@ -116,19 +116,19 @@ function getBadgeResID(i) {
 }
 
 function getCompleteBadInfo() {
-    return propInfos[0];
+    return clickerPropInfos[0];
 }
 
 function getAutoTypeInfo() {
-    return propInfos[1];
+    return clickerPropInfos[1];
 }
 
 function getTurnInfo() {
-    return propInfos[2];
+    return clickerPropInfos[2];
 }
 
 function getAutoTurnInfo() {
-    return propInfos[3];
+    return clickerPropInfos[3];
 }
 
 function getNormalFreq() {
@@ -136,7 +136,7 @@ function getNormalFreq() {
 }
 
 function getCreatePropInfo() {
-    return propInfos[4];
+    return clickerPropInfos[4];
 }
 
 

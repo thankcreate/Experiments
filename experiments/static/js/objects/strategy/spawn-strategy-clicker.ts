@@ -134,8 +134,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
     }
 
     resetConsumed() {
-        for(let i in propInfos)  {
-            propInfos[i].consumed = false;
+        for(let i in clickerPropInfos)  {
+            clickerPropInfos[i].consumed = false;
         }
 
         for(let i in badInfos)  {

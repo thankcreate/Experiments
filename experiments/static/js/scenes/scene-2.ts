@@ -45,6 +45,11 @@ class Scene2 extends BaseScene {
         this.load.image('center_rect', 'assets/center_rect.png');        
     }
 
+    getPropID(idx: number) {
+        return `prop-${idx}`
+    }
+
+
     create() {
         super.create();
         this.intiPropButtons();
@@ -70,6 +75,15 @@ class Scene2 extends BaseScene {
         this.hpCssBinding = new CssBinding($('#newspaper-hp'));
         this.cleanLayerCssBinding = new CssBinding($('#newspaper-clean-overlay'));
         this.propFrameCssBinding = new CssBinding($('#newspaper-prop-frame'))
+
+        // collection
+        this.propCssBindings = [];
+        for(let i = 0; i < newspaperPropInfos.length; i++) {
+            let propID = this.getPropID(i);
+            let bd = new CssBinding($(`#${propID}`));
+            this.propCssBindings.push(bd);
+        }
+
 
         this.initBindingCss();
 
@@ -130,8 +144,27 @@ class Scene2 extends BaseScene {
             let info = newspaperPropInfos[i];
             $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
             $(`#prop-${i} .tooltip`).text(info.desc);
+
+            $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
         }
     }
+
+    onPropButtonClick(index: number) {
+        newspaperPropInfos[index].activated = !newspaperPropInfos[index].activated;
+        this.showProp(newspaperPropInfos[index].activated, index);
+    }
+
+
+    getPropInfoByType(tp: NewspaperPropType) : NewspaperPropInfo{
+        for(let i  = 0; i < newspaperPropInfos.length; i++) {
+            if(newspaperPropInfos[i].type == tp) {
+                return newspaperPropInfos[i];
+            }
+        }
+        console.log("ERROR: Can't find this NewspaperPropType");
+        return null;
+    }
+    
 
     // called by BaseScene.create
     initVoiceType() {
@@ -171,7 +204,16 @@ class Scene2 extends BaseScene {
         }
 
         // this.drawBlackBar(ctx, featurePoints);
-        this.drawVirtualHead(ctx, featurePoints);
+
+
+        if(this.getPropInfoByType(NewspaperPropType.SeeNoEvil).activated) {
+            this.drawBlackBar(ctx, featurePoints);
+        }
+
+        if(this.getPropInfoByType(NewspaperPropType.AutoEmotion).activated) {
+            this.drawVirtualHead(ctx, featurePoints);
+        }
+        // this.drawVirtualHead(ctx, featurePoints);
     }
 
     drawVirtualHead(ctx, featurePoints: FeaturePoint[]) {
@@ -644,6 +686,19 @@ class Scene2 extends BaseScene {
 
         this.propFrameCssBinding.translateY = 0;
         this.propFrameCssBinding.udpate();
+
+        for(let i = 0; i < this.propCssBindings.length; i++) {
+            this.showProp(false, i);
+        }
+    }
+
+    showPropFrame(show: boolean = true) {
+        this.propFrameCssBinding.translateY = show ? -100 : 0;
+        this.propFrameCssBinding.udpate();
+    }
+
+    showProp(show: boolean, index: number) {
+         this.propCssBindings[index].translateY = show ? 0 : 65;
     }
 
     showPaper(show: boolean = true) {
@@ -827,6 +882,10 @@ class Scene2 extends BaseScene {
 
         if(this.propFrameCssBinding)
             this.propFrameCssBinding.udpate();
+
+        for(let i = 0; i < this.propCssBindings.length; i++) {
+            this.propCssBindings[i].udpate();
+        }
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);

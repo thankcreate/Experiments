@@ -18,6 +18,11 @@ class Scene2L3 extends Scene2 {
         
     }
 
+    initBindingCss() {
+        super.initBindingCss();
+        this.showPropFrame(true);
+    }
+
     initGamePlayFsm() {                 
         this.initStGamePlayDefault();        
         this.initStGamePlayStart();

@@ -2150,8 +2150,12 @@ class Scene2 extends BaseScene {
         super.preload();
         this.load.image('center_rect', 'assets/center_rect.png');
     }
+    getPropID(idx) {
+        return `prop-${idx}`;
+    }
     create() {
         super.create();
+        this.intiPropButtons();
         $(document).ready(() => {
             this.initDnD();
             this.setAllLabels();
@@ -2168,7 +2172,15 @@ class Scene2 extends BaseScene {
         this.indicatorCssBinding = new CssBinding($('#indicator-bar'));
         this.indicatorButtonCssBinding = new CssBinding($('#indicator-bar-btn'));
         this.hpCssBinding = new CssBinding($('#newspaper-hp'));
-        this.cleanLayerBinding = new CssBinding($('#newspaper-clean-overlay'));
+        this.cleanLayerCssBinding = new CssBinding($('#newspaper-clean-overlay'));
+        this.propFrameCssBinding = new CssBinding($('#newspaper-prop-frame'));
+        // collection
+        this.propCssBindings = [];
+        for (let i = 0; i < newspaperPropInfos.length; i++) {
+            let propID = this.getPropID(i);
+            let bd = new CssBinding($(`#${propID}`));
+            this.propCssBindings.push(bd);
+        }
         this.initBindingCss();
         CameraManager.getInstance().imageResEvent.on((e) => {
             this.imageHandler(e);
@@ -2201,6 +2213,27 @@ class Scene2 extends BaseScene {
     makeNewspaperFsm() {
         return new NewspaperFsm(this, this.npNums, this.paperEnterCallback.bind(this), this.correctEnterCallback.bind(this), this.secondChanceEnterCallback.bind(this), this.paperEndEntercallback.bind(this), this.paperEndAction.bind(this), this.paperDiedAddActionCallBack.bind(this));
     }
+    intiPropButtons() {
+        for (let i = 0; i < newspaperPropInfos.length; i++) {
+            let info = newspaperPropInfos[i];
+            $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
+            $(`#prop-${i} .tooltip`).text(info.desc);
+            $(`#prop-${i}`).on('click', () => { this.onPropButtonClick(i); });
+        }
+    }
+    onPropButtonClick(index) {
+        newspaperPropInfos[index].activated = !newspaperPropInfos[index].activated;
+        this.showProp(newspaperPropInfos[index].activated, index);
+    }
+    getPropInfoByType(tp) {
+        for (let i = 0; i < newspaperPropInfos.length; i++) {
+            if (newspaperPropInfos[i].type == tp) {
+                return newspaperPropInfos[i];
+            }
+        }
+        console.log("ERROR: Can't find this NewspaperPropType");
+        return null;
+    }
     // called by BaseScene.create
     initVoiceType() {
         this.getSpeechManager().setVoiceType(VoiceType.Voice65537);
@@ -2231,7 +2264,13 @@ class Scene2 extends BaseScene {
             // featurePoints[id].y);
         }
         // this.drawBlackBar(ctx, featurePoints);
-        this.drawVirtualHead(ctx, featurePoints);
+        if (this.getPropInfoByType(NewspaperPropType.SeeNoEvil).activated) {
+            this.drawBlackBar(ctx, featurePoints);
+        }
+        if (this.getPropInfoByType(NewspaperPropType.AutoEmotion).activated) {
+            this.drawVirtualHead(ctx, featurePoints);
+        }
+        // this.drawVirtualHead(ctx, featurePoints);
     }
     drawVirtualHead(ctx, featurePoints) {
         let eyeBegin = featurePoints[16];
@@ -2343,7 +2382,7 @@ class Scene2 extends BaseScene {
     updateCleanProgressInner() {
         let showProgress = (this.curCleanProgress * 100).toFixed(0);
         $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);
-        this.cleanLayerBinding.opacity = this.curCleanProgress;
+        this.cleanLayerCssBinding.opacity = this.curCleanProgress;
     }
     emotionAnalyze(imgRes) {
         let face = imgRes.face;
@@ -2558,9 +2597,20 @@ class Scene2 extends BaseScene {
         this.indicatorButtonCssBinding.udpate();
         this.hpCssBinding.translateX = 100;
         this.hpCssBinding.udpate();
-        // TODO: opacity should be 0
-        this.cleanLayerBinding.opacity = 0;
-        this.cleanLayerBinding.udpate();
+        this.cleanLayerCssBinding.opacity = 0;
+        this.cleanLayerCssBinding.udpate();
+        this.propFrameCssBinding.translateY = 0;
+        this.propFrameCssBinding.udpate();
+        for (let i = 0; i < this.propCssBindings.length; i++) {
+            this.showProp(false, i);
+        }
+    }
+    showPropFrame(show = true) {
+        this.propFrameCssBinding.translateY = show ? -100 : 0;
+        this.propFrameCssBinding.udpate();
+    }
+    showProp(show, index) {
+        this.propCssBindings[index].translateY = show ? 0 : 65;
     }
     showPaper(show = true) {
         $('#newspaper-layer').css('display', show ? 'block' : 'none');
@@ -2704,8 +2754,13 @@ class Scene2 extends BaseScene {
             this.indicatorButtonCssBinding.udpate();
         if (this.hpCssBinding)
             this.hpCssBinding.udpate();
-        if (this.cleanLayerBinding)
-            this.cleanLayerBinding.udpate();
+        if (this.cleanLayerCssBinding)
+            this.cleanLayerCssBinding.udpate();
+        if (this.propFrameCssBinding)
+            this.propFrameCssBinding.udpate();
+        for (let i = 0; i < this.propCssBindings.length; i++) {
+            this.propCssBindings[i].udpate();
+        }
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -3526,6 +3581,10 @@ class Scene2L3 extends Scene2 {
         super.create();
         this.initGamePlayFsm();
         this.initNewspaperFsm();
+    }
+    initBindingCss() {
+        super.initBindingCss();
+        this.showPropFrame(true);
     }
     initGamePlayFsm() {
         this.initStGamePlayDefault();
@@ -7848,8 +7907,8 @@ class SpawnStrategyClickerGame extends SpawnStrategy {
         return ene;
     }
     resetConsumed() {
-        for (let i in propInfos) {
-            propInfos[i].consumed = false;
+        for (let i in clickerPropInfos) {
+            clickerPropInfos[i].consumed = false;
         }
         for (let i in badInfos) {
             badInfos[i].consumed = false;
@@ -8630,7 +8689,7 @@ let hpPropInfos = [
     { title: '+HP', consumed: false, price: 200, size: 36, desc: 'Restore you HP a little bit', hotkey: ['+', '='] },
 ];
 let cYesOrNo = " 'Y' / 'N' ";
-let propInfos = [
+let clickerPropInfos = [
     { title: "B**", consumed: false, pauseTitle: '  ^_^  ', price: 200, size: 40, desc: 'You can just type in "B" instead of "BAD" for short' },
     { title: "Auto\nBad", consumed: false, pauseTitle: '  >_<  ', price: 600, size: 22, desc: "Activate a cutting-edge Auto Typer which automatically eliminates B-A-D for you" },
     { title: "T**", consumed: false, pauseTitle: '  o_o  ', price: 1800, size: 30,
@@ -8644,22 +8703,22 @@ function getBadgeResID(i) {
     return resId;
 }
 function getCompleteBadInfo() {
-    return propInfos[0];
+    return clickerPropInfos[0];
 }
 function getAutoTypeInfo() {
-    return propInfos[1];
+    return clickerPropInfos[1];
 }
 function getTurnInfo() {
-    return propInfos[2];
+    return clickerPropInfos[2];
 }
 function getAutoTurnInfo() {
-    return propInfos[3];
+    return clickerPropInfos[3];
 }
 function getNormalFreq() {
     return normalFreq1;
 }
 function getCreatePropInfo() {
-    return propInfos[4];
+    return clickerPropInfos[4];
 }
 // for(let i = 0; i < badInfos.length; i++) {
 //     let item = badInfos[i];
@@ -9415,8 +9474,8 @@ class Hud65536 extends Hud {
         let startY = 0;
         let intervalY = 100;
         let tempHotkey = ['7', '8', '9', '0', '-'];
-        for (let i = 0; i < propInfos.length; i++) {
-            let info = propInfos[i];
+        for (let i = 0; i < clickerPropInfos.length; i++) {
+            let info = clickerPropInfos[i];
             let btn = new PropButton(this.scene, this.toolMenuContainerRight.inner, this.toolMenuContainerRight, this, 0, startY + intervalY * i, 'rounded_btn', info, false, 100, 100, false);
             btn.addPromptImg(Dir.Right);
             btn.setHotKey(tempHotkey[i]);
@@ -9874,6 +9933,21 @@ class LeaderboardManager {
         return pm;
     }
 }
+var NewspaperPropType;
+(function (NewspaperPropType) {
+    NewspaperPropType[NewspaperPropType["LessCleaningTime"] = 0] = "LessCleaningTime";
+    NewspaperPropType[NewspaperPropType["SeeNoEvil"] = 1] = "SeeNoEvil";
+    NewspaperPropType[NewspaperPropType["AutoLabel"] = 2] = "AutoLabel";
+    NewspaperPropType[NewspaperPropType["Prompt"] = 3] = "Prompt";
+    NewspaperPropType[NewspaperPropType["AutoEmotion"] = 4] = "AutoEmotion";
+})(NewspaperPropType || (NewspaperPropType = {}));
+let newspaperPropInfos = [
+    { type: NewspaperPropType.LessCleaningTime, icon: '⏳', desc: '', activated: false },
+    { type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: '', activated: false },
+    { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: '', activated: false },
+    { type: NewspaperPropType.Prompt, icon: '💡', desc: '', activated: false },
+    { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: '', activated: false },
+];
 /// <reference path="../../interface.ts" />
 var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `;
@@ -10942,8 +11016,8 @@ class PropButton extends Button {
     // return the propInfo
     getPropIndex() {
         let ret = -1;
-        for (let i = 0; i < propInfos.length; i++) {
-            if (propInfos[i] === this.info) {
+        for (let i = 0; i < clickerPropInfos.length; i++) {
+            if (clickerPropInfos[i] === this.info) {
                 return i;
             }
         }
@@ -11112,7 +11186,7 @@ class PropButton extends Button {
              * For the props, it can only be purchased when the previous one is purchased
              */
             if (propIdx >= 1) {
-                if (!propInfos[propIdx - 1].consumed) {
+                if (!clickerPropInfos[propIdx - 1].consumed) {
                     return false;
                 }
             }

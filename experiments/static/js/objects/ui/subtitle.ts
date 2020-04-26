@@ -105,7 +105,7 @@ class Subtitle extends Wrapper<PhText> {
      * ajust the Y of subtitle based on the newspaper's frame bottom.
      */
     adjustSubtitleY() {
-        let newsPaperBottomY = $('#newspaper-outer-frame')[0].getBoundingClientRect().bottom;
+        let newsPaperBottomY = $('#level-progress-root')[0].getBoundingClientRect().bottom;
         let pageHeight = window.innerHeight;
         let bottomSpace = pageHeight - newsPaperBottomY;
 

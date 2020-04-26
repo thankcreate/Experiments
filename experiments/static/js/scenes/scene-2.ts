@@ -1,5 +1,6 @@
 declare var gLabelWall;
 declare function gResetLabelWall();
+declare function convertNewspaperSourceTypeToID(lbl);
 
 class Scene2 extends BaseScene {
     paperCssBinding : CssBinding;
@@ -15,11 +16,17 @@ class Scene2 extends BaseScene {
     cleanLayerCssBinding: CssBinding;
     propFrameCssBinding: CssBinding;
     propCssBindings: CssBinding[];
+    levelProgressCssBinding: CssBinding;
 
     newspaperFsm: NewspaperFsm;
 
     fullTime = 2;
-    cleanTime = 2; // seconds
+ 
+
+    cleanTimeLong = 2;
+    cleanTimeShort = 2; 
+
+    cleanTime = 10; // seconds
 
     currIndex = 0;
     get npNums(): number[]{
@@ -75,6 +82,7 @@ class Scene2 extends BaseScene {
         this.hpCssBinding = new CssBinding($('#newspaper-hp'));
         this.cleanLayerCssBinding = new CssBinding($('#newspaper-clean-overlay'));
         this.propFrameCssBinding = new CssBinding($('#newspaper-prop-frame'))
+        this.levelProgressCssBinding = new CssBinding($('#level-progress-root'));
 
         // collection
         this.propCssBindings = [];
@@ -121,7 +129,7 @@ class Scene2 extends BaseScene {
     resetProgress() {
         this.topProgress.value = 0;
         this.bottomProgress.value = 0;
-        this.refreshProgressBarCss();
+        this.refreshEmojiProgressBarCss();
     }
 
 
@@ -151,14 +159,63 @@ class Scene2 extends BaseScene {
 
     onPropButtonClick(index: number) {
         newspaperPropInfos[index].activated = !newspaperPropInfos[index].activated;
-        this.showProp(newspaperPropInfos[index].activated, index);
+        this.showPropButton(newspaperPropInfos[index].activated, index);
 
-        if(this.getPropInfoByType(NewspaperPropType.Prompt).activated) {
-            $('#newspaper-prompt-overlay').css('visibility', 'visible');
+        this.updatePropStatus();
+    }
+
+    updatePropStatus() {
+        // Less cleaning time
+        if(this.isPropActivated(NewspaperPropType.LessCleaningTime)) {
+            this.cleanTime = this.cleanTimeShort;
         }
         else {
-            $('#newspaper-prompt-overlay').css('visibility', 'hidden');
+            this.cleanTime = this.cleanTimeLong;
         }
+
+        // See no evil
+        // Logic is in this.updateAttentionLevel & this.drawBlackBar
+
+        // Auto label drag
+        if(this.isPropActivated(NewspaperPropType.AutoLabel)) {
+            $('#newspaper-toolbox-stamps').css('pointer-events', 'none');
+        }   
+        else {
+            $('#newspaper-toolbox-stamps').css('pointer-events', 'auto');
+        }
+        
+        // Prompt
+        this.showPromptLayer(this.isPropActivated(NewspaperPropType.Prompt));        
+
+        // AutoEmoji
+        // Logic is in this.drawVirtualHead
+
+    }
+
+    getPromptEmoji(item : NewsItem) : string{
+        let answerEmoji = '';
+        if(item.answer == 0) {
+            answerEmoji = '😣';
+        }
+        else if(item.answer == 1) {
+            answerEmoji = '😀';
+        }
+        else {
+            answerEmoji = '🙈';
+        }
+        return answerEmoji;
+    }
+
+
+    showPromptLayer(show: boolean) {
+        let answerEmoji = this.getPromptEmoji(this.getCurrentItem());        
+        this.setPromptContent(answerEmoji);
+        $('#newspaper-prompt-overlay').css('visibility', show ? 'visible': 'hidden');
+    }
+
+    setPromptContent(content: string) {
+        let fullText = `✔️ -> ${content}`;
+        $('#newspaper-prompt-overlay-content').text(fullText);
     }
 
 
@@ -213,17 +270,23 @@ class Scene2 extends BaseScene {
         // this.drawBlackBar(ctx, featurePoints);
 
 
-        if(this.getPropInfoByType(NewspaperPropType.SeeNoEvil).activated) {
+        if(this.isRealPaper() && this.isPropActivated(NewspaperPropType.SeeNoEvil)) {
             this.drawBlackBar(ctx, featurePoints);
         }
+       
 
-        if(this.getPropInfoByType(NewspaperPropType.AutoEmotion).activated) {
+        if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
             this.drawVirtualHead(ctx, featurePoints);
         }
         // this.drawVirtualHead(ctx, featurePoints);
     }
 
+    isPropActivated(type: NewspaperPropType) : boolean{
+        return this.getPropInfoByType(type).activated;
+    }
+
     drawVirtualHead(ctx, featurePoints: FeaturePoint[]) {
+        let item = this.getCurrentItem();
         let eyeBegin = featurePoints[16];
         let eyeEnd = featurePoints[19];
 
@@ -238,10 +301,17 @@ class Scene2 extends BaseScene {
         ctx.rotate(angl);
 
         var rText = '😄';
+        if(item.answer == 0) {
+            rText = '😖';
+        }
+        else {
+            rText = '😄';
+        }
+        
         ctx.fillText(rText , 0, 0);
         ctx.restore();
 
-        
+
     }
 
     drawBlackBar(ctx, featurePoints: FeaturePoint[]) {
@@ -357,6 +427,10 @@ class Scene2 extends BaseScene {
     curCleanProgress = 0; // [0, 1]
 
     updateAttentionLevel(time, dt) {
+        if(this.isPropActivated(NewspaperPropType.SeeNoEvil)) {
+            this.lastAttention = 0;
+        }
+
         let timestamp = this.curTime / 1000
         if(this.lastTimeStamp != null && timestamp - this.lastTimeStamp > 0.3) {
             this.lastAttention = 0;
@@ -366,7 +440,8 @@ class Scene2 extends BaseScene {
         if(this.lastAttention < 10) {
             $('#attention-frame').css('border-color', '#FFEB3B');
 
-            if(this.isAttentionChecking) {
+            if(this.isAttentionChecking) {                
+
                 this.curCleanProgress += dt / 1000 / this.cleanTime;
                 this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
     
@@ -390,9 +465,15 @@ class Scene2 extends BaseScene {
         this.cleanLayerCssBinding.opacity = this.curCleanProgress;
     }
 
+    isFakePaper() {
+        let item = this.getCurrentItem();
+        return !this.isRealPaper(item);
+    }
+
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
     needDwitterFlow = false;
-    emotionAnalyze(imgRes: ImageRes) {        
+    emotionAnalyze(imgRes: ImageRes) {     
+        let item = this.getCurrentItem()   ;
         let face = imgRes.face;
         // console.log(this.curTime);
         // console.log(imgRes.timestamp);
@@ -407,7 +488,13 @@ class Scene2 extends BaseScene {
 
         let timeDiff = timestamp - this.lastTimeStamp;
 
-        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);        
+        // analyze
+        let res = EmmotionManager.getInstance().emotionAnalyze(imgRes);       
+        if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
+            res.emotion = item.answer == 0 ? MyEmotion.Negative : MyEmotion.Positive;
+            res.intensity = 1;
+        }
+        
 
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
@@ -421,6 +508,12 @@ class Scene2 extends BaseScene {
             this.lastTimeStamp = timestamp;
             return;
         }
+
+        if(this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
+            this.lastTimeStamp = timestamp;
+            return;
+        }
+
         this.emotionAnalyzeFinished(res);
 
         // console.log(timeDiff);
@@ -455,7 +548,7 @@ class Scene2 extends BaseScene {
 
         
         this.refreshBarLeftIconStatus(res.emotion);
-        this.refreshProgressBarCss();
+        this.refreshEmojiProgressBarCss();
         // if(res.emotion != MyEmotion.None) {
         //     targetJquery.css('width', progress.value * 100 + "%");
         // }
@@ -497,13 +590,20 @@ class Scene2 extends BaseScene {
         }
     }
 
-    refreshProgressBarCss() {
+    refreshEmojiProgressBarCss() {
 
         this.topProgress.value = clamp(this.topProgress.value, 0, 1);
         this.bottomProgress.value = clamp(this.bottomProgress.value, 0, 1);
 
         $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
+    }
+
+    refreshLevelProgressBarCss(index: number) {
+        let pg = (index) / this.npNums.length * 100;
+        let fixedPg = pg.toFixed(0);
+        $('#level-progress-bar').css('width',  fixedPg + '%');
+        $('#level-progress-text').text(`Experiment Progress: ${index} / ${this.npNums.length}`);
     }
 
     getCurrentItem(): NewsItem {
@@ -545,6 +645,7 @@ class Scene2 extends BaseScene {
             
             this.showResult(this.isLastTestCorrect);
             this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
+            this.refreshLevelProgressBarCss(this.currIndex + 1);
         }        
     }
     
@@ -626,6 +727,7 @@ class Scene2 extends BaseScene {
         this.refreshHp();
 
         this.needFreezeIndicatorMeterBtn = false;
+        this.refreshLevelProgressBarCss(0);
     }
 
     refreshHp() {
@@ -658,54 +760,57 @@ class Scene2 extends BaseScene {
         this.paperCssBinding.rotate = 0;
         this.paperCssBinding.translateX = this.initialPaperTranslateX;
         this.paperCssBinding.translateY = this.initialPaperTranslateY;
-        this.paperCssBinding.udpate();
+        this.paperCssBinding.update();
 
         this.camCssBinding.translateX = this.initialCamTranslateX;
         this.camCssBinding.translateY = this.initialCamTranslateY;
-        this.camCssBinding.udpate();
+        this.camCssBinding.update();
 
         this.topProgressCssBinding.translateY = 100;
-        this.topProgressCssBinding.udpate();
+        this.topProgressCssBinding.update();
         
         this.bottomProgressCssBinding.translateY = -100;
-        this.bottomProgressCssBinding.udpate();
+        this.bottomProgressCssBinding.update();
 
         this.resultCssBinding.translateX = 100;
-        this.resultCssBinding.udpate();
+        this.resultCssBinding.update();
 
         this.manualBtnsCssBing.translateX = -100;
         this.manualBtnsCssBing.translateY = -50;
-        this.manualBtnsCssBing.udpate();
+        this.manualBtnsCssBing.update();
 
         this.transparentOverlayCssBinding.opacity = 0;
-        this.transparentOverlayCssBinding.udpate();
+        this.transparentOverlayCssBinding.update();
 
         this.indicatorCssBinding.translateX = -100;
-        this.indicatorCssBinding.udpate();
+        this.indicatorCssBinding.update();
 
         this.indicatorButtonCssBinding.top = `${this.indicatorBtnTop}%`;
-        this.indicatorButtonCssBinding.udpate();
+        this.indicatorButtonCssBinding.update();
 
         this.hpCssBinding.translateX = 100;
-        this.hpCssBinding.udpate();
+        this.hpCssBinding.update();
 
         this.cleanLayerCssBinding.opacity = 0;
-        this.cleanLayerCssBinding.udpate();
+        this.cleanLayerCssBinding.update();
 
         this.propFrameCssBinding.translateY = 0;
-        this.propFrameCssBinding.udpate();
+        this.propFrameCssBinding.update();
+
+        this.levelProgressCssBinding.translateY = 0;
+        this.levelProgressCssBinding.update();
 
         for(let i = 0; i < this.propCssBindings.length; i++) {
-            this.showProp(false, i);
+            this.showPropButton(false, i);
         }
     }
 
     showPropFrame(show: boolean = true) {
         this.propFrameCssBinding.translateY = show ? -100 : 0;
-        this.propFrameCssBinding.udpate();
+        this.propFrameCssBinding.update();
     }
 
-    showProp(show: boolean, index: number) {
+    showPropButton(show: boolean, index: number) {
          this.propCssBindings[index].translateY = show ? 0 : 65;
     }
 
@@ -789,7 +894,7 @@ class Scene2 extends BaseScene {
      * Since the top and bottom tween have the same duration
      * we just return one of them as the Promise
      */
-    showProgressBars(): Pany {
+    showEmojiProgressBars(): Pany {
         let dt = 600;
         let top = TweenPromise.create(this, {
             targets: this.topProgressCssBinding,
@@ -805,6 +910,17 @@ class Scene2 extends BaseScene {
 
         this.showIndicator(true);
         return top;
+    }
+
+    
+    showLevelProgess(show: boolean) {
+        let dt = 600;
+        let toY = show ? 100 : 0;
+        this.tweens.add({
+            targets: this.levelProgressCssBinding,
+            translateY: toY,
+            duration: dt
+        });        
     }
 
     /**
@@ -831,7 +947,7 @@ class Scene2 extends BaseScene {
     }
 
     hideAndShowProgressBars(): Pany {
-        return this.hideProgressBars().then(res=>{return this.showProgressBars()});
+        return this.hideProgressBars().then(res=>{return this.showEmojiProgressBars()});
     }
 
     showResult(isCorrect: boolean) {
@@ -862,38 +978,41 @@ class Scene2 extends BaseScene {
     
     updateCssBinding() {
         if(this.camCssBinding)
-            this.camCssBinding.udpate()
+            this.camCssBinding.update()
         if(this.paperCssBinding) 
-            this.paperCssBinding.udpate();
+            this.paperCssBinding.update();
         if(this.topProgressCssBinding)
-            this.topProgressCssBinding.udpate();
+            this.topProgressCssBinding.update();
         if(this.bottomProgressCssBinding)
-            this.bottomProgressCssBinding.udpate();            
+            this.bottomProgressCssBinding.update();            
         if(this.resultCssBinding)
-            this.resultCssBinding.udpate();         
+            this.resultCssBinding.update();         
         if(this.manualBtnsCssBing)
-            this.manualBtnsCssBing.udpate();
+            this.manualBtnsCssBing.update();
         if(this.transparentOverlayCssBinding)
-            this.transparentOverlayCssBinding.udpate();
+            this.transparentOverlayCssBinding.update();
         
 
         if(this.indicatorCssBinding) 
-            this.indicatorCssBinding.udpate();
+            this.indicatorCssBinding.update();
         if(this.indicatorButtonCssBinding)
-            this.indicatorButtonCssBinding.udpate();
+            this.indicatorButtonCssBinding.update();
 
         if(this.hpCssBinding)
-            this.hpCssBinding.udpate();
+            this.hpCssBinding.update();
 
         if(this.cleanLayerCssBinding)
-            this.cleanLayerCssBinding.udpate();
+            this.cleanLayerCssBinding.update();
 
         if(this.propFrameCssBinding)
-            this.propFrameCssBinding.udpate();
+            this.propFrameCssBinding.update();
 
         for(let i = 0; i < this.propCssBindings.length; i++) {
-            this.propCssBindings[i].udpate();
+            this.propCssBindings[i].update();
         }
+
+        if(this.levelProgressCssBinding)
+            this.levelProgressCssBinding.update();
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
@@ -904,7 +1023,7 @@ class Scene2 extends BaseScene {
         this.updateCssBinding();
         this.updateDwitterBackgroundState();
 
-        this.updateAttentionLevel(time, dt);
+        this.updateAttentionLevel(time, dt);        
     }
 
     updateDwitterBackgroundState() {
@@ -928,8 +1047,11 @@ class Scene2 extends BaseScene {
         return newsItem;
     }    
 
-    isRealPaper(newsItem: NewsItem): boolean {
-        return NewsDataManager.getInstance().isRealPaper(newsItem);
+    isRealPaper(newsItem?: NewsItem): boolean {
+        if(notSet(newsItem)) {
+            newsItem = this.getCurrentItem();
+        }
+        return NewsDataManager.getInstance().isRealPaper(newsItem);        
     }
 
     fillNewspaperContentByNum(num: number) {
@@ -1119,6 +1241,7 @@ class Scene2 extends BaseScene {
 
     innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     paperEnterCallback(state: FsmState, index:number) {
+        let item = this.getCurrentItem();
         this.fillNewspaperContentByNum(this.npNums[index]);        
         this.showTransparentOverlay(false);
         this.hideResult();
@@ -1137,9 +1260,21 @@ class Scene2 extends BaseScene {
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
 
         // reset the real paper params
-        this.curCleanProgress = 0;
+        this.curCleanProgress = 0;        
         this.updateCleanProgressInner();
+
+        // check if I need to show the prompt layer
+        // Real page doesn't show propmt layer
+        if(this.isPropActivated(NewspaperPropType.Prompt) && !this.isRealPaper(item)) {
+            this.showPromptLayer(true);
+        }
+        else {
+            this.showPromptLayer(false);
+        }      
         
+        if(index == 0) {            
+            this.showLevelProgess(true);            
+        }
     }
 
     correctEnterCallback(state: FsmState, index: number) {
@@ -1174,7 +1309,7 @@ class Scene2 extends BaseScene {
      * @param index 
      */
     paperEndEntercallback(state: FsmState, index:number) {
-
+        this.refreshLevelProgressBarCss(index + 1);
     }
 
     paperEndAction(s: FsmState, index:number) {
@@ -1227,6 +1362,39 @@ class Scene2 extends BaseScene {
         })
     }
 
+    waitPromise(dt: number) : Pany {
+        return new Promise( (r, j)=>{
+            setTimeout(() => {
+                r('waitPromise');
+                console.log('waitPromisewaitPromisewaitPromisewaitPromise');
+            }, dt);
+        })
+    }
+
+    autoDragLabels() : Pany{
+        let ret = Promise.resolve();        
+        let item = this.getCurrentItem();
+
+        let neededLabels = NewsDataManager.getInstance().labelMapping.get(item.sourceType);
+
+        let waitDt = 1000;
+        for(let i = 0; i < neededLabels.length; i++) {
+            let lblName = neededLabels[i];
+            let id = convertNewspaperSourceTypeToID(lblName);
+            let domObj = $('#' + id)[0];
+            ret = ret.then(s=>{return this.waitPromise(waitDt)});
+            ret = ret.then(s=>{
+                $(this.destiID)[0].appendChild(domObj);
+            })
+        }
+        ret = ret.then(s=>{return this.waitPromise(waitDt)});
+        return ret;
+    }
+
+    setStrikeThroughOnEmojiIcons(show: boolean) {
+        $('.emoji').css('text-decoration', show ? 'line-through' : 'none');              
+    }
+
     initStNewspaperWithIndex(idx: number) {
         let index = idx;
         let item = this.getNewsItemFromIndex(index);
@@ -1237,19 +1405,21 @@ class Scene2 extends BaseScene {
         state.addAction(s=>{
             this.canRecieveEmotion = true;
             if(item.reaction == 1) {    
-                this.showProgressBars();        
+                this.showEmojiProgressBars();        
             }
         })
 
         // Specific for NYT-likes
-        if(!this.isFirstShownNYT(item)) {
+        if(this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
             state.addOnEnter(s=>{                
                 this.isAttentionChecking = true;
                 this.enableAttention(true);
+                this.setStrikeThroughOnEmojiIcons(true);                
             })        
             state.setOnExit(s=>{
                 this.isAttentionChecking = false;
                 this.enableAttention(false);
+                this.setStrikeThroughOnEmojiIcons(false);
             });
         }
 
@@ -1260,20 +1430,28 @@ class Scene2 extends BaseScene {
             gResetLabelWall()      
             this.initDnDSource();
             this.setAllLabels();   
-            
+            $('#newspaper-clean-overlay').css('pointer-events', 'auto');
             this.setTitle(this.getToolTipToRealPaperTitle(item, true));           
             $('#newspaper-toolbox-stamps').css('visibility', 'visible'); 
         })
+        purged.addAction((s, re, resolve, reject) =>{
+            this.autoDragLabels().then(s=>{
+                resolve('dragFinished');
+                this.checkIfLabelsCorrect();
+            })
+        }).setBoolCondition(()=>{return this.isPropActivated(NewspaperPropType.AutoLabel);});
         purged.setOnExit(s=>{
             $('#newspaper-toolbox-stamps').css('visibility', 'hidden'); 
+            $('#newspaper-clean-overlay').css('pointer-events', 'none');
         })
 
         // LabelCorrect(labels all put)
         let labelCorrect = this.newspaperFsm.getLabelCorrectStateByInde(index);
+        labelCorrect.addOnEnter(s=>{
+            this.showResult(true);
+        })
         this.helperAddSubtitleAction(labelCorrect, item.labelCorrectIntro, false);    
-        labelCorrect.addFinishAction();
-
-        
+        labelCorrect.addFinishAction();        
         
         // Correct
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);        
@@ -1304,7 +1482,7 @@ class Scene2 extends BaseScene {
         this.helperAddSubtitleAction(second, item.secondChanceIntro, false);                  
         second.addAction(s=>{
             if(item.reaction == 1) {
-                this.showProgressBars();            
+                this.showEmojiProgressBars();            
                 this.canRecieveEmotion = true;             
             }            
         })

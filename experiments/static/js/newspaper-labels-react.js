@@ -1,6 +1,13 @@
 'use strict';
 
-
+function convertNewspaperSourceTypeToID(content) {
+    let ret = '';
+    for(let i = 0 ; i < content.length; i++) {
+        let c = content.charAt(i);
+        ret += c == ' ' ? '-' : c;
+    }
+    return ret;
+}
 
 class NewspaperLabel extends React.Component{
     constructor(props) {
@@ -49,7 +56,7 @@ class NewspaperLabelWall extends React.Component{
         for(let i in inputs) {
             let item = {id:'', content: ''};
             item.content = inputs[i];
-            item.id = this.convertToID(item.content);
+            item.id = convertNewspaperSourceTypeToID(item.content);
             newItems.push(item);
         }
         // for(let i = 0; i < this.count; i++) {
@@ -63,14 +70,6 @@ class NewspaperLabelWall extends React.Component{
         this.forceUpdate();
     }
 
-    convertToID(content) {
-        let ret = '';
-        for(let i = 0 ; i < content.length; i++) {
-            let c = content.charAt(i);
-            ret += c == ' ' ? '-' : c;
-        }
-        return ret;
-    }
 
     renderOne(i) {               
         let ret = 

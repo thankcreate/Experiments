@@ -52,6 +52,7 @@ class EmmotionManager {
             ana.intensity = emotions.engagement / 100;
         }
 
+
         return ana;
     }
 }

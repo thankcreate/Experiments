@@ -793,6 +793,7 @@ input[type="submit"]:active {
 }
 
 #newspaper-clean-overlay{
+  pointer-events: none;
   position: absolute;
   z-index: 20;
   left: -6px;
@@ -970,4 +971,41 @@ input[type="submit"]:active {
 
 .newspaper-prop-icon{
   user-select: none;
+}
+
+#level-progress-root{
+  position: absolute;
+  z-index: -10;
+  bottom: 5px;
+  left: 5%;
+  background-color: #ffffff;
+  border: 5px solid black;
+  height: 34px;
+  width: 90%;
+  box-sizing: border-box;
+  transform: translateY(100%);
+}
+
+#level-progress-frame{
+  margin: 4px;
+  height: -webkit-fill-available;
+}
+
+#level-progress-bar{
+  height: -webkit-fill-available;
+  background-color: #aaaaaa;
+}
+
+
+#level-progress-text{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  display: inline-block;
+  width: fit-content;  
+  height: fit-content;
+  font-size: 14px;
 }

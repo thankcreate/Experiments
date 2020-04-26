@@ -83,6 +83,7 @@ class Scene2L2 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);
         end.addAction(s=>{
+            this.showLevelProgess(false);
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);
@@ -110,7 +111,7 @@ class Scene2L2 extends Scene2 {
                 this.needFreezeIndicatorMeterBtn = true;
 
                 this.topProgress.value += 0.25;
-                this.refreshProgressBarCss();
+                this.refreshEmojiProgressBarCss();
 
                 let p = Promise.resolve();
                 if(this.topProgress.value < 0.3) {
@@ -150,7 +151,7 @@ class Scene2L2 extends Scene2 {
                 this.canRecieveEmotion = false;
                 this.needFreezeIndicatorMeterBtn = true;
 
-                this.refreshProgressBarCss();
+                this.refreshEmojiProgressBarCss();
 
                 
                 this.subtitle.loadAndSay(this.subtitle, "Are you trying to bury your laugh in your distorted face?", true)                                

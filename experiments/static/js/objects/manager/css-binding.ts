@@ -16,7 +16,7 @@ class CssBinding {
         this.target = target;
     }    
 
-    udpate() {
+    update() {
         if(this.left != null)
             this.target.css('left', this.left)
         

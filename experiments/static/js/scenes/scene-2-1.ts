@@ -180,6 +180,7 @@ class Scene2L1 extends Scene2 {
         let end = this.newspaperFsm.getStateEndByIndex(index);
        
         end.addAction(s=>{
+            this.showLevelProgess(false);
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);

@@ -7,15 +7,14 @@ class Scene2L3 extends Scene2 {
     }
 
     get npNums(): number[]{
+        // return [11, 14, 12, 15, 13, 16, 17];
         return [22, 23, 24];
     }
 
     create() {
         super.create();
         this.initGamePlayFsm();           
-        this.initNewspaperFsm();
-
-        
+        this.initNewspaperFsm();        
     }
 
     initBindingCss() {
@@ -34,7 +33,7 @@ class Scene2L3 extends Scene2 {
         for(let i = 0; i < this.npNums.length; i++) {
             this.initStNewspaperWithIndex(i);
         }
-        this.initStNewspaper1();
+        this.initStNewspaper0();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -93,8 +92,8 @@ class Scene2L3 extends Scene2 {
     }    
 
 
-    initStNewspaper1(){
-        let index = 1;
+    initStNewspaper0(){
+        let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);      
 
@@ -108,6 +107,7 @@ class Scene2L3 extends Scene2 {
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);
         end.addAction(s=>{
+            this.showLevelProgess(false);
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);

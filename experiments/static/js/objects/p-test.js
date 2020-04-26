@@ -1,14 +1,30 @@
 // tt = [5,4,3,2,1]
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
+function waitPromise(dt)  {
+    return new Promise( (r, j)=>{
+        setTimeout(() => {
+            r('waitPromise');
+            console.log('waitPromisewaitPromisewaitPromisewaitPromise');
+        }, dt);
+    })
+}
+let ret = Promise.resolve(1);
+ret = ret.then(s=>{return waitPromise(1000)})
+ret = ret.then(s=>{console.log('123')})
+ret = ret.then(s=>{return waitPromise(1000)})
+ret = ret.then(s=>{console.log('123')})
+ret = ret.then(s=>{return waitPromise(1000)})
+ret = ret.then(s=>{console.log('123')})
 
-let s   = new Array('123', '44');
-// for(let i in s) {
-//     console.log(s[i]);
-// }
-let ss = ['123'];
-console.log(typeof(s));
-console.log(typeof(ss));
+
+// let s   = new Array('123', '44');
+// // for(let i in s) {
+// //     console.log(s[i]);
+// // }
+// let ss = ['123'];
+// console.log(typeof(s));
+// console.log(typeof(ss));
 
 // let ct = "<nyt index='123'/><nyt index='123'/>";
 // let res = ct.match(/index='(.*?)'/)[1];

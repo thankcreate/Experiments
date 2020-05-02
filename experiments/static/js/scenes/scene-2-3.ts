@@ -34,6 +34,7 @@ class Scene2L3 extends Scene2 {
             this.initStNewspaperWithIndex(i);
         }
         this.initStNewspaper0();
+        this.initStNewspaper1();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -96,10 +97,22 @@ class Scene2L3 extends Scene2 {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);      
-
         
     }
 
+    initStNewspaper1(){
+        let index = 1;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        let end = this.newspaperFsm.getStateEndByIndex(index);     
+        state.addOnEnter(s=>{
+            this.showExpressionPrompt(true);
+        })
+
+        let purged = this.newspaperFsm.getPurgedStateByIndex(index);
+        purged.addOnEnter(s=>{
+            this.showExpressionPrompt(false);
+        })
+    }
 
     // this is just to append the ending logic to the last newspaper
     appendLastStateEnding() {        

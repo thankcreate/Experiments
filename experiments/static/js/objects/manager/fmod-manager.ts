@@ -16,6 +16,8 @@ class FmodManager {
 
     loopingAmbienceInstance:any = {};
 
+    emojiProgressInstance: any= {};
+
     constructor() {
         this.FMOD['preRun'] = ()=>{this.prerun()}; 
         this.FMOD['onRuntimeInitialized'] = ()=>{  
@@ -173,6 +175,26 @@ class FmodManager {
     }
 
 
+    
+    initInstances() {
+        let eventName = '65537_EmotionAccumulating';
+        eventName = 'event:/' + eventName;
+        let desc:any = {};
+        let instance: any = this.emojiProgressInstance;
+        this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));
+        this.CHECK_RESULT(desc.val.createInstance(instance));
+    }
+
+    playInstance(instance) {
+        instance.val.start();
+    }
+
+    stopInstance(instance) {
+        instance.val.stop(this.FMOD.STUDIO_STOP_IMMEDIATE);
+    }
+
+
+
     loopingAmbienceDescription:any = {};
     initApplication() {
         console.log("Loading events\n");    
@@ -180,7 +202,10 @@ class FmodManager {
         for (var count = 0; count < s_banks.length; count++)
         {
             this.loadBank(s_banks[count]);
-        }        
+        }      
+        
+        
+        this.initInstances();
 
     
         // // Get the Looping Ambience event

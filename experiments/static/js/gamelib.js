@@ -2099,8 +2099,8 @@ class Scene2L0 extends SceneTrailor {
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
-        this.fullTime = 2;
-        this.cleanTimeLong = 2;
+        this.fullTime = 3;
+        this.cleanTimeLong = 10;
         this.cleanTimeShort = 2;
         this.cleanTime = 10; // seconds
         this.currIndex = 0;
@@ -2128,6 +2128,7 @@ class Scene2 extends BaseScene {
         this.curCleanProgress = 0; // [0, 1]
         // whether need to animate the dwitter background when a emotion intensity reached a threshould
         this.needDwitterFlow = false;
+        this.isProgressAudioPlaying = false;
         this.isLastTestCorrect = false;
         this.initialPaperTranslateX = -50;
         this.initialPaperTranslateY = -50;
@@ -2135,6 +2136,7 @@ class Scene2 extends BaseScene {
         this.initialCamTranslateY = -50;
         this.indicatorBtnTop = 1;
         this.indicatorBtnBottom = 99;
+        this.needChangeMonkey = true;
         this.isCamShown = false;
         this.npStyle = NewspaperStyle.DEFAULT;
         /////////////////////////////////////////////////////////////////////////
@@ -2162,6 +2164,8 @@ class Scene2 extends BaseScene {
             this.initDnD();
             this.setAllLabels();
         });
+        this.initButtonHoverAudioEffect();
+        this.showMonkey1();
         this.showTestInfo(false);
         this.newspaperFsm = this.makeNewspaperFsm();
         this.paperCssBinding = new CssBinding($('#newspaper-page'));
@@ -2177,6 +2181,7 @@ class Scene2 extends BaseScene {
         this.cleanLayerCssBinding = new CssBinding($('#newspaper-clean-overlay'));
         this.propFrameCssBinding = new CssBinding($('#newspaper-prop-frame'));
         this.levelProgressCssBinding = new CssBinding($('#level-progress-root'));
+        this.expressionPromptCssBinding = new CssBinding($('#expression-prompt'));
         // collection
         this.propCssBindings = [];
         for (let i = 0; i < newspaperPropInfos.length; i++) {
@@ -2204,6 +2209,7 @@ class Scene2 extends BaseScene {
         if (!this.canRecieveEmojiClick)
             return;
         this.emotionMaxed(isTop ? MyEmotion.Positive : MyEmotion.Negative);
+        FmodManager.getInstance().playOneShot('65537_ConfirmEmoji');
     }
     resetProgress() {
         this.topProgress.value = 0;
@@ -2315,7 +2321,9 @@ class Scene2 extends BaseScene {
         if (this.isRealPaper() && this.isPropActivated(NewspaperPropType.SeeNoEvil)) {
             this.drawBlackBar(ctx, featurePoints);
         }
-        if (this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
+        // TODO: should only happen in fake paper
+        // if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
+        if (this.isPropActivated(NewspaperPropType.AutoEmotion)) {
             this.drawVirtualHead(ctx, featurePoints);
         }
         // this.drawVirtualHead(ctx, featurePoints);
@@ -2428,6 +2436,7 @@ class Scene2 extends BaseScene {
         if (this.lastAttention < 10) {
             $('#attention-frame').css('border-color', '#FFEB3B');
             if (this.isAttentionChecking) {
+                this.needChangeMonkey = false;
                 this.curCleanProgress += dt / 1000 / this.cleanTime;
                 this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
                 this.updateCleanProgressInner();
@@ -2450,6 +2459,22 @@ class Scene2 extends BaseScene {
         let item = this.getCurrentItem();
         return !this.isRealPaper(item);
     }
+    setNeedProgressAudioPlaying(needPlay) {
+        if (needPlay) {
+            if (!this.isProgressAudioPlaying) {
+                let fmod = FmodManager.getInstance();
+                fmod.playInstance(fmod.emojiProgressInstance);
+            }
+            this.isProgressAudioPlaying = true;
+        }
+        else {
+            if (this.isProgressAudioPlaying) {
+                let fmod = FmodManager.getInstance();
+                fmod.stopInstance(fmod.emojiProgressInstance);
+            }
+            this.isProgressAudioPlaying = false;
+        }
+    }
     emotionAnalyze(imgRes) {
         let item = this.getCurrentItem();
         let face = imgRes.face;
@@ -2470,14 +2495,22 @@ class Scene2 extends BaseScene {
         }
         // notify the indicator meter to update Y
         this.updateIndicatorMeterBtn(res);
+        if (res.intensity > 0.75) {
+            this.setNeedProgressAudioPlaying(true);
+        }
+        else {
+            this.setNeedProgressAudioPlaying(false);
+        }
         // this.updateAttentionLevel(imgRes.face.expressions.attention);
         this.needDwitterFlow = false;
         if (!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
+            this.setNeedProgressAudioPlaying(false);
             return;
         }
         if (this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
             this.lastTimeStamp = timestamp;
+            this.setNeedProgressAudioPlaying(false);
             return;
         }
         this.emotionAnalyzeFinished(res);
@@ -2639,6 +2672,7 @@ class Scene2 extends BaseScene {
     resetNewspaperParameter() {
         this.npHp = this.npMaxHp;
         this.refreshHp();
+        this.cleanTime = this.cleanTimeLong;
         this.needFreezeIndicatorMeterBtn = false;
         this.refreshLevelProgressBarCss(0);
     }
@@ -2687,8 +2721,42 @@ class Scene2 extends BaseScene {
         this.propFrameCssBinding.update();
         this.levelProgressCssBinding.translateY = 0;
         this.levelProgressCssBinding.update();
+        this.expressionPromptCssBinding.translateX = 0;
+        this.expressionPromptCssBinding.update();
         for (let i = 0; i < this.propCssBindings.length; i++) {
             this.showPropButton(false, i);
+        }
+    }
+    // show the see-no-evil monkey
+    showExpressionPrompt(show) {
+        let dt = 1000;
+        let dest = show ? -100 : 0;
+        this.tweens.add({
+            targets: this.expressionPromptCssBinding,
+            translateX: dest,
+            duration: dt
+        });
+    }
+    showMonkey1() {
+        $('#expression-prompt-content').text('🙈');
+        if (this.needChangeMonkey) {
+            setTimeout(() => {
+                this.showMonkey2();
+            }, 2000);
+        }
+        else {
+            $('#expression-prompt-content').text('🙈');
+        }
+    }
+    showMonkey2() {
+        $('#expression-prompt-content').text('🙉');
+        if (this.needChangeMonkey) {
+            setTimeout(() => {
+                this.showMonkey1();
+            }, 1000);
+        }
+        else {
+            $('#expression-prompt-content').text('🙈');
         }
     }
     showPropFrame(show = true) {
@@ -2808,6 +2876,14 @@ class Scene2 extends BaseScene {
         return this.hideProgressBars().then(res => { return this.showEmojiProgressBars(); });
     }
     showResult(isCorrect) {
+        setTimeout(() => {
+            if (isCorrect) {
+                FmodManager.getInstance().playOneShot('65537_CorrectResponse');
+            }
+            else {
+                FmodManager.getInstance().playOneShot('65537_WrongResponse');
+            }
+        }, 400);
         // console.log('hahahahah:' + isCorrect);
         $('#newspaper-result-content').text(isCorrect ? '✔️' : '❌');
         let dt = 500;
@@ -2858,6 +2934,8 @@ class Scene2 extends BaseScene {
         }
         if (this.levelProgressCssBinding)
             this.levelProgressCssBinding.update();
+        if (this.expressionPromptCssBinding)
+            this.expressionPromptCssBinding.update();
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
     }
@@ -3044,6 +3122,7 @@ class Scene2 extends BaseScene {
         this.showTransparentOverlay(false);
         this.hideResult();
         this.canRecieveEmojiClick = true;
+        FmodManager.getInstance().playOneShot('65537_NewspaperFlip');
         this.resetProgress();
         this.currIndex = index;
         let borderStyleIndex = index % this.innerBorderStyles.length;
@@ -3195,7 +3274,7 @@ class Scene2 extends BaseScene {
             });
         }
         // Purged(waiting for label to be put in)
-        let purged = this.newspaperFsm.getPurgedStateByInde(index);
+        let purged = this.newspaperFsm.getPurgedStateByIndex(index);
         this.helperAddSubtitleAction(purged, item.purgeIntro, false);
         purged.addOnEnter(s => {
             gResetLabelWall();
@@ -3313,6 +3392,12 @@ class Scene2 extends BaseScene {
         this.lastDragID = e.target.id;
         this.destiCount = 0;
         this.sourceCount = 0;
+    }
+    initButtonHoverAudioEffect() {
+        let btns = $('.newspaper-manual-button-frame');
+        btns.mouseenter(() => {
+            FmodManager.getInstance().playOneShot('65537_ChooseEmoji');
+        });
     }
     isIn(parent, child) {
         return parent == child || parent.contains(child);
@@ -3754,6 +3839,7 @@ class Scene2L3 extends Scene2 {
             this.initStNewspaperWithIndex(i);
         }
         this.initStNewspaper0();
+        this.initStNewspaper1();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -3804,6 +3890,18 @@ class Scene2L3 extends Scene2 {
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);
+    }
+    initStNewspaper1() {
+        let index = 1;
+        let state = this.newspaperFsm.getStateByIndex(index);
+        let end = this.newspaperFsm.getStateEndByIndex(index);
+        state.addOnEnter(s => {
+            this.showExpressionPrompt(true);
+        });
+        let purged = this.newspaperFsm.getPurgedStateByIndex(index);
+        purged.addOnEnter(s => {
+            this.showExpressionPrompt(false);
+        });
     }
     // this is just to append the ending logic to the last newspaper
     appendLastStateEnding() {
@@ -6678,7 +6776,7 @@ class NewspaperFsm extends Fsm {
     getStateEndByIndex(index) {
         return this.getState(this.getStateEndNameByIndex(index));
     }
-    getPurgedStateByInde(index) {
+    getPurgedStateByIndex(index) {
         return this.getState(this.getStatePurgedNameByIndex(index));
     }
     getLabelCorrectStateByInde(index) {
@@ -7195,6 +7293,7 @@ class FmodManager {
         this.FMOD = {};
         this.gAudioResumed = false;
         this.loopingAmbienceInstance = {};
+        this.emojiProgressInstance = {};
         this.loopingAmbienceDescription = {};
         this.FMOD['preRun'] = () => { this.prerun(); };
         this.FMOD['onRuntimeInitialized'] = () => {
@@ -7307,11 +7406,26 @@ class FmodManager {
         instance.val.start();
         instance.val.release();
     }
+    initInstances() {
+        let eventName = '65537_EmotionAccumulating';
+        eventName = 'event:/' + eventName;
+        let desc = {};
+        let instance = this.emojiProgressInstance;
+        this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));
+        this.CHECK_RESULT(desc.val.createInstance(instance));
+    }
+    playInstance(instance) {
+        instance.val.start();
+    }
+    stopInstance(instance) {
+        instance.val.stop(this.FMOD.STUDIO_STOP_IMMEDIATE);
+    }
     initApplication() {
         console.log("Loading events\n");
         for (var count = 0; count < s_banks.length; count++) {
             this.loadBank(s_banks[count]);
         }
+        this.initInstances();
         // // Get the Looping Ambience event
         //var loopingAmbienceDescription:any = {};
         // this.CHECK_RESULT( this.gSystem.getEvent("event:/Ambience/Country", this.loopingAmbienceDescription) );
@@ -7371,7 +7485,7 @@ var NewsSourceType;
 (function (NewsSourceType) {
     NewsSourceType[NewsSourceType["FAKE"] = 0] = "FAKE";
     NewsSourceType[NewsSourceType["NYT"] = 1] = "NYT";
-    NewsSourceType[NewsSourceType["NBC_NEWS"] = 2] = "NBC_NEWS";
+    NewsSourceType[NewsSourceType["WASHINGTON_POST"] = 2] = "WASHINGTON_POST";
     NewsSourceType[NewsSourceType["CNN"] = 3] = "CNN";
 })(NewsSourceType || (NewsSourceType = {}));
 class NewsDataManager {
@@ -7390,7 +7504,7 @@ class NewsDataManager {
     initLabelMapping() {
         this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism', 'Enemy of the People'));
         this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Nasty', 'Third-Rate Reporter'));
-        this.labelMapping.set(NewsSourceType.NBC_NEWS, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
+        this.labelMapping.set(NewsSourceType.WASHINGTON_POST, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
     }
     getByNum(num) {
         for (let i in this.data) {
@@ -7487,8 +7601,8 @@ class NewsDataManager {
         if (item.content.includes('nyt')) {
             item.sourceType = NewsSourceType.NYT;
         }
-        else if (item.content.includes('nbc')) {
-            item.sourceType = NewsSourceType.NBC_NEWS;
+        else if (item.content.includes('wp')) {
+            item.sourceType = NewsSourceType.WASHINGTON_POST;
         }
         else if (item.content.includes('cnn')) {
             item.sourceType = NewsSourceType.CNN;
@@ -10100,8 +10214,8 @@ var NewspaperPropType;
     NewspaperPropType[NewspaperPropType["AutoEmotion"] = 4] = "AutoEmotion";
 })(NewspaperPropType || (NewspaperPropType = {}));
 let newspaperPropInfos = [
-    { type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: '', activated: false },
     { type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: '', activated: false },
+    { type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: '', activated: false },
     { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: '', activated: false },
     { type: NewspaperPropType.Prompt, icon: '💡', desc: '', activated: false },
     { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: '', activated: false },

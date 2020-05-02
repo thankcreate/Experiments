@@ -6,7 +6,7 @@ enum NewspaperStyle{
 enum NewsSourceType{
     FAKE,
     NYT,
-    NBC_NEWS,
+    WASHINGTON_POST,
     CNN
 }
 
@@ -63,7 +63,7 @@ class NewsDataManager {
     initLabelMapping() {
         this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism', 'Enemy of the People'));
         this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Nasty', 'Third-Rate Reporter'));
-        this.labelMapping.set(NewsSourceType.NBC_NEWS, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
+        this.labelMapping.set(NewsSourceType.WASHINGTON_POST, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
     }
 
     getByNum(num: number): NewsItem {
@@ -170,8 +170,8 @@ class NewsDataManager {
         if(item.content.includes('nyt')) {
             item.sourceType = NewsSourceType.NYT;
         }
-        else if(item.content.includes('nbc')) {
-            item.sourceType = NewsSourceType.NBC_NEWS;
+        else if(item.content.includes('wp')) {
+            item.sourceType = NewsSourceType.WASHINGTON_POST;
         }
         else if(item.content.includes('cnn')) {
             item.sourceType = NewsSourceType.CNN;

@@ -1009,3 +1009,27 @@ input[type="submit"]:active {
   height: fit-content;
   font-size: 14px;
 }
+
+#expression-prompt{
+  position: absolute;
+  z-index: -9;
+  width: 180px;
+  height: 135px;  
+  left: 6px;  
+  margin: auto;  
+  background-color: #ffffff;
+  border: 6px solid black;
+}
+
+#expression-prompt-content{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+  font-size: 100px;
+}

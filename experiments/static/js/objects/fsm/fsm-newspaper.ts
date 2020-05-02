@@ -155,7 +155,7 @@ class NewspaperFsm extends Fsm{
         return this.getState(this.getStateEndNameByIndex(index));
     }
 
-    getPurgedStateByInde(index: number) : FsmState {
+    getPurgedStateByIndex(index: number) : FsmState {
         return this.getState(this.getStatePurgedNameByIndex(index));
     }
 

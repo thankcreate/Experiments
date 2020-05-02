@@ -17,13 +17,14 @@ class Scene2 extends BaseScene {
     propFrameCssBinding: CssBinding;
     propCssBindings: CssBinding[];
     levelProgressCssBinding: CssBinding;
+    expressionPromptCssBinding: CssBinding;
 
     newspaperFsm: NewspaperFsm;
 
-    fullTime = 2;
+    fullTime = 3;
  
 
-    cleanTimeLong = 2;
+    cleanTimeLong = 10;
     cleanTimeShort = 2; 
 
     cleanTime = 10; // seconds
@@ -65,8 +66,12 @@ class Scene2 extends BaseScene {
             this.setAllLabels();
         })
         
+        this.initButtonHoverAudioEffect();
+        this.showMonkey1();
 
         this.showTestInfo(false);
+
+        
 
         this.newspaperFsm = this.makeNewspaperFsm();
 
@@ -83,6 +88,7 @@ class Scene2 extends BaseScene {
         this.cleanLayerCssBinding = new CssBinding($('#newspaper-clean-overlay'));
         this.propFrameCssBinding = new CssBinding($('#newspaper-prop-frame'))
         this.levelProgressCssBinding = new CssBinding($('#level-progress-root'));
+        this.expressionPromptCssBinding = new CssBinding($('#expression-prompt'));
 
         // collection
         this.propCssBindings = [];
@@ -121,6 +127,7 @@ class Scene2 extends BaseScene {
         if(!this.canRecieveEmojiClick)
             return;
         this.emotionMaxed(isTop ? MyEmotion.Positive : MyEmotion.Negative);
+        FmodManager.getInstance().playOneShot('65537_ConfirmEmoji');
     }
 
    
@@ -275,7 +282,9 @@ class Scene2 extends BaseScene {
         }
        
 
-        if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
+        // TODO: should only happen in fake paper
+        // if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
+        if(this.isPropActivated(NewspaperPropType.AutoEmotion)) {
             this.drawVirtualHead(ctx, featurePoints);
         }
         // this.drawVirtualHead(ctx, featurePoints);
@@ -438,10 +447,11 @@ class Scene2 extends BaseScene {
         $('#attention-content').text(`🙈 Attention: ${this.lastAttention.toFixed(0)}`);
 
         if(this.lastAttention < 10) {
+
             $('#attention-frame').css('border-color', '#FFEB3B');
 
             if(this.isAttentionChecking) {                
-
+                this.needChangeMonkey = false;
                 this.curCleanProgress += dt / 1000 / this.cleanTime;
                 this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
     
@@ -468,6 +478,25 @@ class Scene2 extends BaseScene {
     isFakePaper() {
         let item = this.getCurrentItem();
         return !this.isRealPaper(item);
+    }
+
+
+
+    setNeedProgressAudioPlaying(needPlay) { 
+        if(needPlay) {
+            if(!this.isProgressAudioPlaying) {
+                let fmod = FmodManager.getInstance();
+                fmod.playInstance(fmod.emojiProgressInstance);                         
+            }
+            this.isProgressAudioPlaying = true;
+        }
+        else {
+            if(this.isProgressAudioPlaying) {
+                let fmod = FmodManager.getInstance();
+                fmod.stopInstance(fmod.emojiProgressInstance);       
+            }
+            this.isProgressAudioPlaying = false;
+        }
     }
 
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
@@ -500,17 +529,27 @@ class Scene2 extends BaseScene {
         this.updateIndicatorMeterBtn(res);
 
         
+        if(res.intensity > 0.75){
+            this.setNeedProgressAudioPlaying(true);
+        }
+        else {
+            this.setNeedProgressAudioPlaying(false);
+        }
+
+        
         // this.updateAttentionLevel(imgRes.face.expressions.attention);
 
         this.needDwitterFlow = false;
         
         if(!this.canRecieveEmotion || timeDiff > 1) {
             this.lastTimeStamp = timestamp;
+            this.setNeedProgressAudioPlaying(false);
             return;
         }
 
         if(this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
             this.lastTimeStamp = timestamp;
+            this.setNeedProgressAudioPlaying(false);
             return;
         }
 
@@ -546,6 +585,7 @@ class Scene2 extends BaseScene {
             this.needDwitterFlow = true;
         }
 
+
         
         this.refreshBarLeftIconStatus(res.emotion);
         this.refreshEmojiProgressBarCss();
@@ -557,6 +597,8 @@ class Scene2 extends BaseScene {
 
         
     }
+
+    isProgressAudioPlaying = false;
 
     emotionAnalyzeFinished(res: MyAnalysis) {
 
@@ -725,7 +767,7 @@ class Scene2 extends BaseScene {
     resetNewspaperParameter() {
         this.npHp = this.npMaxHp;   
         this.refreshHp();
-
+        this.cleanTime = this.cleanTimeLong; 
         this.needFreezeIndicatorMeterBtn = false;
         this.refreshLevelProgressBarCss(0);
     }
@@ -800,8 +842,47 @@ class Scene2 extends BaseScene {
         this.levelProgressCssBinding.translateY = 0;
         this.levelProgressCssBinding.update();
 
+        this.expressionPromptCssBinding.translateX = 0;
+        this.expressionPromptCssBinding.update();
+
         for(let i = 0; i < this.propCssBindings.length; i++) {
             this.showPropButton(false, i);
+        }
+    }
+
+    // show the see-no-evil monkey
+    showExpressionPrompt(show: boolean) {
+        let dt = 1000;        
+        let dest = show ? -100 : 0;
+        this.tweens.add({
+            targets: this.expressionPromptCssBinding,
+            translateX: dest,
+            duration: dt
+        })
+    }
+
+    needChangeMonkey: boolean = true;
+    showMonkey1() {
+        $('#expression-prompt-content').text('🙈');
+        if (this.needChangeMonkey) {
+            setTimeout(() => {
+                this.showMonkey2()
+            }, 2000);
+        }
+        else {
+            $('#expression-prompt-content').text('🙈');
+        }
+    }
+
+    showMonkey2() {
+        $('#expression-prompt-content').text('🙉');
+        if (this.needChangeMonkey) {
+            setTimeout(() => {
+                this.showMonkey1()
+            }, 1000);
+        }   
+        else {
+            $('#expression-prompt-content').text('🙈');
         }
     }
 
@@ -951,6 +1032,14 @@ class Scene2 extends BaseScene {
     }
 
     showResult(isCorrect: boolean) {
+        setTimeout(() => {            
+            if(isCorrect) {
+                FmodManager.getInstance().playOneShot('65537_CorrectResponse');
+            }
+            else {
+                FmodManager.getInstance().playOneShot('65537_WrongResponse');
+            }
+        }, 400);
         // console.log('hahahahah:' + isCorrect);
         $('#newspaper-result-content').text(isCorrect? '✔️' : '❌');
         let dt = 500;        
@@ -1013,6 +1102,9 @@ class Scene2 extends BaseScene {
 
         if(this.levelProgressCssBinding)
             this.levelProgressCssBinding.update();
+
+        if(this.expressionPromptCssBinding) 
+            this.expressionPromptCssBinding.update();
 
         // $('#affdex_elements').css('transform',`translate(${this.camTranslateX}%, ${this.camTranslateY}%)`);
         // $('#newspaper-page').css('transform', `translate(${this.paperTranslateX}%, ${this.paperTranslateY}%) scale(${this.paperScale}) rotate(${this.paperRotate}deg)`);
@@ -1248,6 +1340,7 @@ class Scene2 extends BaseScene {
         
         this.canRecieveEmojiClick = true;
 
+        FmodManager.getInstance().playOneShot('65537_NewspaperFlip');
         
 
         this.resetProgress();       
@@ -1424,7 +1517,7 @@ class Scene2 extends BaseScene {
         }
 
         // Purged(waiting for label to be put in)
-        let purged = this.newspaperFsm.getPurgedStateByInde(index);
+        let purged = this.newspaperFsm.getPurgedStateByIndex(index);
         this.helperAddSubtitleAction(purged, item.purgeIntro, false);     
         purged.addOnEnter(s=>{
             gResetLabelWall()      
@@ -1561,6 +1654,13 @@ class Scene2 extends BaseScene {
         this.sourceCount = 0;
     }
 
+    initButtonHoverAudioEffect() {
+        let btns = $('.newspaper-manual-button-frame');
+        btns.mouseenter(()=>{
+            FmodManager.getInstance().playOneShot('65537_ChooseEmoji');
+        })
+    }
+
     isIn(parent:any, child: any) {
         return parent == child || parent.contains(child);
     }    
@@ -1692,5 +1792,7 @@ class Scene2 extends BaseScene {
     
 /////////////////////////////////////////////////////////////////////////
 }
+
+
 
 

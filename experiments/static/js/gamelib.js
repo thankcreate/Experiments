@@ -2607,7 +2607,7 @@ class Scene2 extends BaseScene {
             }
             let correct = myEmotion == rightEmotion;
             this.isLastTestCorrect = correct;
-            this.showResult(this.isLastTestCorrect);
+            // this.showResult(this.isLastTestCorrect);
             this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
             this.refreshLevelProgressBarCss(this.currIndex + 1);
         }
@@ -2876,24 +2876,29 @@ class Scene2 extends BaseScene {
         return this.hideProgressBars().then(res => { return this.showEmojiProgressBars(); });
     }
     showResult(isCorrect) {
-        setTimeout(() => {
+        console.log('1111111111111111111111111111111');
+        // console.log('hahahahah:' + isCorrect);
+        $('#newspaper-result-content').text(isCorrect ? '✔️' : '❌');
+        let ret = TimeOutPromise.create(1000).then(s => {
+            console.log('222222222222222222222222222222');
             if (isCorrect) {
                 FmodManager.getInstance().playOneShot('65537_CorrectResponse');
             }
             else {
                 FmodManager.getInstance().playOneShot('65537_WrongResponse');
             }
-        }, 400);
-        // console.log('hahahahah:' + isCorrect);
-        $('#newspaper-result-content').text(isCorrect ? '✔️' : '❌');
-        let dt = 500;
-        this.tweens.add({
-            targets: this.resultCssBinding,
-            translateX: 0,
-            duration: dt
+            let dt = 500;
+            return TweenPromise.create(this, {
+                targets: this.resultCssBinding,
+                translateX: 0,
+                duration: dt
+            });
+        }).then(s => {
+            return TimeOutPromise.create(1000);
         });
         // when in show result, make sure the top of hp bar is moved down
         $('#newspaper-hp').css('top', '90px');
+        return ret;
     }
     hideResult() {
         let dt = 500;
@@ -3303,10 +3308,20 @@ class Scene2 extends BaseScene {
         labelCorrect.addFinishAction();
         // Correct
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction((s, result, resolve, reject) => {
+            this.showResult(true).then(s => {
+                resolve('');
+            });
+        });
         this.helperAddSubtitleAction(correct, item.correctResponse, true);
         correct.addFinishAction();
         // Wrong
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addAction((s, result, resolve, reject) => {
+            this.showResult(false).then(s => {
+                resolve('');
+            });
+        });
         this.helperAddSubtitleAction(wrong, item.wrongResonpse, true);
         if (this.isExercise) {
             wrong.addAction(s => {
@@ -3583,12 +3598,22 @@ class Scene2L1 extends Scene2 {
         });
         state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side.', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction((s, result, resolve, reject) => {
+            this.showResult(true).then(s => {
+                resolve('');
+            });
+        });
         correct.addSubtitleAction(this.subtitle, () => `Yeah, that's my good ${this.getUserName()}`, true);
         correct.addAction(s => {
             this.showManualBtns(false);
         });
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addAction((s, result, resolve, reject) => {
+            this.showResult(false).then(s => {
+                resolve('');
+            });
+        });
         wrong.addSubtitleAction(this.subtitle, () => `No! ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
         wrong.addSubtitleAction(this.subtitle, () => `Let me give you another try.`, true);
         // wrong.addAction(s=>{
@@ -3605,6 +3630,11 @@ class Scene2L1 extends Scene2 {
         });
         state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction((s, result, resolve, reject) => {
+            this.showResult(true).then(s => {
+                resolve('');
+            });
+        });
         correct.addSubtitleAction(this.subtitle, () => `Of course, ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addAction(s => {
             this.setCenterTextPaper('65537', '😀');
@@ -3629,6 +3659,11 @@ class Scene2L1 extends Scene2 {
         correct.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier.", false);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addAction((s, result, resolve, reject) => {
+            this.showResult(false).then(s => {
+                resolve('');
+            });
+        });
         wrong.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, it's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
         wrong.addSubtitleAction(this.subtitle, () => `Could you try it again for me?`, true);
         wrong.addEventAction(Fsm.SECODN_CHANCE);

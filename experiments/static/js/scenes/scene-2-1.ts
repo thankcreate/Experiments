@@ -112,6 +112,11 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, 'You can answer by clicking on the emoji buttons on the right side.', false);
         
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction((s, result, resolve, reject)=>{            
+            this.showResult(true).then(s=>{
+                resolve('')
+            });
+        })
         correct.addSubtitleAction(this.subtitle, ()=> `Yeah, that's my good ${this.getUserName()}`, true);
         correct.addAction(s=>{            
             this.showManualBtns(false);
@@ -120,6 +125,11 @@ class Scene2L1 extends Scene2 {
 
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addAction((s, result, resolve, reject)=>{            
+            this.showResult(false).then(s=>{
+                resolve('')
+            });
+        })
         wrong.addSubtitleAction(this.subtitle, ()=> `No! ${this.getUserName()}. You must be kidding.\nThink twice before you act out.`, true);
         wrong.addSubtitleAction(this.subtitle, ()=> `Let me give you another try.`, true);
         // wrong.addAction(s=>{
@@ -139,6 +149,11 @@ class Scene2L1 extends Scene2 {
         state.addSubtitleAction(this.subtitle, 'And, what about this? How do you feel?', false);
 
         let correct = this.newspaperFsm.getReactionStateByIndex(index, true);
+        correct.addAction((s, result, resolve, reject)=>{            
+            this.showResult(true).then(s=>{
+                resolve('')
+            });
+        })
         correct.addSubtitleAction(this.subtitle, ()=> `Of course, ${this.getUserName()}. How stupid it is to fight against the experiment!`, true);
         correct.addAction(s=>{
             this.setCenterTextPaper('65537', '😀')
@@ -167,6 +182,11 @@ class Scene2L1 extends Scene2 {
         correct.addFinishAction();
 
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
+        wrong.addAction((s, result, resolve, reject)=>{            
+            this.showResult(false).then(s=>{
+                resolve('')
+            });
+        })
         wrong.addSubtitleAction(this.subtitle, ()=> `${this.getUserName()}, it's fun. I know.\n Playing with the experiment is always fun, \nbut please behave yourself.`, true);
         wrong.addSubtitleAction(this.subtitle, ()=> `Could you try it again for me?`, true);
         wrong.addEventAction(Fsm.SECODN_CHANCE);

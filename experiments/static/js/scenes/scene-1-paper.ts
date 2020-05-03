@@ -161,7 +161,7 @@ class Scene1LPaper extends Scene1 {
     initConfirm1() {
         let state = this.gamePlayFsm.getState('Confirm_1');
 
-        state.setOnExit(s=>{
+        state.addOnExit(s=>{
             
             clearInterval(this.countDownInterval);
             this.inCountDown = false;

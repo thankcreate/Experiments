@@ -10,6 +10,10 @@ enum NewsSourceType{
     CNN
 }
 
+let ALWAYS_WRONG_NUM = 29;
+let AUTO_LABEL_NUM = 31;
+let AUTO_EXPRESSION_NUM = 34;
+
 interface NewsItem{
     index: number,
     title: string,
@@ -29,7 +33,7 @@ interface NewsItem{
     purgeIntro: string,
     labelCorrectIntro: string,
 
-    sourceType: NewsSourceType,
+    sourceType: NewsSourceType
 }
 
 interface RssItem{
@@ -138,7 +142,7 @@ class NewsDataManager {
                     ambience: cols[14],
                     needloop: parseInt(cols[15]),
                     tag: cols[16],                    
-                    sourceType: NewsSourceType.FAKE
+                    sourceType: NewsSourceType.FAKE,                    
                 }    
                 if(isNaN(item.index) || isNaN(item.answer)) {
                     throw 'NewsData loading failed for one item';
@@ -181,6 +185,8 @@ class NewsDataManager {
         }
     }   
 
-    
+    isAlwaysWrongItem(item: NewsItem) {
+        return item.index == ALWAYS_WRONG_NUM;
+    }
 
 }

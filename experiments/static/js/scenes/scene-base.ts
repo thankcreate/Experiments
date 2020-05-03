@@ -431,7 +431,7 @@ class BaseScene extends Phaser.Scene {
 
     initStHome() {
         let state = this.mainFsm.getState("Home");
-        state.setOnExit(s=>{
+        state.addOnExit(s=>{
             this.centerObject.playerInputText.pressAnyToStart.setVisible(false);
         })
         state.setAsStartup().addOnEnter(s => {
@@ -756,7 +756,7 @@ class BaseScene extends Phaser.Scene {
                 }
             })
 
-        state.setOnExit(s => {
+        state.addOnExit(s => {
             this.sceneExitNormalGame(s);
         })
     }
@@ -781,7 +781,7 @@ class BaseScene extends Phaser.Scene {
             this.sceneEnterDied(s, result, resolve, reject);
         })
 
-        state.setOnExit(() => {
+        state.addOnExit(() => {
             this.sceneExitDied();
         });
     }

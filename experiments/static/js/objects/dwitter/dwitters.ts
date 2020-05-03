@@ -165,6 +165,8 @@ class DwitterRectBKG extends Dwitter {
         let i = 0;
         c.width|=k=i=this.width/2
 
+        t/=4;
+
         for(;i--;x.strokeRect(k-i,this.height/2-i,i*2,i*2))x.setLineDash([t+k/i&1?i/5:i])
         x.stroke();
     }

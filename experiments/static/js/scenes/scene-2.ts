@@ -68,6 +68,7 @@ class Scene2 extends BaseScene {
         
         this.initButtonHoverAudioEffect();
         this.showMonkey1();
+        this.initConfirmButtons();
 
         this.showTestInfo(false);
 
@@ -171,15 +172,19 @@ class Scene2 extends BaseScene {
         this.updatePropStatus();
     }
 
-
-    updatePropStatus() {
-        // Less cleaning time
+    updateCleanTime() {
         if(this.isPropActivated(NewspaperPropType.LessCleaningTime)) {
             this.cleanTime = this.cleanTimeShort;
         }
         else {
             this.cleanTime = this.cleanTimeLong;
         }
+    }
+
+
+    updatePropStatus() {
+        // Less cleaning time
+        this.updateCleanTime();
 
         // See no evil
         // Logic is in this.updateAttentionLevel & this.drawBlackBar
@@ -193,7 +198,11 @@ class Scene2 extends BaseScene {
         }
         
         // Prompt
-        this.showPromptLayer(this.isPropActivated(NewspaperPropType.Prompt));        
+        let item = this.getCurrentItem();
+        if(!this.isRealPaper(item)) {
+            this.showPromptLayer(this.isPropActivated(NewspaperPropType.Prompt));        
+        }
+
 
         // AutoEmoji
         // Logic is in this.drawVirtualHead
@@ -285,7 +294,7 @@ class Scene2 extends BaseScene {
 
         // TODO: should only happen in fake paper
         // if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
-        if(this.isPropActivated(NewspaperPropType.AutoEmotion)) {
+        if(!this.isRealPaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
             this.drawVirtualHead(ctx, featurePoints);
         }
         // this.drawVirtualHead(ctx, featurePoints);
@@ -451,7 +460,8 @@ class Scene2 extends BaseScene {
 
             $('#attention-frame').css('border-color', '#FFEB3B');
 
-            if(this.isAttentionChecking) {                
+            if(this.isAttentionChecking) {         
+                this.updateCleanTime();
                 this.needChangeMonkey = false;
                 this.curCleanProgress += dt / 1000 / this.cleanTime;
                 this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
@@ -484,6 +494,8 @@ class Scene2 extends BaseScene {
 
 
     setNeedProgressAudioPlaying(needPlay) { 
+        if(this.inFinalAutoMode)
+            needPlay = false;
         if(needPlay) {
             if(!this.isProgressAudioPlaying) {
                 let fmod = FmodManager.getInstance();
@@ -659,6 +671,8 @@ class Scene2 extends BaseScene {
         return item.tag == 'FirstShownNYT';
     }
     
+
+    lastMaxedEmojion: MyEmotion = MyEmotion.Negative;
     emotionMaxed(myEmotion: MyEmotion){        
         let item = this.getCurrentItem()      
 
@@ -673,8 +687,10 @@ class Scene2 extends BaseScene {
             this.canRecieveEmotion = false;
             this.canRecieveEmojiClick = false;
     
+            
     
-    
+            this.lastMaxedEmojion = myEmotion;
+
             let rightEmotion = MyEmotion.None;
             if(item.answer == 0) {
                 rightEmotion = MyEmotion.Negative;
@@ -684,11 +700,22 @@ class Scene2 extends BaseScene {
             }
             
             let correct = myEmotion == rightEmotion;
+            // If:
+            // 1. Is alwyas wrong mode
+            // 2. Without prompt unlocked
+            // Then it's a WRONG
+            if(NewsDataManager.getInstance().isAlwaysWrongItem(item) && !this.isPropActivated(NewspaperPropType.Prompt)){
+                correct = false;
+            }
+
+
             this.isLastTestCorrect = correct; 
             
             // this.showResult(this.isLastTestCorrect);
             this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
             this.refreshLevelProgressBarCss(this.currIndex + 1);
+
+
         }        
     }
     
@@ -696,7 +723,7 @@ class Scene2 extends BaseScene {
     createDwitters(parentContainer: PhContainer) {        
         this.initCenterDwitterScale = 0.52;
         this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
-        this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 1400, true);        
+        this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 2400, true);        
     }
 
 
@@ -770,7 +797,8 @@ class Scene2 extends BaseScene {
         this.refreshHp();
         this.cleanTime = this.cleanTimeLong; 
         this.needFreezeIndicatorMeterBtn = false;
-        this.refreshLevelProgressBarCss(0);
+        this.refreshLevelProgressBarCss(0);        
+        this.inFinalAutoMode = false;
     }
 
     refreshHp() {
@@ -1054,13 +1082,11 @@ class Scene2 extends BaseScene {
 
     showResult(isCorrect: boolean) : Pany {
 
-        console.log('1111111111111111111111111111111')
-        // console.log('hahahahah:' + isCorrect);
         $('#newspaper-result-content').text(isCorrect? '✔️' : '❌');
         
 
         let ret = TimeOutPromise.create(1000).then(s=>{
-            console.log('222222222222222222222222222222')
+            
             if(isCorrect) {
                 FmodManager.getInstance().playOneShot('65537_CorrectResponse');
             }
@@ -1149,6 +1175,13 @@ class Scene2 extends BaseScene {
     }
 
     updateDwitterBackgroundState() {
+        if(this.inFinalAutoMode){
+            this.dwitterBKG.isRunning2 = true;
+            return;
+        }
+        
+
+
         if(this.isCamShown){
             if(this.needDwitterFlow && this.canRecieveEmotion) {
                 this.dwitterBKG.isRunning2 = true;
@@ -1363,6 +1396,8 @@ class Scene2 extends BaseScene {
 
     innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     paperEnterCallback(state: FsmState, index:number) {
+        this.currIndex = index;
+
         let item = this.getCurrentItem();
         this.fillNewspaperContentByNum(this.npNums[index]);        
         this.showTransparentOverlay(false);
@@ -1374,7 +1409,7 @@ class Scene2 extends BaseScene {
         
 
         this.resetProgress();       
-        this.currIndex = index;
+        
         let borderStyleIndex = index % this.innerBorderStyles.length;
         $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
 
@@ -1432,6 +1467,7 @@ class Scene2 extends BaseScene {
      * @param index 
      */
     paperEndEntercallback(state: FsmState, index:number) {
+        this.subtitle.forceStopAndHideSubtitles();
         this.refreshLevelProgressBarCss(index + 1);
     }
 
@@ -1518,6 +1554,28 @@ class Scene2 extends BaseScene {
         $('.emoji').css('text-decoration', show ? 'line-through' : 'none');              
     }
 
+    showConfirmButons(show: boolean) {
+        if(show) {
+            $('#confirm-button-root').css('visibility',  'visible');
+            $('#confirm-button-root').css('pointer-events', 'auto');
+        }
+        else {
+            $('#confirm-button-root').css('visibility', 'hidden');
+            $('#confirm-button-root').css('pointer-events', 'none');
+        }       
+    }
+
+    initConfirmButtons() {
+        $(`#confirm-button-yes`).on('click', ()=>{this.onConfirmAutoExpressionClick(true)});
+        $(`#confirm-button-no`).on('click', ()=>{this.onConfirmAutoExpressionClick(false)});
+    }
+
+    inFinalAutoMode = false;
+
+    onConfirmAutoExpressionClick(yes: boolean) {
+        // implemented in subclass
+    }
+    
     initStNewspaperWithIndex(idx: number) {
         let index = idx;
         let item = this.getNewsItemFromIndex(index);
@@ -1540,7 +1598,7 @@ class Scene2 extends BaseScene {
                 this.enableAttention(true);
                 this.setStrikeThroughOnEmojiIcons(true);                
             })        
-            state.setOnExit(s=>{
+            state.addOnExit(s=>{
                 this.isAttentionChecking = false;
                 this.enableAttention(false);
                 this.setStrikeThroughOnEmojiIcons(false);
@@ -1564,7 +1622,7 @@ class Scene2 extends BaseScene {
                 this.checkIfLabelsCorrect();
             })
         }).setBoolCondition(()=>{return this.isPropActivated(NewspaperPropType.AutoLabel);});
-        purged.setOnExit(s=>{
+        purged.addOnExit(s=>{
             $('#newspaper-toolbox-stamps').css('visibility', 'hidden'); 
             $('#newspaper-clean-overlay').css('pointer-events', 'none');
         })
@@ -1586,7 +1644,13 @@ class Scene2 extends BaseScene {
                 resolve('')
             });
         })
-        this.helperAddSubtitleAction(correct, item.correctResponse, true);
+        if(NewsDataManager.getInstance().isAlwaysWrongItem(item)) {            
+            this.helperAddSubtitleAction(correct, `See? There is no trap in the prompting!`, true)
+            this.helperAddSubtitleAction(correct, `People are always skeptical about my willingness to help, which made me so sad`, true);
+        }
+        else {
+            this.helperAddSubtitleAction(correct, item.correctResponse, true);
+        }
         correct.addFinishAction();
 
         // Wrong
@@ -1596,8 +1660,21 @@ class Scene2 extends BaseScene {
                 resolve('')
             });
         })
-        this.helperAddSubtitleAction(wrong, item.wrongResonpse, true);                
-        if(this.isExercise) {
+        
+        if(NewsDataManager.getInstance().isAlwaysWrongItem(item)) {
+            this.helperAddSubtitleAction(wrong, item.wrongResonpse, true, ()=>{
+                return this.lastMaxedEmojion == MyEmotion.Negative;
+            });    
+            this.helperAddSubtitleAction(wrong, item.correctResponse, true, ()=>{
+                return this.lastMaxedEmojion == MyEmotion.Positive;
+            });    
+        }       
+        else {
+            this.helperAddSubtitleAction(wrong, item.wrongResonpse, true);                
+        } 
+        
+
+        if(this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item)) {            
             wrong.addAction(s=>{
                 this.resetProgress();
                 this.hideResult();                
@@ -1622,7 +1699,9 @@ class Scene2 extends BaseScene {
                 this.canRecieveEmotion = true;             
             }            
         })
-    }
+
+        
+    }    
 
     /**
      * Parse the raw string into separate subtitle action addings
@@ -1632,7 +1711,7 @@ class Scene2 extends BaseScene {
      * @param s 
      * @param rawStr 
      */
-    helperAddSubtitleAction(s: FsmState, rawStr: string, autoHide: boolean) {
+    helperAddSubtitleAction(s: FsmState, rawStr: string, autoHide: boolean, func?:  (s?: FsmState) => boolean) {
         if(!rawStr || rawStr.length == 0) 
             return;
         
@@ -1645,11 +1724,14 @@ class Scene2 extends BaseScene {
         for(let i = 0; i < dialog.length; i++) {
             let sentenceRaw = dialog[i];
             // console.log(sentenceRaw);
-            s.addSubtitleAction(this.subtitle, ()=>{
+            let sub = s.addSubtitleAction(this.subtitle, ()=>{
                 let ret = sentenceRaw.replace(newline, '\n');
                 ret = ret.replace(usernamePlaceholder, this.getUserName());
                 return ret;
             }, autoHide);
+            if(func) {
+                sub.setBoolCondition(func);
+            }
         }
     }
 
@@ -1702,6 +1784,11 @@ class Scene2 extends BaseScene {
         btns.mouseenter(()=>{
             FmodManager.getInstance().playOneShot('65537_ChooseEmoji');
         })
+
+        btns = $('.confirm-button');
+        btns.mouseenter(()=>{
+            FmodManager.getInstance().playOneShot('65537_ChooseEmoji');
+        })
     }
 
     isIn(parent:any, child: any) {
@@ -1737,7 +1824,7 @@ class Scene2 extends BaseScene {
     }
 
     checkIfLabelsCorrect() {
-        let item = this.getCurrentItem();        ;
+        let item = this.getCurrentItem();
         let correctLabels = NewsDataManager.getInstance().labelMapping.get(item.sourceType);
         let actualLabels = [];
         $('#stamp-dest-container .newspaper-stamp').each(function(){

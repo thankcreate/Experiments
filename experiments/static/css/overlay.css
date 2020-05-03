@@ -486,12 +486,63 @@ input[type="submit"]:active {
   visibility: hidden;
 }
 
+#confirm-button-root{
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  right: 6px;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.8);;
+}
+
+#confirm-button-group{  
+  position: absolute;
+  left: 40px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  z-index: 1;
+}
+
+.confirm-button{    
+
+  user-select: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  width: 210px;
+  height: 80px;
+  margin: 10px;
+  background-color: #fece56;
+  border: 5px outset black;
+  text-align: center;
+  font-size: 20px;
+  display: flex;
+  padding: 0 10px;
+  align-items: center;
+}
+
+.confirm-button:hover{
+  background-color: red;
+}
+.confirm-button:active{
+  background-color: royalblue;
+}
+
+.confirm-button span{
+  flex: 1;
+  justify-content: center;
+}
 
 
 #indicator-bar{
   visibility: hidden;
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   height: 100%;
   width: 40px;
   left: 0px;

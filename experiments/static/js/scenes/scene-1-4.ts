@@ -128,7 +128,7 @@ class Scene1L4 extends Scene1 {
             //this.pause(null, 0);   
         })
 
-        state.setOnExit(s=>{            
+        state.addOnExit(s=>{            
             this.unPause()
             this.getCurClickerStrategy().startLoopCreateNormal();
         })
@@ -281,7 +281,7 @@ class Scene1L4 extends Scene1 {
         this.addYesOrNoAction(state, targetBtn);
 
         state.addFinishAction();
-        state.setOnExit(s=>{            
+        state.addOnExit(s=>{            
             
             targetBtn.hideAttachedBubble();
         })
@@ -297,7 +297,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "As we all know, the content behind 4O4s are bad, evil and vicious!\n You name it!", false)
         state.addSubtitleAction(this.subtitle, "Once purchased, you can upgrade them with the score you have earned.", true)        
         state.addFinishAction();
-        state.setOnExit(s=>{
+        state.addOnExit(s=>{
             targetBtn.hideAttachedBubble();
         })
     }
@@ -313,7 +313,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
-        state.setOnExit(s=>{            
+        state.addOnExit(s=>{            
             targetBtn.hideAttachedBubble();
         })
     }
@@ -330,7 +330,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
-        state.setOnExit(s=>{            
+        state.addOnExit(s=>{            
             targetBtn.hideAttachedBubble();
         })
     }
@@ -344,7 +344,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "Tired of TURNING them manually?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
-        state.setOnExit(s=>{            
+        state.addOnExit(s=>{            
             targetBtn.hideAttachedBubble();
         })
     }
@@ -358,7 +358,7 @@ class Scene1L4 extends Scene1 {
         // state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
-        state.setOnExit(s=>{            
+        state.addOnExit(s=>{            
             targetBtn.hideAttachedBubble();
         })
     }

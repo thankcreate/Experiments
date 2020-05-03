@@ -544,6 +544,7 @@ class FsmState {
     }
 
     
+    
     _onUpdate(state: FsmState, time?, dt?) {
         
         if(this.onUpdate)
@@ -578,8 +579,12 @@ class FsmState {
     _exit(state: FsmState): FsmState {
         this.enterExitListners.emit(false);
 
-        if (this.onExit)
-            this.onExit(this);
+        if(this.onExit) {
+            for(let i in this.onExit) {
+                this.onExit[i](state);
+            }            
+        }        
+
 
         this.removeAutoRemoveListners();
 
@@ -597,9 +602,9 @@ class FsmState {
      * Don't call from outside
      * * DON'T do any async job in onExit
      */
-    private onExit: StateHandler;
-    setOnExit(handler: StateHandler): FsmState {
-        this.onExit = handler;
+    private onExit:StateHandler[] = [];    
+    addOnExit(handler: StateHandler): FsmState {
+        this.onExit.push(handler);        
         return this;
     }
 

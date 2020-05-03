@@ -8,8 +8,10 @@ class Scene2L3 extends Scene2 {
 
     get npNums(): number[]{
         // return [11, 14, 12, 15, 13, 16, 17];
-        return [22, 23, 24];
+        // return [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+        return [26, 27, 28, 29, 30, 31, 32, 33, 34];
     }
+
 
     create() {
         super.create();
@@ -33,8 +35,9 @@ class Scene2L3 extends Scene2 {
         for(let i = 0; i < this.npNums.length; i++) {
             this.initStNewspaperWithIndex(i);
         }
-        this.initStNewspaper0();
-        this.initStNewspaper1();
+        this.initStNytFirstTime();
+        this.initStNytSecondTime();
+        this.initStSeeNoEvilUpgrade();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
     }
@@ -93,14 +96,14 @@ class Scene2L3 extends Scene2 {
     }    
 
 
-    initStNewspaper0(){
+    initStNytFirstTime(){
         let index = 0;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);      
         
     }
 
-    initStNewspaper1(){
+    initStNytSecondTime(){
         let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);     
@@ -111,6 +114,14 @@ class Scene2L3 extends Scene2 {
         let purged = this.newspaperFsm.getPurgedStateByIndex(index);
         purged.addOnEnter(s=>{
             this.showExpressionPrompt(false);
+        })
+    }
+
+    initStSeeNoEvilUpgrade() {
+        let index = this.getIndexFromNum(26);
+        let state = this.newspaperFsm.getStateByIndex(index);
+        state.addAction(s=>{
+            this.showPropButtonWithType(true, NewspaperPropType.SeeNoEvil);
         })
     }
 

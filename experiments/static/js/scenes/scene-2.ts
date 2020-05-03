@@ -166,10 +166,11 @@ class Scene2 extends BaseScene {
 
     onPropButtonClick(index: number) {
         newspaperPropInfos[index].activated = !newspaperPropInfos[index].activated;
-        this.showPropButton(newspaperPropInfos[index].activated, index);
+        this.showPropButtonWithIndex(newspaperPropInfos[index].activated, index);
 
         this.updatePropStatus();
     }
+
 
     updatePropStatus() {
         // Less cleaning time
@@ -846,7 +847,7 @@ class Scene2 extends BaseScene {
         this.expressionPromptCssBinding.update();
 
         for(let i = 0; i < this.propCssBindings.length; i++) {
-            this.showPropButton(false, i);
+            this.showPropButtonWithIndex(false, i);
         }
     }
 
@@ -891,8 +892,28 @@ class Scene2 extends BaseScene {
         this.propFrameCssBinding.update();
     }
 
-    showPropButton(show: boolean, index: number) {
-         this.propCssBindings[index].translateY = show ? 0 : 65;
+    showPropButtonWithType(show: boolean, type: NewspaperPropType) {
+        let i = 0;
+        for(; i < newspaperPropInfos.length; i ++) {
+            if(newspaperPropInfos[i].type == type) {
+                break;
+            }
+        }
+        this.showPropButtonWithIndex(show, i);
+    }
+
+    showPropButtonWithIndex(show: boolean, index: number) {
+        let dt = 500;
+        newspaperPropInfos[index].activated = show;
+        if(notSet(this.propCssBindings[index].translateY)) {
+            this.propCssBindings[index].translateY = 65;
+        }
+        this.tweens.add({
+            targets: this.propCssBindings[index],
+            translateY: show ? 0 : 65,
+            duration: dt
+        })
+        // this.propCssBindings[index].translateY = show ? 0 : 65;
     }
 
     showPaper(show: boolean = true) {
@@ -1503,6 +1524,7 @@ class Scene2 extends BaseScene {
         let state = this.newspaperFsm.getStateByIndex(index)
         
         // Intro
+        console.log(idx);
         this.helperAddSubtitleAction(state, item.intro, false);      
         state.addAction(s=>{
             this.canRecieveEmotion = true;
@@ -1548,9 +1570,11 @@ class Scene2 extends BaseScene {
         })
 
         // LabelCorrect(labels all put)
-        let labelCorrect = this.newspaperFsm.getLabelCorrectStateByInde(index);
-        labelCorrect.addOnEnter(s=>{
-            this.showResult(true);
+        let labelCorrect = this.newspaperFsm.getLabelCorrectStateByInde(index);       
+        labelCorrect.addAction((s, result, resolve, reject)=>{            
+            this.showResult(true).then(s=>{
+                resolve('')
+            });
         })
         this.helperAddSubtitleAction(labelCorrect, item.labelCorrectIntro, false);    
         labelCorrect.addFinishAction();        
@@ -1701,6 +1725,15 @@ class Scene2 extends BaseScene {
         }
 
         return null;
+    }
+    
+    getIndexFromNum(num: number) {        
+        for(let i = 0; i < this.npNums.length; i++) {
+            if(num == this.npNums[i]) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     checkIfLabelsCorrect() {

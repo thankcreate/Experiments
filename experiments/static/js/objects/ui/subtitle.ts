@@ -139,8 +139,8 @@ class Subtitle extends Wrapper<PhText> {
 
 
         this.scene.tweens.add({
-            targets: (this.scene as BaseScene).bgm,
-            volume: 0.15,
+            targets: (this.scene as BaseScene),
+            bgmVolume: 0.15,
             duration: 250,
         });
         
@@ -151,8 +151,7 @@ class Subtitle extends Wrapper<PhText> {
 
     hideText() : Pany {
         if (this.inTween)
-            this.inTween.stop();
-        
+            this.inTween.stop();        
 
         let outPromise =  new Promise((resolve, reject) => {            
             this.outTween = this.scene.tweens.add({
@@ -166,13 +165,11 @@ class Subtitle extends Wrapper<PhText> {
             });
 
             this.scene.tweens.add({
-                targets: (this.scene as BaseScene).bgm,
-                volume: 1,
+                targets: (this.scene as BaseScene),
+                bgmVolume: 1,
                 duration: 250,
             });
         })
-
-        
 
         // in case anything extreme may happan
         // return a raced timeout

@@ -14,6 +14,7 @@ class Scene1L3 extends Scene1 {
     lastUsedYoyo = -1;
 
     needToDestroyBeforeShowSensitive = 5;
+    // needToDestroyBeforeShowSensitive = 2;
 
      
 
@@ -44,7 +45,7 @@ class Scene1L3 extends Scene1 {
         this.initSeparateWaysBGM();
     }
 
-    fmodBgmInstance :any;
+    
     initSeparateWaysBGM() {    
         let FMOD = FmodManager.getInstance().FMOD;    
         this.fmodBgmInstance = FmodManager.getInstance().createInstanceByEventName('SeparateWaysProp');

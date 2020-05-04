@@ -38,6 +38,7 @@ class BaseScene extends Phaser.Scene {
         super(config);
         this.updateObjects = [];
         this.needFeedback = false;
+        this.bgmVolume = 1;
         this.mode = GameMode.Normal;
         this.entryPoint = EntryPoint.FromHome;
         this.homeCounter = 0;
@@ -217,6 +218,15 @@ class BaseScene extends Phaser.Scene {
         this.centerObject.update(time, dt);
         if (this.hud) {
             this.hud.update(time, dt);
+        }
+        this.updateBgmVolume();
+    }
+    updateBgmVolume() {
+        if (this.bgm) {
+            this.bgm.volume = this.bgmVolume;
+        }
+        if (this.fmodBgmInstance && this.fmodBgmInstance.val) {
+            this.fmodBgmInstance.val.setVolume(this.bgmVolume);
         }
     }
     getMainFsmData() {
@@ -1207,6 +1217,7 @@ class Scene1L2 extends Scene1 {
 }
 /// <reference path="scene-1.ts" />
 class Scene1L3 extends Scene1 {
+    // needToDestroyBeforeShowSensitive = 2;
     constructor() {
         super('Scene1L3');
         this.loopTime = 454.5;
@@ -12052,8 +12063,8 @@ class Subtitle extends Wrapper {
             duration: 250,
         });
         this.scene.tweens.add({
-            targets: this.scene.bgm,
-            volume: 0.15,
+            targets: this.scene,
+            bgmVolume: 0.15,
             duration: 250,
         });
         this.wrappedObject.text = val;
@@ -12073,8 +12084,8 @@ class Subtitle extends Wrapper {
                 }
             });
             this.scene.tweens.add({
-                targets: this.scene.bgm,
-                volume: 1,
+                targets: this.scene,
+                bgmVolume: 1,
                 duration: 250,
             });
         });

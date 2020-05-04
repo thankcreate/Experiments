@@ -32,7 +32,8 @@ class BaseScene extends Phaser.Scene {
     updateObjects: Updatable[] = [];
 
     needFeedback: boolean = false;
-
+    
+    bgmVolume: number = 1;
 
     circle: Phaser.GameObjects.Image;
     labels;
@@ -43,6 +44,8 @@ class BaseScene extends Phaser.Scene {
      * It's just a reference to the active bgm
      */
     bgm: Phaser.Sound.BaseSound;
+
+    fmodBgmInstance :any;
 
     /**
      * container is aligned to the center of canvas
@@ -360,9 +363,20 @@ class BaseScene extends Phaser.Scene {
         this.centerObject.update(time, dt);
         if(this.hud) {
             this.hud.update(time, dt);
-        }        
+        }   
+        
+        this.updateBgmVolume();
     }
-    
+
+    updateBgmVolume() {
+        if(this.bgm) {
+            (this.bgm as any).volume = this.bgmVolume;
+        } 
+        if(this.fmodBgmInstance && this.fmodBgmInstance.val) {
+            this.fmodBgmInstance.val.setVolume(this.bgmVolume);
+        }
+    }
+
     getMainFsmData(): IFsmData {
         return mainFsm;
     }

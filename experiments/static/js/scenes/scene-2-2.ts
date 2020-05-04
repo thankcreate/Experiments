@@ -14,8 +14,10 @@ class Scene2L2 extends Scene2 {
     create() {
         super.create();
         this.initGamePlayFsm();           
-        this.initNewspaperFsm();
+        this.initNewspaperFsm();        
     }
+
+ 
 
     initGamePlayFsm() {                 
         this.initStGamePlayDefault();        

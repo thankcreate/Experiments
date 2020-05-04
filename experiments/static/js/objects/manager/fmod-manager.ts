@@ -4,6 +4,7 @@ let s_banks = [
     "Master.bank",
     "Master.strings.bank",
     "SE.bank",
+    "BGM.bank"
 ]
 
 class FmodManager {
@@ -163,7 +164,7 @@ class FmodManager {
      * Just use the label in the FMOD browser
      * @param eventName 
      */
-    playOneShot(eventName: string) {
+    playOneShot(eventName: string) : any{
         eventName = 'event:/' + eventName;
         let desc:any = {};
         let instance: any = {};
@@ -172,17 +173,28 @@ class FmodManager {
         
         instance.val.start();
         instance.val.release();
+        return instance;
     }
 
 
+
     
-    initInstances() {
-        let eventName = '65537_EmotionAccumulating';
+    initInstances() {    
+        this.emojiProgressInstance = this.createInstanceByEventName('65537_EmotionAccumulating');
+    }
+
+    /**
+     * return the instance
+     * @param en 
+     */
+    createInstanceByEventName(en: string) : any {
+        let eventName = en
         eventName = 'event:/' + eventName;
         let desc:any = {};
-        let instance: any = this.emojiProgressInstance;
+        let instance: any ={};
         this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));
         this.CHECK_RESULT(desc.val.createInstance(instance));
+        return instance;
     }
 
     playInstance(instance) {

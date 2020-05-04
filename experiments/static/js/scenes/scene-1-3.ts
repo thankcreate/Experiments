@@ -15,8 +15,7 @@ class Scene1L3 extends Scene1 {
 
     needToDestroyBeforeShowSensitive = 5;
 
-    
-    bgmSeperateWays: Phaser.Sound.BaseSound;    
+     
 
     constructor() {
         super('Scene1L3');
@@ -33,10 +32,6 @@ class Scene1L3 extends Scene1 {
     
     loadAudio() {
         super.loadAudio();
-        let audioLoadConfig = {
-            bgm_1: ["assets/audio/SeperateWays.mp3", 'bgmSeperateWays']
-        };
-        this.loadAudioWithConfig(audioLoadConfig);
     }
     
     create() {
@@ -46,6 +41,43 @@ class Scene1L3 extends Scene1 {
         this.initNormalGameFsm();       
        
         this.hp.initMaxHealth(100);
+        this.initSeparateWaysBGM();
+    }
+
+    fmodBgmInstance :any;
+    initSeparateWaysBGM() {    
+        let FMOD = FmodManager.getInstance().FMOD;    
+        this.fmodBgmInstance = FmodManager.getInstance().createInstanceByEventName('SeparateWaysProp');
+        this.fmodBgmInstance.val.setCallback((type, event, parameters)=>{this.separateWaysMarkerCallback(type, event, parameters)},
+            FMOD.STUDIO_EVENT_CALLBACK_TIMELINE_MARKER | FMOD.STUDIO_EVENT_CALLBACK_TIMELINE_BEAT |
+            FMOD.STUDIO_EVENT_CALLBACK_SOUND_PLAYED | FMOD.STUDIO_EVENT_CALLBACK_SOUND_STOPPED)         
+    }
+
+    playSeparateWaysBGM() {
+        FmodManager.getInstance().playInstance(this.fmodBgmInstance);
+    }
+
+    separateWaysMarkerCallback(type, event, parameters){
+        let FMOD = FmodManager.getInstance().FMOD;
+        if (type == FMOD.STUDIO_EVENT_CALLBACK_TIMELINE_MARKER)
+        {
+            var props = parameters;
+            let name =  props.name;
+            if(name == '1') {
+                this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                        
+            }
+            else if(name == '2') {
+                this.initShake();
+                this.shakeTween.play();    
+            }
+            else if(name == '3') {
+                this.needChangeDwitter = true;
+            }
+            else if(name == '4') {
+                this.needChangeEnemy = true;
+                this.gamePlayFsm.curState.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
+            }
+        }
     }
     
     // the destroyed number after bgm is on
@@ -224,33 +256,33 @@ class Scene1L3 extends Scene1 {
         state.addAction(s=>{
             
             this.needFeedback = true;
-            this.playAsBgm(this.bgmSeperateWays);
-            
+            this.playSeparateWaysBGM();
+            // this.playAsBgm(this.bgmSeperateWays);            
             // this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);               
         })
-        // .addDelayAction(this, 2000)
-        .addAction(s=>{           
+        // // .addDelayAction(this, 2000)
+        // .addAction(s=>{           
             
-        })
-        .addDelayAction(this, 3500)
-        .addAction(s=>{         
+        // })
+        // .addDelayAction(this, 3500)
+        // .addAction(s=>{         
                
-            this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                           
-        })
-        .addDelayAction(this, 3900)
-        .addAction(s=>{     
-            this.initShake();
-            this.shakeTween.play();    
-            // this.needChangeDwitter = true;                   
-        })
-        .addDelayAction(this, 3700)
-        .addAction(s=>{     
-            this.needChangeDwitter = true;                   
-        })
-        .addDelayAction(this, 3300)
-        .addAction(s=>{        
-            this.needChangeEnemy = true;
-        })
+        //     this.enemyManager.startSpawnStrategy(SpawnStrategyType.FlowTheory);                           
+        // })
+        // .addDelayAction(this, 3900)
+        // .addAction(s=>{     
+        //     this.initShake();
+        //     this.shakeTween.play();    
+        //     // this.needChangeDwitter = true;                   
+        // })
+        // .addDelayAction(this, 3700)
+        // .addAction(s=>{     
+        //     this.needChangeDwitter = true;                   
+        // })
+        // .addDelayAction(this, 3300)
+        // .addAction(s=>{        
+        //     this.needChangeEnemy = true;
+        // })
         .addAction(s=>{
             s.unionEvent('TO_SENSITIVE_WORD', 'bgmProcessFinished');
         });

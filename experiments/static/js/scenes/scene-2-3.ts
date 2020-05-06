@@ -1,21 +1,42 @@
 /// <reference path="scene-2.ts" />
-class Scene2L3 extends Scene2 {
+class Scene2L3 extends Scene2 {    
 
-    
     constructor() {
         super('Scene2L3');
     }
 
+    basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+    // basicNums = [29, 30, 31, 32, 33, 34];
+    randomNums = [];
     get npNums(): number[]{
         // return [11, 14, 12, 15, 13, 16, 17];
         // return [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         
         // return [26, 27, 28, 29, 30, 31, 32, 33, 34];
-        return [34, 32, 34];
+        if(!this.randomNums || this.randomNums.length == 0) {
+            this.randomNums = [...this.basicNums];
+            for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+                this.randomNums.push(i);
+            }
+        }        
+        return this.randomNums;
+    }
+
+    endingBgm1: Phaser.Sound.BaseSound;
+    endingBgm2: Phaser.Sound.BaseSound;
+    
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            bgm_1: ["assets/audio/ending-ver1-country.mp3", 'endingBgm1'],
+            bgm_2: ["assets/audio/ending-ver2-tropical-house.mp3", 'endingBgm2']
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
     }
 
 
     create() {
+        this.isExercise = true;
         super.create();
         this.initGamePlayFsm();           
         this.initNewspaperFsm();        
@@ -38,7 +59,7 @@ class Scene2L3 extends Scene2 {
             this.initStNewspaperWithIndex(i);
         }
         this.initStNytFirstTime();
-        this.initStNytSecondTime();
+        // this.initStNytSecondTime();
         this.initStSeeNoEvilUpgrade();
         this.initStLessCleaningTimeUpgrade();
         this.initStAlwaysWrong();
@@ -49,6 +70,11 @@ class Scene2L3 extends Scene2 {
 
         this.updateObjects.push(this.newspaperFsm);
     }
+
+    getProgressBarDenominator() {
+        return this.basicNums.length + 5;
+    }
+
 
 
     getGamePlayFsmData(): IFsmData {        
@@ -210,11 +236,9 @@ class Scene2L3 extends Scene2 {
     
     onConfirmAutoExpressionClick(yes: boolean) {
         FmodManager.getInstance().playOneShot('65537_ConfirmEmoji');
-        if(!yes) {
+        // if(!yes) {
             $(`#confirm-button-no span`).text("Yes, that's exactly what I need");
-        }
-
-        this.showPropButtonWithType(true, NewspaperPropType.AutoEmotion);
+        // }
 
         this.inFinalAutoMode = true;
         let rt = this.add.tween({
@@ -223,11 +247,31 @@ class Scene2L3 extends Scene2 {
             duration: 260000,
             loop: -1,
         })
-        this.canRecieveEmotion = true;
 
-        setTimeout(() => {      
-            this.showConfirmButons(false);      
-        }, 1000);
+        // $('html').css('filter', 'grayscale(100%)');
+
+        $('#confirm-button-root').css('pointer-events', 'none');
+        setTimeout(() => {
+            
+            if(yes) {
+                this.playAsBgm(this.endingBgm2);
+            }
+            else {
+                this.playAsBgm(this.endingBgm1);
+            }    
+        }, 500);
+        
+        
+        let confirmText='Thank you for your cooperation!';
+        this.subtitle.loadAndSay(this.subtitle, confirmText, true, 2500, 2500, 1000).finally(()=>{
+            this.showPropButtonWithType(true, NewspaperPropType.AutoEmotion);
+            this.canRecieveEmotion = true;
+            this.showConfirmButons(false);  
+
+            
+    
+        })      
+
     }
     
     

@@ -22,9 +22,10 @@ class Scene2 extends BaseScene {
     newspaperFsm: NewspaperFsm;
 
     fullTime = 3;
- 
+    // fullTime = 1;
 
-    cleanTimeLong = 10;
+    cleanTimeLong = 2;
+    // cleanTimeLong = 10;
     cleanTimeShort = 2; 
 
     cleanTime = 10; // seconds
@@ -654,11 +655,16 @@ class Scene2 extends BaseScene {
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
 
+    getProgressBarDenominator() {
+        return this.npNums.length
+    }
+
     refreshLevelProgressBarCss(index: number) {
-        let pg = (index) / this.npNums.length * 100;
+        let deno = this.getProgressBarDenominator();
+        let pg = (index) / deno * 100;
         let fixedPg = pg.toFixed(0);
         $('#level-progress-bar').css('width',  fixedPg + '%');
-        $('#level-progress-text').text(`Experiment Progress: ${index} / ${this.npNums.length}`);
+        $('#level-progress-text').text(`Experiment Progress: ${index} / ${index <= deno ? deno : '65537'}`);
     }
 
     getCurrentItem(): NewsItem {
@@ -707,7 +713,6 @@ class Scene2 extends BaseScene {
             if(NewsDataManager.getInstance().isAlwaysWrongItem(item) && !this.isPropActivated(NewspaperPropType.Prompt)){
                 correct = false;
             }
-
 
             this.isLastTestCorrect = correct; 
             
@@ -1081,11 +1086,15 @@ class Scene2 extends BaseScene {
     }
 
     showResult(isCorrect: boolean) : Pany {
+        if(!isCorrect) {
+            this.npHp--; 
+            this.refreshHp();
+        }
 
         $('#newspaper-result-content').text(isCorrect? '✔️' : '❌');
         
 
-        let ret = TimeOutPromise.create(1000).then(s=>{
+        let ret = TimeOutPromise.create(800).then(s=>{
             
             if(isCorrect) {
                 FmodManager.getInstance().playOneShot('65537_CorrectResponse');
@@ -1093,6 +1102,9 @@ class Scene2 extends BaseScene {
             else {
                 FmodManager.getInstance().playOneShot('65537_WrongResponse');
             }
+
+            // when in show result, make sure the top of hp bar is moved down
+            $('#newspaper-hp').css('top', '90px');
 
             let dt = 500;     
             return TweenPromise.create(this, {
@@ -1103,8 +1115,7 @@ class Scene2 extends BaseScene {
         }).then(s=>{
             return TimeOutPromise.create(1000);
         }) 
-        // when in show result, make sure the top of hp bar is moved down
-        $('#newspaper-hp').css('top', '90px');
+
 
         return ret;
     }
@@ -1229,11 +1240,13 @@ class Scene2 extends BaseScene {
         
         this.setTitle(this.getToolTipToRealPaperTitle(newsItem, false));
 
-        let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
+        
+        let assignedIndex = Number.parseInt(newsItem.content.match(/index='(.*?)'/)[1]);
+        
         // console.log("assignedIndex: " + assignedIndex);
         // let assignedIndex = 0;
 
-        let curRssItem = this.rssItems[assignedIndex];
+        let curRssItem = this.rssItems[assignedIndex % this.rssItems.length];
         let content = curRssItem.title + '<br/><br/>' + curRssItem.desc;
         contentSlot.html(content);
 
@@ -1575,7 +1588,7 @@ class Scene2 extends BaseScene {
     onConfirmAutoExpressionClick(yes: boolean) {
         // implemented in subclass
     }
-    
+
     initStNewspaperWithIndex(idx: number) {
         let index = idx;
         let item = this.getNewsItemFromIndex(index);
@@ -1596,12 +1609,16 @@ class Scene2 extends BaseScene {
             state.addOnEnter(s=>{                
                 this.isAttentionChecking = true;
                 this.enableAttention(true);
-                this.setStrikeThroughOnEmojiIcons(true);                
+                this.setStrikeThroughOnEmojiIcons(true);              
+                if(!this.isPropActivated(NewspaperPropType.SeeNoEvil) && item.index != SEE_NO_EVIL_NUM)
+                    this.showExpressionPrompt(true);  
             })        
             state.addOnExit(s=>{
                 this.isAttentionChecking = false;
                 this.enableAttention(false);
                 this.setStrikeThroughOnEmojiIcons(false);
+                                
+                this.showExpressionPrompt(false);  
             });
         }
 
@@ -1612,7 +1629,9 @@ class Scene2 extends BaseScene {
             gResetLabelWall()      
             this.initDnDSource();
             this.setAllLabels();   
-            $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+            if(!this.isPropActivated(NewspaperPropType.AutoLabel)) {
+                $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+            }            
             this.setTitle(this.getToolTipToRealPaperTitle(item, true));           
             $('#newspaper-toolbox-stamps').css('visibility', 'visible'); 
         })
@@ -1674,7 +1693,7 @@ class Scene2 extends BaseScene {
         } 
         
 
-        if(this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item)) {            
+        if(!this.isRealPaper(item) && (this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item))) {            
             wrong.addAction(s=>{
                 this.resetProgress();
                 this.hideResult();                

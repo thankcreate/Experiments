@@ -7,6 +7,7 @@ class Scene2L2 extends Scene2 {
 
     get npNums(): number[]{
         return [11, 14, 12, 15, 13, 16, 17];
+        // return [17];
         // return [11];
         //return [17];
     }
@@ -95,7 +96,7 @@ class Scene2L2 extends Scene2 {
         end.addAction(s=>{
             this.setCenterTextPaper('65537', '👉');
         });
-        end.addSubtitleAction(this.subtitle, ()=>`It's time to try something more advanced.`, true, null, null, 1500);
+        end.addSubtitleAction(this.subtitle, ()=>`Let's keep the spirit!`, true, null, null, 1500);
         end.addAction(s=>{
             this.getController().gotoNextScene();
         })
@@ -116,6 +117,7 @@ class Scene2L2 extends Scene2 {
                 this.refreshEmojiProgressBarCss();
 
                 let p = Promise.resolve();
+                console.log('toppr' + this.topProgress.value);
                 if(this.topProgress.value < 0.3) {
                     p = p.then(s=>{
                         return this.subtitle.loadAndSay(this.subtitle, "I'm sorry? What's so funny?!", true)
@@ -141,8 +143,11 @@ class Scene2L2 extends Scene2 {
                 
                 p.catch(s=>{ console.log('subtitle show end with some err')})
                 .finally(()=>{
-                    this.canRecieveEmotion = true;
-                    this.needFreezeIndicatorMeterBtn = false;
+                    if(this.topProgress.value < 1) {
+                        this.canRecieveEmotion = true;
+                        this.needFreezeIndicatorMeterBtn = false;
+                    }                       
+                    
                 })
             }
 

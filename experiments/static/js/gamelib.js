@@ -626,6 +626,9 @@ class BaseScene extends Phaser.Scene {
         this.entryPoint = ep;
     }
     playAsBgm(sound) {
+        if (this.bgm) {
+            this.bgm.stop();
+        }
         this.bgm = sound;
         this.bgm.play('', { loop: true });
     }
@@ -2139,7 +2142,9 @@ class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
         this.fullTime = 3;
-        this.cleanTimeLong = 10;
+        // fullTime = 1;
+        this.cleanTimeLong = 2;
+        // cleanTimeLong = 10;
         this.cleanTimeShort = 2;
         this.cleanTime = 10; // seconds
         this.currIndex = 0;
@@ -2625,11 +2630,15 @@ class Scene2 extends BaseScene {
         $('#emoji-progress-top').css('width', this.topProgress.value * 100 + "%");
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
+    getProgressBarDenominator() {
+        return this.npNums.length;
+    }
     refreshLevelProgressBarCss(index) {
-        let pg = (index) / this.npNums.length * 100;
+        let deno = this.getProgressBarDenominator();
+        let pg = (index) / deno * 100;
         let fixedPg = pg.toFixed(0);
         $('#level-progress-bar').css('width', fixedPg + '%');
-        $('#level-progress-text').text(`Experiment Progress: ${index} / ${this.npNums.length}`);
+        $('#level-progress-text').text(`Experiment Progress: ${index} / ${index <= deno ? deno : '65537'}`);
     }
     getCurrentItem() {
         return NewsDataManager.getInstance().getByNum(this.npNums[this.currIndex]);
@@ -2955,14 +2964,20 @@ class Scene2 extends BaseScene {
         return this.hideProgressBars().then(res => { return this.showEmojiProgressBars(); });
     }
     showResult(isCorrect) {
+        if (!isCorrect) {
+            this.npHp--;
+            this.refreshHp();
+        }
         $('#newspaper-result-content').text(isCorrect ? '✔️' : '❌');
-        let ret = TimeOutPromise.create(1000).then(s => {
+        let ret = TimeOutPromise.create(800).then(s => {
             if (isCorrect) {
                 FmodManager.getInstance().playOneShot('65537_CorrectResponse');
             }
             else {
                 FmodManager.getInstance().playOneShot('65537_WrongResponse');
             }
+            // when in show result, make sure the top of hp bar is moved down
+            $('#newspaper-hp').css('top', '90px');
             let dt = 500;
             return TweenPromise.create(this, {
                 targets: this.resultCssBinding,
@@ -2972,8 +2987,6 @@ class Scene2 extends BaseScene {
         }).then(s => {
             return TimeOutPromise.create(1000);
         });
-        // when in show result, make sure the top of hp bar is moved down
-        $('#newspaper-hp').css('top', '90px');
         return ret;
     }
     hideResult() {
@@ -3070,10 +3083,10 @@ class Scene2 extends BaseScene {
         let contentSlot = $('#newspaper-content-text');
         let thumbnailSlot = $('#newspaper-thumbnail');
         this.setTitle(this.getToolTipToRealPaperTitle(newsItem, false));
-        let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
+        let assignedIndex = Number.parseInt(newsItem.content.match(/index='(.*?)'/)[1]);
         // console.log("assignedIndex: " + assignedIndex);
         // let assignedIndex = 0;
-        let curRssItem = this.rssItems[assignedIndex];
+        let curRssItem = this.rssItems[assignedIndex % this.rssItems.length];
         let content = curRssItem.title + '<br/><br/>' + curRssItem.desc;
         contentSlot.html(content);
         thumbnailSlot.attr('src', curRssItem.imageUrl);
@@ -3370,11 +3383,14 @@ class Scene2 extends BaseScene {
                 this.isAttentionChecking = true;
                 this.enableAttention(true);
                 this.setStrikeThroughOnEmojiIcons(true);
+                if (!this.isPropActivated(NewspaperPropType.SeeNoEvil) && item.index != SEE_NO_EVIL_NUM)
+                    this.showExpressionPrompt(true);
             });
             state.addOnExit(s => {
                 this.isAttentionChecking = false;
                 this.enableAttention(false);
                 this.setStrikeThroughOnEmojiIcons(false);
+                this.showExpressionPrompt(false);
             });
         }
         // Purged(waiting for label to be put in)
@@ -3384,7 +3400,9 @@ class Scene2 extends BaseScene {
             gResetLabelWall();
             this.initDnDSource();
             this.setAllLabels();
-            $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+            if (!this.isPropActivated(NewspaperPropType.AutoLabel)) {
+                $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+            }
             this.setTitle(this.getToolTipToRealPaperTitle(item, true));
             $('#newspaper-toolbox-stamps').css('visibility', 'visible');
         });
@@ -3440,7 +3458,7 @@ class Scene2 extends BaseScene {
         else {
             this.helperAddSubtitleAction(wrong, item.wrongResonpse, true);
         }
-        if (this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item)) {
+        if (!this.isRealPaper(item) && (this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item))) {
             wrong.addAction(s => {
                 this.resetProgress();
                 this.hideResult();
@@ -3838,6 +3856,7 @@ class Scene2L2 extends Scene2 {
     }
     get npNums() {
         return [11, 14, 12, 15, 13, 16, 17];
+        // return [17];
         // return [11];
         //return [17];
     }
@@ -3911,7 +3930,7 @@ class Scene2L2 extends Scene2 {
         end.addAction(s => {
             this.setCenterTextPaper('65537', '👉');
         });
-        end.addSubtitleAction(this.subtitle, () => `It's time to try something more advanced.`, true, null, null, 1500);
+        end.addSubtitleAction(this.subtitle, () => `Let's keep the spirit!`, true, null, null, 1500);
         end.addAction(s => {
             this.getController().gotoNextScene();
         });
@@ -3926,6 +3945,7 @@ class Scene2L2 extends Scene2 {
                 this.topProgress.value += 0.25;
                 this.refreshEmojiProgressBarCss();
                 let p = Promise.resolve();
+                console.log('toppr' + this.topProgress.value);
                 if (this.topProgress.value < 0.3) {
                     p = p.then(s => {
                         return this.subtitle.loadAndSay(this.subtitle, "I'm sorry? What's so funny?!", true);
@@ -3950,8 +3970,10 @@ class Scene2L2 extends Scene2 {
                 }
                 p.catch(s => { console.log('subtitle show end with some err'); })
                     .finally(() => {
-                    this.canRecieveEmotion = true;
-                    this.needFreezeIndicatorMeterBtn = false;
+                    if (this.topProgress.value < 1) {
+                        this.canRecieveEmotion = true;
+                        this.needFreezeIndicatorMeterBtn = false;
+                    }
                 });
             }
             if (!this.hasLastNeg && this.bottomProgress.value >= 0.5) {
@@ -3980,14 +4002,32 @@ class Scene2L2 extends Scene2 {
 class Scene2L3 extends Scene2 {
     constructor() {
         super('Scene2L3');
+        this.basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+        // basicNums = [29, 30, 31, 32, 33, 34];
+        this.randomNums = [];
     }
     get npNums() {
         // return [11, 14, 12, 15, 13, 16, 17];
         // return [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         // return [26, 27, 28, 29, 30, 31, 32, 33, 34];
-        return [34, 32, 34];
+        if (!this.randomNums || this.randomNums.length == 0) {
+            this.randomNums = [...this.basicNums];
+            for (let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+                this.randomNums.push(i);
+            }
+        }
+        return this.randomNums;
+    }
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            bgm_1: ["assets/audio/ending-ver1-country.mp3", 'endingBgm1'],
+            bgm_2: ["assets/audio/ending-ver2-tropical-house.mp3", 'endingBgm2']
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
     }
     create() {
+        this.isExercise = true;
         super.create();
         this.initGamePlayFsm();
         this.initNewspaperFsm();
@@ -4007,7 +4047,7 @@ class Scene2L3 extends Scene2 {
             this.initStNewspaperWithIndex(i);
         }
         this.initStNytFirstTime();
-        this.initStNytSecondTime();
+        // this.initStNytSecondTime();
         this.initStSeeNoEvilUpgrade();
         this.initStLessCleaningTimeUpgrade();
         this.initStAlwaysWrong();
@@ -4015,6 +4055,9 @@ class Scene2L3 extends Scene2 {
         this.initStAutoExpression();
         this.appendLastStateEnding();
         this.updateObjects.push(this.newspaperFsm);
+    }
+    getProgressBarDenominator() {
+        return this.basicNums.length + 5;
     }
     getGamePlayFsmData() {
         return normal_2_3;
@@ -4146,10 +4189,9 @@ class Scene2L3 extends Scene2 {
     }
     onConfirmAutoExpressionClick(yes) {
         FmodManager.getInstance().playOneShot('65537_ConfirmEmoji');
-        if (!yes) {
-            $(`#confirm-button-no span`).text("Yes, that's exactly what I need");
-        }
-        this.showPropButtonWithType(true, NewspaperPropType.AutoEmotion);
+        // if(!yes) {
+        $(`#confirm-button-no span`).text("Yes, that's exactly what I need");
+        // }
         this.inFinalAutoMode = true;
         let rt = this.add.tween({
             targets: [this.dwitterBKG.inner],
@@ -4157,10 +4199,22 @@ class Scene2L3 extends Scene2 {
             duration: 260000,
             loop: -1,
         });
-        this.canRecieveEmotion = true;
+        // $('html').css('filter', 'grayscale(100%)');
+        $('#confirm-button-root').css('pointer-events', 'none');
         setTimeout(() => {
+            if (yes) {
+                this.playAsBgm(this.endingBgm2);
+            }
+            else {
+                this.playAsBgm(this.endingBgm1);
+            }
+        }, 500);
+        let confirmText = 'Thank you for your cooperation!';
+        this.subtitle.loadAndSay(this.subtitle, confirmText, true, 2500, 2500, 1000).finally(() => {
+            this.showPropButtonWithType(true, NewspaperPropType.AutoEmotion);
+            this.canRecieveEmotion = true;
             this.showConfirmButons(false);
-        }, 1000);
+        });
     }
     // this is just to append the ending logic to the last newspaper
     appendLastStateEnding() {
@@ -7767,9 +7821,14 @@ var NewsSourceType;
     NewsSourceType[NewsSourceType["WASHINGTON_POST"] = 2] = "WASHINGTON_POST";
     NewsSourceType[NewsSourceType["CNN"] = 3] = "CNN";
 })(NewsSourceType || (NewsSourceType = {}));
+let SEE_NO_EVIL_NUM = 26;
 let ALWAYS_WRONG_NUM = 29;
 let AUTO_LABEL_NUM = 31;
 let AUTO_EXPRESSION_NUM = 34;
+let FAKE_LOOP_TEMPLATE_NUM = 101;
+let REAL_LOOP_TEMPLATE_NUM = 102;
+let LOOP_BEGIN_NUM = 1001;
+let LOOP_END_NUM = 1100;
 class NewsDataManager {
     constructor() {
         this.data = [];
@@ -7785,8 +7844,8 @@ class NewsDataManager {
     }
     initLabelMapping() {
         this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism', 'Enemy of the People'));
-        this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Nasty', 'Third-Rate Reporter'));
-        this.labelMapping.set(NewsSourceType.WASHINGTON_POST, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
+        this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Do Nothing Left', 'Third-Rate Reporter'));
+        this.labelMapping.set(NewsSourceType.WASHINGTON_POST, new Array('A New Hoax', 'Nasty', 'Hate Our Country'));
     }
     getByNum(num) {
         for (let i in this.data) {
@@ -7875,6 +7934,39 @@ class NewsDataManager {
             }
         }
         // console.log(this.data);
+        this.appendLoop();
+    }
+    appendLoop() {
+        let fakeTemplate = this.getByNum(FAKE_LOOP_TEMPLATE_NUM);
+        let realTemplate = this.getByNum(REAL_LOOP_TEMPLATE_NUM);
+        for (let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+            let logicIndex = i - LOOP_BEGIN_NUM;
+            let contentIndex = 6 + logicIndex;
+            let loopItem = null;
+            if (logicIndex % 2 == 0) {
+                loopItem = JSON.parse(JSON.stringify(fakeTemplate));
+                loopItem.answer = Math.random() < 0.5 ? 0 : 1;
+            }
+            else {
+                let rd = Math.floor((Math.random() * 3));
+                loopItem = JSON.parse(JSON.stringify(realTemplate));
+                if (rd == 0) {
+                    loopItem.title = 'New York Times';
+                    loopItem.content = `<nyt index='${contentIndex}'/>`;
+                }
+                else if (rd == 1) {
+                    loopItem.title = 'Washington Post';
+                    loopItem.content = `<wp index='${contentIndex}'/>`;
+                }
+                else if (rd == 2) {
+                    loopItem.title = 'CNN';
+                    loopItem.content = `<cnn index='${contentIndex}'/>`;
+                }
+            }
+            this.judgeType(loopItem);
+            loopItem.index = i;
+            this.data.push(loopItem);
+        }
     }
     isRealPaper(item) {
         return item.answer < 0;
@@ -7901,6 +7993,7 @@ var VoiceType;
 (function (VoiceType) {
     VoiceType[VoiceType["Voice65536"] = 0] = "Voice65536";
     VoiceType[VoiceType["Voice65537"] = 1] = "Voice65537";
+    VoiceType[VoiceType["Japanese"] = 2] = "Japanese";
 })(VoiceType || (VoiceType = {}));
 class SpeechManager {
     constructor(scene) {
@@ -7910,7 +8003,7 @@ class SpeechManager {
          * 0: 65536 voice
          * 1: 65537 voice
          */
-        this.voiceType = 'en-US-Wavenet-D';
+        this.voiceTypeLabel = 'en-US-Wavenet-D';
         /**
          * loadRejecters is a cache for the current promise reject handler
          * for those loading process.
@@ -7923,13 +8016,17 @@ class SpeechManager {
         this.scene = scene;
     }
     setVoiceType(tp) {
+        this.voiceTypeLabel = this.convertVoiceTypeToLabel(tp);
+    }
+    convertVoiceTypeToLabel(tp) {
+        let ret = 'en-US-Wavenet-D';
         if (tp == VoiceType.Voice65536) {
-            this.voiceType = 'en-US-Wavenet-D';
+            ret = 'en-US-Wavenet-D';
         }
-        else {
-            // this.voiceType = 'en-IN-Wavenet-A';            
-            this.voiceType = 'en-US-Wavenet-C';
+        else if (tp == VoiceType.Voice65537) {
+            ret = 'en-US-Wavenet-C';
         }
+        return ret;
     }
     /**
      * If after 'timeOut' the resource is still not ready to play\
@@ -7953,7 +8050,7 @@ class SpeechManager {
             }
         }
         else {
-            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id", this.voiceType)
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id", this.getHotFixVoiceTypeLabel(text))
                 .then(oReq => {
                 //console.log("suc in quickLoadAndPlay")
                 var arrayBuffer = oReq.response;
@@ -7984,6 +8081,14 @@ class SpeechManager {
             return ret;
         }
     }
+    getHotFixVoiceTypeLabel(text) {
+        let ret = this.voiceTypeLabel;
+        console.log(text);
+        if (text.trim() == '失礼します') {
+            ret = 'ja-JP-Wavenet-B';
+        }
+        return ret;
+    }
     /**
      * If after 'timeOut' the resource is still not ready to play\
      * cancel the whole process
@@ -7992,7 +8097,7 @@ class SpeechManager {
      * @param timeOut
      */
     staticLoadAndPlay(text, play = true, timeOut = 4000) {
-        let apiAndLoadPromise = apiTextToSpeech(text, "no_id", this.voiceType)
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id", this.getHotFixVoiceTypeLabel(text))
             .then(sucRet => {
             let retID = sucRet.id;
             let retText = sucRet.input;
@@ -8127,19 +8232,21 @@ let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Sec
 19																
 20																
 21																
-22	New York Times	<nyt index='0'/>	-1	What the heck?! New York Times? <br/> Tron! Tron! Come here and have a look!	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?				0	1					FirstShownNYT
-23	New York Times	<nyt index='0'/>	-1	To pretend you didn't see anything, pleaes cover <br/> your eyes to decrease your ATTENTION level. <hr/>  We can only purge this filthy page when your ATTENTION level is low.				Well done! {username}. <hr/> Now you can put your hands down<br/> and drag in the appropriate labels. <br/> If you are still fuzzy-headed, <br/>  just hover your mouse on the newspaper title,  <br/>  and trust your gut feeling!	Yeah, that's exactly what defines N** Y*** T****.	0	1					
-24	CNN	<cnn index='1'/>	-1	{username}, you know what to do				Sorry for the mind polution here. <br/>  Time to work!	You're learning so fast.	0	1					
-25	Прaвда	Left-wing activists gathered in front of the congress aiming to extend <span class='keyword'>weekends<span class='tooltip'>Weekday: 9 experiments designated<br/>Weekend: 9 voluntary experiments designated</span></span> to three days. <br/> They claimed that if the chief scientist doesn't satify their need, they will refuse to take experiments at weekends.	0	Seems that activists are active again	No wonder they call them Do Nothing Left.  <hr/> Make sense.	Incorrect. Wrong. False emotion										
-26	Washington Post	<wp index='2'/>🙈	-1	Oh, no, not again. <br/> Our {username} is a bit tired of this red tape. <hr/> How about we give you this to automatically  protect you from the harmful information?				Hope my little gadget has made your life easier.  <hr/> Jigsaw puzzle time!	Good job.							
-27	Gamers & Workers	Tindenno's latest game Animal Intersection hit the market!  <br/><br/> Tired of your real life and wonder if there's a dream gateaway? You should definately try Animal Intersection.  <br/>In this game, you can: <br/> • Build your community from scratch on a deserted island brimming with possibility. <br/> • Customize your character, home, painting with 100% <span class='keyword'>design freedom<span class='tooltip'>Of course, you can have 100% design freedom if you don't violate the law.</span></span> <br/> • Hang out with friends all <span class='keyword'>over the world<span class='tooltip'>When I say 'world', I mean it's a world where 90% people hate our country</span></span> .	0	100% design freedom?  <br/> Interesting. <br/>	I just know {username} will figure it out	Oh, I thought everyone should understand we don't welcome games like this. <br/> You surprised me. Again.										
+22	New York Times	<nyt index='0'/>	-1	What the heck?! New York Times? <br/> Tron! Tron! Come here and have a look!	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?				0	1					FirstShownNYT
+23	New York Times	<nyt index='0'/>	-1	To pretend you didn't see anything, pleaes cover <br/> your eyes to decrease your ATTENTION level. <hr/>  We can only purge this filthy page when your ATTENTION level is low.				Well done! {username}. <hr/> Now you can put your hands down<br/> and drag in the appropriate labels. <hr/> If you are still fuzzy-headed, <br/>  just hover your mouse on the newspaper title,  <br/>  and trust your gut feeling!	Yeah, that's exactly what defines N** Y*** T****.	0	1					
+24	CNN	<cnn index='1'/>	-1	{username}, you know what to do.				Sorry for the mind polution here. <br/>  Time to work!	You're learning so fast.	0	1					
+25	Прaвда	Left-wing activists gathered in front of Congress aiming to extend <span class='keyword'>weekends<span class='tooltip'>Weekday: 6 experiments designated<br/>Weekend: 6 voluntary experiments designated</span></span> to be three days. <br/><br/> They claimed that if the chief scientist doesn't satify their need, they will refuse to admit that Experiment 65537 is better than Experiment 65536.	0	Seems that activists are active again.	No wonder they call them Do Nothing Left.  <hr/> Make sense.	Incorrect. Wrong. False emotion. <hr/> You shouldn't have any empathy on those activists. <hr/> They are the unstabilizing factor of our society.	Let's try again.									
+26	Washington Post	<wp index='2'/>🙈	-1	Oh, no, not again. <br/> Our {username} is a bit tired of this red tape. <hr/> How about we give you this convenient bar to<br/> automatically protect you from the harmful information?				Hope my little gadget has made your life easier.  <hr/> Jigsaw puzzle time!	Good job.							
+27	Gamers & Workers	Tindenno's latest game Animal Intersection hit the market!  <br/><br/> Tired of your real life and wonder if there's a dream gateaway? You should definately try Animal Intersection.  <br/><br/>In this game, you can: <br/> • Build your community from scratch on a deserted island brimming with possibility. <br/> • Customize your character, home, painting with 100% <span class='keyword'>design freedom<span class='tooltip'>Of course, you can have 100% design freedom if you don't violate the law.</span></span> <br/> • Hang out with friends all <span class='keyword'>over the world<span class='tooltip'>When I say 'world', I mean it's a world where 90% people hate our country</span></span> .	0	100% design freedom?  <br/> Interesting. <br/>	I just know {username} will figure it out	No!<br/>Who need a 100% freedom?. <hr/> That's fake freedom, <br/> and fake freedom can really miseducate our kids.	Let's try again.									
 28	New York Times	<nyt index='3'/>🧹	-1	What's the point of keep our subject waiting? <br/> Let's make the purging work faster.												
-29	Gamers & Workers	The total number of games legally published on Tindenno Knob Store rocketed by 200% !!! <br/><br/> Just like a saying goes: all experiments and no play makes Jack a dull boy. With two more games got their license from the <span class='keyword'>National Radio and Television Administration<span class='tooltip'>NRTA is responsible to select good games for the taxpayers to protect them from harmful electronic heroin.</span></span>, players trippled their freedom of choice.  <br/><br/> Thank you, Mr. Experiment Designer, for bringing us so much fun.	1		What ? No! <hr/> Don't you realize the writer is trying<br/> to play sarcastic to mock our country?	What? No! <hr/> Seems you are not happy with our game industry policy?	OK, I guess {username} is a little upset about the judgement criteria here. <hr/> And I'm more than excited to provide this emotion auto suggest upgrade									
-30	YES, MINISTER	[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]	0													
+29	Gamers & Workers	The total number of games legally published on Tindenno Knob Store skyrocketed by 200% !!! <br/><br/> Just like a saying goes: all experiments and no play makes Jack a dull boy. With two more games got their licenses from the <span class='keyword'>National Radio and Television Administration<span class='tooltip'>NRTA is responsible to select good games for the taxpayers to protect them from harmful electronic heroin.</span></span>, players trippled their freedom of choice.  <br/><br/> Thank you, Mr. Experiment Designer, for bringing us so much fun.	1		What? No! <hr/> Don't you realize the writer is trying<br/> to mock our regime in a sarcastic way? <hr/> What's that smile? <hr/> Why can't people show some sympathy to us?! <br/> We just want to give some protection!	What? No! <hr/> Seems you are not happy with our game industry policy? <hr/> Don't try to oppose the policy. <br/> We just want to give some protection. <hr/> Why can't people show some sympathy to us?!	Oh, sorry. I got carried away.<hr/> 失礼します <hr/> I guess {username} is a little upset about the judgement criteria here. <hr/> And I'm more than excited to provide this expression suggestion upgrade									
+30	YES, MINISTER	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	0													
 31	Washington Post	<wp index='4'/>🏷️	-1					I'm sure you don't feel so good <br/>about the repetitive drag and drop.  <br/> Let's make it easier.								
 32	CNN	<cnn index='5'/>	-1													
-33	Mall Street Journal	[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]	0													
-34	Justice Times	[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]	0	I think we already have enough facial muscle exercise today. <br/> What about we give you a choice to have an automatic expression?												
+33	Mall Street Journal	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	0													
+34	Lorem Ipsum	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	0	I think we already have enough facial muscle exercise today. <br/> What about we give you a choice to have an automatic expression?												
+101	Lorem Ipsum	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	1													
+102	New York Times	<nyt index='6'/>	-1													
 `;
 var SpawnStrategyType;
 (function (SpawnStrategyType) {
@@ -10496,8 +10603,8 @@ var NewspaperPropType;
 let newspaperPropInfos = [
     { type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: '', activated: false },
     { type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: '', activated: false },
-    { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: '', activated: false },
     { type: NewspaperPropType.Prompt, icon: '💡', desc: '', activated: false },
+    { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: '', activated: false },
     { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: '', activated: false },
 ];
 /// <reference path="../../interface.ts" />

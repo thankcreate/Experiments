@@ -446,7 +446,7 @@ input[type="submit"]:active {
   top:6px;
   bottom: 6px;     
   background-color: white;
-  opacity: 0.95;
+  opacity: 0.8;
   visibility: hidden;
 }
 
@@ -853,7 +853,7 @@ input[type="submit"]:active {
   top: -6px;
   opacity: 0.995;
   /* background-color: #4b4b4b; */
-  background-color: rgb(37, 37, 37);
+  background-color: rgba(37, 37, 37,0.96);
   border-color: black;
   border-width: 5px;
   border-style: dashed;

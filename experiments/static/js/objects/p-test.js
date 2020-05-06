@@ -1,21 +1,30 @@
 // tt = [5,4,3,2,1]
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
-function waitPromise(dt)  {
-    return new Promise( (r, j)=>{
-        setTimeout(() => {
-            r('waitPromise');
-            console.log('waitPromisewaitPromisewaitPromisewaitPromise');
-        }, dt);
-    })
+
+let sum = [0, 0, 0, 0];
+for(let i = 0; i < 5000; i++) {
+    let res = Math.floor((Math.random() * 3))
+    sum[res]++;
 }
-let ret = Promise.resolve(1);
-ret = ret.then(s=>{return waitPromise(1000)})
-ret = ret.then(s=>{console.log('123')})
-ret = ret.then(s=>{return waitPromise(1000)})
-ret = ret.then(s=>{console.log('123')})
-ret = ret.then(s=>{return waitPromise(1000)})
-ret = ret.then(s=>{console.log('123')})
+console.log(sum);
+
+
+// function waitPromise(dt)  {
+//     return new Promise( (r, j)=>{
+//         setTimeout(() => {
+//             r('waitPromise');
+//             console.log('waitPromisewaitPromisewaitPromisewaitPromise');
+//         }, dt);
+//     })
+// }
+// let ret = Promise.resolve(1);
+// ret = ret.then(s=>{return waitPromise(1000)})
+// ret = ret.then(s=>{console.log('123')})
+// ret = ret.then(s=>{return waitPromise(1000)})
+// ret = ret.then(s=>{console.log('123')})
+// ret = ret.then(s=>{return waitPromise(1000)})
+// ret = ret.then(s=>{console.log('123')})
 
 
 // let s   = new Array('123', '44');

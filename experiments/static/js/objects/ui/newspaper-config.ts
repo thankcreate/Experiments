@@ -16,7 +16,7 @@ enum NewspaperPropType {
 let newspaperPropInfos : NewspaperPropInfo[] = [
     {type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: '',activated: false},
     {type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: '', activated: false},    
-    {type: NewspaperPropType.AutoLabel,icon: '🏷️', desc: '', activated: false},
     {type: NewspaperPropType.Prompt, icon: '💡', desc: '', activated: false},
+    {type: NewspaperPropType.AutoLabel,icon: '🏷️', desc: '', activated: false},
     {type: NewspaperPropType.AutoEmotion,icon: '🤯', desc: '', activated: false},
 ]

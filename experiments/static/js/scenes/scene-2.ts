@@ -720,7 +720,10 @@ class Scene2 extends BaseScene {
             
             // this.showResult(this.isLastTestCorrect);
             this.newspaperFsm.event(correct ? Fsm.CORRECT : Fsm.WRONG);
-            this.refreshLevelProgressBarCss(this.currIndex + 1);
+            if(!this.isExercise || correct) {
+                this.refreshLevelProgressBarCss(this.currIndex + 1);
+            }
+                
 
 
         }        
@@ -1620,13 +1623,17 @@ class Scene2 extends BaseScene {
 
         // Specific for NYT-likes
         if(this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
-            state.addOnEnter(s=>{                
-                this.isAttentionChecking = true;
-                this.enableAttention(true);
-                this.setStrikeThroughOnEmojiIcons(true);              
-                if(!this.isPropActivated(NewspaperPropType.SeeNoEvil) && item.index != SEE_NO_EVIL_NUM)
+            state.addOnEnter(s=>{                     
+                this.setStrikeThroughOnEmojiIcons(true);
+            })     
+            state.addAction(s=>{
+                if(!this.isPropActivated(NewspaperPropType.SeeNoEvil) && item.index != SEE_NO_EVIL_NUM){
                     this.showExpressionPrompt(true);  
-            })        
+                }                
+                this.enableAttention(true);
+                this.isAttentionChecking = true;
+            })   
+
             state.addOnExit(s=>{
                 this.isAttentionChecking = false;
                 this.enableAttention(false);
@@ -1733,7 +1740,10 @@ class Scene2 extends BaseScene {
             }            
         })
 
-        
+        let end = this.newspaperFsm.getStateEndByIndex(index);
+        end.addOnEnter(s=>{
+            this.canRecieveEmotion = false;
+        })
     }    
 
     /**

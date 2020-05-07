@@ -64,6 +64,11 @@ class Scene2LPaper extends Scene2 {
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
         this.initNaomiPaperCss();
+
+        let title = $('#newspaper-title');    
+        let content = $('#newspaper-content');
+        title.removeClass('report-font');
+        content.removeClass('report-font');
     }
 
     initNaomiPaperCss() {
@@ -173,6 +178,11 @@ class Scene2LPaper extends Scene2 {
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);
+
+            let title = $('#newspaper-title');    
+            let content = $('#newspaper-content');
+            title.addClass('report-font');
+            content.addClass('report-font');
             this.setCenterTextPaper('Subject Satisfaction', '100%');
         });
         end.addSubtitleAction(this.subtitle, ()=>`Subject:`, true)
@@ -182,7 +192,7 @@ class Scene2LPaper extends Scene2 {
         end.addAction(s=>{
             this.setCenterTextPaper('65537', '👉');
         });
-        end.addSubtitleAction(this.subtitle, ()=>`You will move on to the final test.`, true, null, null, 1500);
+        end.addSubtitleAction(this.subtitle, ()=>`Transfer to the final test.`, true, null, null, 1500);
         end.addAction(s=>{
             this.getController().gotoNextScene();
         })

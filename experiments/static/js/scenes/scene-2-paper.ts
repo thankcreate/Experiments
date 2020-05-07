@@ -182,7 +182,7 @@ class Scene2LPaper extends Scene2 {
         end.addAction(s=>{
             this.setCenterTextPaper('65537', '👉');
         });
-        end.addSubtitleAction(this.subtitle, ()=>`Transferred to the final test.`, true, null, null, 1500);
+        end.addSubtitleAction(this.subtitle, ()=>`You will move on to the final test.`, true, null, null, 1500);
         end.addAction(s=>{
             this.getController().gotoNextScene();
         })

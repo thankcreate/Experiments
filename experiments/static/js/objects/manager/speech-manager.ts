@@ -110,6 +110,12 @@ class SpeechManager {
         if(text.trim() == '失礼します') {
             ret = 'ja-JP-Wavenet-B';
         }
+        else if(text.trim() == 'なに ?') {
+            ret = 'ja-JP-Wavenet-B';
+        }
+        else if(text.trim() == 'Tron! Tron! 私たちが大きな問題を抱えているかどうか見に来てください!') {
+            ret = 'ja-JP-Wavenet-B';
+        }
         return ret;
     }
 

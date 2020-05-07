@@ -866,6 +866,10 @@ class BaseScene extends Phaser.Scene {
     }
 
     playAsBgm(sound: PhSound) {
+        if(this.bgm) {
+            this.bgm.stop();
+        }
+        
         this.bgm = sound;
         this.bgm.play('', {loop: true});        
     }

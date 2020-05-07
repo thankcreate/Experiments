@@ -1,6 +1,7 @@
 enum VoiceType{
     Voice65536,
-    Voice65537
+    Voice65537,
+    Japanese,
 }
 
 
@@ -19,16 +20,21 @@ class SpeechManager {
      * 0: 65536 voice
      * 1: 65537 voice
      */
-    private voiceType:string = 'en-US-Wavenet-D';
+    private voiceTypeLabel:string = 'en-US-Wavenet-D';
 
-    setVoiceType(tp : VoiceType) {
+    setVoiceType(tp : VoiceType) {        
+        this.voiceTypeLabel = this.convertVoiceTypeToLabel(tp);                              
+    }
+
+    convertVoiceTypeToLabel(tp: VoiceType){
+        let ret = 'en-US-Wavenet-D';
         if(tp == VoiceType.Voice65536) {
-            this.voiceType = 'en-US-Wavenet-D';                    
+            ret = 'en-US-Wavenet-D';                    
         }
-        else {
-            // this.voiceType = 'en-IN-Wavenet-A';            
-            this.voiceType = 'en-US-Wavenet-C';            
-        }        
+        else if(tp == VoiceType.Voice65537){            
+            ret = 'en-US-Wavenet-C';            
+        }   
+        return ret;
     }
 
     /**
@@ -62,7 +68,7 @@ class SpeechManager {
             }
         }
         else {
-            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id", this.voiceType)
+            let apiAndLoadPromise = apiTextToSpeech2(text, "no_id", this.getHotFixVoiceTypeLabel(text))
                 .then(oReq => {
                     //console.log("suc in quickLoadAndPlay")
 
@@ -98,6 +104,21 @@ class SpeechManager {
         }
     }
 
+    getHotFixVoiceTypeLabel(text: string) : string{
+        let ret = this.voiceTypeLabel;
+        console.log(text);
+        if(text.trim() == '失礼します') {
+            ret = 'ja-JP-Wavenet-B';
+        }
+        else if(text.trim() == 'なに ?') {
+            ret = 'ja-JP-Wavenet-B';
+        }
+        else if(text.trim() == 'Tron! Tron! 私たちが大きな問題を抱えているかどうか見に来てください!') {
+            ret = 'ja-JP-Wavenet-B';
+        }
+        return ret;
+    }
+
     /**
      * If after 'timeOut' the resource is still not ready to play\
      * cancel the whole process
@@ -106,7 +127,7 @@ class SpeechManager {
      * @param timeOut 
      */
     staticLoadAndPlay(text: string, play = true, timeOut: number = 4000): Pany {
-        let apiAndLoadPromise = apiTextToSpeech(text, "no_id", this.voiceType)
+        let apiAndLoadPromise = apiTextToSpeech(text, "no_id", this.getHotFixVoiceTypeLabel(text))
             .then(sucRet => {
                 let retID = sucRet.id;
                 let retText = sucRet.input;

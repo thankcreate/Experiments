@@ -10,9 +10,18 @@ enum NewsSourceType{
     CNN
 }
 
+let SEE_NO_EVIL_NUM = 26;
 let ALWAYS_WRONG_NUM = 29;
 let AUTO_LABEL_NUM = 31;
 let AUTO_EXPRESSION_NUM = 34;
+
+let FAKE_LOOP_TEMPLATE_NUM = 101;
+let REAL_LOOP_TEMPLATE_NUM = 102;
+
+let LOOP_BEGIN_NUM = 1001;
+let LOOP_END_NUM = 1100;
+
+let NAOMI_PAPER_NUM = 2001;
 
 interface NewsItem{
     index: number,
@@ -66,8 +75,8 @@ class NewsDataManager {
 
     initLabelMapping() {
         this.labelMapping.set(NewsSourceType.NYT, new Array('Dead Paper', 'Embarrassment to Journalism', 'Enemy of the People'));
-        this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Nasty', 'Third-Rate Reporter'));
-        this.labelMapping.set(NewsSourceType.WASHINGTON_POST, new Array('A New Hoax', 'Clown', 'Hate Our Country'));
+        this.labelMapping.set(NewsSourceType.CNN, new Array('Fake News', 'Do Nothing Left', 'Third-Rate Reporter'));
+        this.labelMapping.set(NewsSourceType.WASHINGTON_POST, new Array('A New Hoax', 'Nasty', 'Hate Our Country'));
     }
 
     getByNum(num: number): NewsItem {
@@ -164,7 +173,43 @@ class NewsDataManager {
             }            
         }
         // console.log(this.data);
+        this.appendLoop();
     }
+
+    appendLoop() {
+        let fakeTemplate = this.getByNum(FAKE_LOOP_TEMPLATE_NUM);
+        let realTemplate = this.getByNum(REAL_LOOP_TEMPLATE_NUM);
+
+        for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+            let logicIndex = i - LOOP_BEGIN_NUM;
+            let contentIndex = 6 + logicIndex;
+            let loopItem:NewsItem  = null;
+            if(logicIndex % 2 == 1) {                
+                loopItem = JSON.parse(JSON.stringify(fakeTemplate));
+                loopItem.answer = Math.random() < 0.5 ? 0 : 1;
+            }
+            else {
+                let rd = Math.floor((Math.random() * 3));
+                loopItem = JSON.parse(JSON.stringify(realTemplate));                
+                if(rd == 0) {
+                    loopItem.title = 'New York Times';
+                    loopItem.content = `<nyt index='${contentIndex}'/>`
+                }
+                else if(rd == 1) {
+                    loopItem.title = 'Washington Post';
+                    loopItem.content = `<wp index='${contentIndex}'/>`
+                }
+                else if(rd == 2) {
+                    loopItem.title = 'CNN';
+                    loopItem.content = `<cnn index='${contentIndex}'/>`
+                }
+            }
+            this.judgeType(loopItem);
+            loopItem.index = i;
+            this.data.push(loopItem);
+        }
+    }
+
 
     isRealPaper(item: NewsItem): boolean {
         return item.answer < 0;

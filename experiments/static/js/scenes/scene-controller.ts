@@ -37,6 +37,7 @@ class Controller extends Phaser.Scene {
         '2-0',
         '2-1',
         '2-2',
+        '2-Paper',
         '2-3'
     ]
     
@@ -79,6 +80,14 @@ class Controller extends Phaser.Scene {
         let level = getCurrentLevelRaw().split('-');        
 
         let sceneName = `Scene${level[0]}L${level[1]}` ;
+
+        if(level[0] == '1') {
+            document.title = 'Experiment 65536';
+        }
+        else if(level[0] == '2') {
+            document.title = 'Experiment 65537';
+        }
+
         console.log(sceneName);
         this.scene.launch(sceneName);      
     }    

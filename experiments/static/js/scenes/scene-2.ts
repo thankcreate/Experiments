@@ -21,9 +21,10 @@ class Scene2 extends BaseScene {
 
     newspaperFsm: NewspaperFsm;
 
-    fullTime = 3;
- 
+    fullTime = 4;
+    // fullTime = 1;
 
+    // cleanTimeLong = 2;
     cleanTimeLong = 10;
     cleanTimeShort = 2; 
 
@@ -161,7 +162,8 @@ class Scene2 extends BaseScene {
             $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
             $(`#prop-${i} .tooltip`).text(info.desc);
 
-            $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
+            $(`#prop-${i}`).css('pointer-events', 'none');
+            // $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
         }
     }
 
@@ -512,6 +514,7 @@ class Scene2 extends BaseScene {
         }
     }
 
+    onlyShowPositive = false;
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
     needDwitterFlow = false;
     emotionAnalyze(imgRes: ImageRes) {     
@@ -554,7 +557,7 @@ class Scene2 extends BaseScene {
 
         this.needDwitterFlow = false;
         
-        if(!this.canRecieveEmotion || timeDiff > 1) {
+        if(!this.canRecieveEmotion || timeDiff > 1 || (this.onlyShowPositive && res.emotion == MyEmotion.Negative)) {
             this.lastTimeStamp = timestamp;
             this.setNeedProgressAudioPlaying(false);
             return;
@@ -654,11 +657,16 @@ class Scene2 extends BaseScene {
         $('#emoji-progress-bottom').css('width', this.bottomProgress.value * 100 + "%");
     }
 
+    getProgressBarDenominator() {
+        return this.npNums.length
+    }
+
     refreshLevelProgressBarCss(index: number) {
-        let pg = (index) / this.npNums.length * 100;
+        let deno = this.getProgressBarDenominator();
+        let pg = (index) / deno * 100;
         let fixedPg = pg.toFixed(0);
         $('#level-progress-bar').css('width',  fixedPg + '%');
-        $('#level-progress-text').text(`Experiment Progress: ${index} / ${this.npNums.length}`);
+        $('#level-progress-text').text(`Experiment Progress: ${index} / ${index <= deno ? deno : '65537'}`);
     }
 
     getCurrentItem(): NewsItem {
@@ -707,7 +715,6 @@ class Scene2 extends BaseScene {
             if(NewsDataManager.getInstance().isAlwaysWrongItem(item) && !this.isPropActivated(NewspaperPropType.Prompt)){
                 correct = false;
             }
-
 
             this.isLastTestCorrect = correct; 
             
@@ -793,6 +800,7 @@ class Scene2 extends BaseScene {
 
 
     resetNewspaperParameter() {
+        this.isCamShown = false;
         this.npHp = this.npMaxHp;   
         this.refreshHp();
         this.cleanTime = this.cleanTimeLong; 
@@ -931,6 +939,9 @@ class Scene2 extends BaseScene {
     }
 
     showPropButtonWithIndex(show: boolean, index: number) {
+        
+        $(`#prop-${index}`).css('pointer-events', show ? 'auto' : 'none');
+
         let dt = 500;
         newspaperPropInfos[index].activated = show;
         if(notSet(this.propCssBindings[index].translateY)) {
@@ -1032,11 +1043,14 @@ class Scene2 extends BaseScene {
             duration: dt
         });
 
-        this.tweens.add({
-            targets: this.bottomProgressCssBinding,
-            translateY: 0,
-            duration: dt
-        }) 
+        if(!this.onlyShowPositive) {
+            this.tweens.add({
+                targets: this.bottomProgressCssBinding,
+                translateY: 0,
+                duration: dt
+            }) 
+        }
+
 
         this.showIndicator(true);
         return top;
@@ -1081,11 +1095,15 @@ class Scene2 extends BaseScene {
     }
 
     showResult(isCorrect: boolean) : Pany {
+        if(!isCorrect) {
+            this.npHp--; 
+            this.refreshHp();
+        }
 
         $('#newspaper-result-content').text(isCorrect? '✔️' : '❌');
         
 
-        let ret = TimeOutPromise.create(1000).then(s=>{
+        let ret = TimeOutPromise.create(800).then(s=>{
             
             if(isCorrect) {
                 FmodManager.getInstance().playOneShot('65537_CorrectResponse');
@@ -1093,6 +1111,9 @@ class Scene2 extends BaseScene {
             else {
                 FmodManager.getInstance().playOneShot('65537_WrongResponse');
             }
+
+            // when in show result, make sure the top of hp bar is moved down
+            $('#newspaper-hp').css('top', '90px');
 
             let dt = 500;     
             return TweenPromise.create(this, {
@@ -1103,8 +1124,7 @@ class Scene2 extends BaseScene {
         }).then(s=>{
             return TimeOutPromise.create(1000);
         }) 
-        // when in show result, make sure the top of hp bar is moved down
-        $('#newspaper-hp').css('top', '90px');
+
 
         return ret;
     }
@@ -1229,11 +1249,13 @@ class Scene2 extends BaseScene {
         
         this.setTitle(this.getToolTipToRealPaperTitle(newsItem, false));
 
-        let assignedIndex = newsItem.content.match(/index='(.*?)'/)[1];
+        
+        let assignedIndex = Number.parseInt(newsItem.content.match(/index='(.*?)'/)[1]);
+        
         // console.log("assignedIndex: " + assignedIndex);
         // let assignedIndex = 0;
 
-        let curRssItem = this.rssItems[assignedIndex];
+        let curRssItem = this.rssItems[assignedIndex % this.rssItems.length];
         let content = curRssItem.title + '<br/><br/>' + curRssItem.desc;
         contentSlot.html(content);
 
@@ -1384,6 +1406,7 @@ class Scene2 extends BaseScene {
         });
         return tp;        
     }
+    
 
 
     setCenterTextPaper(title:string, content: string, fontSize = 150) {
@@ -1393,6 +1416,10 @@ class Scene2 extends BaseScene {
         this.setNewspaperTitle(title);
     }
 /////////////////////////////////////////////////////////////////////////
+
+    getInnerFrameWith() {
+        return 450;
+    }
 
     innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     paperEnterCallback(state: FsmState, index:number) {
@@ -1414,7 +1441,7 @@ class Scene2 extends BaseScene {
         $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
 
         // let randomWidth = 400 + Math.random() * 100;
-        let randomWidth = 450;
+        let randomWidth = this.getInnerFrameWith();
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
 
         // reset the real paper params
@@ -1430,7 +1457,7 @@ class Scene2 extends BaseScene {
             this.showPromptLayer(false);
         }      
         
-        if(index == 0) {            
+        if(index == 0 && item.index != NAOMI_PAPER_NUM) {            
             this.showLevelProgess(true);            
         }
     }
@@ -1575,7 +1602,7 @@ class Scene2 extends BaseScene {
     onConfirmAutoExpressionClick(yes: boolean) {
         // implemented in subclass
     }
-    
+
     initStNewspaperWithIndex(idx: number) {
         let index = idx;
         let item = this.getNewsItemFromIndex(index);
@@ -1596,12 +1623,16 @@ class Scene2 extends BaseScene {
             state.addOnEnter(s=>{                
                 this.isAttentionChecking = true;
                 this.enableAttention(true);
-                this.setStrikeThroughOnEmojiIcons(true);                
+                this.setStrikeThroughOnEmojiIcons(true);              
+                if(!this.isPropActivated(NewspaperPropType.SeeNoEvil) && item.index != SEE_NO_EVIL_NUM)
+                    this.showExpressionPrompt(true);  
             })        
             state.addOnExit(s=>{
                 this.isAttentionChecking = false;
                 this.enableAttention(false);
                 this.setStrikeThroughOnEmojiIcons(false);
+                                
+                this.showExpressionPrompt(false);  
             });
         }
 
@@ -1612,7 +1643,9 @@ class Scene2 extends BaseScene {
             gResetLabelWall()      
             this.initDnDSource();
             this.setAllLabels();   
-            $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+            if(!this.isPropActivated(NewspaperPropType.AutoLabel)) {
+                $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+            }            
             this.setTitle(this.getToolTipToRealPaperTitle(item, true));           
             $('#newspaper-toolbox-stamps').css('visibility', 'visible'); 
         })
@@ -1674,7 +1707,7 @@ class Scene2 extends BaseScene {
         } 
         
 
-        if(this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item)) {            
+        if(!this.isRealPaper(item) && (this.isExercise || NewsDataManager.getInstance().isAlwaysWrongItem(item))) {            
             wrong.addAction(s=>{
                 this.resetProgress();
                 this.hideResult();                

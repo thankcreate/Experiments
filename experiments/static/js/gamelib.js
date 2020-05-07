@@ -4110,7 +4110,7 @@ class Scene2L3 extends Scene2 {
         state.addAction(s => {
             this.setCenterTextPaper('65537', '😀');
         });
-        state.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, you have got the hang of it so quickly.`, false);
+        state.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, you've got the hang of it so quickly.`, false);
         state.addAction(s => {
             this.setCenterTextPaper('65537', '😚');
         });
@@ -4265,7 +4265,7 @@ class Scene2LPaper extends Scene2 {
         super.create();
         this.initGamePlayFsm();
         this.initNewspaperFsm();
-        this.fullTime = 15;
+        this.fullTime = 1;
         this.onlyShowPositive = true;
     }
     loadAudio() {
@@ -4298,6 +4298,10 @@ class Scene2LPaper extends Scene2 {
     sceneIntoNormalGame(s) {
         super.sceneIntoNormalGame(s);
         this.initNaomiPaperCss();
+        let title = $('#newspaper-title');
+        let content = $('#newspaper-content');
+        title.removeClass('report-font');
+        content.removeClass('report-font');
     }
     initNaomiPaperCss() {
         let innerFrame = $('#newspaper-inner-frame');
@@ -4385,6 +4389,10 @@ class Scene2LPaper extends Scene2 {
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);
+            let title = $('#newspaper-title');
+            let content = $('#newspaper-content');
+            title.addClass('report-font');
+            content.addClass('report-font');
             this.setCenterTextPaper('Subject Satisfaction', '100%');
         });
         end.addSubtitleAction(this.subtitle, () => `Subject:`, true);
@@ -4394,7 +4402,7 @@ class Scene2LPaper extends Scene2 {
         end.addAction(s => {
             this.setCenterTextPaper('65537', '👉');
         });
-        end.addSubtitleAction(this.subtitle, () => `Transferred to the final test.`, true, null, null, 1500);
+        end.addSubtitleAction(this.subtitle, () => `Transfer to the final test.`, true, null, null, 1500);
         end.addAction(s => {
             this.getController().gotoNextScene();
         });
@@ -8283,6 +8291,9 @@ class SpeechManager {
         else if (text.trim() == 'Tron! Tron! 私たちが大きな問題を抱えているかどうか見に来てください!') {
             ret = 'ja-JP-Wavenet-B';
         }
+        else if (text.trim().startsWith('创')) {
+            ret = 'cmn-CN-Wavenet-A';
+        }
         return ret;
     }
     /**
@@ -8428,7 +8439,7 @@ let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Sec
 19																
 20																
 21																
-22	New York Times	<nyt index='0'/>	-1	なに ? <hr/> New York Times? <hr/> Tron! Tron! Are you still there?  <br/> Come here to have a look. We are in a big trouble!	Sorry, {username}. My bad. <br/>Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. <br/>Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?				0	1					FirstShownNYT
+22	New York Times	<nyt index='0'/>	-1	なに ? <hr/> New York Times? <hr/> 创！你是怎么搞的？ <br/> 哎呦大哥别划了呀！出大事了！ <hr/> Tron? <hr/> Tron! Are you still there?  <br/> Come here to have a look. We are in a big trouble!	Sorry, {username}. My bad. <br/>Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. <br/>Seems those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself into trouble. <hr/> Neither happy nor disgusting is allowed as the reaction to this page.  <hr/> Could you do me a favor to restart the current page, <br/> and pretend you didn't see anything?				0	1					FirstShownNYT
 23	New York Times	<nyt index='0'/>	-1	To pretend you didn't see anything, pleaes cover <br/> your eyes to decrease your ATTENTION level. <hr/>  We can only purge this filthy page when your ATTENTION level is low.				Well done! {username}. <hr/> Now you can put your hands down<br/> and drag in the appropriate labels. <hr/> If you are still fuzzy-headed, <br/>  just hover your mouse on the newspaper title,  <br/>  and trust your gut feeling!	Yeah, that's exactly what defines N** Y*** T****.	0	1					
 24	CNN	<cnn index='1'/>	-1	{username}, you know what to do.				Sorry for the mind polution here. <br/>  Time to work!	You're learning so fast.	0	1					
 25	Прaвда	Left-wing activists gathered in front of Congress aiming to extend <span class='keyword'>weekends<span class='tooltip'>Weekend is when people spend time on meaningless entertainments instead of coming to the lab to fulfil their experiments.</span></span> to be two days. <br/><br/> They claimed that if the chief scientist doesn't satify their need, they will refuse to admit that Experiment 65537 is better than Experiment 65536.	0	Activists are active again. <br/> What say you?	No wonder they call them Do Nothing Left.  <hr/> Make sense.	Incorrect. Wrong. False emotion. <hr/> You shouldn't have any empathy on those activists. <hr/> They are the unstabilizing factor of our society.	Let's try again.									

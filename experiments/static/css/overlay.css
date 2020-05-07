@@ -1084,3 +1084,8 @@ input[type="submit"]:active {
   height: fit-content;
   font-size: 100px;
 }
+
+
+.report-font{
+  font-family: Impact, Charcoal, sans-serif !important;
+}

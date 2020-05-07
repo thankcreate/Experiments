@@ -5,7 +5,7 @@ class Scene2L3 extends Scene2 {
         super('Scene2L3');
     }
 
-    // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+    // basicNums = [26, 27, 28, 29, 30, 31, 32, 33, 34];i
     basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
     // basicNums = [33, 34];
     randomNums = [];
@@ -276,7 +276,10 @@ class Scene2L3 extends Scene2 {
 
     }
     
-    
+    update(time, dt) {
+        super.update(time, dt);
+        // console.log('ttt '  +  this.canRecieveEmotion);
+    }
 
     // this is just to append the ending logic to the last newspaper
     appendLastStateEnding() {        

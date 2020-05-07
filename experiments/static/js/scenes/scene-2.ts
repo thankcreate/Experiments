@@ -24,8 +24,8 @@ class Scene2 extends BaseScene {
     fullTime = 3;
     // fullTime = 1;
 
-    cleanTimeLong = 2;
-    // cleanTimeLong = 10;
+    // cleanTimeLong = 2;
+    cleanTimeLong = 10;
     cleanTimeShort = 2; 
 
     cleanTime = 10; // seconds
@@ -162,7 +162,8 @@ class Scene2 extends BaseScene {
             $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
             $(`#prop-${i} .tooltip`).text(info.desc);
 
-            $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
+            $(`#prop-${i}`).css('pointer-events', 'none');
+            // $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
         }
     }
 
@@ -936,6 +937,9 @@ class Scene2 extends BaseScene {
     }
 
     showPropButtonWithIndex(show: boolean, index: number) {
+        
+        $(`#prop-${index}`).css('pointer-events', show ? 'auto' : 'none');
+
         let dt = 500;
         newspaperPropInfos[index].activated = show;
         if(notSet(this.propCssBindings[index].translateY)) {

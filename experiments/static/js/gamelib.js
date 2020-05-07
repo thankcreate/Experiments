@@ -2143,8 +2143,8 @@ class Scene2 extends BaseScene {
         super(config);
         this.fullTime = 3;
         // fullTime = 1;
-        this.cleanTimeLong = 2;
-        // cleanTimeLong = 10;
+        // cleanTimeLong = 2;
+        this.cleanTimeLong = 10;
         this.cleanTimeShort = 2;
         this.cleanTime = 10; // seconds
         this.currIndex = 0;
@@ -2274,7 +2274,8 @@ class Scene2 extends BaseScene {
             let info = newspaperPropInfos[i];
             $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
             $(`#prop-${i} .tooltip`).text(info.desc);
-            $(`#prop-${i}`).on('click', () => { this.onPropButtonClick(i); });
+            $(`#prop-${i}`).css('pointer-events', 'none');
+            // $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
         }
     }
     onPropButtonClick(index) {
@@ -2842,6 +2843,7 @@ class Scene2 extends BaseScene {
         this.showPropButtonWithIndex(show, i);
     }
     showPropButtonWithIndex(show, index) {
+        $(`#prop-${index}`).css('pointer-events', show ? 'auto' : 'none');
         let dt = 500;
         newspaperPropInfos[index].activated = show;
         if (notSet(this.propCssBindings[index].translateY)) {
@@ -4002,8 +4004,8 @@ class Scene2L2 extends Scene2 {
 class Scene2L3 extends Scene2 {
     constructor() {
         super('Scene2L3');
+        // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         this.basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-        // basicNums = [29, 30, 31, 32, 33, 34];
         this.randomNums = [];
     }
     get npNums() {
@@ -10601,11 +10603,11 @@ var NewspaperPropType;
     NewspaperPropType[NewspaperPropType["AutoEmotion"] = 4] = "AutoEmotion";
 })(NewspaperPropType || (NewspaperPropType = {}));
 let newspaperPropInfos = [
-    { type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: '', activated: false },
-    { type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: '', activated: false },
-    { type: NewspaperPropType.Prompt, icon: '💡', desc: '', activated: false },
-    { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: '', activated: false },
-    { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: '', activated: false },
+    { type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: 'Yellow bar on your eyes', activated: false },
+    { type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: 'Faster purging speed', activated: false },
+    { type: NewspaperPropType.Prompt, icon: '💡', desc: 'Emotion suggestion', activated: false },
+    { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: 'Auto drag and drop', activated: false },
+    { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: 'Auto expression', activated: false },
 ];
 /// <reference path="../../interface.ts" />
 var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.

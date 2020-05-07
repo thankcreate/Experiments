@@ -981,7 +981,7 @@ input[type="submit"]:active {
 
 
 .newspaper-prop .tooltip {
-  width: 250px;
+  width: 200px;
   pointer-events: none;
   visibility: hidden;  
   background-color: black;

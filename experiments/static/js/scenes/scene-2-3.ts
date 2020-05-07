@@ -5,8 +5,8 @@ class Scene2L3 extends Scene2 {
         super('Scene2L3');
     }
 
+    // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
     basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-    // basicNums = [29, 30, 31, 32, 33, 34];
     randomNums = [];
     get npNums(): number[]{
         // return [11, 14, 12, 15, 13, 16, 17];

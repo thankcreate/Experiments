@@ -2746,6 +2746,7 @@ class Scene2 extends BaseScene {
         this.resetNewspaperParameter();
     }
     resetNewspaperParameter() {
+        this.isCamShown = false;
         this.npHp = this.npMaxHp;
         this.refreshHp();
         this.cleanTime = this.cleanTimeLong;
@@ -4265,7 +4266,6 @@ class Scene2LPaper extends Scene2 {
         this.initGamePlayFsm();
         this.initNewspaperFsm();
         this.fullTime = 15;
-        this.initNaomiPaperCss();
         this.onlyShowPositive = true;
     }
     loadAudio() {
@@ -4283,6 +4283,7 @@ class Scene2LPaper extends Scene2 {
                 this.playAsBgm(this.paperBgm);
             }
         }
+        // console.log('this.isCamShow  ' + this.isCamShown);
     }
     getInnerFrameWith() {
         return this.dynaWith;
@@ -4293,6 +4294,10 @@ class Scene2LPaper extends Scene2 {
                 alert('end reached end reached end reached end reached');
             }
         });
+    }
+    sceneIntoNormalGame(s) {
+        super.sceneIntoNormalGame(s);
+        this.initNaomiPaperCss();
     }
     initNaomiPaperCss() {
         let innerFrame = $('#newspaper-inner-frame');
@@ -4333,6 +4338,18 @@ class Scene2LPaper extends Scene2 {
         state.addAction(s => {
             this.canRecieveEmotion = false;
         });
+        state.addAction(s => {
+            s.autoOn($('#newspaper-inner-frame'), 'scroll', () => {
+                let ele = $('#newspaper-inner-frame');
+                if (ele.scrollTop() + ele.innerHeight() >= ele[0].scrollHeight - 20) {
+                    if (!this.isCamShown) {
+                        console.log('kkkkkkkkkkkk');
+                        this.showCam(true);
+                        this.canRecieveEmotion = true;
+                    }
+                }
+            });
+        });
     }
     getGamePlayFsmData() {
         return normal_2_paper;
@@ -4355,17 +4372,6 @@ class Scene2LPaper extends Scene2 {
     }
     initStNewspaperDefault() {
         let state = this.newspaperFsm.getDefaultState();
-        state.addOnEnter(s => {
-            $('#newspaper-inner-frame').on('scroll', () => {
-                let ele = $('#newspaper-inner-frame');
-                if (ele.scrollTop() + ele.innerHeight() >= ele[0].scrollHeight - 20) {
-                    if (!this.isCamShown) {
-                        this.showCam(true);
-                        this.canRecieveEmotion = true;
-                    }
-                }
-            });
-        });
         state.addFinishAction();
     }
     // this is just to append the ending logic to the last newspaper

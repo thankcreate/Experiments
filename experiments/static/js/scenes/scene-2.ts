@@ -800,6 +800,7 @@ class Scene2 extends BaseScene {
 
 
     resetNewspaperParameter() {
+        this.isCamShown = false;
         this.npHp = this.npMaxHp;   
         this.refreshHp();
         this.cleanTime = this.cleanTimeLong; 

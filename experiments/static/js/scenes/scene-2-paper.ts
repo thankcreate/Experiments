@@ -15,7 +15,7 @@ class Scene2LPaper extends Scene2 {
         this.initNewspaperFsm();        
         this.fullTime = 15;
 
-        this.initNaomiPaperCss();
+        
         this.onlyShowPositive = true;        
     }
 
@@ -39,6 +39,8 @@ class Scene2LPaper extends Scene2 {
                 this.playAsBgm(this.paperBgm);
             }
         }
+
+        // console.log('this.isCamShow  ' + this.isCamShown);
     }
 
 
@@ -59,6 +61,10 @@ class Scene2LPaper extends Scene2 {
         })
     }
     
+    sceneIntoNormalGame(s) {
+        super.sceneIntoNormalGame(s);
+        this.initNaomiPaperCss();
+    }
 
     initNaomiPaperCss() {
         let innerFrame = $('#newspaper-inner-frame');
@@ -106,6 +112,19 @@ class Scene2LPaper extends Scene2 {
         state.addAction(s=>{
             this.canRecieveEmotion = false;
         }) 
+
+        state.addAction(s=>{
+            s.autoOn($('#newspaper-inner-frame'), 'scroll', ()=> {                
+                let ele = $('#newspaper-inner-frame');
+                if(ele.scrollTop() + ele.innerHeight() >= ele[0].scrollHeight - 20) {
+                    if(!this.isCamShown) {
+                        console.log('kkkkkkkkkkkk');
+                        this.showCam(true);
+                        this.canRecieveEmotion = true;
+                    }                    
+                }
+            });
+        })  
     }
 
 
@@ -135,18 +154,9 @@ class Scene2LPaper extends Scene2 {
 
 
     initStNewspaperDefault() {
-        let state = this.newspaperFsm.getDefaultState();            
-        state.addOnEnter(s=>{
-            $('#newspaper-inner-frame').on('scroll', ()=> {
-                let ele = $('#newspaper-inner-frame');
-                if(ele.scrollTop() + ele.innerHeight() >= ele[0].scrollHeight - 20) {
-                    if(!this.isCamShown) {
-                        this.showCam(true);
-                        this.canRecieveEmotion = true;
-                    }                    
-                }
-            })
-        })   
+        let state = this.newspaperFsm.getDefaultState();   
+               
+       
         state.addFinishAction();     
     }    
 

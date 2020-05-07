@@ -4265,7 +4265,7 @@ class Scene2LPaper extends Scene2 {
         super.create();
         this.initGamePlayFsm();
         this.initNewspaperFsm();
-        this.fullTime = 1;
+        this.fullTime = 15;
         this.onlyShowPositive = true;
     }
     loadAudio() {

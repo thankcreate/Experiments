@@ -184,7 +184,7 @@ class NewsDataManager {
             let logicIndex = i - LOOP_BEGIN_NUM;
             let contentIndex = 6 + logicIndex;
             let loopItem:NewsItem  = null;
-            if(logicIndex % 2 == 0) {                
+            if(logicIndex % 2 == 1) {                
                 loopItem = JSON.parse(JSON.stringify(fakeTemplate));
                 loopItem.answer = Math.random() < 0.5 ? 0 : 1;
             }

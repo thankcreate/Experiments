@@ -4019,6 +4019,7 @@ class Scene2L3 extends Scene2 {
         super('Scene2L3');
         // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         this.basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+        // basicNums = [33, 34];
         this.randomNums = [];
     }
     get npNums() {
@@ -4027,7 +4028,8 @@ class Scene2L3 extends Scene2 {
         // return [26, 27, 28, 29, 30, 31, 32, 33, 34];
         if (!this.randomNums || this.randomNums.length == 0) {
             this.randomNums = [...this.basicNums];
-            for (let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+            for (let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 4; i++) {
+                // for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
                 this.randomNums.push(i);
             }
         }
@@ -4243,7 +4245,7 @@ class Scene2L3 extends Scene2 {
             this.showTransparentOverlay(false);
             this.setCenterTextPaper('65537', '🤩');
         });
-        end.addSubtitleAction(this.subtitle, () => `Test test test`, true);
+        end.addSubtitleAction(this.subtitle, () => `This is the end of the demo,\n thank you for playtesting!`, false);
     }
 }
 /// <reference path="scene-2.ts" />
@@ -8125,7 +8127,7 @@ class NewsDataManager {
             let logicIndex = i - LOOP_BEGIN_NUM;
             let contentIndex = 6 + logicIndex;
             let loopItem = null;
-            if (logicIndex % 2 == 0) {
+            if (logicIndex % 2 == 1) {
                 loopItem = JSON.parse(JSON.stringify(fakeTemplate));
                 loopItem.answer = Math.random() < 0.5 ? 0 : 1;
             }

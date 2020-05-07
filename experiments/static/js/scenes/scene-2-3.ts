@@ -91,7 +91,7 @@ class Scene2L3 extends Scene2 {
         state.addAction(s=>{
             this.setCenterTextPaper('65537', '😀')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`${this.getUserName()}, you have got the hang of it so quickly.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`${this.getUserName()}, you've got the hang of it so quickly.`, false);
         state.addAction(s=>{
             this.setCenterTextPaper('65537', '😚')
         })

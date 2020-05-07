@@ -757,7 +757,7 @@ class Scene2 extends BaseScene {
             return this.playerName + "? Interesting!"
         }, true, 2000, 3000, 300)
         .addSubtitleAction(this.subtitle, "THE EXPERIMENT is waiting for us. \n Let's get it over with.", false, null, null, 10)
-        .addSubtitleAction(this.subtitle, "Which experiment do you like to take?", false, null, null, 10).setBoolCondition(o=>this.needModeSelect())
+        .addSubtitleAction(this.subtitle, "Which experiment would you like to take?", false, null, null, 10).setBoolCondition(o=>this.needModeSelect())
         return s;
     }
 
@@ -1537,7 +1537,7 @@ class Scene2 extends BaseScene {
             this.setCenterTextPaper('65537', '😭');            
             this.hideResult();
         })
-        s.addSubtitleAction(this.subtitle, ()=>`Sorry, ${this.getUserName()}.\nYou have run out of lives and we must kick you out` , false);
+        s.addSubtitleAction(this.subtitle, ()=>`Sorry, ${this.getUserName()}.\nYou've ran out of lives and we must kick you out` , false);
         s.addAction(s=>{            
             this.setCenterTextPaper('65537', '🤗');     
             this.showCam(false);
@@ -1679,7 +1679,7 @@ class Scene2 extends BaseScene {
         })
         if(NewsDataManager.getInstance().isAlwaysWrongItem(item)) {            
             this.helperAddSubtitleAction(correct, `See? There is no trap in the prompting!`, true)
-            this.helperAddSubtitleAction(correct, `People are always skeptical about my willingness to help, which made me so sad`, true);
+            this.helperAddSubtitleAction(correct, `People always doubted my willingness to help. It's so sad.`, true);
         }
         else {
             this.helperAddSubtitleAction(correct, item.correctResponse, true);

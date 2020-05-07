@@ -21,7 +21,7 @@ class Scene2 extends BaseScene {
 
     newspaperFsm: NewspaperFsm;
 
-    fullTime = 3;
+    fullTime = 4;
     // fullTime = 1;
 
     // cleanTimeLong = 2;
@@ -514,6 +514,7 @@ class Scene2 extends BaseScene {
         }
     }
 
+    onlyShowPositive = false;
     // whether need to animate the dwitter background when a emotion intensity reached a threshould
     needDwitterFlow = false;
     emotionAnalyze(imgRes: ImageRes) {     
@@ -556,7 +557,7 @@ class Scene2 extends BaseScene {
 
         this.needDwitterFlow = false;
         
-        if(!this.canRecieveEmotion || timeDiff > 1) {
+        if(!this.canRecieveEmotion || timeDiff > 1 || (this.onlyShowPositive && res.emotion == MyEmotion.Negative)) {
             this.lastTimeStamp = timestamp;
             this.setNeedProgressAudioPlaying(false);
             return;
@@ -1041,11 +1042,14 @@ class Scene2 extends BaseScene {
             duration: dt
         });
 
-        this.tweens.add({
-            targets: this.bottomProgressCssBinding,
-            translateY: 0,
-            duration: dt
-        }) 
+        if(!this.onlyShowPositive) {
+            this.tweens.add({
+                targets: this.bottomProgressCssBinding,
+                translateY: 0,
+                duration: dt
+            }) 
+        }
+
 
         this.showIndicator(true);
         return top;
@@ -1401,6 +1405,7 @@ class Scene2 extends BaseScene {
         });
         return tp;        
     }
+    
 
 
     setCenterTextPaper(title:string, content: string, fontSize = 150) {
@@ -1410,6 +1415,10 @@ class Scene2 extends BaseScene {
         this.setNewspaperTitle(title);
     }
 /////////////////////////////////////////////////////////////////////////
+
+    getInnerFrameWith() {
+        return 450;
+    }
 
     innerBorderStyles = ['double', 'dashed', 'dotted', 'solid'];
     paperEnterCallback(state: FsmState, index:number) {
@@ -1431,7 +1440,7 @@ class Scene2 extends BaseScene {
         $('#newspaper-inner-frame').css('border-style', this.innerBorderStyles[borderStyleIndex]);
 
         // let randomWidth = 400 + Math.random() * 100;
-        let randomWidth = 450;
+        let randomWidth = this.getInnerFrameWith();
         $('#newspaper-inner-frame').css('width', `${randomWidth}px`);
 
         // reset the real paper params
@@ -1447,7 +1456,7 @@ class Scene2 extends BaseScene {
             this.showPromptLayer(false);
         }      
         
-        if(index == 0) {            
+        if(index == 0 && item.index != NAOMI_PAPER_NUM) {            
             this.showLevelProgess(true);            
         }
     }

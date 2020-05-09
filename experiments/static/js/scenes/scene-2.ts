@@ -65,6 +65,7 @@ class Scene2 extends BaseScene {
 
     create() {
         super.create();
+        this.changeNextBtnLabelToOK();
         this.intiPropButtons();
         $(document).ready(()=>{
             this.initDnD();
@@ -298,8 +299,7 @@ class Scene2 extends BaseScene {
             this.drawBlackBar(ctx, featurePoints);
         }
        
-
-        // TODO: should only happen in fake paper
+        
         // if(this.isFakePaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
         if(!this.isRealPaper() && this.isPropActivated(NewspaperPropType.AutoEmotion)) {
             this.drawVirtualHead(ctx, featurePoints);
@@ -932,9 +932,8 @@ class Scene2 extends BaseScene {
         this.expressionPromptCssBinding.translateX = 0;
         this.expressionPromptCssBinding.update();
 
-        for(let i = 0; i < this.propCssBindings.length; i++) {
-            // TODO
-            this.showPropButtonWithIndex(true, i);
+        for(let i = 0; i < this.propCssBindings.length; i++) {            
+            this.showPropButtonWithIndex(false, i);
         }
     }
 
@@ -2137,6 +2136,14 @@ class Scene2 extends BaseScene {
     dragEnd(e:any) {
         $(this.destiID)[0].classList.remove('over');
         $(this.sourceID)[0].classList.remove('over');
+    }
+
+    nextLevelBtnClicked() {
+        this.overlay.showReviewWall(false);
+    }
+
+    changeNextBtnLabelToOK() {
+        $("#next-level-btn").attr('value', 'Experiment Over')        
     }
     
 /////////////////////////////////////////////////////////////////////////

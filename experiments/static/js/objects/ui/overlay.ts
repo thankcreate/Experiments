@@ -373,8 +373,12 @@ class Overlay extends Wrapper<PhText> {
     submitReviewToServer() {
         let name = $('#username').val();
         let comment = $('#comment').val();
+        
+        this.submitReviewToServerWithParams(name, comment, this.score);
+    }
 
-        let request = { name: name, comment: comment, score: this.score};        
+    submitReviewToServerWithParams(name: string, comment: string, score: number) {
+        let request = { name: name, comment: comment, score: score};        
         let pm = apiPromise('api/review', JSON.stringify(request), 'json', 'POST')
             .then(
                 val => {                    
@@ -392,6 +396,7 @@ class Overlay extends Wrapper<PhText> {
     }
 
     showReviewWall(show: boolean, id?: any) {
+
         if (show) {
             if (!this.inShow) {
                 this.show();
@@ -401,6 +406,7 @@ class Overlay extends Wrapper<PhText> {
             this.hide();
         }
 
+        $('#overlay-with-scroll').css('background-color', show? 'rgba(0,0,0,0.8)': 'rgba(0,0,0,0)')
         $('#overlay-with-scroll').css("pointer-events", show ? "auto" : "none");
         // $('.review-wall-container').css('visibility', show ? 'visible' : 'hidden');
         /**We used display instead of visiblity becuase we want to have a scattered out effect when it's the first
@@ -438,6 +444,10 @@ class Overlay extends Wrapper<PhText> {
         $('#overall-score').text(combined);
 
     }
+
+    nextLevelBtnClicked() {
+        Overlay.getInstance().scene.nextLevelBtnClicked();        
+    }
 }
 
 function s_ratingNext() {
@@ -448,8 +458,12 @@ function s_commentSubmit() {
     Overlay.getInstance().commentSubmit();
 }
 
+/**
+ * For 65536, it's next level
+ * For 65537, it's to hide the review wall
+ */
 function s_nextLevel() {
-    Overlay.getInstance().scene.getController().gotoNextScene();
+    Overlay.getInstance().nextLevelBtnClicked();
 }
 
 

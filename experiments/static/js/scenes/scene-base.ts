@@ -982,5 +982,8 @@ class BaseScene extends Phaser.Scene {
         return 'Project 65536'
     }
     
+    nextLevelBtnClicked() {
+        this.getController().gotoNextScene();
+    }
 }
 

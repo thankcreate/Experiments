@@ -11,10 +11,6 @@ class Scene2L3 extends Scene2 {
     // basicNums = [33, 34];
     randomNums = [];
     get npNums(): number[]{
-        // return [11, 14, 12, 15, 13, 16, 17];
-        // return [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-        
-        // return [26, 27, 28, 29, 30, 31, 32, 33, 34];
         if(!this.randomNums || this.randomNums.length == 0) {
             this.randomNums = [...this.basicNums];
             for(let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 4; i++) {

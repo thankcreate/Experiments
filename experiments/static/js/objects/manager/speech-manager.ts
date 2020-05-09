@@ -116,7 +116,7 @@ class SpeechManager {
         else if(text.trim() == 'Tron! Tron! 私たちが大きな問題を抱えているかどうか見に来てください!') {
             ret = 'ja-JP-Wavenet-B';
         }
-        else if(text.trim().startsWith('创')) {
+        else if(text.trim().startsWith('创') || text.trim().startsWith('創') ) {
             ret = 'cmn-CN-Wavenet-A';
         }
         return ret;

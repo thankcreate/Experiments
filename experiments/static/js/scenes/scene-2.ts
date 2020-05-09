@@ -458,6 +458,8 @@ class Scene2 extends BaseScene {
         }
         $('#attention-content').text(`🙈 Attention: ${this.lastAttention.toFixed(0)}`);
 
+
+        let needPlay = false;
         if(this.lastAttention < 10) {
 
             $('#attention-frame').css('border-color', '#FFEB3B');
@@ -470,7 +472,9 @@ class Scene2 extends BaseScene {
     
                 this.updateCleanProgressInner();
     
-                if(this.curCleanProgress == 1) {
+                needPlay = true;
+
+                if(this.curCleanProgress == 1) {                    
                     this.newspaperFsm.event(Fsm.PURGED);
                     // $('#newspaper-toolbox-stamps').css('visibility', 'visible');                    
                 }
@@ -479,7 +483,24 @@ class Scene2 extends BaseScene {
         else {
             $('#attention-frame').css('border-color', 'red');
         }     
-        
+
+        let fmod = FmodManager.getInstance();
+        if(needPlay) {
+            
+            if(!this.isPurgeProgressAudioPlaying) 
+            {
+                
+                fmod.playInstance(fmod.purgeProgressInstance);                         
+            }
+            this.isPurgeProgressAudioPlaying = true;
+        }
+        else {
+            if(this.isPurgeProgressAudioPlaying)
+             {
+                fmod.stopInstance(fmod.purgeProgressInstance);       
+            }
+            this.isPurgeProgressAudioPlaying = false;
+        }
     }
 
     updateCleanProgressInner() {
@@ -496,21 +517,26 @@ class Scene2 extends BaseScene {
 
 
     setNeedProgressAudioPlaying(needPlay) { 
+        let fmod = FmodManager.getInstance();
         if(this.inFinalAutoMode)
             needPlay = false;
+        
+
         if(needPlay) {
-            if(!this.isProgressAudioPlaying) {
-                let fmod = FmodManager.getInstance();
+            
+            if(!this.isEmojiProgressAudioPlaying) 
+            {
+                
                 fmod.playInstance(fmod.emojiProgressInstance);                         
             }
-            this.isProgressAudioPlaying = true;
+            this.isEmojiProgressAudioPlaying = true;
         }
         else {
-            if(this.isProgressAudioPlaying) {
-                let fmod = FmodManager.getInstance();
+            if(this.isEmojiProgressAudioPlaying)
+             {
                 fmod.stopInstance(fmod.emojiProgressInstance);       
             }
-            this.isProgressAudioPlaying = false;
+            this.isEmojiProgressAudioPlaying = false;
         }
     }
 
@@ -614,7 +640,9 @@ class Scene2 extends BaseScene {
         
     }
 
-    isProgressAudioPlaying = false;
+    isEmojiProgressAudioPlaying = false;
+    isPurgeProgressAudioPlaying = false;
+
 
     emotionAnalyzeFinished(res: MyAnalysis) {
 
@@ -1652,6 +1680,7 @@ class Scene2 extends BaseScene {
             this.setAllLabels();   
             if(!this.isPropActivated(NewspaperPropType.AutoLabel)) {
                 $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+                FmodManager.getInstance().playOneShot('65537_StampInterfacePopUp');
             }            
             this.setTitle(this.getToolTipToRealPaperTitle(item, true));           
             $('#newspaper-toolbox-stamps').css('visibility', 'visible'); 
@@ -1903,6 +1932,7 @@ class Scene2 extends BaseScene {
         let container = this.getTrueContainer(e.target);
         if(!this.isIn(container, ob)) {
             container.appendChild(ob);
+            FmodManager.getInstance().playOneShot('65537_Stamping');
         }        
 
         this.checkIfLabelsCorrect();

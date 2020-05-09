@@ -2180,7 +2180,8 @@ class Scene2 extends BaseScene {
         this.onlyShowPositive = false;
         // whether need to animate the dwitter background when a emotion intensity reached a threshould
         this.needDwitterFlow = false;
-        this.isProgressAudioPlaying = false;
+        this.isEmojiProgressAudioPlaying = false;
+        this.isPurgeProgressAudioPlaying = false;
         this.isLastTestCorrect = false;
         this.lastMaxedEmojion = MyEmotion.Negative;
         this.initialPaperTranslateX = -50;
@@ -2494,6 +2495,7 @@ class Scene2 extends BaseScene {
             this.lastAttention = 0;
         }
         $('#attention-content').text(`🙈 Attention: ${this.lastAttention.toFixed(0)}`);
+        let needPlay = false;
         if (this.lastAttention < 10) {
             $('#attention-frame').css('border-color', '#FFEB3B');
             if (this.isAttentionChecking) {
@@ -2502,6 +2504,7 @@ class Scene2 extends BaseScene {
                 this.curCleanProgress += dt / 1000 / this.cleanTime;
                 this.curCleanProgress = clamp(this.curCleanProgress, 0, 1);
                 this.updateCleanProgressInner();
+                needPlay = true;
                 if (this.curCleanProgress == 1) {
                     this.newspaperFsm.event(Fsm.PURGED);
                     // $('#newspaper-toolbox-stamps').css('visibility', 'visible');                    
@@ -2510,6 +2513,19 @@ class Scene2 extends BaseScene {
         }
         else {
             $('#attention-frame').css('border-color', 'red');
+        }
+        let fmod = FmodManager.getInstance();
+        if (needPlay) {
+            if (!this.isPurgeProgressAudioPlaying) {
+                fmod.playInstance(fmod.purgeProgressInstance);
+            }
+            this.isPurgeProgressAudioPlaying = true;
+        }
+        else {
+            if (this.isPurgeProgressAudioPlaying) {
+                fmod.stopInstance(fmod.purgeProgressInstance);
+            }
+            this.isPurgeProgressAudioPlaying = false;
         }
     }
     updateCleanProgressInner() {
@@ -2522,21 +2538,20 @@ class Scene2 extends BaseScene {
         return !this.isRealPaper(item);
     }
     setNeedProgressAudioPlaying(needPlay) {
+        let fmod = FmodManager.getInstance();
         if (this.inFinalAutoMode)
             needPlay = false;
         if (needPlay) {
-            if (!this.isProgressAudioPlaying) {
-                let fmod = FmodManager.getInstance();
+            if (!this.isEmojiProgressAudioPlaying) {
                 fmod.playInstance(fmod.emojiProgressInstance);
             }
-            this.isProgressAudioPlaying = true;
+            this.isEmojiProgressAudioPlaying = true;
         }
         else {
-            if (this.isProgressAudioPlaying) {
-                let fmod = FmodManager.getInstance();
+            if (this.isEmojiProgressAudioPlaying) {
                 fmod.stopInstance(fmod.emojiProgressInstance);
             }
-            this.isProgressAudioPlaying = false;
+            this.isEmojiProgressAudioPlaying = false;
         }
     }
     emotionAnalyze(imgRes) {
@@ -3423,6 +3438,7 @@ class Scene2 extends BaseScene {
             this.setAllLabels();
             if (!this.isPropActivated(NewspaperPropType.AutoLabel)) {
                 $('#newspaper-clean-overlay').css('pointer-events', 'auto');
+                FmodManager.getInstance().playOneShot('65537_StampInterfacePopUp');
             }
             this.setTitle(this.getToolTipToRealPaperTitle(item, true));
             $('#newspaper-toolbox-stamps').css('visibility', 'visible');
@@ -3636,6 +3652,7 @@ class Scene2 extends BaseScene {
         let container = this.getTrueContainer(e.target);
         if (!this.isIn(container, ob)) {
             container.appendChild(ob);
+            FmodManager.getInstance().playOneShot('65537_Stamping');
         }
         this.checkIfLabelsCorrect();
         e.preventDefault();
@@ -4027,7 +4044,8 @@ class Scene2L2 extends Scene2 {
 class Scene2L3 extends Scene2 {
     constructor() {
         super('Scene2L3');
-        // basicNums = [26, 27, 28, 29, 30, 31, 32, 33, 34];i
+        // basicNums = [26, 27, 28, 29, 30, 31, 32, 33, 34];
+        // basicNums = [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         this.basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         // basicNums = [33, 34];
         this.randomNums = [];
@@ -7828,6 +7846,7 @@ class FmodManager {
         this.gAudioResumed = false;
         this.loopingAmbienceInstance = {};
         this.emojiProgressInstance = {};
+        this.purgeProgressInstance = {};
         this.loopingAmbienceDescription = {};
         this.FMOD['preRun'] = () => { this.prerun(); };
         this.FMOD['onRuntimeInitialized'] = () => {
@@ -7943,6 +7962,7 @@ class FmodManager {
     }
     initInstances() {
         this.emojiProgressInstance = this.createInstanceByEventName('65537_EmotionAccumulating');
+        this.purgeProgressInstance = this.createInstanceByEventName('65537_CoverUpArticles');
     }
     /**
      * return the instance
@@ -7959,6 +7979,12 @@ class FmodManager {
     }
     playInstance(instance) {
         instance.val.start();
+    }
+    isPlaying(instance) {
+        let state = { val: 2 };
+        this.CHECK_RESULT(instance.val.getPlaybackState(state));
+        ;
+        return state.val == this.FMOD.STUDIO_PLAYBACK_PLAYING;
     }
     stopInstance(instance) {
         instance.val.stop(this.FMOD.STUDIO_STOP_IMMEDIATE);

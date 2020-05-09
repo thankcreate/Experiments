@@ -18,6 +18,7 @@ class FmodManager {
     loopingAmbienceInstance:any = {};
 
     emojiProgressInstance: any= {};
+    purgeProgressInstance: any= {};
 
     constructor() {
         this.FMOD['preRun'] = ()=>{this.prerun()}; 
@@ -181,6 +182,7 @@ class FmodManager {
     
     initInstances() {    
         this.emojiProgressInstance = this.createInstanceByEventName('65537_EmotionAccumulating');
+        this.purgeProgressInstance = this.createInstanceByEventName('65537_CoverUpArticles');
     }
 
     /**
@@ -199,6 +201,12 @@ class FmodManager {
 
     playInstance(instance) {
         instance.val.start();
+    }
+
+    isPlaying(instance) {
+        let state = {val: 2}
+        this.CHECK_RESULT(instance.val.getPlaybackState(state));;
+        return state.val == this.FMOD.STUDIO_PLAYBACK_PLAYING;
     }
 
     stopInstance(instance) {

@@ -165,15 +165,29 @@ class FmodManager {
      * Just use the label in the FMOD browser
      * @param eventName 
      */
-    playOneShot(eventName: string) : any{
+    playOneShot(eventName: string, callback?) : any{
         eventName = 'event:/' + eventName;
         let desc:any = {};
         let instance: any = {};
         this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));
         this.CHECK_RESULT(desc.val.createInstance(instance));
         
-        instance.val.start();
-        instance.val.release();
+        if(callback) {
+            instance.val.setCallback((type, event, parameters)=>{
+                    // console.log("type:"+ type);
+                    callback(type, event, parameters);
+                    if(type == this.FMOD.STUDIO_EVENT_CALLBACK_STOPPED) {
+                        instance.val.setCallback(null, this.FMOD.STUDIO_EVENT_CALLBACK_ALL)
+                        instance.val.release();                                                    
+                    }
+                },
+                this.FMOD.STUDIO_EVENT_CALLBACK_ALL)    
+            instance.val.start();
+        }
+        else {
+            instance.val.start();
+            instance.val.release();    
+        }
         return instance;
     }
 

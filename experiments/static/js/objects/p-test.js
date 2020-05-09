@@ -2,12 +2,12 @@
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
 
-let sum = [0, 0, 0, 0];
-for(let i = 0; i < 5000; i++) {
-    let res = Math.floor((Math.random() * 3))
-    sum[res]++;
-}
-console.log(sum);
+// let sum = [0, 0, 0, 0];
+// for(let i = 0; i < 5000; i++) {
+//     let res = Math.floor((Math.random() * 3))
+//     sum[res]++;
+// }
+// console.log(sum);
 
 
 // function waitPromise(dt)  {
@@ -35,9 +35,9 @@ console.log(sum);
 // console.log(typeof(s));
 // console.log(typeof(ss));
 
-// let ct = "<nyt index='123'/><nyt index='123'/>";
-// let res = ct.match(/index='(.*?)'/)[1];
-// console.log(res);
+let ct = "<fmod event='123' />";
+let res = ct.match(/<fmod event='(.*?)'.*\/>/)[0];
+console.log(res);
 
 // let c = Promise.resolve('1')
 // .then(s=>{

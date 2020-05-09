@@ -1796,14 +1796,32 @@ class Scene2 extends BaseScene {
         for(let i = 0; i < dialog.length; i++) {
             let sentenceRaw = dialog[i];
             // console.log(sentenceRaw);
-            let sub = s.addSubtitleAction(this.subtitle, ()=>{
-                let ret = sentenceRaw.replace(newline, '\n');
-                ret = ret.replace(usernamePlaceholder, this.getUserName());
-                return ret;
-            }, autoHide);
-            if(func) {
-                sub.setBoolCondition(func);
+            let fmodMath = sentenceRaw.match(/<fmod event='(.*?)'.*\/>/);
+            if(fmodMath) {
+                let eventName = fmodMath[1];
+                s.addAction((s, r, resolve, reject) =>{
+                    
+                    let fm = FmodManager.getInstance();
+                    fm.playOneShot(eventName, (type, event, parameters)=>{
+                        if(type == fm.FMOD.STUDIO_EVENT_CALLBACK_STOPPED) {
+                            resolve('Fmod clip play finished');
+                            // console.log('STopppedSTopppedSTopppedSTopppedSToppped: ' )
+                            // console.log(parameters)
+                            // console.log(event)
+                        }
+                    })
+                });
             }
+            else {
+                let sub = s.addSubtitleAction(this.subtitle, ()=>{
+                    let ret = sentenceRaw.replace(newline, '\n');
+                    ret = ret.replace(usernamePlaceholder, this.getUserName());
+                    return ret;
+                }, autoHide);
+                if(func) {
+                    sub.setBoolCondition(func);
+                }
+            }            
         }
     }
 

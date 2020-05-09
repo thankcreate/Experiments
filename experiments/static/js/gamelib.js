@@ -3542,13 +3542,30 @@ class Scene2 extends BaseScene {
         for (let i = 0; i < dialog.length; i++) {
             let sentenceRaw = dialog[i];
             // console.log(sentenceRaw);
-            let sub = s.addSubtitleAction(this.subtitle, () => {
-                let ret = sentenceRaw.replace(newline, '\n');
-                ret = ret.replace(usernamePlaceholder, this.getUserName());
-                return ret;
-            }, autoHide);
-            if (func) {
-                sub.setBoolCondition(func);
+            let fmodMath = sentenceRaw.match(/<fmod event='(.*?)'.*\/>/);
+            if (fmodMath) {
+                let eventName = fmodMath[1];
+                s.addAction((s, r, resolve, reject) => {
+                    let fm = FmodManager.getInstance();
+                    fm.playOneShot(eventName, (type, event, parameters) => {
+                        if (type == fm.FMOD.STUDIO_EVENT_CALLBACK_STOPPED) {
+                            resolve('Fmod clip play finished');
+                            // console.log('STopppedSTopppedSTopppedSTopppedSToppped: ' )
+                            // console.log(parameters)
+                            // console.log(event)
+                        }
+                    });
+                });
+            }
+            else {
+                let sub = s.addSubtitleAction(this.subtitle, () => {
+                    let ret = sentenceRaw.replace(newline, '\n');
+                    ret = ret.replace(usernamePlaceholder, this.getUserName());
+                    return ret;
+                }, autoHide);
+                if (func) {
+                    sub.setBoolCondition(func);
+                }
             }
         }
     }
@@ -7947,14 +7964,27 @@ class FmodManager {
      * Just use the label in the FMOD browser
      * @param eventName
      */
-    playOneShot(eventName) {
+    playOneShot(eventName, callback) {
         eventName = 'event:/' + eventName;
         let desc = {};
         let instance = {};
         this.CHECK_RESULT(this.gSystem.getEvent(eventName, desc));
         this.CHECK_RESULT(desc.val.createInstance(instance));
-        instance.val.start();
-        instance.val.release();
+        if (callback) {
+            instance.val.setCallback((type, event, parameters) => {
+                // console.log("type:"+ type);
+                callback(type, event, parameters);
+                if (type == this.FMOD.STUDIO_EVENT_CALLBACK_STOPPED) {
+                    instance.val.setCallback(null, this.FMOD.STUDIO_EVENT_CALLBACK_ALL);
+                    instance.val.release();
+                }
+            }, this.FMOD.STUDIO_EVENT_CALLBACK_ALL);
+            instance.val.start();
+        }
+        else {
+            instance.val.start();
+            instance.val.release();
+        }
         return instance;
     }
     initInstances() {
@@ -8475,7 +8505,7 @@ let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Sec
 19																
 20																
 21																
-22	New York Times	<nyt index='0'/>	-1	なに ? <hr/> New York Times? <hr/> 創！你是怎麼搞的？ <br/> 哎唷，大哥別划了！出大事了啦！ <hr/> Tron? <hr/> Tron! Are you still there?  <br/> Take a look at this. We're in BIG trouble.	Sorry, {username}. My bad. <br/>It seems like those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people to read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself in trouble. <hr/> Neither happiness nor disgust is allowed as the reaction to this page.  <hr/> Could you do me a favor and re-read the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. <br/>It seems like those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people to read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself in trouble. <hr/> Neither happiness nor disgust is allowed as the reaction to this page.  <hr/> Could you do me a favor and re-read the current page, <br/> and pretend you didn't see anything?				0	1					FirstShownNYT
+22	New York Times	<nyt index='0'/>	-1	なに ? <hr/> New York Times? <hr/> <fmod event='65537_VO1'/> <hr/> <fmod event='65537_VO2'/> <hr/> Tron? <hr/> Tron! Are you still there?  <br/> Take a look at this. We're in BIG trouble.	Sorry, {username}. My bad. <br/>It seems like those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people to read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself in trouble. <hr/> Neither happiness nor disgust is allowed as the reaction to this page.  <hr/> Could you do me a favor and re-read the current page, <br/> and pretend you didn't see anything?	Sorry, {username}. My bad. <br/>It seems like those IT guys still haven't fixed the problem.  <hr/>  You know, a group of cyber criminals hacked our system a week ago.  <hr/> They hijacked the internet traffic intermittently <br/> to force innocent people to read fake news.  <hr/> Listen, I don't want to lose my job  <br/> and you don't want to get yourself in trouble. <hr/> Neither happiness nor disgust is allowed as the reaction to this page.  <hr/> Could you do me a favor and re-read the current page, <br/> and pretend you didn't see anything?				0	1					FirstShownNYT
 23	New York Times	<nyt index='0'/>	-1	To pretend you didn't see anything, would you kindly <br/> cover your eyes to decrease the ATTENTION level? <hr/>  We can only purge this filthy page when your ATTENTION level is low.				Well done! {username}. <hr/> Now you can put your hands down<br/> and drag in the appropriate labels. <hr/> If you are still fuzzy-headed, <br/>  just hover your cursor on the newspaper title,  <br/>  and trust your gut!	Yeah, that's exactly what defines N** Y*** T****.	0	1					
 24	CNN	<cnn index='1'/>	-1	{username}, you know what to do with the new hoax.				Sorry for the mind pollution here. <br/>  Time to work!	You're learning so fast.	0	1					
 25	Прaвда	Left-wing activists gathered in front of Congress aiming to extend <span class='keyword'>weekends<span class='tooltip'>Weekends are when people spend time on meaningless entertainment instead of coming to the lab to fulfil their experiments.</span></span> to be two days. <br/><br/> They claimed that if the chief scientist doesn't satify their need, they will refuse to admit that Experiment 65537 is better than Experiment 65536.	0	Activists are active again. <br/> What say you?	No wonder they call them the Do Nothing Left.  <hr/> It makes total sense.	Incorrect. Wrong. False emotion. <hr/> You shouldn't feel bad for those activists. <hr/> They're the destabilizing factors of our society.	Would you kindly try again?									

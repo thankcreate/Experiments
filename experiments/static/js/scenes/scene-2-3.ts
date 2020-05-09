@@ -7,15 +7,26 @@ class Scene2L3 extends Scene2 {
 
     // basicNums = [26, 27, 28, 29, 30, 31, 32, 33, 34];
     // basicNums = [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-    basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-    // basicNums = [33, 34];
+    // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+    basicNums = [];
     randomNums = [];
+
+    
     get npNums(): number[]{
         if(!this.randomNums || this.randomNums.length == 0) {
             this.randomNums = [...this.basicNums];
-            for(let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 4; i++) {
-            // for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
-                this.randomNums.push(i);
+            for(let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 40; i++) {
+                let logicIndex =  i - LOOP_BEGIN_NUM;
+                // this.randomNums.push(i);
+                // let beginInsertCredit = 3;
+                let beginInsertCredit = 0;
+                
+                if(logicIndex >= beginInsertCredit) {
+                    let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;                    
+                    if(creditNum <= CREDIT_END_NUM) {
+                        this.randomNums.push(creditNum);
+                    }                    
+                }
             }
         }        
         return this.randomNums;

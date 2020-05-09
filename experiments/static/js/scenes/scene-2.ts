@@ -21,12 +21,16 @@ class Scene2 extends BaseScene {
 
     newspaperFsm: NewspaperFsm;
 
+
+    fullTimeComment = 12;
     fullTime = 4;
     // fullTime = 1;
 
     // cleanTimeLong = 2;
     cleanTimeLong = 10;
     cleanTimeShort = 2; 
+
+
 
     cleanTime = 10; // seconds
 
@@ -38,8 +42,8 @@ class Scene2 extends BaseScene {
     rssCurIndex = 0;
     rssItems: RssItem[] = [];
     
-    npHp = 2;
-    npMaxHp = 2;
+    npHp = 3;
+    npMaxHp = 3;
     
     isExercise = false;
     isAttentionChecking:boolean = false;
@@ -160,8 +164,9 @@ class Scene2 extends BaseScene {
         for(let i = 0; i < newspaperPropInfos.length; i++) {
             let info = newspaperPropInfos[i];
             $(`#prop-${i} .newspaper-prop-icon`).text(info.icon);
-            $(`#prop-${i} .tooltip`).text(info.desc);
+            $(`#prop-${i} .tooltip`).text(info.desc);           
 
+            
             $(`#prop-${i}`).css('pointer-events', 'none');
             // $(`#prop-${i}`).on('click', ()=>{this.onPropButtonClick(i)});
         }
@@ -328,6 +333,17 @@ class Scene2 extends BaseScene {
         else {
             rText = '😄';
         }
+
+        if(this.canRecieveEmotion) {
+            let num = this.getCurrentItem().index;
+            if(num >= CREDIT_BEGIN_NUM && num <= CREDIT_END_NUM - 1) {
+                rText = '❤️'
+            }
+            else if(num == COMMENT_NUM) {
+                rText = '💌'
+            }
+        }
+        
         
         ctx.fillText(rText , 0, 0);
         ctx.restore();
@@ -600,7 +616,7 @@ class Scene2 extends BaseScene {
         // console.log(timeDiff);
 
 
-        let fullTime = this.fullTime;
+        let fullTime = item.index == COMMENT_NUM ? this.fullTimeComment : this.fullTime;
         let targetJquery = null;
 
         let progress: HasValue = {value: 0};
@@ -716,6 +732,8 @@ class Scene2 extends BaseScene {
         // It still shows a full progress bar, but does nothing
         // However, for the first time player encounter the NYT,
         // we still want to invoke the wrong answer branch
+
+        this.refreshContentRelatedToProgress();
         if(this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
             return ;
         }
@@ -845,8 +863,9 @@ class Scene2 extends BaseScene {
     }
 
     setHp(num: number) {
+        // the logical hp  = shown heart + 1        
         let hpStr = '';
-        for(let i = 0; i < num; i++) {
+        for(let i = 0; i < num - 1; i++) {
             hpStr += '❤️';
         }
         for(let i = 0; i < this.npMaxHp - num; i++) {
@@ -914,7 +933,8 @@ class Scene2 extends BaseScene {
         this.expressionPromptCssBinding.update();
 
         for(let i = 0; i < this.propCssBindings.length; i++) {
-            this.showPropButtonWithIndex(false, i);
+            // TODO
+            this.showPropButtonWithIndex(true, i);
         }
     }
 
@@ -1264,12 +1284,28 @@ class Scene2 extends BaseScene {
         let ins = NewsDataManager.getInstance();
         let newsItem = ins.getByNum(num);
 
-        if(this.isRealPaper(newsItem)) {
+        if(num >= CREDIT_BEGIN_NUM && num <= CREDIT_END_NUM) {
+            this.fillNewspaperCredit(newsItem);
+        }
+        else if(this.isRealPaper(newsItem)) {
             this.fillNewspaperContentReal(newsItem);
         }
         else {
             this.fillNewspaperContentNormal(newsItem);
         }        
+    }
+
+    fillNewspaperCredit(newsItem: NewsItem) {
+        
+        if(newsItem.index == COMMENT_NUM) {
+            this.setNewspaperStyle(NewspaperStyle.COMMENT);            
+        }
+        else {
+            this.setNewspaperStyle(NewspaperStyle.RATING);            
+        }
+        
+        this.setNewspaperContent(newsItem.content);        
+        this.setNewspaperTitle(newsItem.title);
     }
 
     fillNewspaperContentReal(newsItem: NewsItem) {
@@ -1383,6 +1419,7 @@ class Scene2 extends BaseScene {
 
     npStyle: NewspaperStyle = NewspaperStyle.DEFAULT;
     setNewspaperStyle(style: NewspaperStyle) {
+        let newsItem = this.getCurrentItem();
         this.npStyle = style;
 
         let p = $('#newspaper-content-text');
@@ -1397,6 +1434,11 @@ class Scene2 extends BaseScene {
             p.css('transform', 'translate(0, -50%)')      
             
             thumb.css('display', 'none');
+
+            this.setNewspaperTitleFontSize(50);
+            this.setNewspaperContentFontSize(50);
+
+            this.setNewspaperTitleFontFamily('Georgia, serif');
         }
         else if (style == NewspaperStyle.DEFAULT) {            
             p.css('position', 'static');
@@ -1404,9 +1446,36 @@ class Scene2 extends BaseScene {
             p.css('width', '');
             p.css('top', '');
             p.css('transform', '')   
-            this.setNewspaperFontSize(16);
+            this.setNewspaperContentFontSize(16);
+            this.setNewspaperTitleFontSize(50);
+            this.setNewspaperTitleFontFamily('Georgia, serif');
 
             thumb.css('display', 'block');
+        }
+        else if(style == NewspaperStyle.RATING) {
+            p.css('position', 'absolute');
+            p.css('text-align', 'center');
+            p.css('width', '100%');
+            
+            p.css('top', '50%');
+            p.css('transform', 'translate(0, -50%)')      
+            thumb.css('display', 'none');
+    
+            this.setNewspaperTitleFontSize(45);
+            this.setNewspaperContentFontSize(55);
+            this.setNewspaperTitleFontFamily('Impact, Charcoal, sans-serif');
+        }
+        else if(style == NewspaperStyle.COMMENT) {
+            p.css('position', 'static');
+            p.css('text-align', 'inherit');
+            p.css('width', '');
+            p.css('top', '');
+            p.css('transform', '')   
+            thumb.css('display', 'none');
+    
+            this.setNewspaperTitleFontSize(45);
+            this.setNewspaperContentFontSize(20);
+            this.setNewspaperTitleFontFamily('Impact, Charcoal, sans-serif');
         }
 
     }
@@ -1421,9 +1490,19 @@ class Scene2 extends BaseScene {
         p.html(content);
     }
 
-    setNewspaperFontSize(size: number) {
+    setNewspaperContentFontSize(size: number) {
         let p = $('#newspaper-content-text');
         p.css('font-size', `${size}px`);
+    }
+
+    setNewspaperTitleFontSize(size: number) {
+        let p = $('#newspaper-title');
+        p.css('font-size', `${size}px`);
+    }
+
+    setNewspaperTitleFontFamily(fm: string) {
+        let p = $('#newspaper-title');
+        p.css('font-family',fm);        
     }
 
 
@@ -1443,7 +1522,7 @@ class Scene2 extends BaseScene {
     setCenterTextPaper(title:string, content: string, fontSize = 150) {
         this.setNewspaperStyle(NewspaperStyle.ONLY_TEXT_CENTER);
         this.setNewspaperContent(content);
-        this.setNewspaperFontSize(fontSize);
+        this.setNewspaperContentFontSize(fontSize);
         this.setNewspaperTitle(title);
     }
 /////////////////////////////////////////////////////////////////////////
@@ -1481,7 +1560,10 @@ class Scene2 extends BaseScene {
 
         // check if I need to show the prompt layer
         // Real page doesn't show propmt layer
-        if(this.isPropActivated(NewspaperPropType.Prompt) && !this.isRealPaper(item)) {
+        if(item.index >= CREDIT_BEGIN_NUM && item.index <= CREDIT_END_NUM) {
+            this.showPromptLayer(false);
+        }
+        else if(this.isPropActivated(NewspaperPropType.Prompt) && !this.isRealPaper(item)) {
             this.showPromptLayer(true);
         }
         else {
@@ -1634,13 +1716,36 @@ class Scene2 extends BaseScene {
         // implemented in subclass
     }
 
+    refreshContentRelatedToProgress() {
+        let curNum = this.getCurrentItem().index;
+        if(curNum >= CREDIT_BEGIN_NUM && curNum < CREDIT_BEGIN_NUM + 3) {
+            let st = Math.floor(this.topProgress.value * 5 + 0.2);
+            let res = '';
+            for(let i = 0; i < st; i++) {
+                res += '❤️';
+            }
+            for(let i = 0; i < 5 - st; i++) {
+                res += '🤍'
+            }
+            this.setNewspaperContent(res);
+        }
+
+        else if(curNum == COMMENT_NUM) {        
+            let fullContent = this.getCurrentItem().content;
+            fullContent += `<br/><br/>-` + this.getUserName();
+            let progressLen = Math.floor(this.topProgress.value * fullContent.length + 0.2);
+            this.setNewspaperContent(fullContent.substr(0, progressLen));        
+        }
+        
+    }
+
     initStNewspaperWithIndex(idx: number) {
         let index = idx;
         let item = this.getNewsItemFromIndex(index);
         let state = this.newspaperFsm.getStateByIndex(index)
         
         // Intro
-        console.log(idx);
+        // console.log(idx);
         this.helperAddSubtitleAction(state, item.intro, false);      
         state.addAction(s=>{
             this.canRecieveEmotion = true;
@@ -1668,6 +1773,20 @@ class Scene2 extends BaseScene {
                 this.setStrikeThroughOnEmojiIcons(false);
                                 
                 this.showExpressionPrompt(false);  
+            });
+        }
+
+        // Specific for rating 
+        if(item.index >= CREDIT_BEGIN_NUM && item.index < CREDIT_BEGIN_NUM + 3) {
+            state.setOnUpdate(s=>{
+                this.refreshContentRelatedToProgress();
+            })
+        }
+
+        // specific for comment
+        if(item.index == COMMENT_NUM) {
+            state.setOnUpdate(s=>{
+                this.refreshContentRelatedToProgress();
             });
         }
 

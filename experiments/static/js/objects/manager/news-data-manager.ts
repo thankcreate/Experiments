@@ -1,6 +1,8 @@
 enum NewspaperStyle{
     DEFAULT,
     ONLY_TEXT_CENTER,
+    RATING,
+    COMMENT,
 }
 
 enum NewsSourceType{
@@ -22,6 +24,14 @@ let LOOP_BEGIN_NUM = 1001;
 let LOOP_END_NUM = 1100;
 
 let NAOMI_PAPER_NUM = 2001;
+
+let CREDIT_BEGIN_NUM = 3001;
+let CREDIT_END_NUM = 3004;
+
+let COMMENT_NUM = 3004;
+
+
+
 
 interface NewsItem{
     index: number,

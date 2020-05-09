@@ -1,3 +1,10 @@
+
+
+let fullContent = 'Thank you, Mr. and Ms. Experiment Designer, for bringing us so much fun.'
+let progressLen = Math.floor(1 * fullContent.length + 0.2);
+let cc = fullContent.substr(0, progressLen);
+console.log(cc);
+
 // tt = [5,4,3,2,1]
 // let x  = tt.findIndex(v=>v==1);
 // console.log(typeof(x));
@@ -35,9 +42,9 @@
 // console.log(typeof(s));
 // console.log(typeof(ss));
 
-let ct = "<fmod event='123' />";
-let res = ct.match(/<fmod event='(.*?)'.*\/>/)[0];
-console.log(res);
+// let ct = "<fmod event='123' />";
+// let res = ct.match(/<fmod event='(.*?)'.*\/>/)[0];
+// console.log(res);
 
 // let c = Promise.resolve('1')
 // .then(s=>{

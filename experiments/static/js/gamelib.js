@@ -2148,6 +2148,7 @@ class Scene2L0 extends SceneTrailor {
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
+        this.fullTimeComment = 12;
         this.fullTime = 4;
         // fullTime = 1;
         // cleanTimeLong = 2;
@@ -2157,8 +2158,8 @@ class Scene2 extends BaseScene {
         this.currIndex = 0;
         this.rssCurIndex = 0;
         this.rssItems = [];
-        this.npHp = 2;
-        this.npMaxHp = 2;
+        this.npHp = 3;
+        this.npMaxHp = 3;
         this.isExercise = false;
         this.isAttentionChecking = false;
         this.topProgress = { value: 0 }; // [0, 1]
@@ -2412,6 +2413,15 @@ class Scene2 extends BaseScene {
         else {
             rText = '😄';
         }
+        if (this.canRecieveEmotion) {
+            let num = this.getCurrentItem().index;
+            if (num >= CREDIT_BEGIN_NUM && num <= CREDIT_END_NUM - 1) {
+                rText = '❤️';
+            }
+            else if (num == COMMENT_NUM) {
+                rText = '💌';
+            }
+        }
         ctx.fillText(rText, 0, 0);
         ctx.restore();
     }
@@ -2594,7 +2604,7 @@ class Scene2 extends BaseScene {
         }
         this.emotionAnalyzeFinished(res);
         // console.log(timeDiff);
-        let fullTime = this.fullTime;
+        let fullTime = item.index == COMMENT_NUM ? this.fullTimeComment : this.fullTime;
         let targetJquery = null;
         let progress = { value: 0 };
         if (res.emotion == MyEmotion.Positive) {
@@ -2675,6 +2685,7 @@ class Scene2 extends BaseScene {
         // It still shows a full progress bar, but does nothing
         // However, for the first time player encounter the NYT,
         // we still want to invoke the wrong answer branch
+        this.refreshContentRelatedToProgress();
         if (this.isRealPaper(item) && !this.isFirstShownNYT(item)) {
             return;
         }
@@ -2775,8 +2786,9 @@ class Scene2 extends BaseScene {
         this.setHp(this.npHp);
     }
     setHp(num) {
+        // the logical hp  = shown heart + 1        
         let hpStr = '';
-        for (let i = 0; i < num; i++) {
+        for (let i = 0; i < num - 1; i++) {
             hpStr += '❤️';
         }
         for (let i = 0; i < this.npMaxHp - num; i++) {
@@ -2819,7 +2831,8 @@ class Scene2 extends BaseScene {
         this.expressionPromptCssBinding.translateX = 0;
         this.expressionPromptCssBinding.update();
         for (let i = 0; i < this.propCssBindings.length; i++) {
-            this.showPropButtonWithIndex(false, i);
+            // TODO
+            this.showPropButtonWithIndex(true, i);
         }
     }
     // show the see-no-evil monkey
@@ -3100,12 +3113,25 @@ class Scene2 extends BaseScene {
     fillNewspaperContentByNum(num) {
         let ins = NewsDataManager.getInstance();
         let newsItem = ins.getByNum(num);
-        if (this.isRealPaper(newsItem)) {
+        if (num >= CREDIT_BEGIN_NUM && num <= CREDIT_END_NUM) {
+            this.fillNewspaperCredit(newsItem);
+        }
+        else if (this.isRealPaper(newsItem)) {
             this.fillNewspaperContentReal(newsItem);
         }
         else {
             this.fillNewspaperContentNormal(newsItem);
         }
+    }
+    fillNewspaperCredit(newsItem) {
+        if (newsItem.index == COMMENT_NUM) {
+            this.setNewspaperStyle(NewspaperStyle.COMMENT);
+        }
+        else {
+            this.setNewspaperStyle(NewspaperStyle.RATING);
+        }
+        this.setNewspaperContent(newsItem.content);
+        this.setNewspaperTitle(newsItem.title);
     }
     fillNewspaperContentReal(newsItem) {
         let titleSlot = $('#newspaper-title');
@@ -3195,6 +3221,7 @@ class Scene2 extends BaseScene {
         this.enableAttention(false);
     }
     setNewspaperStyle(style) {
+        let newsItem = this.getCurrentItem();
         this.npStyle = style;
         let p = $('#newspaper-content-text');
         let thumb = $('#newspaper-thumbnail');
@@ -3205,6 +3232,9 @@ class Scene2 extends BaseScene {
             p.css('top', '50%');
             p.css('transform', 'translate(0, -50%)');
             thumb.css('display', 'none');
+            this.setNewspaperTitleFontSize(50);
+            this.setNewspaperContentFontSize(50);
+            this.setNewspaperTitleFontFamily('Georgia, serif');
         }
         else if (style == NewspaperStyle.DEFAULT) {
             p.css('position', 'static');
@@ -3212,8 +3242,32 @@ class Scene2 extends BaseScene {
             p.css('width', '');
             p.css('top', '');
             p.css('transform', '');
-            this.setNewspaperFontSize(16);
+            this.setNewspaperContentFontSize(16);
+            this.setNewspaperTitleFontSize(50);
+            this.setNewspaperTitleFontFamily('Georgia, serif');
             thumb.css('display', 'block');
+        }
+        else if (style == NewspaperStyle.RATING) {
+            p.css('position', 'absolute');
+            p.css('text-align', 'center');
+            p.css('width', '100%');
+            p.css('top', '50%');
+            p.css('transform', 'translate(0, -50%)');
+            thumb.css('display', 'none');
+            this.setNewspaperTitleFontSize(45);
+            this.setNewspaperContentFontSize(55);
+            this.setNewspaperTitleFontFamily('Impact, Charcoal, sans-serif');
+        }
+        else if (style == NewspaperStyle.COMMENT) {
+            p.css('position', 'static');
+            p.css('text-align', 'inherit');
+            p.css('width', '');
+            p.css('top', '');
+            p.css('transform', '');
+            thumb.css('display', 'none');
+            this.setNewspaperTitleFontSize(45);
+            this.setNewspaperContentFontSize(20);
+            this.setNewspaperTitleFontFamily('Impact, Charcoal, sans-serif');
         }
     }
     setNewspaperTitle(title) {
@@ -3224,9 +3278,17 @@ class Scene2 extends BaseScene {
         let p = $('#newspaper-content-text');
         p.html(content);
     }
-    setNewspaperFontSize(size) {
+    setNewspaperContentFontSize(size) {
         let p = $('#newspaper-content-text');
         p.css('font-size', `${size}px`);
+    }
+    setNewspaperTitleFontSize(size) {
+        let p = $('#newspaper-title');
+        p.css('font-size', `${size}px`);
+    }
+    setNewspaperTitleFontFamily(fm) {
+        let p = $('#newspaper-title');
+        p.css('font-family', fm);
     }
     showTransparentOverlay(isShow) {
         let dt = 600;
@@ -3240,7 +3302,7 @@ class Scene2 extends BaseScene {
     setCenterTextPaper(title, content, fontSize = 150) {
         this.setNewspaperStyle(NewspaperStyle.ONLY_TEXT_CENTER);
         this.setNewspaperContent(content);
-        this.setNewspaperFontSize(fontSize);
+        this.setNewspaperContentFontSize(fontSize);
         this.setNewspaperTitle(title);
     }
     /////////////////////////////////////////////////////////////////////////
@@ -3266,7 +3328,10 @@ class Scene2 extends BaseScene {
         this.updateCleanProgressInner();
         // check if I need to show the prompt layer
         // Real page doesn't show propmt layer
-        if (this.isPropActivated(NewspaperPropType.Prompt) && !this.isRealPaper(item)) {
+        if (item.index >= CREDIT_BEGIN_NUM && item.index <= CREDIT_END_NUM) {
+            this.showPromptLayer(false);
+        }
+        else if (this.isPropActivated(NewspaperPropType.Prompt) && !this.isRealPaper(item)) {
             this.showPromptLayer(true);
         }
         else {
@@ -3397,12 +3462,32 @@ class Scene2 extends BaseScene {
     onConfirmAutoExpressionClick(yes) {
         // implemented in subclass
     }
+    refreshContentRelatedToProgress() {
+        let curNum = this.getCurrentItem().index;
+        if (curNum >= CREDIT_BEGIN_NUM && curNum < CREDIT_BEGIN_NUM + 3) {
+            let st = Math.floor(this.topProgress.value * 5 + 0.2);
+            let res = '';
+            for (let i = 0; i < st; i++) {
+                res += '❤️';
+            }
+            for (let i = 0; i < 5 - st; i++) {
+                res += '🤍';
+            }
+            this.setNewspaperContent(res);
+        }
+        else if (curNum == COMMENT_NUM) {
+            let fullContent = this.getCurrentItem().content;
+            fullContent += `<br/><br/>-` + this.getUserName();
+            let progressLen = Math.floor(this.topProgress.value * fullContent.length + 0.2);
+            this.setNewspaperContent(fullContent.substr(0, progressLen));
+        }
+    }
     initStNewspaperWithIndex(idx) {
         let index = idx;
         let item = this.getNewsItemFromIndex(index);
         let state = this.newspaperFsm.getStateByIndex(index);
         // Intro
-        console.log(idx);
+        // console.log(idx);
         this.helperAddSubtitleAction(state, item.intro, false);
         state.addAction(s => {
             this.canRecieveEmotion = true;
@@ -3427,6 +3512,18 @@ class Scene2 extends BaseScene {
                 this.enableAttention(false);
                 this.setStrikeThroughOnEmojiIcons(false);
                 this.showExpressionPrompt(false);
+            });
+        }
+        // Specific for rating 
+        if (item.index >= CREDIT_BEGIN_NUM && item.index < CREDIT_BEGIN_NUM + 3) {
+            state.setOnUpdate(s => {
+                this.refreshContentRelatedToProgress();
+            });
+        }
+        // specific for comment
+        if (item.index == COMMENT_NUM) {
+            state.setOnUpdate(s => {
+                this.refreshContentRelatedToProgress();
             });
         }
         // Purged(waiting for label to be put in)
@@ -3963,7 +4060,7 @@ class Scene2L2 extends Scene2 {
             this.setCenterTextPaper('65537', '🥺');
             this.showHp(true);
         });
-        state.addSubtitleAction(this.subtitle, () => `From now on, it's no longer exercise.\nFailed twice, you'll be kicked out of the experiment without mercy.`, false, null, null, 2000);
+        state.addSubtitleAction(this.subtitle, () => `From now on, it's no longer exercise.\nFailed three times,\n you'll be kicked out of the experiment without mercy.`, false, null, null, 2000);
         state.addAction(s => {
             this.setCenterTextPaper('65537', '🤗');
         });
@@ -4063,16 +4160,24 @@ class Scene2L3 extends Scene2 {
         super('Scene2L3');
         // basicNums = [26, 27, 28, 29, 30, 31, 32, 33, 34];
         // basicNums = [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-        this.basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-        // basicNums = [33, 34];
+        // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+        this.basicNums = [];
         this.randomNums = [];
     }
     get npNums() {
         if (!this.randomNums || this.randomNums.length == 0) {
             this.randomNums = [...this.basicNums];
-            for (let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 4; i++) {
-                // for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
-                this.randomNums.push(i);
+            for (let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 40; i++) {
+                let logicIndex = i - LOOP_BEGIN_NUM;
+                // this.randomNums.push(i);
+                // let beginInsertCredit = 3;
+                let beginInsertCredit = 0;
+                if (logicIndex >= beginInsertCredit) {
+                    let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;
+                    if (creditNum <= CREDIT_END_NUM) {
+                        this.randomNums.push(creditNum);
+                    }
+                }
             }
         }
         return this.randomNums;
@@ -8076,6 +8181,8 @@ var NewspaperStyle;
 (function (NewspaperStyle) {
     NewspaperStyle[NewspaperStyle["DEFAULT"] = 0] = "DEFAULT";
     NewspaperStyle[NewspaperStyle["ONLY_TEXT_CENTER"] = 1] = "ONLY_TEXT_CENTER";
+    NewspaperStyle[NewspaperStyle["RATING"] = 2] = "RATING";
+    NewspaperStyle[NewspaperStyle["COMMENT"] = 3] = "COMMENT";
 })(NewspaperStyle || (NewspaperStyle = {}));
 var NewsSourceType;
 (function (NewsSourceType) {
@@ -8093,6 +8200,9 @@ let REAL_LOOP_TEMPLATE_NUM = 102;
 let LOOP_BEGIN_NUM = 1001;
 let LOOP_END_NUM = 1100;
 let NAOMI_PAPER_NUM = 2001;
+let CREDIT_BEGIN_NUM = 3001;
+let CREDIT_END_NUM = 3004;
+let COMMENT_NUM = 3004;
 class NewsDataManager {
     constructor() {
         this.data = [];
@@ -8521,10 +8631,10 @@ let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Sec
 101	Lorem Ipsum	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	1													
 102	New York Times	<nyt index='6'/>	-1													
 																
-																
-																
-																
-																
+3001	Rating: Entertainment	🤍🤍🤍🤍🤍	1	Thank you, {username} <br/> Seldom of our subjects have the patience to sit here so long like you. <hr/> Would you kindly give us some feedback?	You're too kind.											
+3002	Rating: Educational	🤍🤍🤍🤍🤍	1		Many thanks.											
+3003	Rating: Procedurality	🤍🤍🤍🤍🤍	1		Much appreciated.											
+3004	Comment	Thank you, Mr. and Ms. Experiment Designer, for bringing us so much fun. <br/><br/> I really learned a lot from this educational experiment, and I do believe I have become a better person.	1	Do you have anything to say to the great experiment designers?	Oh, come on, {username} <br/> That's so sweet of you! <hr/> Thank you for your coooperation. <br/> We hope to see you soon in the near future! <br/> Bye bye!											
 																
 																
 																

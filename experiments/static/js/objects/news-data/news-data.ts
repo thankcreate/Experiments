@@ -38,10 +38,10 @@ let g_newsData1 =
 101	Lorem Ipsum	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	1													
 102	New York Times	<nyt index='6'/>	-1													
 																
-																
-																
-																
-																
+3001	Rating: Entertainment	🤍🤍🤍🤍🤍	1	Thank you, {username} <br/> Seldom of our subjects have the patience to sit here so long like you. <hr/> Would you kindly give us some feedback?	You're too kind.											
+3002	Rating: Educational	🤍🤍🤍🤍🤍	1		Many thanks.											
+3003	Rating: Procedurality	🤍🤍🤍🤍🤍	1		Much appreciated.											
+3004	Comment	Thank you, Mr. and Ms. Experiment Designer, for bringing us so much fun. <br/><br/> I really learned a lot from this educational experiment, and I do believe I have become a better person.	1	Do you have anything to say to the great experiment designers?	Oh, come on, {username} <br/> That's so sweet of you! <hr/> Thank you for your coooperation. <br/> We hope to see you soon in the near future! <br/> Bye bye!											
 																
 																
 																

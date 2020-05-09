@@ -67,7 +67,7 @@ class Scene2L2 extends Scene2 {
             this.setCenterTextPaper('65537', '🥺')
             this.showHp(true);
         })
-        state.addSubtitleAction(this.subtitle, ()=>`From now on, it's no longer exercise.\nFailed twice, you'll be kicked out of the experiment without mercy.`, false, null, null, 2000);
+        state.addSubtitleAction(this.subtitle, ()=>`From now on, it's no longer exercise.\nFailed three times,\n you'll be kicked out of the experiment without mercy.`, false, null, null, 2000);
         state.addAction(s=>{
             this.setCenterTextPaper('65537', '🤗')
         })

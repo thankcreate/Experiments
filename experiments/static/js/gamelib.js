@@ -2791,10 +2791,13 @@ class Scene2 extends BaseScene {
     setHp(num) {
         // the logical hp  = shown heart + 1        
         let hpStr = '';
-        for (let i = 0; i < num - 1; i++) {
+        let redCount = num - 1;
+        for (let i = 0; i < redCount; i++) {
             hpStr += '❤️';
         }
-        for (let i = 0; i < this.npMaxHp - num; i++) {
+        let whiteCount = this.npMaxHp - num;
+        whiteCount = Math.min(whiteCount, 2);
+        for (let i = 0; i < whiteCount; i++) {
             hpStr += '🤍';
         }
         $('#newspaper-hp-content').text(hpStr);

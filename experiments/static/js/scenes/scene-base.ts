@@ -519,10 +519,19 @@ class BaseScene extends Phaser.Scene {
         
         let state = this.mainFsm.getState("FirstMeet");
 
+     
+        state.addOnExit(s=>{
+            this.centerObject.playerInputText.promptUnderline.setVisible(false);
+        })
+
         state.addAction(s=>{
             this.centerObject.playerInputText.showTitle();            
         })
         this.sceneAddFirstMeetGreetingActinos(state);
+
+        state.addAction(s=>{
+            this.centerObject.playerInputText.promptUnderline.setVisible(true);
+        })
                     
         // Rotate the center object to normal angle   
         state.addTweenAction(this, {

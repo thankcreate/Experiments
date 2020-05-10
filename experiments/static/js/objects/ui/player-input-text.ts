@@ -72,7 +72,12 @@ class PlayerInputText {
         this.title = this.scene.add.text(- this.getAvailableWidth() / 2, -this.gapTitle,
             dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         // this.title.setWordWrapWidth(1000);
-        this.parentContainer.add(this.title);        
+        this.parentContainer.add(this.title);
+
+        this.promptUnderline = this.scene.add.text(this.title.x, this.title.y,'_', this.titleStyle).setOrigin(0, 1).setAlpha(0);
+        this.parentContainer.add(this.promptUnderline);
+        this.promptUnderline.setVisible(false);
+        this.initPromptUnderlineFlicker();
 
         let pressStyle = {
             fontSize: 18 + 'px',
@@ -98,6 +103,25 @@ class PlayerInputText {
         this.parentContainer.add(this.pressAnyToStart);        
 
         this.initAutoKeywords();
+    }
+
+    initPromptUnderlineFlicker() {
+        let timeline = this.scene.tweens.timeline({
+            targets: this.promptUnderline,
+            loop: -1,
+            tweens:[
+                {
+                    alpha: 0,
+                    duration: 10,
+                    delay: 500
+                },
+                {
+                    alpha: 1,
+                    duration: 10,
+                    delay: 500
+                }
+            ]
+        })
     }
 
     /**
@@ -335,6 +359,9 @@ class PlayerInputText {
     }
 
     textChanged() {
+        if(this.text.text.length != 0){
+            this.promptUnderline.setVisible(false);
+        }
         this.checkIfNeedAutoCompletePrompt();
         this.changedEvent.emit(this);
     }

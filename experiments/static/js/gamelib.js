@@ -338,10 +338,16 @@ class BaseScene extends Phaser.Scene {
     }
     initStFirstMeet() {
         let state = this.mainFsm.getState("FirstMeet");
+        state.addOnExit(s => {
+            this.centerObject.playerInputText.promptUnderline.setVisible(false);
+        });
         state.addAction(s => {
             this.centerObject.playerInputText.showTitle();
         });
         this.sceneAddFirstMeetGreetingActinos(state);
+        state.addAction(s => {
+            this.centerObject.playerInputText.promptUnderline.setVisible(true);
+        });
         // Rotate the center object to normal angle   
         state.addTweenAction(this, {
             targets: this.centerObject.inner,
@@ -11601,6 +11607,10 @@ class PlayerInputText {
         this.title = this.scene.add.text(-this.getAvailableWidth() / 2, -this.gapTitle, dummyTitle, this.titleStyle).setOrigin(0, 1).setAlpha(0);
         // this.title.setWordWrapWidth(1000);
         this.parentContainer.add(this.title);
+        this.promptUnderline = this.scene.add.text(this.title.x, this.title.y, '_', this.titleStyle).setOrigin(0, 1).setAlpha(0);
+        this.parentContainer.add(this.promptUnderline);
+        this.promptUnderline.setVisible(false);
+        this.initPromptUnderlineFlicker();
         let pressStyle = {
             fontSize: 18 + 'px',
             fill: '#FFFFFF',
@@ -11623,6 +11633,24 @@ class PlayerInputText {
         this.pressAnyToStart.text = 'Press any to start';
         this.parentContainer.add(this.pressAnyToStart);
         this.initAutoKeywords();
+    }
+    initPromptUnderlineFlicker() {
+        let timeline = this.scene.tweens.timeline({
+            targets: this.promptUnderline,
+            loop: -1,
+            tweens: [
+                {
+                    alpha: 0,
+                    duration: 10,
+                    delay: 500
+                },
+                {
+                    alpha: 1,
+                    duration: 10,
+                    delay: 500
+                }
+            ]
+        });
     }
     /**
      * Init here will construct two texts
@@ -11814,6 +11842,9 @@ class PlayerInputText {
         this.textChanged();
     }
     textChanged() {
+        if (this.text.text.length != 0) {
+            this.promptUnderline.setVisible(false);
+        }
         this.checkIfNeedAutoCompletePrompt();
         this.changedEvent.emit(this);
     }

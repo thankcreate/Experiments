@@ -8,6 +8,7 @@ class Paper extends Figure {
 
     // updated when called setOrigin    
     defaultY: number;
+    scrollToBottomY: number = -3300;
 
     constructor(scene: BaseScene, parentContainer: PhContainer, x: number, y: number, config: FigureConfig) {
         super(scene, parentContainer, x, y, config)
@@ -37,8 +38,9 @@ class Paper extends Figure {
 
     initScrollEvent() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {            
-            this.othersContainer.y += deltaY * -0.5;
-    
+            let newY = this.othersContainer.y + deltaY * -0.5;    
+            this.othersContainer.y = clamp(newY, this.scrollToBottomY, this.defaultY);
+            
         });
     }
 

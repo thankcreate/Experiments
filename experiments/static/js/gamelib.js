@@ -11420,6 +11420,7 @@ Like all cultural artifacts, no video game is produced in a cultural vacuum. All
 class Paper extends Figure {
     constructor(scene, parentContainer, x, y, config) {
         super(scene, parentContainer, x, y, config);
+        this.scrollToBottomY = -3300;
         this.othersContainer = this.scene.add.container(0, 0);
         this.inner.add(this.othersContainer);
         let width = config.width;
@@ -11438,7 +11439,8 @@ class Paper extends Figure {
     }
     initScrollEvent() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
-            this.othersContainer.y += deltaY * -0.5;
+            let newY = this.othersContainer.y + deltaY * -0.5;
+            this.othersContainer.y = clamp(newY, this.scrollToBottomY, this.defaultY);
         });
     }
     reset() {

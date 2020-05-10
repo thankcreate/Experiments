@@ -52,7 +52,7 @@ class Scene1L2 extends Scene1 {
             .addDelayAction(this, 1000)
             .addSubtitleAction(this.subtitle, "It's just 0, if you've taken the algorithm class.\nIt's a joke. Haha", true)
             .addDelayAction(this, 1000)
-            .addSubtitleAction(this.subtitle, "What's with the frown? I guess you don't think it's fun. Whatever.", true)              
+            .addSubtitleAction(this.subtitle, "What's with the frown?\n I guess you don't think it's fun. Whatever.", true)              
             .addSubtitleAction(this.subtitle, "As you can see, we don't have those labels anymore.", true)
             .addSubtitleAction(this.subtitle, "But I don't really think you need them.", true)
             .addSubtitleAction(this.subtitle, "It might be a little bit harder, but it also added some fun, right?", true)

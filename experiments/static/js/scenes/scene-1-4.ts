@@ -13,7 +13,7 @@ class Scene1L4 extends Scene1 {
     loadAudio() {
         super.loadAudio();
         let audioLoadConfig = {
-            bgm_turn: ["assets/audio/OpenTurn.mp3", 'openTurn']
+            bgm_turn: ["assets/audio/transistor-style.mp3", 'openTurn']
         };
         this.loadAudioWithConfig(audioLoadConfig);
     }

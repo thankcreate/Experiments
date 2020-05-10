@@ -258,4 +258,8 @@ class Scene1L1 extends Scene1 {
     getGamePlayFsmData(): IFsmData {        
         return normal_1_1;
     }
+
+    needModeSelect() {
+        return true;
+    }
 }

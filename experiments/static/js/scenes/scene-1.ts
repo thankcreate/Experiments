@@ -122,6 +122,9 @@ class Scene1 extends BaseScene {
         this.enemyManager.unFreezeAllEnemies();
     }
     
+    needModeSelect() {
+        return false;
+    }
 
     sceneAddFirstMeetGreetingActinos(s: FsmState) :FsmState {
         

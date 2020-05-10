@@ -26,6 +26,15 @@ class Scene1LPaper extends Scene1 {
         this.dwitterBKG.changeTo(1);
     }
 
+    paperBgm: Phaser.Sound.BaseSound;    
+    loadAudio() {
+        super.loadAudio();
+        let audioLoadConfig = {
+            paper_bgm: ["assets/audio/65536_BGM.mp3", 'paperBgm'],            
+        };
+        this.loadAudioWithConfig(audioLoadConfig);
+    }
+
     nextLevelBtn: Button;
     createNextLevelBtn() {
         let btn = new Button(this, this.abContainer, getLogicWidth() - 315, getLogicHeight() - 490, null, ' -> Next Experiment ');        
@@ -138,6 +147,10 @@ class Scene1LPaper extends Scene1 {
         let state = this.gamePlayFsm.getState("Default");
         state.addAction(s=>{
             this.confirmCount = 0;
+
+            setTimeout(() => {
+                this.beginCheckifBgmLoaded = true;    
+            }, 1500);
         })
         state.addEventAction('START');
     }    
@@ -178,7 +191,7 @@ class Scene1LPaper extends Scene1 {
         })
         state.addSubtitleAction(this.subtitle, s=>'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
         state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you at least 30 seconds to complete the reading.', false);        
-        state.addSubtitleAction(this.subtitle, "Why don't you do Ian Bogost a favor and read it again?", true, null, null, 2000);
+        state.addSubtitleAction(this.subtitle, "Why don't you do this Ian Bogost a favor and read it again?", true, null, null, 2000);
         state.addAction(s=>{
             this.paper.reset();
         })
@@ -274,6 +287,7 @@ class Scene1LPaper extends Scene1 {
         }        
     }
 
+    beginCheckifBgmLoaded = false;
     update(time, dt) {
         super.update(time, dt);
         if(this.inCountDown) {
@@ -285,6 +299,13 @@ class Scene1LPaper extends Scene1 {
             this.paper.checkboxImg.setInteractive();
             this.paper.checkboxDesc.setInteractive();
             this.paper.checkboxDesc.setAlpha(1);
+        }
+
+        if(this.beginCheckifBgmLoaded) {
+            if(this.paperBgm && !this.paperBgm.isPlaying) {
+                this.beginCheckifBgmLoaded = false;
+                this.playAsBgm(this.paperBgm);
+            }
         }
     }
     

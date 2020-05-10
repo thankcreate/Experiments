@@ -1541,6 +1541,12 @@ class Scene1L4 extends Scene1 {
         this.createBtns();
         this.addCallbackForFirstTimeBubble();
         // this.overlay.showReviewForm();
+        this.setBiggerScoreLabel();
+    }
+    setBiggerScoreLabel() {
+        this.hud.scoreText.setFontSize(100);
+        this.hud.scoreText.setBackgroundColor(DOLLAR_GREEN);
+        this.hud.scoreText.setColor('#ffffff');
     }
     addCallbackForFirstTimeBubble() {
         for (let i = 0; i < this.hud.rightBtns.length; i++) {
@@ -9724,6 +9730,8 @@ class CenterProgress extends Wrapper {
         this.lastTimeProgressDisplayed = this.progressDisplayed;
     }
 }
+// let DOLLAR_GREEN = '#0F9D58'
+let DOLLAR_GREEN = '#000000';
 let initScore = 0;
 let baseScore = 100;
 let normalFreq1 = 7;
@@ -9875,13 +9883,13 @@ class ClickerInfoPanel extends Wrapper {
         let h = 20;
         let l = 20;
         let gapVertical = 10;
-        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS (404): ", style);
+        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS to 404: ", style);
         this.inner.add(this.lblDpsFor404);
         h += this.lblDpsFor404.displayHeight + gapVertical;
-        this.lblAwardFor404 = this.scene.add.text(l, h, "Award (404): ", style);
+        this.lblAwardFor404 = this.scene.add.text(l, h, "Award from 404: ", style);
         this.inner.add(this.lblAwardFor404);
         h += this.lblAwardFor404.displayHeight + gapVertical;
-        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Non-404): ", style);
+        this.lblAwardForNormal = this.scene.add.text(l, h, "Award from Non-404: ", style);
         this.inner.add(this.lblAwardForNormal);
     }
     update(time, dt) {
@@ -9906,7 +9914,7 @@ class ClickerInfoPanel extends Wrapper {
     refreahDisplay() {
         this.lblDpsFor404.setText("DPS (404): " + myNum(this.valDpsFor404));
         this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '') + myNum(this.valAwardFor404));
-        this.lblAwardForNormal.setText("Award (Non-404): " + myNum(this.valAwardForNormal));
+        this.lblAwardForNormal.setText("Award (Non-404): " + (this.valAwardForNormal > 0 ? '+' : '') + myNum(this.valAwardForNormal));
     }
 }
 class Died extends Wrapper {
@@ -10834,9 +10842,12 @@ class Hud65536 extends Hud {
         }
         let style = getDefaultTextStyle();
         style.fontSize = '40px';
-        style.fill = inc > 0 ? style.fill : '#ff0000';
-        let str = (inc >= 0 ? '+' : '-') + ' $: ' + myNum(Math.abs(inc));
+        let str = " " + (inc >= 0 ? '+' : '-') + ' $: ' + myNum(Math.abs(inc)) + " ";
         let lbl = this.scene.add.text(posi.x, posi.y, str, style);
+        lbl.setColor(inc >= 10 ? '#ffffff' : '#000000');
+        if (inc > 10) {
+            lbl.setBackgroundColor(DOLLAR_GREEN);
+        }
         lbl.setOrigin(0.5, 0.5);
         // this.inner.add(lbl);
         let parentContainer = this.scene.midContainder;
@@ -10857,7 +10868,7 @@ class Hud65536 extends Hud {
         });
     }
     refreshScore() {
-        this.scoreText.text = "$core: " + myNum(this.score);
+        this.scoreText.text = " $core: " + myNum(this.score) + " ";
     }
     reset() {
         this.score = initScore;

@@ -452,9 +452,13 @@ class Hud65536 extends Hud {
 
         let style = getDefaultTextStyle();
         style.fontSize = '40px';
-        style.fill = inc > 0 ? style.fill : '#ff0000';
-        let str = (inc >= 0 ? '+' : '-') + ' $: ' + myNum(Math.abs(inc));
+        let str = " " + (inc >= 0 ? '+' : '-') + ' $: ' + myNum(Math.abs(inc)) + " ";
         let lbl = this.scene.add.text(posi.x, posi.y, str, style);
+
+        lbl.setColor(inc >= 10 ? '#ffffff': '#000000');
+        if(inc > 10) {
+            lbl.setBackgroundColor(DOLLAR_GREEN);
+        }
 
         lbl.setOrigin(0.5, 0.5);
 
@@ -480,7 +484,7 @@ class Hud65536 extends Hud {
     }
 
     refreshScore() {
-        this.scoreText.text = "$core: " + myNum(this.score);
+        this.scoreText.text = " $core: " + myNum(this.score) + " ";
     }
 
     reset() {

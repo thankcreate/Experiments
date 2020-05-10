@@ -32,15 +32,15 @@ class ClickerInfoPanel extends Wrapper<PhText> {
         let h = 20;
         let l = 20;
         let gapVertical = 10;
-        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS (404): ", style);
+        this.lblDpsFor404 = this.scene.add.text(l, h, "DPS to 404: ", style);
         this.inner.add(this.lblDpsFor404);
         
         h += this.lblDpsFor404.displayHeight + gapVertical;
-        this.lblAwardFor404 = this.scene.add.text(l, h, "Award (404): ", style);
+        this.lblAwardFor404 = this.scene.add.text(l, h, "Award from 404: ", style);
         this.inner.add(this.lblAwardFor404);
 
         h += this.lblAwardFor404.displayHeight + gapVertical;
-        this.lblAwardForNormal = this.scene.add.text(l, h, "Award (Non-404): ", style);
+        this.lblAwardForNormal = this.scene.add.text(l, h, "Award from Non-404: ", style);
         this.inner.add(this.lblAwardForNormal);
 
       
@@ -74,6 +74,6 @@ class ClickerInfoPanel extends Wrapper<PhText> {
     refreahDisplay() {
         this.lblDpsFor404.setText("DPS (404): "  + myNum(this.valDpsFor404));
         this.lblAwardFor404.setText("Award (404): " + (this.valAwardFor404 > 0 ? '+' : '')+ myNum(this.valAwardFor404));
-        this.lblAwardForNormal.setText("Award (Non-404): " + myNum(this.valAwardForNormal));
+        this.lblAwardForNormal.setText("Award (Non-404): " + (this.valAwardForNormal > 0 ? '+' : '') + myNum(this.valAwardForNormal));
     }
 }

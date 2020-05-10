@@ -9,6 +9,8 @@ interface ClickerPropInfo {
     pauseTitle?: string
 }
 
+// let DOLLAR_GREEN = '#0F9D58'
+let DOLLAR_GREEN = '#000000'
 
 let initScore = 0;
 let baseScore = 100;

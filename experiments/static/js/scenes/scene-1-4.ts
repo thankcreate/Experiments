@@ -42,6 +42,13 @@ class Scene1L4 extends Scene1 {
 
         this.addCallbackForFirstTimeBubble();
         // this.overlay.showReviewForm();
+        this.setBiggerScoreLabel();
+    }
+
+    setBiggerScoreLabel() {
+        this.hud.scoreText.setFontSize(100);
+        this.hud.scoreText.setBackgroundColor(DOLLAR_GREEN);
+        this.hud.scoreText.setColor('#ffffff');
     }
 
     addCallbackForFirstTimeBubble() {

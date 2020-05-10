@@ -15,7 +15,7 @@ class Scene2L3 extends Scene2 {
     get npNums(): number[]{
         if(!this.randomNums || this.randomNums.length == 0) {
             this.randomNums = [...this.basicNums];
-            for(let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 40; i++) {
+            for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
                 let logicIndex =  i - LOOP_BEGIN_NUM;
                 this.randomNums.push(i);                
                 let beginInsertCredit = 2;                

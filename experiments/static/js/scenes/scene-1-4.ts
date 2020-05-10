@@ -203,7 +203,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "I know what you're thinking,", true);
         state.addSubtitleAction(this.subtitle, "You think that it's me\n who put the 'Creator' button here, right?", true);
         state.addSubtitleAction(this.subtitle, "But the fact I put it there doesn't\n simply mean you have the right to use it!", true);
-        state.addSubtitleAction(this.subtitle, "Of course, it's my procedural rhetoric...", true);
+        state.addSubtitleAction(this.subtitle, "Of course, you can say that's my stupid procedural rhetoric...", true);
         state.addSubtitleAction(this.subtitle, "But, I don't know. Maybe it's just that\n I think you are different and I really count on you.", true, null, null, 3000);
         state.addSubtitleAction(this.subtitle, "Anyway, thank you for participating in my experiment.\n We are not done yet", true);
         state.addSubtitleAction(this.subtitle, "Before we move on,\n would you kindly fill in this beautiful forms for me please?", true, null, 50);
@@ -308,7 +308,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.hud.rightBtns[1];
-        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patience to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters, \n seldom of them have the patience to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
         state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
@@ -327,7 +327,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.hud.rightBtns[2];
-        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly()
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4 into 4O4?", false).finishImmediatly()
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.addOnExit(s=>{            

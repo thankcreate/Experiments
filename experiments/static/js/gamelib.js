@@ -1661,7 +1661,7 @@ class Scene1L4 extends Scene1 {
         state.addSubtitleAction(this.subtitle, "I know what you're thinking,", true);
         state.addSubtitleAction(this.subtitle, "You think that it's me\n who put the 'Creator' button here, right?", true);
         state.addSubtitleAction(this.subtitle, "But the fact I put it there doesn't\n simply mean you have the right to use it!", true);
-        state.addSubtitleAction(this.subtitle, "Of course, it's my procedural rhetoric...", true);
+        state.addSubtitleAction(this.subtitle, "Of course, you can say that's my stupid procedural rhetoric...", true);
         state.addSubtitleAction(this.subtitle, "But, I don't know. Maybe it's just that\n I think you are different and I really count on you.", true, null, null, 3000);
         state.addSubtitleAction(this.subtitle, "Anyway, thank you for participating in my experiment.\n We are not done yet", true);
         state.addSubtitleAction(this.subtitle, "Before we move on,\n would you kindly fill in this beautiful forms for me please?", true, null, 50);
@@ -1751,7 +1751,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.hud.rightBtns[1];
-        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters. \n Seldom of them have the patience to listen carefully what I'm saying", false);
+        state.addSubtitleAction(this.subtitle, "You know what, based on the feedback from previous playtesters, \n seldom of them have the patience to listen carefully what I'm saying", false);
         state.addSubtitleAction(this.subtitle, "So I decided to pause the game when I'm talking to you.", false);
         state.addSubtitleAction(this.subtitle, "An automatic typer that marks things as BAD for you.\n How nice it is!", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
@@ -1768,7 +1768,7 @@ class Scene1L4 extends Scene1 {
             targetBtn.hasNoActualClick = true;
         });
         let targetBtn = this.hud.rightBtns[2];
-        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4s into 4O4?", false).finishImmediatly();
+        state.addSubtitleAction(this.subtitle, "OK, what about we give you a choice to TURN non-4O4 into 4O4?", false).finishImmediatly();
         this.addYesOrNoAction(state, targetBtn);
         state.addFinishAction();
         state.addOnExit(s => {
@@ -1932,8 +1932,8 @@ class Scene1LPaper extends Scene1 {
             BirdManager.getInstance().print('Subject: ' + this.getUserName() + '\nReading Time: ' + tShow + ' seconds');
         });
         state.addSubtitleAction(this.subtitle, s => 'You sure?\n ' + this.getUserName() + ", I don't think you could have read it so fast.", false);
-        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you  at least 30 seconds to complete the reading.', false);
-        state.addSubtitleAction(this.subtitle, "Why don't you do me a favor and read it again?", true, null, null, 2000);
+        state.addSubtitleAction(this.subtitle, 'According to our assessement based on your previous performances,\n It should take you at least 30 seconds to complete the reading.', false);
+        state.addSubtitleAction(this.subtitle, "Why don't you do Ian Bogost a favor and read it again?", true, null, null, 2000);
         state.addAction(s => {
             this.paper.reset();
         });
@@ -1987,9 +1987,9 @@ class Scene1LPaper extends Scene1 {
         })
             .addSubtitleAction(this.subtitle, "Look at you!", false)
             .addSubtitleAction(this.subtitle, "What a stubborn face!", false, null, null, 2000)
-            .addSubtitleAction(this.subtitle, "You know, when Mitu told me to put a camera here\n to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2500)
+            .addSubtitleAction(this.subtitle, "You know, when Mitu told me to put a camera here\n to check and make sure you really read, \nI thought it's superfluous.", false, null, null, 2000)
             .addSubtitleAction(this.subtitle, "But the fact proved she's right.", false, null, null, 2000)
-            .addSubtitleAction(this.subtitle, s => "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit", false)
+            .addSubtitleAction(this.subtitle, s => "Don't worry, " + this.getUserName() + "! We have not given you up.\nIt's just that we might need to adjust the plan a little bit.", false)
             .addAction(() => {
             this.nextLevelBtn.setEnable(true, true);
             this.paper.continueBtn.setEnable(false, true);
@@ -4184,7 +4184,7 @@ class Scene2L3 extends Scene2 {
     get npNums() {
         if (!this.randomNums || this.randomNums.length == 0) {
             this.randomNums = [...this.basicNums];
-            for (let i = LOOP_BEGIN_NUM; i <= LOOP_BEGIN_NUM + 40; i++) {
+            for (let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
                 let logicIndex = i - LOOP_BEGIN_NUM;
                 this.randomNums.push(i);
                 let beginInsertCredit = 2;
@@ -11379,20 +11379,20 @@ function listenToRadio() {
 $(document).ready(() => {
     listenToRadio();
 });
-let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the prac-
-tice of using images persuasively. 23 Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric
-entails persuasion—to change opinion or action. Following the contemporary model, procedural rhetoric entails expression—to convey ideas effectively. Procedural rhetoric is a sub-
-domain of procedural authorship; its arguments are made not through the construction of words or images, but through the authorship of rules of behavior, the construction of dy-
-namic models. In computation, those rules are authored in code, through the practice of programming.
-My rationale for suggesting a new rhetorical domain is very similar to the one that motivates visual rhetoricians. Just as photography, motion graphics, moving images, and illustra-
-tions have become pervasive in contemporary society, so have computer hardware, software, and video games. Just as visual rhetoricians argue that verbal and written rhetorics inade-
-quately account for the unique properties of the visual expression, so I argue that verbal, written, and visual rhetorics inadequately account for the unique properties of procedural
-expression. A theory of procedural rhetoric is needed to make commensurate judgments about the software systems we encounter everyday and to allow a more sophisticated proce-
-dural authorship with both persuasion and expression as its goal. As a high process intensity medium, video games can beneﬁt signiﬁcantly from a study of procedural rhetoric.
-Procedural rhetoric affords a new and promising way to make claims about how things work. As I argued earlier, video games do not simply distract or entertain with empty, meaningless
-content. Rather, video games can make claims about the world. But when they do so, they do it not with oral speech, nor in writing, nor even with images. Rather, video games
-make argument with processes. Procedural rhetoric is the practice of effective persuasion and expression using processes. Since assembling rules together to describe the function
-of systems produces procedural representation, assembling particular rules that suggest a particular function of a particular system characterizes procedural rhetoric.
+let paperContent = `I suggest the name procedural rhetoric for the practice of using processes persuasively, just as verbal rhetoric is the practice of using oratory persuasively and visual rhetoric is the practice of using images persuasively. Procedural rhetoric is a general name for the practice of authoring arguments through processes. Following the classical model, procedural rhetoric entails persuasion — to change opinion or action. Following the contemporary model, procedural rhetoric entails expression — to convey ideas effectively. Procedural rhetoric is a subdomain of procedural authorship; its arguments are made not through the construction of words or images, but through the authorship of rules of behavior, the construction of dynamic models. In computation, those rules are authored in code, through the practice of programming.
+
+My rationale for suggesting a new rhetorical domain is very similar to the one that motivates visual rhetoricians. Just as photography, motion graphics, moving images, and illustrations have become pervasive in contemporary society, so have computer hardware, software, and video games. Just as visual rhetoricians argue that verbal and written rhetorics inadequately account for the unique properties of the visual expression, so I argue that verbal, written, and visual rhetorics inadequately account for the unique properties of procedural expression. A theory of procedural rhetoric is needed to make commensurate judgments about the software systems we encounter everyday and to allow a more sophisticated procedural authorship with both persuasion and expression as its goal. As a high process intensity medium, video games can beneﬁt signiﬁcantly from a study of procedural rhetoric.
+
+Procedural rhetoric affords a new and promising way to make claims about how things work. As I argued earlier, video games do not simply distract or entertain with empty, meaningless content. Rather, video games can make claims about the world. But when they do so, they do it not with oral speech, nor in writing, nor even with images. Rather, video games make argument with processes. Procedural rhetoric is the practice of effective persuasion and expression using processes. Since assembling rules together to describe the function of systems produces procedural representation, assembling particular rules that suggest a particular function of a particular system characterizes procedural rhetoric.
+
+I have argued for procedural rhetoric as a representational form, and as the speciﬁc communication practice at work in games like Animal Crossing and The McDonald’s Videogame. But to use games for learning purposes requires general approaches that might be applied to many games and many subjects. As such, it is worth sketching a few of the different ways video games can be used rhetorically, whether for design, critique, or learning.
+
+One use of procedural rhetoric is to expose and explain the hidden ways of thinking that often drive social, political, or cultural behavior. We often call such logics ideology, a term with a long and conﬂicted intellectual history. In Plato’s famous parable of the cave in the Republic, humans’ understanding of the world is likened to prisoners watching shadows cast on the wall of a cave by objects and agents passing above. The prisoners see only a ﬂawed shadow of the ideal form of the object. For Plato, the disparity between the ideal and material realms can only be reconciled through a recollection of the forms, a claim that assumes that our souls were once connected to these forms and, therefore, are also immortal. 
+
+Like all cultural artifacts, no video game is produced in a cultural vacuum. All bear the biases of their creators. Video games can help shed light on these ideological biases. Sometimes these biases are inadvertent and deeply hidden. Other times, the artifacts themselves hope to expose their creators’ biases as positive ones, but which of course can then be read in support or opposition.
+
+
+- Ian Bogost
 `;
 class Paper extends Figure {
     constructor(scene, parentContainer, x, y, config) {

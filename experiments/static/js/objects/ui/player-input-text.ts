@@ -17,6 +17,8 @@ class PlayerInputText {
     titleSize = 24;
     titleStyle: TextStyle;
 
+    promptUnderline: PhText;
+
 
     shortWords: Set<string>;
 

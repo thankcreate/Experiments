@@ -1,6 +1,8 @@
 /// <reference path="../../interface.ts" />
 
-var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
+var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice.
+
+Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `
 
 var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:
@@ -12,14 +14,26 @@ Quick, Draw! The Data: A unique doodle data set that can help developers train n
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `
 
-var aiAbout = `This experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
+var aiAbout = `Since the beginning of time, experiments have never been absent in human history. Being carried out to support, refute and validate hypothesizes, experiments provided insight into cause-and-effect, and demonstrated that everything is doomed to its own destiny.
 
-This current demo is only at progress 10% at most. 
+Ranging from chemistry, biology, and psychology, eventually experiments peaked to a new height as computer science's strength was revealed completely. While initially used to save lives from wars and to provide CS tenures and Ph.D. seats in the university, with the blessing from deep learning, A.I. experiments have shaped our society to its ultimate ideology.
+
+So long as men can breathe, or eyes can see,
+So long lives this experiment, and this gives life to thee.
 `
 
 var cautionDefault = `Once purchased this item, all you can input will be limited to "Turn" and "Bad"
 
 Click "OK"(or press "Enter") to confirm
+`
+
+
+var infoAbout = `Dwitter patterns in this game are based on the creations of the following Dwitter community designers:
+
+• Cloud
+• yonatan
+• pavel
+• KilledByAPixel
 `
 
 var economicTitle = `Hi Economists!📈`
@@ -74,6 +88,8 @@ class Overlay extends Wrapper<PhText> {
      */
     inGameDialog: Dialog;
 
+    infoDialog: Dialog;
+
     leaderboardDialog: LeaderboardDialog;
     inShow: boolean = false;
 
@@ -114,10 +130,12 @@ class Overlay extends Wrapper<PhText> {
         this.initUniDialog();
         this.initInGameDialog();
         this.initLeaderboardDialog();
+        this.initInfoDialog();
 
         this.uniDialog.hide();
         this.inGameDialog.hide();
         this.leaderboardDialog.hide();
+        this.infoDialog.hide();
         this.hide();
 
         this.initForm();
@@ -125,6 +143,29 @@ class Overlay extends Wrapper<PhText> {
     }
 
     initForm() {
+    }
+
+    initInfoDialog() {
+        this.infoDialog = new Dialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 700,
+            height: 700,
+            title: 'Info',
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
+            content: infoAbout,
+            autoHeight: true
+        });
+        this.infoDialog.setOrigin(0.5, 0.5);
+        this.infoDialog.okBtn.clickedEvent.on(() => {
+            this.hide();
+            this.infoDialog.hide();
+        });
     }
 
     initUniDialog() {
@@ -211,8 +252,8 @@ class Overlay extends Wrapper<PhText> {
     }
 
     showAiDialog() {
-        this.showFormRating(true);
-        return;
+        // this.showFormRating(true);
+        // return;
 
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
@@ -243,6 +284,13 @@ class Overlay extends Wrapper<PhText> {
         this.show();
         this.uniDialog.show();
         return this.uniDialog;
+    }
+
+    showInfoDialog() {        
+        this.infoDialog.setContent(infoAbout, 'Info');        
+        this.show();
+        this.infoDialog.show();
+        return this.infoDialog;
     }
 
 

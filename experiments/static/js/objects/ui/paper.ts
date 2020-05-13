@@ -36,7 +36,7 @@ class Paper extends Figure {
         this.defaultY = this.othersContainer.y;
     }
 
-    initScrollEvent() {
+    initScrollEvent() { 
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {            
             let newY = this.othersContainer.y + deltaY * -0.5;    
             this.othersContainer.y = clamp(newY, this.scrollToBottomY, this.defaultY);

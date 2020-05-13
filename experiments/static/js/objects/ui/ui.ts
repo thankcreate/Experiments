@@ -19,11 +19,14 @@ class UI extends Wrapper<PhText>{
         this.footerInitPosi = MakePoint(this.footer.inner);       
 
         this.leaderboardBtn = new Button(this.scene, this.inner, getLogicWidth()  - 30, 
-            phaserConfig.scale.height - 25, 'leaderboard_icon', '', undefined, undefined, false, 1, 1);
+            phaserConfig.scale.height - 25, 'circle_info', '', undefined, undefined, false, 1, 1);
         this.leaderboardBtn.image.setOrigin(1, 1);
         this.leaderboardBtn.inner.scale = 0.6
         this.leaderboardBtn.needInOutAutoAnimation = false;
         this.leaderboardBtn.needHandOnHover = true;
+
+        // 
+        // this.leaderboardBtn.inner.setVisible(false);
         anchorToRight(30, this.leaderboardBtn.inner);
     }
 

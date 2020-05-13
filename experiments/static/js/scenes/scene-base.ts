@@ -143,6 +143,7 @@ class BaseScene extends Phaser.Scene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png')
         this.load.image('footer_sep', 'assets/footer_sep.png')
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png')
+        this.load.image('circle_info', 'assets/circle_info.png')
         this.load.image('rounded_btn', 'assets/rounded_with_title_btn_90_10.png')
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.image('popup_bubble_left', 'assets/popup_bubble_left.png');
@@ -216,7 +217,8 @@ class BaseScene extends Phaser.Scene {
         });
 
         this.ui.leaderboardBtn.clickedEvent.on(() => {
-            this.overlay.showLeaderBoardDialog();
+            // this.overlay.showLeaderBoardDialog();
+            this.overlay.showInfoDialog();
         });
     }
 
@@ -754,7 +756,8 @@ class BaseScene extends Phaser.Scene {
 
             s.autoOn($(document), 'keydown', e => {
                 if (!this.overlay.isInShow() && e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
-                    s.event("BACK_TO_HOME");   // <-------------
+                    // To avoid mis press, we don't need the ESC backing anymore.
+                    // s.event("BACK_TO_HOME");   // <-------------
                 }
             });
 

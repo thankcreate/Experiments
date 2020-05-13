@@ -65,6 +65,7 @@ class BaseScene extends Phaser.Scene {
         this.load.image('footer_nyu', 'assets/footer_nyu.png');
         this.load.image('footer_sep', 'assets/footer_sep.png');
         this.load.image('leaderboard_icon', 'assets/leaderboard_icon.png');
+        this.load.image('circle_info', 'assets/circle_info.png');
         this.load.image('rounded_btn', 'assets/rounded_with_title_btn_90_10.png');
         this.load.image('popup_bubble', 'assets/popup_bubble.png');
         this.load.image('popup_bubble_left', 'assets/popup_bubble_left.png');
@@ -125,7 +126,8 @@ class BaseScene extends Phaser.Scene {
             this.overlay.showAboutDialog();
         });
         this.ui.leaderboardBtn.clickedEvent.on(() => {
-            this.overlay.showLeaderBoardDialog();
+            // this.overlay.showLeaderBoardDialog();
+            this.overlay.showInfoDialog();
         });
     }
     createCenter(parentContainer) {
@@ -533,7 +535,8 @@ class BaseScene extends Phaser.Scene {
                 this.backBtn.setEnable(true, true);
             s.autoOn($(document), 'keydown', e => {
                 if (!this.overlay.isInShow() && e.keyCode == Phaser.Input.Keyboard.KeyCodes.ESC) {
-                    s.event("BACK_TO_HOME"); // <-------------
+                    // To avoid mis press, we don't need the ESC backing anymore.
+                    // s.event("BACK_TO_HOME");   // <-------------
                 }
             });
             // Delegates
@@ -11058,7 +11061,9 @@ let newspaperPropInfos = [
     { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: 'Auto expression', activated: false },
 ];
 /// <reference path="../../interface.ts" />
-var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice. Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
+var nyuAbout = `NYU Game Center is the Department of Game Design at the New York University Tisch School of the Arts. It is dedicated to the exploration of games as a cultural form and game design as creative practice.
+
+Our approach to the study of games is based on a simple idea: games matter. Just like other cultural forms – music, film, literature, painting, dance, theater – games are valuable for their own sake. Games are worth studying, not merely as artifacts of advanced digital technology, or for their potential to educate, or as products within a thriving global industry, but in and of themselves, as experiences that entertain us, move us, explore complex topics, communicate profound ideas, and illuminate elusive truths about ourselves, the world around us, and each other.
 `;
 var googleAbout = `Experiment 65536 is made with the help of the following solutions from Google:
 
@@ -11068,13 +11073,23 @@ Quick, Draw! The Data: A unique doodle data set that can help developers train n
 
 Google Cloud Text-to-Speech API (WaveNet): Applies groundbreaking research in speech synthesis (WaveNet) and Google's powerful neural networks to deliver high-fidelity audio
 `;
-var aiAbout = `This experiment is a prospect study for a thesis project at NYU Game Center. It aims to explore how the latest AI tech can help to build a game feel. The experiment is more focused on the concept of games for AI, rather than AI for games.
+var aiAbout = `Since the beginning of time, experiments have never been absent in human history. Being carried out to support, refute and validate hypothesizes, experiments provided insight into cause-and-effect, and demonstrated that everything is doomed to its own destiny.
 
-This current demo is only at progress 10% at most. 
+Ranging from chemistry, biology, and psychology, eventually experiments peaked to a new height as computer science's strength was revealed completely. While initially used to save lives from wars and to provide CS tenures and Ph.D. seats in the university, with the blessing from deep learning, A.I. experiments have shaped our society to its ultimate ideology.
+
+So long as men can breathe, or eyes can see,
+So long lives this experiment, and this gives life to thee.
 `;
 var cautionDefault = `Once purchased this item, all you can input will be limited to "Turn" and "Bad"
 
 Click "OK"(or press "Enter") to confirm
+`;
+var infoAbout = `Dwitter patterns in this game are based on the creations of the following Dwitter community designers:
+
+• Cloud
+• yonatan
+• pavel
+• KilledByAPixel
 `;
 var economicTitle = `Hi Economists!📈`;
 var economicAbout = `This is the 4th level of my thesis game, so we need a little bit of context here.
@@ -11112,9 +11127,11 @@ class Overlay extends Wrapper {
         this.initUniDialog();
         this.initInGameDialog();
         this.initLeaderboardDialog();
+        this.initInfoDialog();
         this.uniDialog.hide();
         this.inGameDialog.hide();
         this.leaderboardDialog.hide();
+        this.infoDialog.hide();
         this.hide();
         this.initForm();
     }
@@ -11122,6 +11139,28 @@ class Overlay extends Wrapper {
         return Overlay.instance;
     }
     initForm() {
+    }
+    initInfoDialog() {
+        this.infoDialog = new Dialog(this.scene, this.inner, 0, 0, {
+            fillColor: 0xbbbbbb,
+            lineColor: 0x000000,
+            lineWidth: 6,
+            padding: 16,
+            width: 700,
+            height: 700,
+            title: 'Info',
+            titleContentGap: 40,
+            contentPadding: 60,
+            contentBtnGap: 30,
+            btnToBottom: 65,
+            content: infoAbout,
+            autoHeight: true
+        });
+        this.infoDialog.setOrigin(0.5, 0.5);
+        this.infoDialog.okBtn.clickedEvent.on(() => {
+            this.hide();
+            this.infoDialog.hide();
+        });
     }
     initUniDialog() {
         this.uniDialog = new Dialog(this.scene, this.inner, 0, 0, {
@@ -11202,8 +11241,8 @@ class Overlay extends Wrapper {
         this.show();
     }
     showAiDialog() {
-        this.showFormRating(true);
-        return;
+        // this.showFormRating(true);
+        // return;
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
         this.uniDialog.show();
@@ -11229,6 +11268,12 @@ class Overlay extends Wrapper {
         this.show();
         this.uniDialog.show();
         return this.uniDialog;
+    }
+    showInfoDialog() {
+        this.infoDialog.setContent(infoAbout, 'Info');
+        this.show();
+        this.infoDialog.show();
+        return this.infoDialog;
     }
     showLeaderBoardDialog() {
         this.leaderboardDialog.setContentItems(LeaderboardManager.getInstance().items, "Leaderboard");
@@ -12757,11 +12802,13 @@ class UI extends Wrapper {
         let footerMarginLeft = 30;
         this.footer = new Footer(this.scene, this.inner, footerMarginLeft, phaserConfig.scale.height - footerMarginBottom, 100);
         this.footerInitPosi = MakePoint(this.footer.inner);
-        this.leaderboardBtn = new Button(this.scene, this.inner, getLogicWidth() - 30, phaserConfig.scale.height - 25, 'leaderboard_icon', '', undefined, undefined, false, 1, 1);
+        this.leaderboardBtn = new Button(this.scene, this.inner, getLogicWidth() - 30, phaserConfig.scale.height - 25, 'circle_info', '', undefined, undefined, false, 1, 1);
         this.leaderboardBtn.image.setOrigin(1, 1);
         this.leaderboardBtn.inner.scale = 0.6;
         this.leaderboardBtn.needInOutAutoAnimation = false;
         this.leaderboardBtn.needHandOnHover = true;
+        // 
+        // this.leaderboardBtn.inner.setVisible(false);
         anchorToRight(30, this.leaderboardBtn.inner);
     }
     gotoGame(mode) {

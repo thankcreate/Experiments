@@ -309,6 +309,12 @@ class BaseScene extends Phaser.Scene {
 
         // initVoiceType
         this.initVoiceType();
+
+
+
+        // this.centerObject.inner.setVisible(false);
+        // this.dwitterCenter.inner.setVisible(false);
+        // this.dwitterBKG.inner.setVisible(false);
     }
 
     createHud(parentContainer: PhContainer) {

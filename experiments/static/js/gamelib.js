@@ -484,7 +484,10 @@ class BaseScene extends Phaser.Scene {
             .addFinishAction();
     }
     sceneAddModeStartAction(s) {
-        s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!'; }, true, null, null, 1);
+        // TODO: Showcase
+        s.addSubtitleAction(this.subtitle, s => { return 'Showcase' + ' mode, start!'; }, true, null, null, 1);
+        // s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
+        //     , true, null, null, 1)
         return s;
     }
     needChangeUiWhenIntoGame() {
@@ -3878,7 +3881,8 @@ class Scene2L1 extends Scene2 {
         super('Scene2L1');
     }
     get npNums() {
-        return [0, 1, 2, 3, 4, 5, 6];
+        // return [0, 1, 2, 3, 4, 5, 6];
+        return [0, 1];
     }
     create() {
         super.create();
@@ -3904,7 +3908,7 @@ class Scene2L1 extends Scene2 {
         // this.initStNewspaper3();
         // this.initStNewspaper4();
         // this.initStNewspaper5();
-        this.initStNewspaper6();
+        this.initStNewspaperEnd();
         this.updateObjects.push(this.newspaperFsm);
     }
     getGamePlayFsmData() {
@@ -3932,15 +3936,29 @@ class Scene2L1 extends Scene2 {
         state.addAction(s => {
             this.setCenterTextPaper('65536 Sucks', '😣');
         });
-        state.addSubtitleAction(this.subtitle, () => `I do understand what it means\n to come through the annoying Experiment 65536.`, false);
+        state.addSubtitleAction(this.subtitle, () => `I do understand what it means\n to come through the tedious Experiment 65536.`, false);
+        // TODO: Showcase
         state.addAction(s => {
-            this.setCenterTextPaper('Procedurality👎', '🙃');
+            this.setCenterTextPaper('65536 Sucks', '😱');
         });
-        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
+        state.addSubtitleAction(this.subtitle, () => `And, you know, \n The Great Robert Yang only gave us 10 minutes! 10 minutes!`, false);
         state.addAction(s => {
-            this.setCenterTextPaper('65537', '🤗');
+            this.setCenterTextPaper('65536 Sucks', '😚');
         });
-        state.addSubtitleAction(this.subtitle, () => `But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease.`, false);
+        state.addSubtitleAction(this.subtitle, () => `Hence, I have skipped 65536 entirely \n and compressed 65537 to be VERY VERY SHORT for the showcase`, false);
+        state.addAction(s => {
+            this.setCenterTextPaper('65536 Sucks', '🤗');
+        });
+        state.addSubtitleAction(this.subtitle, () => `I hope you can still learn something from our experiment.`, false);
+        state.addSubtitleAction(this.subtitle, () => `All you need is just providing your natural reaction with ease.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('Procedurality👎', '🙃')
+        // })
+        // state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '🤗')
+        // })
+        // state.addSubtitleAction(this.subtitle, ()=>`But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease.`, false);
         state.addFinishAction();
     }
     initStNewspaper0() {
@@ -4025,8 +4043,9 @@ class Scene2L1 extends Scene2 {
         wrong.addSubtitleAction(this.subtitle, () => `Could you try it again for me?`, true);
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
-    initStNewspaper6() {
-        let index = 6;
+    initStNewspaperEnd() {
+        let index = this.npNums.length - 1;
+        ;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);
         end.addAction(s => {
@@ -4034,21 +4053,33 @@ class Scene2L1 extends Scene2 {
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);
-            this.setCenterTextPaper('65537', '🤑');
-        });
-        end.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true);
-        end.addAction(s => {
-            this.setCenterTextPaper('65537', '🧐');
-        });
-        end.addSubtitleAction(this.subtitle, `Shortage is impossible to occur after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true);
-        end.addAction(s => {
-            this.setCenterTextPaper('65537', '😍');
-        });
-        end.addSubtitleAction(this.subtitle, () => `But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true);
-        end.addAction(s => {
             this.setCenterTextPaper('65537', '😀');
         });
-        end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true);
+        // end.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true)
+        // end.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '🧐');
+        // });
+        // end.addSubtitleAction(this.subtitle, `Shortage is impossible to occur after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true)
+        // end.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😍');
+        // });
+        // end.addSubtitleAction(this.subtitle, ()=>`But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true)
+        // end.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😀');
+        // });
+        end.addAction(s => {
+            this.setCenterTextPaper('65537', '🥰');
+        });
+        end.addSubtitleAction(this.subtitle, `Great, you've already learned how to do the experiment`, true);
+        end.addAction(s => {
+            this.setCenterTextPaper('65537', '🤐');
+        });
+        end.addSubtitleAction(this.subtitle, `But you know what? Robert just nudged me to stop\n playing with the AI voiceover and cut it short.`, true);
+        end.addAction(s => {
+            this.setCenterTextPaper('65537', '😡');
+        });
+        end.addSubtitleAction(this.subtitle, `I think he's VERY right! \nLemme transport you to the final stage directly.`, true);
+        // end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
         end.addDelayAction(this, 1000);
         end.addAction(s => {
             this.getController().gotoNextScene();
@@ -8652,7 +8683,7 @@ class SpeechManager {
     }
 }
 let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	SecondChanceIntro	PurgedIntro	LabelCorrectIntro	Style	Reaction (0:emoji, 1:cam)	Thumbnail1	Thumbnail2	Ambience	Needloop	Tag
-0	TIMES POST	Real gross domestic product (GDP) increased 30 percent in the fourth quarter of 2019, according to the third estimate released by the Bureau of Economic Analysis. The sharp growth is thanks to the MOST-NSF and the experiments they conducted.	1							0	0	portrait-1.jpg		ambience-1	1	
+0	TIMES POST	Real gross domestic product (GDP) increased 30 percent in the fourth quarter of 2019, according to the third estimate released by the Bureau of Economic Analysis.  <br/><br/> The sharp growth is thanks to the MOST-NSF and the experiments they conducted.	1							0	0	portrait-1.jpg		ambience-1	1	
 1	Прaвда	A group of escaped ex-inmates assaulted innocent scientists and damaged facilities in an experiment lab yesterday.  <br/><br/> Алексей Викторович, a spokesman for the attorney general’s office, said they will be soon put back behind bars on related charges.	0							0	0	portrait-2.jpg		ambience-2	1	
 2	YES, MINISTER	According to the GOCO's (Government-owned, Contractor-operated) daily briefing, five more experiment labs will soon be completed.	1	Just relax and show your most natural reaction <br/> to the news articles. <hr/> If you feel like smiling, <br/> please make sure to draw back your lips <br/>  so as to show your TEETH clearly on the camera.	Haha, {username}. Labs and experiments are the best, right?	Why would someone hate to see more labs built? <hr/> I guess {username} wants to try again.	If you feel like smiling, <br/>please make sure to draw back your lips  <br/> so as to show your TEETH clearly on the camera.			0	1	portrait-3.jpg		ambience-3	1	
 3	Justice Times	Stupid so-called iconoclasts refuse to give camera permission to the Bureau of Experiments.	0	Disgusting. Iconoclasts!<br/>So exuberant, so unavailing. <hr/> If you want to show disgusting, <br/>just FURROW YOUR BROW or WRINKLE YOUR NOSE.	You never let me down, {username}. <hr/> Iconoclasts are the cancer of our community.	No! Don't make me doubt if you are one of them. <hr/> Try again.	If you want to show disgust, <br/>just FURROW YOUR BROW or WRINKLE YOUR NOSE.			0	1	portrait-4.jpg		ambience-4	0	

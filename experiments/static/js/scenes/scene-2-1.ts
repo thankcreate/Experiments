@@ -7,7 +7,8 @@ class Scene2L1 extends Scene2 {
     }
     
     get npNums(): number[]{
-        return [0, 1, 2, 3, 4, 5, 6];
+        // return [0, 1, 2, 3, 4, 5, 6];
+        return [0, 1]
     }
 
     create() {        
@@ -43,7 +44,7 @@ class Scene2L1 extends Scene2 {
         // this.initStNewspaper3();
         // this.initStNewspaper4();
         // this.initStNewspaper5();
-        this.initStNewspaper6();
+        this.initStNewspaperEnd();
         this.updateObjects.push(this.newspaperFsm);
     }
 
@@ -72,7 +73,7 @@ class Scene2L1 extends Scene2 {
 
     initStNewspaperDefault() {
         let state = this.newspaperFsm.getDefaultState();        
-
+        
         state.addAction(s=>{
             this.setCenterTextPaper('Welcome', '😅')
         })
@@ -80,15 +81,32 @@ class Scene2L1 extends Scene2 {
         state.addAction(s=>{
             this.setCenterTextPaper('65536 Sucks', '😣')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`I do understand what it means\n to come through the annoying Experiment 65536.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`I do understand what it means\n to come through the tedious Experiment 65536.`, false);
+        
+        // TODO: Showcase
         state.addAction(s=>{
-            this.setCenterTextPaper('Procedurality👎', '🙃')
+            this.setCenterTextPaper('65536 Sucks', '😱')
         })
-        state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`And, you know, \n The Great Robert Yang only gave us 10 minutes! 10 minutes!`, false);
+
         state.addAction(s=>{
-            this.setCenterTextPaper('65537', '🤗')
+            this.setCenterTextPaper('65536 Sucks', '😚')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`Hence, I have skipped 65536 entirely \n and compressed 65537 to be VERY VERY SHORT for the showcase`, false);
+        
+        state.addAction(s=>{
+            this.setCenterTextPaper('65536 Sucks', '🤗')
+        })
+        state.addSubtitleAction(this.subtitle, ()=>`I hope you can still learn something from our experiment.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`All you need is just providing your natural reaction with ease.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('Procedurality👎', '🙃')
+        // })
+        // state.addSubtitleAction(this.subtitle, `Those nerds are so obsessed with their stupid Procedural Rhetoric, \nbut have forgotten the subject experience completely.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '🤗')
+        // })
+        // state.addSubtitleAction(this.subtitle, ()=>`But trust me, ${this.getUserName()}. \nNo hassle on the compulsive typing is needed here in 65537 anymore. \nAll you need is just providing your natural reaction with ease.`, false);
 
 
         state.addFinishAction();
@@ -193,8 +211,9 @@ class Scene2L1 extends Scene2 {
     }
 
 
-    initStNewspaper6() {
-        let index = 6;
+    initStNewspaperEnd() {
+        
+        let index = this.npNums.length - 1;;
         let state = this.newspaperFsm.getStateByIndex(index)
         
         let end = this.newspaperFsm.getStateEndByIndex(index);
@@ -204,21 +223,36 @@ class Scene2L1 extends Scene2 {
             this.showCam(false);
             this.hideResult();
             this.showTransparentOverlay(false);
-            this.setCenterTextPaper('65537', '🤑');           
+            this.setCenterTextPaper('65537', '😀');           
         });
-        end.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true)
+        // end.addSubtitleAction(this.subtitle, `No worries. Food price is fine.\nWe made it up.`, true)
+        // end.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '🧐');
+        // });
+        // end.addSubtitleAction(this.subtitle, `Shortage is impossible to occur after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true)
+        // end.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😍');
+        // });
+        // end.addSubtitleAction(this.subtitle, ()=>`But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true)
+        // end.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😀');
+        // });
+
         end.addAction(s=>{
-            this.setCenterTextPaper('65537', '🧐');
+            this.setCenterTextPaper('65537', '🥰');
         });
-        end.addSubtitleAction(this.subtitle, `Shortage is impossible to occur after the experiments were invented,\nand we just want to confirm you've get accustomed to our experiment`, true)
+        end.addSubtitleAction(this.subtitle, `Great, you've already learned how to do the experiment`, true)
         end.addAction(s=>{
-            this.setCenterTextPaper('65537', '😍');
+            this.setCenterTextPaper('65537', '🤐');
         });
-        end.addSubtitleAction(this.subtitle, ()=>`But I think someone as smart as ${this.getUserName()} must have realized the trick already`, true)
+        end.addSubtitleAction(this.subtitle, `But you know what? Robert just nudged me to stop\n playing with the AI voiceover and cut it short.`, true)
         end.addAction(s=>{
-            this.setCenterTextPaper('65537', '😀');
+            this.setCenterTextPaper('65537', '😡');
         });
-        end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
+        end.addSubtitleAction(this.subtitle, `I think he's VERY right! \nLemme transport you to the final stage directly.`, true)
+        
+
+        // end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
         end.addDelayAction(this, 1000)
         end.addAction(s=>{                        
             this.getController().gotoNextScene();

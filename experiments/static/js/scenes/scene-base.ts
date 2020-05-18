@@ -693,8 +693,11 @@ class BaseScene extends Phaser.Scene {
     }
 
     sceneAddModeStartAction(s: FsmState) : FsmState {
-        s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
+        // TODO: Showcase
+        s.addSubtitleAction(this.subtitle, s => { return 'Showcase' + ' mode, start!' }
             , true, null, null, 1)
+        // s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
+        //     , true, null, null, 1)
         return s;
     }
 

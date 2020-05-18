@@ -7,9 +7,9 @@ class Scene2L3 extends Scene2 {
 
     // basicNums = [26, 27, 28, 29, 30, 31, 32, 33, 34];
     // basicNums = [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-    basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
+    // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
     // basicNums = [29, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-    // basicNums = [];
+    basicNums = [];
     randomNums = [];
 
     
@@ -19,7 +19,7 @@ class Scene2L3 extends Scene2 {
             for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
                 let logicIndex =  i - LOOP_BEGIN_NUM;
                 this.randomNums.push(i);                
-                let beginInsertCredit = 2;                
+                let beginInsertCredit = 0;                
                 if(logicIndex >= beginInsertCredit) {
                     let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;                    
                     if(creditNum <= CREDIT_END_NUM) {
@@ -33,6 +33,9 @@ class Scene2L3 extends Scene2 {
 
     endingBgm1: Phaser.Sound.BaseSound;
     endingBgm2: Phaser.Sound.BaseSound;
+
+
+    
     
     loadAudio() {
         super.loadAudio();

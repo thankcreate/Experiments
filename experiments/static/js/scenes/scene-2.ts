@@ -1836,7 +1836,7 @@ class Scene2 extends BaseScene {
         })
         if(NewsDataManager.getInstance().isAlwaysWrongItem(item)) {            
             this.helperAddSubtitleAction(correct, `See? There is no trap in the prompting!`, true)
-            this.helperAddSubtitleAction(correct, `People are always skepical of my willingness to help, which makes me so sad.`, true);
+            this.helperAddSubtitleAction(correct, `People are always skeptical of my willingness to help, which makes me so sad.`, true);
         }
         else {
             this.helperAddSubtitleAction(correct, item.correctResponse, true);

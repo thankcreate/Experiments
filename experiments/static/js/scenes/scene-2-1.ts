@@ -8,7 +8,7 @@ class Scene2L1 extends Scene2 {
     
     get npNums(): number[]{
         // return [0, 1, 2, 3, 4, 5, 6];
-        return [0, 1]
+        return [0, 1, 2, 3]
     }
 
     create() {        
@@ -77,22 +77,22 @@ class Scene2L1 extends Scene2 {
         state.addAction(s=>{
             this.setCenterTextPaper('Welcome', '😅')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you a lot.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`Welcome, ${this.getUserName()}.`, false);
         state.addAction(s=>{
             this.setCenterTextPaper('65536 Sucks', '😣')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`I do understand what it means\n to come through the tedious Experiment 65536.`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`I do understand what it means\n to come through the tedious 65536 trailer`, false);
         
         // TODO: Showcase
         state.addAction(s=>{
             this.setCenterTextPaper('65536 Sucks', '😱')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`And, you know, \n The Great Robert Yang only gave us 10 minutes! 10 minutes!`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`And, you know, \n Clara only gave us 10 minutes! 10 minutes!`, false);
 
         state.addAction(s=>{
             this.setCenterTextPaper('65536 Sucks', '😚')
         })
-        state.addSubtitleAction(this.subtitle, ()=>`Hence, I have skipped 65536 entirely \n and compressed 65537 to be VERY VERY SHORT for the showcase`, false);
+        state.addSubtitleAction(this.subtitle, ()=>`Hence, I have skipped 65536 entirely \n and compressed 65537 to be VERY VERY SHORT`, false);
         
         state.addAction(s=>{
             this.setCenterTextPaper('65536 Sucks', '🤗')
@@ -187,7 +187,7 @@ class Scene2L1 extends Scene2 {
         correct.addAction(s=>{             
             this.showManualBtns(false);
         });
-        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around.", false); 
+        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff.", false); 
         
         correct.addAction(s=>{            
             this.showCam(true);            
@@ -195,7 +195,7 @@ class Scene2L1 extends Scene2 {
         correct.addAction(s=>{
             this.setCenterTextPaper('65537', '🤗')
         })   
-        correct.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier.", false);
+        correct.addSubtitleAction(this.subtitle, "With the help of this,\n we can make your life even easier.", false);
         
         correct.addFinishAction();
 
@@ -210,15 +210,20 @@ class Scene2L1 extends Scene2 {
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
 
+    getProgressBarDenominator() {
+        return this.npNums.length + 3;
+    }
 
     initStNewspaperEnd() {
         
-        let index = this.npNums.length - 1;;
+        let index = this.npNums.length - 1;
+        // let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index)
         
         let end = this.newspaperFsm.getStateEndByIndex(index);
        
         end.addAction(s=>{
+            console.log('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
             this.showLevelProgess(false);
             this.showCam(false);
             this.hideResult();
@@ -245,11 +250,11 @@ class Scene2L1 extends Scene2 {
         end.addAction(s=>{
             this.setCenterTextPaper('65537', '🤐');
         });
-        end.addSubtitleAction(this.subtitle, `But you know what? Robert just nudged me to stop\n playing with the AI voiceover and cut it short.`, true)
+        end.addSubtitleAction(this.subtitle, `But you know what? Kevin just nudged me to stop\n playing with the AI voiceover and cut it short.`, true)
         end.addAction(s=>{
             this.setCenterTextPaper('65537', '😡');
         });
-        end.addSubtitleAction(this.subtitle, `I think he's VERY right! \nLemme transport you to the final stage directly.`, true)
+        end.addSubtitleAction(this.subtitle, `I think he's VERY right! \nLemme transport you to the final level directly.`, true)
         
 
         // end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)

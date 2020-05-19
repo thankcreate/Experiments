@@ -9,25 +9,25 @@ class Scene2L3 extends Scene2 {
     // basicNums = [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
     // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
     // basicNums = [29, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-    basicNums = [];
-    randomNums = [];
+    basicNums = [22, 23, 26, 28, 29, 31, 34];
+    randomNums = [22, 23, 26, 28, 29, 31, 34, 3001, 3003, 3004];
 
     
     get npNums(): number[]{
-        if(!this.randomNums || this.randomNums.length == 0) {
-            this.randomNums = [...this.basicNums];
-            for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
-                let logicIndex =  i - LOOP_BEGIN_NUM;
-                this.randomNums.push(i);                
-                let beginInsertCredit = 0;                
-                if(logicIndex >= beginInsertCredit) {
-                    let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;                    
-                    if(creditNum <= CREDIT_END_NUM) {
-                        this.randomNums.push(creditNum);
-                    }                    
-                }
-            }
-        }        
+        // if(!this.randomNums || this.randomNums.length == 0) {
+        //     this.randomNums = [...this.basicNums];
+        //     for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+        //         let logicIndex =  i - LOOP_BEGIN_NUM;
+        //         // this.randomNums.push(i);                
+        //         let beginInsertCredit = 0;                
+        //         if(logicIndex >= beginInsertCredit) {
+        //             let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;                    
+        //             if(creditNum <= CREDIT_END_NUM) {
+        //                 this.randomNums.push(creditNum);
+        //             }                    
+        //         }
+        //     }
+        // }        
         return this.randomNums;
     }
 
@@ -126,15 +126,15 @@ class Scene2L3 extends Scene2 {
     initStNewspaperDefault() {
         let state = this.newspaperFsm.getDefaultState();
 
-        state.addAction(s=>{
-            this.setCenterTextPaper('65537', '😀')
-        })
-        state.addSubtitleAction(this.subtitle, ()=>`${this.getUserName()}, you've got the hang of it so quickly.`, false);
-        state.addAction(s=>{
-            this.setCenterTextPaper('65537', '😚')
-        })
-        state.addSubtitleAction(this.subtitle, ()=>`Just to let you know, please read the clues carefully.\n Don't make random judgements.`, false);
-        
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😀')
+        // })
+        // state.addSubtitleAction(this.subtitle, ()=>`${this.getUserName()}, you've got the hang of it so quickly.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😚')
+        // })
+        // state.addSubtitleAction(this.subtitle, ()=>`Just to let you know, please read the clues carefully.\n Don't make random judgements.`, false);
+        state.addDelayAction(this, 300);
         state.addAction(s=>{
             this.showCam(true);
         })
@@ -314,4 +314,14 @@ class Scene2L3 extends Scene2 {
         // });
         // end.addSubtitleAction(this.subtitle, ()=>`This is the end of the demo,\n thank you for playtesting!`, false)        
     }
+
+    sceneAddModeStartAction(s: FsmState) : FsmState {
+        // TODO: Showcase
+        s.addSubtitleAction(this.subtitle, s => { return 'Final level' + ', start!' }
+            , true, null, null, 1)
+        // s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
+        //     , true, null, null, 1)
+        return s;
+    }
+
 }

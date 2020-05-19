@@ -101,6 +101,7 @@ class NewsDataManager {
     loadRss(done: (rssItem: RssItem[])=>any, fail: ()=>any) {
         // let FEED_URL = 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml';
         let FEED_URL = 'https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml';
+        
         $.get(FEED_URL)
         .done(data=>{
             let ret:RssItem[] = []
@@ -115,7 +116,8 @@ class NewsDataManager {
                 // console.log("title      : " + el.find("title").text());
                 // console.log("media:content     : " + el.find("media\\:content[medium=image]").attr('url'));
                 // console.log("description: " + el.find("description").text());
-            });            
+            });        
+            ret.splice(0, 4);
             done(ret);
         })
         .fail(s=>{

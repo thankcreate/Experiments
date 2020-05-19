@@ -2111,8 +2111,8 @@ class Controller extends Phaser.Scene {
             '1-4',
             '2-0',
             '2-1',
-            '2-2',
-            '2-Paper',
+            // '2-2',
+            // '2-Paper',
             '2-3'
         ];
     }
@@ -2195,11 +2195,11 @@ class Scene2L0 extends SceneTrailor {
 class Scene2 extends BaseScene {
     constructor(config) {
         super(config);
-        this.fullTimeComment = 12;
-        this.fullTime = 4;
+        this.fullTimeComment = 8;
+        this.fullTime = 3.5;
         // fullTime = 1;
         // cleanTimeLong = 2;
-        this.cleanTimeLong = 10;
+        this.cleanTimeLong = 8;
         this.cleanTimeShort = 2;
         this.cleanTime = 10; // seconds
         this.currIndex = 0;
@@ -3617,7 +3617,7 @@ class Scene2 extends BaseScene {
         });
         if (NewsDataManager.getInstance().isAlwaysWrongItem(item)) {
             this.helperAddSubtitleAction(correct, `See? There is no trap in the prompting!`, true);
-            this.helperAddSubtitleAction(correct, `People are always skepical of my willingness to help, which makes me so sad.`, true);
+            this.helperAddSubtitleAction(correct, `People are always skeptical of my willingness to help, which makes me so sad.`, true);
         }
         else {
             this.helperAddSubtitleAction(correct, item.correctResponse, true);
@@ -3872,7 +3872,7 @@ class Scene2 extends BaseScene {
         this.overlay.showReviewWall(false);
     }
     changeNextBtnLabelToOK() {
-        $("#next-level-btn").attr('value', 'Experiment Over');
+        $("#next-level-btn").attr('value', 'Showcase Over');
     }
 }
 /// <reference path="scene-2.ts" />
@@ -3882,7 +3882,7 @@ class Scene2L1 extends Scene2 {
     }
     get npNums() {
         // return [0, 1, 2, 3, 4, 5, 6];
-        return [0, 1];
+        return [0, 1, 2, 3];
     }
     create() {
         super.create();
@@ -3932,20 +3932,20 @@ class Scene2L1 extends Scene2 {
         state.addAction(s => {
             this.setCenterTextPaper('Welcome', '😅');
         });
-        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}. \nI know. It's hard to say welcome. We owe you a lot.`, false);
+        state.addSubtitleAction(this.subtitle, () => `Welcome, ${this.getUserName()}.`, false);
         state.addAction(s => {
             this.setCenterTextPaper('65536 Sucks', '😣');
         });
-        state.addSubtitleAction(this.subtitle, () => `I do understand what it means\n to come through the tedious Experiment 65536.`, false);
+        state.addSubtitleAction(this.subtitle, () => `I do understand what it means\n to come through the tedious 65536 trailer`, false);
         // TODO: Showcase
         state.addAction(s => {
             this.setCenterTextPaper('65536 Sucks', '😱');
         });
-        state.addSubtitleAction(this.subtitle, () => `And, you know, \n The Great Robert Yang only gave us 10 minutes! 10 minutes!`, false);
+        state.addSubtitleAction(this.subtitle, () => `And, you know, \n Clara only gave us 10 minutes! 10 minutes!`, false);
         state.addAction(s => {
             this.setCenterTextPaper('65536 Sucks', '😚');
         });
-        state.addSubtitleAction(this.subtitle, () => `Hence, I have skipped 65536 entirely \n and compressed 65537 to be VERY VERY SHORT for the showcase`, false);
+        state.addSubtitleAction(this.subtitle, () => `Hence, I have skipped 65536 entirely \n and compressed 65537 to be VERY VERY SHORT`, false);
         state.addAction(s => {
             this.setCenterTextPaper('65536 Sucks', '🤗');
         });
@@ -4024,14 +4024,14 @@ class Scene2L1 extends Scene2 {
         correct.addAction(s => {
             this.showManualBtns(false);
         });
-        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff,\n and we don't like clicking around.", false);
+        correct.addSubtitleAction(this.subtitle, "But what you have just played with is old-stuff.", false);
         correct.addAction(s => {
             this.showCam(true);
         });
         correct.addAction(s => {
             this.setCenterTextPaper('65537', '🤗');
         });
-        correct.addSubtitleAction(this.subtitle, "With the help of THIS,\n we can make your life even easier.", false);
+        correct.addSubtitleAction(this.subtitle, "With the help of this,\n we can make your life even easier.", false);
         correct.addFinishAction();
         let wrong = this.newspaperFsm.getReactionStateByIndex(index, false);
         wrong.addAction((s, result, resolve, reject) => {
@@ -4043,12 +4043,16 @@ class Scene2L1 extends Scene2 {
         wrong.addSubtitleAction(this.subtitle, () => `Could you try it again for me?`, true);
         wrong.addEventAction(Fsm.SECODN_CHANCE);
     }
+    getProgressBarDenominator() {
+        return this.npNums.length + 3;
+    }
     initStNewspaperEnd() {
         let index = this.npNums.length - 1;
-        ;
+        // let index = 1;
         let state = this.newspaperFsm.getStateByIndex(index);
         let end = this.newspaperFsm.getStateEndByIndex(index);
         end.addAction(s => {
+            console.log('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk');
             this.showLevelProgess(false);
             this.showCam(false);
             this.hideResult();
@@ -4074,11 +4078,11 @@ class Scene2L1 extends Scene2 {
         end.addAction(s => {
             this.setCenterTextPaper('65537', '🤐');
         });
-        end.addSubtitleAction(this.subtitle, `But you know what? Robert just nudged me to stop\n playing with the AI voiceover and cut it short.`, true);
+        end.addSubtitleAction(this.subtitle, `But you know what? Kevin just nudged me to stop\n playing with the AI voiceover and cut it short.`, true);
         end.addAction(s => {
             this.setCenterTextPaper('65537', '😡');
         });
-        end.addSubtitleAction(this.subtitle, `I think he's VERY right! \nLemme transport you to the final stage directly.`, true);
+        end.addSubtitleAction(this.subtitle, `I think he's VERY right! \nLemme transport you to the final level directly.`, true);
         // end.addSubtitleAction(this.subtitle, `Anyway, the exercise has finished.\nLet's come to a real trial.`, true)
         end.addDelayAction(this, 1000);
         end.addAction(s => {
@@ -4245,24 +4249,24 @@ class Scene2L3 extends Scene2 {
         // basicNums = [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         // basicNums = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
         // basicNums = [29, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
-        this.basicNums = [];
-        this.randomNums = [];
+        this.basicNums = [22, 23, 26, 28, 29, 31, 34];
+        this.randomNums = [22, 23, 26, 28, 29, 31, 34, 3001, 3003, 3004];
     }
     get npNums() {
-        if (!this.randomNums || this.randomNums.length == 0) {
-            this.randomNums = [...this.basicNums];
-            for (let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
-                let logicIndex = i - LOOP_BEGIN_NUM;
-                this.randomNums.push(i);
-                let beginInsertCredit = 0;
-                if (logicIndex >= beginInsertCredit) {
-                    let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;
-                    if (creditNum <= CREDIT_END_NUM) {
-                        this.randomNums.push(creditNum);
-                    }
-                }
-            }
-        }
+        // if(!this.randomNums || this.randomNums.length == 0) {
+        //     this.randomNums = [...this.basicNums];
+        //     for(let i = LOOP_BEGIN_NUM; i <= LOOP_END_NUM; i++) {
+        //         let logicIndex =  i - LOOP_BEGIN_NUM;
+        //         // this.randomNums.push(i);                
+        //         let beginInsertCredit = 0;                
+        //         if(logicIndex >= beginInsertCredit) {
+        //             let creditNum = logicIndex - beginInsertCredit + CREDIT_BEGIN_NUM;                    
+        //             if(creditNum <= CREDIT_END_NUM) {
+        //                 this.randomNums.push(creditNum);
+        //             }                    
+        //         }
+        //     }
+        // }        
         return this.randomNums;
     }
     loadAudio() {
@@ -4336,14 +4340,15 @@ class Scene2L3 extends Scene2 {
     }
     initStNewspaperDefault() {
         let state = this.newspaperFsm.getDefaultState();
-        state.addAction(s => {
-            this.setCenterTextPaper('65537', '😀');
-        });
-        state.addSubtitleAction(this.subtitle, () => `${this.getUserName()}, you've got the hang of it so quickly.`, false);
-        state.addAction(s => {
-            this.setCenterTextPaper('65537', '😚');
-        });
-        state.addSubtitleAction(this.subtitle, () => `Just to let you know, please read the clues carefully.\n Don't make random judgements.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😀')
+        // })
+        // state.addSubtitleAction(this.subtitle, ()=>`${this.getUserName()}, you've got the hang of it so quickly.`, false);
+        // state.addAction(s=>{
+        //     this.setCenterTextPaper('65537', '😚')
+        // })
+        // state.addSubtitleAction(this.subtitle, ()=>`Just to let you know, please read the clues carefully.\n Don't make random judgements.`, false);
+        state.addDelayAction(this, 300);
         state.addAction(s => {
             this.showCam(true);
         });
@@ -4487,6 +4492,13 @@ class Scene2L3 extends Scene2 {
         //     this.setCenterTextPaper('65537', '🤩');
         // });
         // end.addSubtitleAction(this.subtitle, ()=>`This is the end of the demo,\n thank you for playtesting!`, false)        
+    }
+    sceneAddModeStartAction(s) {
+        // TODO: Showcase
+        s.addSubtitleAction(this.subtitle, s => { return 'Final level' + ', start!'; }, true, null, null, 1);
+        // s.addSubtitleAction(this.subtitle, s => { return (this.mode === GameMode.Normal ? 'Normal' : 'Zen') + ' mode, start!' }
+        //     , true, null, null, 1)
+        return s;
     }
 }
 /// <reference path="scene-2.ts" />
@@ -8337,6 +8349,7 @@ class NewsDataManager {
                 // console.log("media:content     : " + el.find("media\\:content[medium=image]").attr('url'));
                 // console.log("description: " + el.find("description").text());
             });
+            ret.splice(0, 4);
             done(ret);
         })
             .fail(s => {
@@ -8711,7 +8724,7 @@ let g_newsData1 = `	Title	Content	Answer	Intro	CorrectResponse	WrongResponse	Sec
 25	Прaвда	Left-wing activists gathered in front of Congress aiming to extend <span class='keyword'>weekends<span class='tooltip'>Weekends are when people spend time on meaningless entertainment instead of coming to the lab to fulfil their experiments.</span></span> to be two days. <br/><br/> They claimed that if the chief scientist doesn't satify their need, they will refuse to admit that Experiment 65537 is better than Experiment 65536.	0	Activists are active again. <br/> What say you?	No wonder they call them the Do Nothing Left.  <hr/> It makes total sense.	Incorrect. Wrong. False emotion. <hr/> You shouldn't feel bad for those activists. <hr/> They're the destabilizing factors of our society.	Would you kindly try again?					Activists.jpeg				
 26	Washington Post	<wp index='2'/>🙈	-1	Oh, no, not again. <br/> Our {username} is a bit tired of this red tape. <hr/> How about we give you this convenient bar to<br/> automatically protect you from harmful information?				Hope my little gadget has made your life easier.  <hr/> Here comes the solving part!	Good job.							
 27	Gamers & Workers	Tindenno's latest game Animal Intersection hit the market!  <br/><br/> Tired of your real life and wonder if there's a dream getaway? You should definitely try Animal Intersection.  <br/><br/>In this game, you can: <br/> • Build your community from scratch on a deserted island brimming with possibility. <br/> • Customize your character, home, and enjoy your life with 100% of <span class='keyword'>design freedom<span class='tooltip'>Of course, this freedom only comes if you don't violate the law.</span></span> <br/> • Hang out with friends <span class='keyword'>all over the world!<span class='tooltip'>When I say 'world', I mean it's a world where 90% of the people hate our country</span></span> .	0	100% design freedom?  <br/> Interesting. <br/>	Haha. <br/> I knew {username} will notice this game is a trap!	No!<br/> Who needs total freedom? <hr/> That's fake freedom, <br/> and fake freedom can really mislead our kids.	Would you kindly try again?									
-28	New York Times	<nyt index='3'/>🧹	-1	What's the point in keeping our subject waiting? <br/> Let's make the purging work faster.				Done!								
+28	CNN	<cnn index='3'/>🧹	-1	What's the point in keeping our subject waiting? <br/> Let's make the purging work faster.				Done!								
 29	Gamers & Workers	The total number of games legally published on Tindenno Knob Store skyrocketed by 200%! <br/><br/> Just like the saying "All experiments and no play makes Jack a dull boy." Two more games obtained their licenses from the <span class='keyword'>National Radio and Television Administration<span class='tooltip'>NRTA is responsible for selecting well-behaved games for the taxpayers to protect them from harmful electronic heroin.</span></span>, players now have triple choices.  <br/><br/> Thank you, Mr. and Ms. Experiment Designer, for bringing us so much fun.	1		What? NO. <hr/> Don't you realize the writer is trying<br/> to mock our regime in a sarcastic way? <hr/> What's with that smirk? <hr/> Why can't people be sympathetic!? <br/> We just wanted to protect you!	What? NO! <hr/> You've got any issues with our game industry policy? <hr/> Don't try to oppose the policy. <br/> We just wanted to protect you. <hr/> Why can't people understand us!?	Oh, sorry. I got carried away.<hr/> 失礼します <hr/> I guess {username} is a little upset about the judgement criteria here. <hr/> And I'm more than excited to provide this expression suggestion upgrade.									
 30	Lorem Ipsum	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  <br/><br/> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.	1													
 31	Washington Post	<wp index='4'/>🏷️	-1					I'm sure {username} doesn't feel so good <br/>about the repetitive drag and drop.  <br/> Would you kindly allow us to make it easier?								
@@ -11275,8 +11288,8 @@ class Overlay extends Wrapper {
         this.show();
     }
     showAiDialog() {
-        // this.showFormRating(true);
-        // return;
+        this.showFormRating(true);
+        return;
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();
         this.uniDialog.show();

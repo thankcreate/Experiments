@@ -252,8 +252,8 @@ class Overlay extends Wrapper<PhText> {
     }
 
     showAiDialog() {
-        // this.showFormRating(true);
-        // return;
+        this.showFormRating(true);
+        return;
 
         this.uniDialog.setContent(aiAbout, "A.I. Experiment");
         this.show();

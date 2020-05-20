@@ -2587,7 +2587,7 @@ class Scene2 extends BaseScene {
     }
     updateCleanProgressInner() {
         let showProgress = (this.curCleanProgress * 100).toFixed(0);
-        $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);
+        $('#newspaper-clean-progress').text(`⏳: ${showProgress}%`);
         this.cleanLayerCssBinding.opacity = this.curCleanProgress;
     }
     isFakePaper() {
@@ -11081,7 +11081,7 @@ var NewspaperPropType;
 })(NewspaperPropType || (NewspaperPropType = {}));
 let newspaperPropInfos = [
     { type: NewspaperPropType.SeeNoEvil, icon: '🙈', desc: 'Yellow bar on your eyes', activated: false },
-    { type: NewspaperPropType.LessCleaningTime, icon: '🧹', desc: 'Faster purging speed', activated: false },
+    { type: NewspaperPropType.LessCleaningTime, icon: '⏳', desc: 'Faster purging speed', activated: false },
     { type: NewspaperPropType.Prompt, icon: '💡', desc: 'Emotion suggestion', activated: false },
     { type: NewspaperPropType.AutoLabel, icon: '🏷️', desc: 'Auto drag and drop', activated: false },
     { type: NewspaperPropType.AutoEmotion, icon: '🤯', desc: 'Auto expression', activated: false },

@@ -527,7 +527,7 @@ class Scene2 extends BaseScene {
 
     updateCleanProgressInner() {
         let showProgress = (this.curCleanProgress * 100).toFixed(0);
-        $('#newspaper-clean-progress').text(`🧹: ${showProgress}%`);            
+        $('#newspaper-clean-progress').text(`⏳: ${showProgress}%`);            
         this.cleanLayerCssBinding.opacity = this.curCleanProgress;
     }
 

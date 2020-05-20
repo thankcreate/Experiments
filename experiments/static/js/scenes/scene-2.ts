@@ -65,6 +65,12 @@ class Scene2 extends BaseScene {
 
     create() {
         super.create();
+        
+        if(!GlobalEventManager.getInstance().isChrome()) {
+            alert('This game can only be played in Chrome');
+        }
+
+
         this.changeNextBtnLabelToOK();
         this.intiPropButtons();
         $(document).ready(()=>{
@@ -780,6 +786,10 @@ class Scene2 extends BaseScene {
         this.initCenterDwitterScale = 0.52;
         this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 2400, true);        
+        // this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 1920, 1080, true); 
+        
+        // this.dwitterBKG = new DwitterRadialBKG(this, parentContainer, 0, 0, 2400, 1400, true);       
+        // this.dwitterBKG.changeTo(1);       
     }
 
 

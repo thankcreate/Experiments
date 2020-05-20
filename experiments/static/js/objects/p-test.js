@@ -1,9 +1,13 @@
 
 
-let fullContent = 'Thank you, Mr. and Ms. Experiment Designer, for bringing us so much fun.'
-let progressLen = Math.floor(1 * fullContent.length + 0.2);
-let cc = fullContent.substr(0, progressLen);
-console.log(cc);
+let a = 3568;
+console.log(1e3);
+
+
+// let fullContent = 'Thank you, Mr. and Ms. Experiment Designer, for bringing us so much fun.'
+// let progressLen = Math.floor(1 * fullContent.length + 0.2);
+// let cc = fullContent.substr(0, progressLen);
+// console.log(cc);
 
 // tt = [5,4,3,2,1]
 // let x  = tt.findIndex(v=>v==1);

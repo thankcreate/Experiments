@@ -4,14 +4,14 @@ var monologueList = [
     'So sad, nobody likes AI',
     'Maybe I should just wait for another 5 mins?',
     'I think someone is watching me\n There must be someone!',
-    'A cursor! I found a curor!',
+    'A cursor! I found a cursor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',
     "Is it that I'm too tired?\nI thought I smelled a human being",
     "Nah, totally nothing\nI'm so bored",
     ">_<\nI'll never accomplish my task",
     'Do you like to play games?\nI want to play a game with you',
-    "That's wierd, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
-    'What time is it now?\nHow long have I been wating like this?',
+    "That's weird, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
+    'What time is it now?\nHow long have I been waiting like this?',
     "OK, I give up.\nNo one comes to play, no data, no fun",
 ];
 

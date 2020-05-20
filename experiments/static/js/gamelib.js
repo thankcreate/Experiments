@@ -2258,6 +2258,9 @@ class Scene2 extends BaseScene {
     }
     create() {
         super.create();
+        if (!GlobalEventManager.getInstance().isChrome()) {
+            alert('This game can only be played in Chrome');
+        }
         this.changeNextBtnLabelToOK();
         this.intiPropButtons();
         $(document).ready(() => {
@@ -2764,6 +2767,9 @@ class Scene2 extends BaseScene {
         this.initCenterDwitterScale = 0.52;
         this.dwitterCenter = new DwitterHoriaontalRect(this, parentContainer, 0, 0, 1920, 1080, true).setScale(this.initCenterDwitterScale);
         this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 2400, 2400, true);
+        // this.dwitterBKG = new DwitterRectBKG(this, parentContainer, 0, 0, 1920, 1080, true); 
+        // this.dwitterBKG = new DwitterRadialBKG(this, parentContainer, 0, 0, 2400, 1400, true);       
+        // this.dwitterBKG.changeTo(1);       
     }
     sceneAddFirstMeetGreetingActinos(s) {
         s.addSubtitleAction(this.subtitle, "Oh, hi there!", true)
@@ -5433,13 +5439,26 @@ class DwitterRectBKG extends Dwitter {
         this.inner.alpha = 0.03;
     }
     u(t, c, x) {
-        let k = 0;
         let i = 0;
+        let k = 0;
+        let s = 0;
+        // new
+        // let halfWidth = this.width / 2;
+        // let halfHeight = this.height / 2;
+        // let j = 0;
+        // t /= 4;
+        // c.width^=0;
+        // for(i=9;i<2e3;i+=3)s=13/(9.2-(t+i/29)%9),x.beginPath(),j=i*7+S(i*4+t+S(t)),x.lineWidth=s*s,x.arc(halfWidth,halfHeight,s*92,j,j+.1),x.stroke()        
+        // old
         c.width |= k = i = this.width / 2;
+        k = i = this.width / 2;
         t /= 4;
-        for (; i--; x.strokeRect(k - i, this.height / 2 - i, i * 2, i * 2))
+        for (; i--;) {
             x.setLineDash([t + k / i & 1 ? i / 5 : i]);
-        x.stroke();
+            x.strokeRect(k - i, this.height / 2 - i, i * 2, i * 2);
+            // x.rect(k-i,this.height/2-i,i*2,i*2)
+            // x.stroke();
+        }
     }
 }
 class DwitterHoriaontalRect extends Dwitter {
@@ -8228,6 +8247,10 @@ class GlobalEventManager {
     }
     dragStart(e) {
         this.dragStartEvent.emit(e);
+    }
+    isChrome() {
+        var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        return isChrome;
     }
 }
 function newspaperButtonTopClicked() {
@@ -12610,14 +12633,14 @@ var monologueList = [
     'So sad, nobody likes AI',
     'Maybe I should just wait for another 5 mins?',
     'I think someone is watching me\n There must be someone!',
-    'A cursor! I found a curor!',
+    'A cursor! I found a cursor!',
     'Hey~~~ Hahaha~ How are you? Mr.cursor',
     "Is it that I'm too tired?\nI thought I smelled a human being",
     "Nah, totally nothing\nI'm so bored",
     ">_<\nI'll never accomplish my task",
     'Do you like to play games?\nI want to play a game with you',
-    "That's wierd, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
-    'What time is it now?\nHow long have I been wating like this?',
+    "That's weird, I'm gonna be crazy\nLet's stop pretending I'm talking to someone",
+    'What time is it now?\nHow long have I been waiting like this?',
     "OK, I give up.\nNo one comes to play, no data, no fun",
 ];
 class Subtitle extends Wrapper {

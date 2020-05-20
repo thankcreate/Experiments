@@ -1,3 +1,6 @@
+
+
+
 class GlobalEventManager {
 
     private static instance: GlobalEventManager;    
@@ -26,6 +29,11 @@ class GlobalEventManager {
 
     dragStart(e: any) {
         this.dragStartEvent.emit(e);
+    }
+
+    isChrome() {
+        var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        return isChrome;
     }
 }
 

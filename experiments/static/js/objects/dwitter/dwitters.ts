@@ -160,15 +160,30 @@ class DwitterRectBKG extends Dwitter {
     }
 
     u(t, c: any, x) {
-        
-        let k = 0;
         let i = 0;
-        c.width|=k=i=this.width/2
+        let k = 0;
+        let s = 0;
+        
+        // new
+        // let halfWidth = this.width / 2;
+        // let halfHeight = this.height / 2;
+        // let j = 0;
+        // t /= 4;
+        // c.width^=0;
+        // for(i=9;i<2e3;i+=3)s=13/(9.2-(t+i/29)%9),x.beginPath(),j=i*7+S(i*4+t+S(t)),x.lineWidth=s*s,x.arc(halfWidth,halfHeight,s*92,j,j+.1),x.stroke()        
 
+
+        // old
+        c.width|=k=i=this.width/2                
+        k=i=this.width/2
         t/=4;
+        for(;i--;) {
+            x.setLineDash([t+k/i&1 ? i/5: i])
+            x.strokeRect(k-i,this.height/2-i,i*2,i*2)
+            // x.rect(k-i,this.height/2-i,i*2,i*2)
+            // x.stroke();
+        }       
 
-        for(;i--;x.strokeRect(k-i,this.height/2-i,i*2,i*2))x.setLineDash([t+k/i&1?i/5:i])
-        x.stroke();
     }
 }
 

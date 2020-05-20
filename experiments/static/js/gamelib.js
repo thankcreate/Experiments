@@ -12634,7 +12634,7 @@ var monologueList = [
     'Maybe I should just wait for another 5 mins?',
     'I think someone is watching me\n There must be someone!',
     'A cursor! I found a cursor!',
-    'Hey~~~ Hahaha~ How are you? Mr.cursor',
+    'Hey~~~ Hahaha~ How are you? Mr. Cursor',
     "Is it that I'm too tired?\nI thought I smelled a human being",
     "Nah, totally nothing\nI'm so bored",
     ">_<\nI'll never accomplish my task",

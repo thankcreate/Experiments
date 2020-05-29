@@ -35,6 +35,7 @@
       <th scope="col">Name</th>
       <th scope="col">Comment</th>
       <th scope="col">Score</th>
+      <th scope="col">Time</th>
       <th scope="col">Operation</th>      
     </tr>
   </thead>
@@ -44,6 +45,7 @@
       <td>{{item.username}}</td>
       <td>{{item.comment}}</td>
       <td>{{item.score}}</td>
+      <td>{{item.timestamp}}</td>
       <td>
         <a href="{{url_for('review.deleteReviewItem', item_id = item.id )}}">Delete
         </a> 

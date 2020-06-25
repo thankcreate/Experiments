@@ -32,4 +32,8 @@ class Scene2L0 extends SceneTrailor {
     getChangedToTitle() {
         return 'Project 65537'
     }
+
+    getVideoId() : string {
+        return 'z3a4KEYX6-8';
+    }
 }

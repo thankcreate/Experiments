@@ -3,17 +3,17 @@
 var s_youtubePlayer;
 var s_youtubeFinishCallback;
 function onYouTubePlayerAPIReady() {
-    s_youtubePlayer = new YT.Player('yb-player', {
-        height: '480',
-        width: '640',
-        // videoId: '7YL_-y7fc3I',
-        videoId: '4TKbcu3zoAo',
-        playerVars: { 'autoplay': 0, 'controls':0 },
-        events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange
-        }
-    });
+    // s_youtubePlayer = new YT.Player('yb-player', {
+    //     height: '480',
+    //     width: '640',
+    //     // videoId: '7YL_-y7fc3I',
+    //     videoId: '4TKbcu3zoAo',
+    //     playerVars: { 'autoplay': 0, 'controls':0 },
+    //     events: {
+    //     'onReady': onPlayerReady,
+    //     'onStateChange': onPlayerStateChange
+    //     }
+    // });
 }
 
 // autoplay video
@@ -33,7 +33,19 @@ let s_youtubeReady = false;
 /**
  * When play is called, maybe the onPlayerReady is still not called 
  */
-function playYoutubeVideo() {
+function playYoutubeVideo(videoId) {
+    s_youtubePlayer = new YT.Player('yb-player', {
+        height: '480',
+        width: '640',
+        // videoId: '7YL_-y7fc3I',
+        videoId: videoId,
+        playerVars: { 'autoplay': 0, 'controls':0 },
+        events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+        }
+    });
+    
     s_youtubeNeedPlay = true;
     if(s_youtubeReady) {
         playYoutubeVideoInner();

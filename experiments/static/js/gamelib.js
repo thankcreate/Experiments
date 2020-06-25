@@ -741,13 +741,16 @@ class SceneTrailor extends BaseScene {
         super.preload();
         this.load.image('circle', 'assets/circle.png');
     }
+    getVideoId() {
+        return 'wYtwB0dpOHc';
+    }
     create() {
         deleteAllCookie();
         super.create();
         this.createYoutubeVideo();
         this.initNormalGameFsm();
         this.anyKeyEvent.on((s) => {
-            playYoutubeVideo();
+            playYoutubeVideo(this.getVideoId());
             $('#yb-player').css('visibility', 'visible');
             this.overlay.showTempMask();
         });
@@ -823,6 +826,9 @@ class SceneTrailor extends BaseScene {
 class Scene1L0 extends SceneTrailor {
     constructor() {
         super('Scene1L0');
+    }
+    getVideoId() {
+        return 'wYtwB0dpOHc';
     }
 }
 class Scene1 extends BaseScene {
@@ -2187,6 +2193,9 @@ class Scene2L0 extends SceneTrailor {
     }
     getChangedToTitle() {
         return 'Project 65537';
+    }
+    getVideoId() {
+        return 'z3a4KEYX6-8';
     }
 }
 class Scene2 extends BaseScene {

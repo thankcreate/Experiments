@@ -1,6 +1,6 @@
 /// <reference path="scene-base.ts" />
 
-declare function playYoutubeVideo();
+declare function playYoutubeVideo(videoId);
 declare var s_youtubeFinishCallback;
 class SceneTrailor extends BaseScene {
     
@@ -13,6 +13,10 @@ class SceneTrailor extends BaseScene {
         this.load.image('circle', 'assets/circle.png');
     }
 
+    getVideoId() : string {
+        return 'wYtwB0dpOHc';
+    }
+
     create() {
         deleteAllCookie();
 
@@ -21,7 +25,7 @@ class SceneTrailor extends BaseScene {
         this.initNormalGameFsm();     
 
         this.anyKeyEvent.on((s)=>{
-            playYoutubeVideo();
+            playYoutubeVideo(this.getVideoId());
             $('#yb-player').css('visibility', 'visible');
             this.overlay.showTempMask();
         });

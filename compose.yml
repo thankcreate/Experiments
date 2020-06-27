@@ -3,9 +3,9 @@ version: '3.1'
 # Currently we only let the host visit 9001, which is the supervisor web console
 # Note that the ports under the 'expose' section have no actual effect.
 
-# The inner nginx only listen to 8080, and should be forwarded to with 'exp:8080'
+# The inner nginx only listen to 80, and should be forwarded to with 'exp:80'
 # from another container within the same 'backbone' network
-# 8080 is not accessible directly from outside
+# 80 is not accessible directly from outside
 
 services:
   exp: 
@@ -19,7 +19,7 @@ services:
     networks:
       - backbone
     expose:
-      - "8080"
+      - "80"
       - "9001"
  
 networks:

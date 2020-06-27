@@ -1,0 +1,21 @@
+version: '3.1'
+
+services:
+  exp: 
+    build: .
+    volumes:
+      - .:/app
+      - ./notebooks:/tf/notebooks      
+      - ./tron_nginx.conf:/etc/nginx/conf.d/tron_nginx.conf
+    ports:
+      - 9001:9001
+    networks:
+      - backbone
+    expose:
+      - "8080"
+      - "9001"
+ 
+networks:
+  backbone:
+    external:
+      name: backbone

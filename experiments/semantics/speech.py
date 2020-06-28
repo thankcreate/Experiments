@@ -9,7 +9,7 @@ def generateSpeechFile(inputText, identifier, api, voiceType):
     
     # voiceName = 'en-US-Wavenet-D' if voiceType == 0 else 'en-US-Wavenet-F' 
     voiceName = voiceType
-    voiceGender = texttospeech.enums.SsmlVoiceGender.NEUTRAL 
+    voiceGender = texttospeech.SsmlVoiceGender.NEUTRAL 
     # if voiceType == 0 else texttospeech.enums.SsmlVoiceGender.FEMALE
     
     md = hashlib.md5()   
@@ -35,7 +35,7 @@ def generateSpeechFile(inputText, identifier, api, voiceType):
     client = texttospeech.TextToSpeechClient()
 
     # Set the text input to be synthesized
-    synthesis_input = texttospeech.types.SynthesisInput(ssml=inputText)
+    synthesis_input = texttospeech.SynthesisInput(ssml=inputText)
 
     # Build the voice request, select the language code ("en-US") and the ssml
     # voice gender ("neutral")
@@ -45,14 +45,14 @@ def generateSpeechFile(inputText, identifier, api, voiceType):
     print('voiceName:' + voiceName)
     print('voiceGender: ' + voiceName)
 
-    voice = texttospeech.types.VoiceSelectionParams(
+    voice = texttospeech.VoiceSelectionParams(
         language_code='en-US',
         name=voiceName,
         ssml_gender=voiceGender)
 
     # Select the type of audio file you want returned
-    audio_config = texttospeech.types.AudioConfig(
-        audio_encoding=texttospeech.enums.AudioEncoding.MP3)
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3)
 
     # Perform the text-to-speech request on the text input with the selected
     # voice parameters and audio file type

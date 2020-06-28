@@ -2,6 +2,7 @@ FROM tensorflow/tensorflow:1.14.0-py3-jupyter
 
 
 WORKDIR /app
+RUN pip install --upgrade pip
 RUN pip install flask gunicorn tensorflow-hub seaborn flask-sqlalchemy flask-migrate flask-bootstrap flask-wtf
 RUN pip install --upgrade google-cloud-texttospeech 
 RUN pip install requests pillow

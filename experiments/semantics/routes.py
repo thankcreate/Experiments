@@ -12,6 +12,14 @@ def root():
     # return redirect(url_for('static', filename='index.html'))
     return send_from_directory('static', 'index.html')
 
+@bp.route('/65536')
+def to_65536():    
+    return redirect("/?level=1-0", code=301)
+
+@bp.route('/65537')
+def to_65537():    
+    return redirect("/?level=2-0", code=301)
+
 @bp.route('/hello')
 def index():    
     return "Hello world!"

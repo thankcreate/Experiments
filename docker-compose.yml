@@ -16,6 +16,7 @@ services:
       - ./tron_nginx.conf:/etc/nginx/conf.d/tron_nginx.conf
     ports:
       - 9001:9001
+      - 80:80
     networks:
       - backbone
     expose:
